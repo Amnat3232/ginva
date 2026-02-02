@@ -1,0 +1,22 @@
+[workspace]
+resolver = "2"
+members = ["programs/ginva"]
+exclude = ["programs/ginva_flash_bot"]
+
+[workspace.dependencies]
+anchor-lang = "0.29.0"
+anchor-spl = "0.29.0"
+blake3 = "=1.5.1"
+constant_time_eq = "=0.3.1"
+pyth_solana_receiver_sdk = { package = "pyth-solana-receiver-sdk", version = "0.3.0" }
+
+[profile.release]
+overflow-checks = true
+lto = "fat"
+codegen-units = 1
+[profile.release.build-override]
+opt-level = 3
+incremental = false
+codegen-units = 1
+
+

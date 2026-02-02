@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ginva Solana App</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+      .container {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      .wallet-section {
+        margin-bottom: 30px;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+      .program-section {
+        margin-bottom: 30px;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+      button {
+        background: #0047ab;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin: 5px;
+      }
+      button:hover {
+        background: #003580;
+      }
+      button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+      .info {
+        background: #e7f3ff;
+        padding: 10px;
+        border-radius: 5px;
+        margin: 10px 0;
+      }
+      .error {
+        background: #ffe7e7;
+        padding: 10px;
+        border-radius: 5px;
+        margin: 10px 0;
+        color: #cc0000;
+      }
+      .success {
+        background: #e7ffe7;
+        padding: 10px;
+        border-radius: 5px;
+        margin: 10px 0;
+        color: #006600;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🚀 Ginva Solana App</h1>
+
+      <div class="wallet-section">
+        <h2>📱 Wallet Connection</h2>
+        <button id="connectBtn">Connect Wallet</button>
+        <button id="disconnectBtn">Disconnect</button>
+        <div id="walletInfo"></div>
+      </div>
+
+      <div class="program-section">
+        <h2>📋 Program Interaction</h2>
+        <button id="initializeBtn">Initialize Program</button>
+        <button id="checkProgramBtn">Check Program</button>
+        <div id="programInfo"></div>
+      </div>
+
+      <div class="info">
+        <h3>📊 Program Information:</h3>
+        <p>
+          <strong>Program ID:</strong>
+          2QB6u5RVJv4ta9ZDDB7T7DXsDeNP3WXpt3mUgcBQGWw7
+        </p>
+        <p><strong>Network:</strong> Devnet</p>
+        <p><strong>Cluster:</strong> https://api.devnet.solana.com</p>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

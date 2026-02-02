@@ -1,0 +1,14 @@
+[package]
+name = "ginva"
+version = "2.0.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[dependencies]
+anchor-lang = { workspace = true, features = ["init-if-needed"] }
+anchor-spl = { workspace = true }
+blake3 = { workspace = true }
+constant_time_eq = { workspace = true }
+pyth_solana_receiver_sdk = { workspace = true }
