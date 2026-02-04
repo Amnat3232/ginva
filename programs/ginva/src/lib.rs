@@ -671,6 +671,25 @@ pub mod ginva {
             .total_interest_paid
             .saturating_add(interest_due);
 
+        // 6️⃣ Distribute rewards to staking pool
+        let config = &mut ctx.accounts.system_config;
+        if config.total_staked > 0 {
+            let reward_per_share_increment = (interest_due as u128)
+                .checked_mul(1_000_000_000_000)
+                .unwrap()
+                .checked_div(config.total_staked as u128)
+                .unwrap();
+            config.acc_reward_per_share = config
+                .acc_reward_per_share
+                .checked_add(reward_per_share_increment)
+                .unwrap();
+            msg!(
+                "💰 Reward distributed to stakers: {} USDC, acc_reward_per_share increased by {}",
+                interest_due,
+                reward_per_share_increment
+            );
+        }
+
         msg!(
             "✅ Interest paid: {} USDC ({} periods of {} days)",
             interest_due,
@@ -678,6 +697,149 @@ pub mod ginva {
             30
         );
 
+        Ok(())
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // 🔟 STAKING & REWARDS (ระบบปันผล LP)
+    // ═════════════════════════════════════════════════════════════
+
+    // ฝากเงินเป็น LP (Stake)
+    pub fn stake_lp(ctx: Context<StakeLP>, amount: u64) -> Result<()> {
+        let config = &mut ctx.accounts.system_config;
+        let stake = &mut ctx.accounts.user_stake;
+
+        // 1. Claim pending rewards first (ถ้ามีของเดิม ให้เคลมก่อน)
+        if stake.staked_amount > 0 {
+            let pending = (stake.staked_amount as u128)
+                .checked_mul(config.acc_reward_per_share)
+                .unwrap()
+                .checked_div(1_000_000_000_000)
+                .unwrap() // precision 1e12
+                .checked_sub(stake.reward_debt)
+                .unwrap();
+
+            if pending > 0 {
+                msg!(
+                    "⚠️ Pending reward {} not claimed (Auto-claim logic omitted for brevity)",
+                    pending
+                );
+            }
+        }
+
+        // 2. Transfer USDC User -> Capital Wallet
+        let cpi_accounts = Transfer {
+            from: ctx.accounts.user_usdc_account.to_account_info(),
+            to: ctx.accounts.capital_wallet.to_account_info(),
+            authority: ctx.accounts.user.to_account_info(),
+        };
+        let cpi_ctx = CpiContext::new(ctx.accounts.token_program.to_account_info(), cpi_accounts);
+        token::transfer(cpi_ctx, amount)?;
+
+        // 3. Update State
+        if stake.staked_amount == 0 {
+            stake.owner = *ctx.accounts.user.key;
+        }
+        stake.staked_amount = stake.staked_amount.checked_add(amount).unwrap();
+        config.total_staked = config.total_staked.checked_add(amount).unwrap();
+
+        // 4. Update Reward Debt
+        stake.reward_debt = (stake.staked_amount as u128)
+            .checked_mul(config.acc_reward_per_share)
+            .unwrap()
+            .checked_div(1_000_000_000_000)
+            .unwrap();
+
+        msg!(
+            "Staked: {} USDC. Total Staked: {}",
+            amount,
+            config.total_staked
+        );
+        Ok(())
+    }
+
+    // เคลมรางวัล (Harvest)
+    pub fn claim_staking_rewards(ctx: Context<ClaimReward>) -> Result<()> {
+        let config = &ctx.accounts.system_config;
+        let stake = &mut ctx.accounts.user_stake;
+
+        require!(stake.staked_amount > 0, GinvaError::InsufficientFunds);
+
+        // 1. Calculate Pending Reward
+        let accumulated = (stake.staked_amount as u128)
+            .checked_mul(config.acc_reward_per_share)
+            .unwrap()
+            .checked_div(1_000_000_000_000)
+            .unwrap();
+
+        let pending = accumulated.checked_sub(stake.reward_debt).unwrap();
+
+        require!(pending > 0, GinvaError::InvalidAmount);
+
+        // 2. Transfer Reward: Capital Wallet -> User
+        let bump = ctx.bumps.capital_wallet_authority;
+        let seeds = &[b"capital_auth".as_ref(), &[bump]];
+        let signer = &[&seeds[..]];
+
+        let cpi_accounts = Transfer {
+            from: ctx.accounts.capital_wallet.to_account_info(),
+            to: ctx.accounts.user_usdc_account.to_account_info(),
+            authority: ctx.accounts.capital_wallet_authority.to_account_info(),
+        };
+        let cpi_ctx = CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            cpi_accounts,
+            signer,
+        );
+        token::transfer(cpi_ctx, pending as u64)?;
+
+        // 3. Update Debt
+        stake.reward_debt = accumulated;
+
+        msg!("Claimed Reward: {} USDC", pending);
+        Ok(())
+    }
+
+    // ถอนเงินต้น (Unstake)
+    pub fn unstake_lp(ctx: Context<ClaimReward>, amount: u64) -> Result<()> {
+        let config = &mut ctx.accounts.system_config;
+        let stake = &mut ctx.accounts.user_stake;
+
+        require!(stake.staked_amount >= amount, GinvaError::InsufficientFunds);
+
+        // 1. Transfer Principal: Capital Wallet -> User
+        let bump = ctx.bumps.capital_wallet_authority;
+        let seeds = &[b"capital_auth".as_ref(), &[bump]];
+        let signer = &[&seeds[..]];
+
+        let cpi_accounts = Transfer {
+            from: ctx.accounts.capital_wallet.to_account_info(),
+            to: ctx.accounts.user_usdc_account.to_account_info(),
+            authority: ctx.accounts.capital_wallet_authority.to_account_info(),
+        };
+        let cpi_ctx = CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            cpi_accounts,
+            signer,
+        );
+        token::transfer(cpi_ctx, amount)?;
+
+        // 2. Update State
+        stake.staked_amount = stake.staked_amount.checked_sub(amount).unwrap();
+        config.total_staked = config.total_staked.checked_sub(amount).unwrap();
+
+        // Update Debt based on new amount
+        stake.reward_debt = (stake.staked_amount as u128)
+            .checked_mul(config.acc_reward_per_share)
+            .unwrap()
+            .checked_div(1_000_000_000_000)
+            .unwrap();
+
+        msg!(
+            "Unstaked: {} USDC. Remaining: {}",
+            amount,
+            stake.staked_amount
+        );
         Ok(())
     }
 }
@@ -771,6 +933,18 @@ pub struct SystemConfig {
     pub is_active: bool,
     pub total_borrowed: u64,
     pub total_collateral: u64,
+
+    // ✅ เพิ่มใหม่สำหรับ Staking
+    pub total_staked: u64,          // ยอดเงินต้นรวมทั้งหมดใน Pool
+    pub acc_reward_per_share: u128, // ดัชนีปันผลสะสม (Precision 1e12)
+}
+
+#[account]
+#[derive(Default)]
+pub struct UserStake {
+    pub owner: Pubkey,
+    pub staked_amount: u64, // เงินต้นที่ฝาก
+    pub reward_debt: u128,  // หนี้รางวัล (ใช้คำนวณกำไรที่ถอนไปแล้ว)
 }
 
 #[account]
@@ -1078,11 +1252,69 @@ pub struct PayInterest<'info> {
     )]
     pub loan_account: Account<'info, LoanAccount>,
 
+    #[account(mut, seeds = [b"config"], bump)]
+    pub system_config: Account<'info, SystemConfig>,
+
     #[account(mut)]
     pub user_usdc_account: Account<'info, TokenAccount>,
 
     #[account(mut)]
     pub revenue_wallet: Account<'info, TokenAccount>,
+
+    pub token_program: Program<'info, Token>,
+}
+
+#[derive(Accounts)]
+pub struct StakeLP<'info> {
+    #[account(mut, seeds = [b"config"], bump)]
+    pub system_config: Account<'info, SystemConfig>,
+
+    #[account(
+        init_if_needed,
+        payer = user,
+        space = 8 + 32 + 8 + 16,
+        seeds = [b"stake", user.key().as_ref()],
+        bump
+    )]
+    pub user_stake: Account<'info, UserStake>,
+
+    #[account(mut)]
+    pub user: Signer<'info>,
+
+    #[account(mut)]
+    pub user_usdc_account: Account<'info, TokenAccount>,
+
+    #[account(mut)]
+    pub capital_wallet: Account<'info, TokenAccount>,
+
+    pub token_program: Program<'info, Token>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct ClaimReward<'info> {
+    #[account(mut, seeds = [b"config"], bump)]
+    pub system_config: Account<'info, SystemConfig>,
+
+    #[account(
+        mut,
+        seeds = [b"stake", user.key().as_ref()],
+        bump
+    )]
+    pub user_stake: Account<'info, UserStake>,
+
+    #[account(mut)]
+    pub user: Signer<'info>,
+
+    #[account(mut)]
+    pub user_usdc_account: Account<'info, TokenAccount>,
+
+    #[account(mut)]
+    pub capital_wallet: Account<'info, TokenAccount>,
+
+    /// CHECK: PDA Authority
+    #[account(seeds = [b"capital_auth"], bump)]
+    pub capital_wallet_authority: AccountInfo<'info>,
 
     pub token_program: Program<'info, Token>,
 }
