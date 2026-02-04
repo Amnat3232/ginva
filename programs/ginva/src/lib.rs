@@ -569,18 +569,32 @@ pub mod ginva {
             .checked_div(seconds_per_year)
             .unwrap_or(0);
 
-        let total_repayment = loan_account.loan_amount.saturating_add(interest);
+        let principal = loan_account.loan_amount;
+        let total_repayment = principal.saturating_add(interest);
         loan_account.total_interest_paid = interest;
 
-        // 2. User pays USDC (Principal + Interest) -> Capital Wallet
+        // 2. User pays USDC - Separate Principal and Interest
         let cpi_program = ctx.accounts.token_program.to_account_info();
-        let cpi_accounts_pay = Transfer {
+
+        // 2a. Principal -> Capital Wallet
+        let cpi_accounts_principal = Transfer {
             from: ctx.accounts.user_usdc_account.to_account_info(),
             to: ctx.accounts.capital_wallet.to_account_info(),
             authority: ctx.accounts.user.to_account_info(),
         };
-        let cpi_ctx_pay = CpiContext::new(cpi_program.clone(), cpi_accounts_pay);
-        token::transfer(cpi_ctx_pay, total_repayment)?;
+        let cpi_ctx_principal = CpiContext::new(cpi_program.clone(), cpi_accounts_principal);
+        token::transfer(cpi_ctx_principal, principal)?;
+
+        // 2b. Interest -> Revenue Wallet (for stakers)
+        if interest > 0 {
+            let cpi_accounts_interest = Transfer {
+                from: ctx.accounts.user_usdc_account.to_account_info(),
+                to: ctx.accounts.revenue_wallet.to_account_info(),
+                authority: ctx.accounts.user.to_account_info(),
+            };
+            let cpi_ctx_interest = CpiContext::new(cpi_program.clone(), cpi_accounts_interest);
+            token::transfer(cpi_ctx_interest, interest)?;
+        }
 
         // 2. Vault returns Collateral -> User (PDA Signer)
         let bump = ctx.bumps.vault_authority;
@@ -849,17 +863,18 @@ pub mod ginva {
     pub fn check_health_factor(ctx: Context<CheckHealthFactor>) -> Result<()> {
         let loan_account = &ctx.accounts.loan_account;
 
+        // เช็คว่าสินเชื่อยัง Active อยู่ไหม
         require!(
             loan_account.status == LoanStatus::Active as u8,
             GinvaError::LoanNotActive
         );
 
-        // 1️⃣ Get current price from Pyth
+        // 1️⃣ Get current price from Pyth (ดึงราคาปัจจุบัน)
         let feed_id = get_feed_id_from_hex(SOL_USD_FEED_ID).map_err(|_| GinvaError::PythError)?;
         let (current_price, price_exponent) =
             get_pyth_price_with_exponent(&ctx.accounts.pyth_price_feed, &feed_id)?;
 
-        // 2️⃣ Calculate current collateral value
+        // 2️⃣ Calculate current collateral value (มูลค่าหลักประกันตอนนี้)
         let collateral_value = calculate_collateral_value(
             loan_account.collateral_amount,
             current_price,
@@ -868,8 +883,9 @@ pub mod ginva {
             6, // USDC decimals
         )?;
 
-        // 3️⃣ Calculate health factor
-        // Health Factor = (Collateral Value * 85%) / Loan Amount
+        // 3️⃣ Calculate health factor (สุขภาพพอร์ต)
+        // Health Factor = (Collateral Value * 85%) / Loan Amount * 100
+        // ถ้า HF < 100 แปลว่า (Value * 0.85) < Loan -> เข้าเกณฑ์ยึด (Liquidation)
         let safety_threshold = collateral_value
             .saturating_mul(85)
             .checked_div(100)
@@ -880,19 +896,19 @@ pub mod ginva {
                 .checked_div(loan_account.loan_amount)
                 .unwrap_or(0)
         } else {
-            1000 // Infinite health if no loan
+            1000 // Infinite health if no loan (Safe)
         };
 
-        // 4️⃣ Emit appropriate message
+        // 4️⃣ Emit appropriate message (แจ้งเตือน 4 ระดับ)
         if health_factor < 100 {
             msg!("🚨 CRITICAL RISK: Health Factor = {}%", health_factor);
-            msg!("Action: LIQUIDATION ELIGIBLE NOW!");
+            msg!("Action: LIQUIDATION ELIGIBLE NOW! (พอร์ตแตกแล้ว)");
         } else if health_factor < 150 {
             msg!("⚠️ HIGH RISK: Health Factor = {}%", health_factor);
-            msg!("Action: Consider repaying soon!");
+            msg!("Action: Consider repaying soon! (เสี่ยงสูง)");
         } else if health_factor < 200 {
             msg!("⚡ MEDIUM RISK: Health Factor = {}%", health_factor);
-            msg!("Action: Monitor carefully");
+            msg!("Action: Monitor carefully (เฝ้าระวัง)");
         } else {
             msg!("✅ SAFE: Health Factor = {}%", health_factor);
         }
@@ -1296,6 +1312,8 @@ pub struct RepayLoan<'info> {
     pub user_usdc_account: Account<'info, TokenAccount>,
     #[account(mut)]
     pub capital_wallet: Account<'info, TokenAccount>,
+    #[account(mut)]
+    pub revenue_wallet: Account<'info, TokenAccount>,
 
     #[account(mut, token::authority = vault_authority)]
     pub vault_collateral_account: Account<'info, TokenAccount>,
@@ -1386,15 +1404,16 @@ pub struct ClaimReward<'info> {
 
 #[derive(Accounts)]
 pub struct CheckHealthFactor<'info> {
+    /// ใครก็เช็คได้ ไม่จำเป็นต้องเป็นเจ้าของ (Transparency)
     pub user: Signer<'info>,
 
     #[account(
-        seeds = [b"loan", user.key().as_ref()],
+        seeds = [b"loan", loan_account.borrower.as_ref()], // ใช้ borrower จาก account
         bump
     )]
     pub loan_account: Account<'info, LoanAccount>,
 
-    pub pyth_price_feed: Box<Account<'info, PriceUpdateV2>>,
+    pub pyth_price_feed: Account<'info, PriceUpdateV2>,
 }
 
 // ═════════════════════════════════════════════════════════════
