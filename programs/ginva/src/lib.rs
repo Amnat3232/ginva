@@ -15,8 +15,8 @@ pub const SOL_USD_FEED_ID: &str =
 pub const MAX_PRICE_AGE_SECONDS: u64 = 60; // Maximum age of price data in seconds
                                            // ═════════════════════════════════════════════════════════════
 const LIQUIDATION_TIMEOUT: i64 = 2; // 2 seconds for testing (change to 86400 for production)
-const AUTO_SWAP_REWARD_BPS: u64 = 60; // 0.6% = 60 basis points for auto-swap caller
-const DISTRIBUTE_REWARD_BPS: u64 = 60; // 0.6% for keeper C
+const AUTO_SWAP_REWARD_BPS: u64 = 600; // 6% = 600 basis points for auto-swap caller
+const DISTRIBUTE_REWARD_BPS: u64 = 100; // 1% for keeper C
 
 // Jupiter Program ID (for CPI calls)
 // Note: This is the mainnet address. For devnet, use different address
@@ -555,9 +555,24 @@ pub mod ginva {
             GinvaError::LoanNotActive
         );
 
-        let repayment_amount = loan_account.loan_amount;
+        // 1. Calculate interest
+        let current_time = Clock::get()?.unix_timestamp;
+        let time_elapsed = (current_time - loan_account.borrow_at) as u64;
+        let seconds_per_year: u64 = 31_536_000;
 
-        // 1. User pays USDC -> Capital Wallet
+        let interest = loan_account
+            .loan_amount
+            .saturating_mul(loan_account.interest_rate_bps as u64)
+            .saturating_mul(time_elapsed)
+            .checked_div(10000)
+            .unwrap_or(0)
+            .checked_div(seconds_per_year)
+            .unwrap_or(0);
+
+        let total_repayment = loan_account.loan_amount.saturating_add(interest);
+        loan_account.total_interest_paid = interest;
+
+        // 2. User pays USDC (Principal + Interest) -> Capital Wallet
         let cpi_program = ctx.accounts.token_program.to_account_info();
         let cpi_accounts_pay = Transfer {
             from: ctx.accounts.user_usdc_account.to_account_info(),
@@ -565,7 +580,7 @@ pub mod ginva {
             authority: ctx.accounts.user.to_account_info(),
         };
         let cpi_ctx_pay = CpiContext::new(cpi_program.clone(), cpi_accounts_pay);
-        token::transfer(cpi_ctx_pay, repayment_amount)?;
+        token::transfer(cpi_ctx_pay, total_repayment)?;
 
         // 2. Vault returns Collateral -> User (PDA Signer)
         let bump = ctx.bumps.vault_authority;
@@ -580,19 +595,25 @@ pub mod ginva {
         let cpi_ctx_return = CpiContext::new_with_signer(cpi_program, cpi_accounts_return, signer);
         token::transfer(cpi_ctx_return, loan_account.collateral_amount)?;
 
+        // Get values before resetting
+        let principal = loan_account.loan_amount;
+        let collateral = loan_account.collateral_amount;
+
         // Update State
         loan_account.status = LoanStatus::Repaid as u8;
+        loan_account.repaid_at = current_time;
         loan_account.loan_amount = 0;
         loan_account.collateral_amount = 0;
 
-        system_config.total_borrowed = system_config
-            .total_borrowed
-            .saturating_sub(repayment_amount);
-        system_config.total_collateral = system_config
-            .total_collateral
-            .saturating_sub(loan_account.collateral_amount);
+        system_config.total_borrowed = system_config.total_borrowed.saturating_sub(principal);
+        system_config.total_collateral = system_config.total_collateral.saturating_sub(collateral);
 
-        msg!("✅ Loan Repaid & Collateral Returned");
+        msg!(
+            "✅ Loan Repaid: Principal {} + Interest {}",
+            principal,
+            interest
+        );
+        msg!("💰 Total Paid: {}", total_repayment);
         Ok(())
     }
 }
@@ -750,12 +771,16 @@ pub struct InitializeSystem<'info> {
     )]
     pub system_config: Account<'info, SystemConfig>,
 
+    /// CHECK: PDA derived from [b"capital_auth"]
     #[account(seeds = [b"capital_auth"], bump)]
     pub capital_wallet_authority: AccountInfo<'info>,
+    /// CHECK: PDA derived from [b"vault_auth"]
     #[account(seeds = [b"vault_auth"], bump)]
     pub vault_wallet_authority: AccountInfo<'info>,
+    /// CHECK: PDA derived from [b"revenue_auth"]
     #[account(seeds = [b"revenue_auth"], bump)]
     pub revenue_wallet_authority: AccountInfo<'info>,
+    /// CHECK: PDA derived from [b"seized_auth"]
     #[account(seeds = [b"seized_auth"], bump)]
     pub seized_assets_authority: AccountInfo<'info>,
 
@@ -799,6 +824,7 @@ pub struct BorrowUsdc<'info> {
     #[account(mut, seeds = [b"config"], bump)]
     pub system_config: Account<'info, SystemConfig>,
 
+    /// CHECK: PDA derived from [b"capital_auth"]
     #[account(seeds = [b"capital_auth"], bump)]
     pub capital_wallet_authority: AccountInfo<'info>,
     #[account(mut, token::authority = capital_wallet_authority)]
@@ -815,9 +841,9 @@ pub struct TriggerLiquidation<'info> {
     #[account(mut)]
     pub keeper_a: Signer<'info>,
     #[account(mut)]
-    pub loan_account: Box<Account<'info, LoanAccount>,
+    pub loan_account: Box<Account<'info, LoanAccount>>,
     #[account(mut, seeds = [b"config"], bump)]
-    pub system_config: Box<Account<'info, SystemConfig>,
+    pub system_config: Box<Account<'info, SystemConfig>>,
 
     #[account(
         init,
@@ -826,16 +852,17 @@ pub struct TriggerLiquidation<'info> {
         seeds = [b"liquidation", loan_account.key().as_ref()],
         bump
     )]
-    pub liquidation_process: Box<Account<'info, LiquidationProcess>,
+    pub liquidation_process: Box<Account<'info, LiquidationProcess>>,
 
+    /// CHECK: PDA derived from [b"vault_auth"]
     #[account(seeds = [b"vault_auth"], bump)]
     pub vault_authority: AccountInfo<'info>,
     #[account(mut, token::authority = vault_authority)]
-    pub vault_collateral_account: Box<Account<'info, TokenAccount>,
+    pub vault_collateral_account: Box<Account<'info, TokenAccount>>,
 
     // Mint account for seized vault initialization
     #[account(address = system_config.collateral_mint)]
-    pub collateral_mint: Box<Account<'info, Mint>,
+    pub collateral_mint: Box<Account<'info, Mint>>,
 
     #[account(
         init_if_needed,
@@ -845,14 +872,15 @@ pub struct TriggerLiquidation<'info> {
         seeds = [b"seized_vault", loan_account.key().as_ref()],
         bump
     )]
-    pub seized_assets_vault: Box<Account<'info, TokenAccount>,
+    pub seized_assets_vault: Box<Account<'info, TokenAccount>>,
+    /// CHECK: PDA derived from [b"seized_auth"]
     #[account(seeds = [b"seized_auth"], bump)]
     pub seized_assets_authority: AccountInfo<'info>,
 
     #[account(mut)]
-    pub keeper_a_collateral_account: Box<Account<'info, TokenAccount>,
+    pub keeper_a_collateral_account: Box<Account<'info, TokenAccount>>,
 
-    pub pyth_price_feed: Box<Account<'info, PriceUpdateV2>,
+    pub pyth_price_feed: Box<Account<'info, PriceUpdateV2>>,
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
     pub rent: Sysvar<'info, Rent>,
@@ -863,18 +891,19 @@ pub struct ExecuteAutoSwap<'info> {
     #[account(mut)]
     pub caller: Signer<'info>, // Anyone can call this
     #[account(mut)]
-    pub liquidation_process: Box<Account<'info, LiquidationProcess>,
+    pub liquidation_process: Box<Account<'info, LiquidationProcess>>,
     #[account(seeds = [b"config"], bump)]
-    pub system_config: Box<Account<'info, SystemConfig>,
+    pub system_config: Box<Account<'info, SystemConfig>>,
 
+    /// CHECK: PDA derived from [b"seized_auth"]
     #[account(seeds = [b"seized_auth"], bump)]
     pub seized_assets_authority: AccountInfo<'info>,
     #[account(mut, token::authority = seized_assets_authority)]
-    pub seized_assets_vault: Box<Account<'info, TokenAccount>,
+    pub seized_assets_vault: Box<Account<'info, TokenAccount>>,
 
     // Mint account for processing vault initialization
     #[account(address = system_config.loan_mint)]
-    pub loan_mint: Box<Account<'info, Mint>,
+    pub loan_mint: Box<Account<'info, Mint>>,
 
     // Processing Vault (where USDC will be sent after swap)
     #[account(
@@ -885,22 +914,23 @@ pub struct ExecuteAutoSwap<'info> {
         seeds = [b"processing_vault", liquidation_process.key().as_ref()],
         bump
     )]
-    pub processing_vault: Box<Account<'info, TokenAccount>,
+    pub processing_vault: Box<Account<'info, TokenAccount>>,
+    /// CHECK: PDA derived from [b"processing_auth"]
     #[account(seeds = [b"processing_auth"], bump)]
     pub processing_vault_authority: AccountInfo<'info>,
 
     // 1. Caller pays USDC from this account
     #[account(mut)]
-    pub caller_usdc_account: Box<Account<'info, TokenAccount>,
+    pub caller_usdc_account: Box<Account<'info, TokenAccount>>,
 
     // 2. Caller receives SOL (collateral) into this account
     #[account(mut)]
-    pub caller_collateral_account: Box<Account<'info, TokenAccount>,
+    pub caller_collateral_account: Box<Account<'info, TokenAccount>>,
 
     /// CHECK: Jupiter Program for CPI (optional - depends on implementation)
     pub jupiter_program: AccountInfo<'info>,
 
-    pub pyth_price_feed: Box<Account<'info, PriceUpdateV2>,
+    pub pyth_price_feed: Box<Account<'info, PriceUpdateV2>>,
 
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
@@ -918,6 +948,7 @@ pub struct FinalizeLiquidation<'info> {
     #[account(mut, seeds = [b"config"], bump)]
     pub system_config: Account<'info, SystemConfig>,
 
+    /// CHECK: PDA derived from [b"processing_auth"]
     #[account(seeds = [b"processing_auth"], bump)]
     pub processing_vault_authority: AccountInfo<'info>,
     #[account(mut, token::authority = processing_vault_authority)]
@@ -954,6 +985,7 @@ pub struct RepayLoan<'info> {
     #[account(mut, seeds = [b"config"], bump)]
     pub system_config: Account<'info, SystemConfig>,
 
+    /// CHECK: PDA derived from [b"vault_auth"]
     #[account(seeds = [b"vault_auth"], bump)]
     pub vault_authority: AccountInfo<'info>,
 
