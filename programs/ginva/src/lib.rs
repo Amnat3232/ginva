@@ -322,7 +322,7 @@ pub mod ginva {
         require!(usdc_required_from_caller > 0, GinvaError::InvalidAmount);
 
         // 4. ACTION A: Pull USDC from Caller -> Processing Vault
-        // "ยื่นหมู" (Caller pays money)
+        
         msg!("🔄 Caller paying {} USDC...", usdc_required_from_caller);
         let cpi_program = ctx.accounts.token_program.to_account_info();
         let cpi_accounts_pay = Transfer {
@@ -334,7 +334,7 @@ pub mod ginva {
         token::transfer(cpi_ctx_pay, usdc_required_from_caller)?;
 
         // 5. ACTION B: Push Seized SOL -> Caller
-        // "ยื่นแมว" (System sends collateral)
+        
         msg!("📦 System sending {} SOL...", seized_sol_amount);
 
         let bump = ctx.bumps.seized_assets_authority;
@@ -648,7 +648,7 @@ pub mod ginva {
         require!(loan_account.borrower == user, GinvaError::Unauthorized);
 
         // 2️⃣ Calculate interest due
-        // ใช้ last_payment_at เพื่อเช็คกับระบบ Liquidation ด้วย
+        
         let last_paid = loan_account.last_payment_at;
         let seconds_since_payment = (current_time - last_paid) as u64;
         let days_since = seconds_since_payment / 86400;
@@ -679,7 +679,7 @@ pub mod ginva {
         token::transfer(cpi_ctx, interest_due)?;
 
         // 5️⃣ Update loan state
-        // อัปเดตเวลาจ่ายล่าสุด เพื่อรีเซ็ตระยะเวลา Liquidation
+        
         loan_account.last_payment_at = current_time;
         loan_account.total_interest_paid = loan_account
             .total_interest_paid
@@ -715,15 +715,15 @@ pub mod ginva {
     }
 
     // ═════════════════════════════════════════════════════════════
-    // 🔟 STAKING & REWARDS (ระบบปันผล LP)
+    // 🔟 STAKING & REWARDS
     // ═════════════════════════════════════════════════════════════
 
-    // ฝากเงินเป็น LP (Stake)
+    // Stake LP tokens
     pub fn stake_lp(ctx: Context<StakeLP>, amount: u64) -> Result<()> {
         let config = &mut ctx.accounts.system_config;
         let stake = &mut ctx.accounts.user_stake;
 
-        // 1. Claim pending rewards first (ถ้ามีของเดิม ให้เคลมก่อน)
+        // 1. Claim pending rewards first
         if stake.staked_amount > 0 {
             let pending = (stake.staked_amount as u128)
                 .checked_mul(config.acc_reward_per_share)
@@ -772,7 +772,7 @@ pub mod ginva {
         Ok(())
     }
 
-    // เคลมรางวัล (Harvest)
+    // Claim rewards
     pub fn claim_staking_rewards(ctx: Context<ClaimReward>) -> Result<()> {
         let config = &ctx.accounts.system_config;
         let stake = &mut ctx.accounts.user_stake;
@@ -814,7 +814,7 @@ pub mod ginva {
         Ok(())
     }
 
-    // ถอนเงินต้น (Unstake)
+    // Unstake LP tokens
     pub fn unstake_lp(ctx: Context<ClaimReward>, amount: u64) -> Result<()> {
         let config = &mut ctx.accounts.system_config;
         let stake = &mut ctx.accounts.user_stake;
@@ -863,18 +863,18 @@ pub mod ginva {
     pub fn check_health_factor(ctx: Context<CheckHealthFactor>) -> Result<()> {
         let loan_account = &ctx.accounts.loan_account;
 
-        // เช็คว่าสินเชื่อยัง Active อยู่ไหม
+        // Check if loan is active
         require!(
             loan_account.status == LoanStatus::Active as u8,
             GinvaError::LoanNotActive
         );
 
-        // 1️⃣ Get current price from Pyth (ดึงราคาปัจจุบัน)
+        // 1. Get current price from Pyth
         let feed_id = get_feed_id_from_hex(SOL_USD_FEED_ID).map_err(|_| GinvaError::PythError)?;
         let (current_price, price_exponent) =
             get_pyth_price_with_exponent(&ctx.accounts.pyth_price_feed, &feed_id)?;
 
-        // 2️⃣ Calculate current collateral value (มูลค่าหลักประกันตอนนี้)
+        // 2. Calculate current collateral value
         let collateral_value = calculate_collateral_value(
             loan_account.collateral_amount,
             current_price,
@@ -883,9 +883,9 @@ pub mod ginva {
             6, // USDC decimals
         )?;
 
-        // 3️⃣ Calculate health factor (สุขภาพพอร์ต)
+        // 3. Calculate health factor
         // Health Factor = (Collateral Value * 85%) / Loan Amount * 100
-        // ถ้า HF < 100 แปลว่า (Value * 0.85) < Loan -> เข้าเกณฑ์ยึด (Liquidation)
+        // If HF < 100, liquidation eligible
         let safety_threshold = collateral_value
             .saturating_mul(85)
             .checked_div(100)
@@ -899,16 +899,16 @@ pub mod ginva {
             1000 // Infinite health if no loan (Safe)
         };
 
-        // 4️⃣ Emit appropriate message (แจ้งเตือน 4 ระดับ)
+        // 4. Emit appropriate message
         if health_factor < 100 {
             msg!("🚨 CRITICAL RISK: Health Factor = {}%", health_factor);
-            msg!("Action: LIQUIDATION ELIGIBLE NOW! (พอร์ตแตกแล้ว)");
+            msg!("Action: LIQUIDATION ELIGIBLE NOW! ");
         } else if health_factor < 150 {
             msg!("⚠️ HIGH RISK: Health Factor = {}%", health_factor);
-            msg!("Action: Consider repaying soon! (เสี่ยงสูง)");
+            msg!("Action: Consider repaying soon! ");
         } else if health_factor < 200 {
             msg!("⚡ MEDIUM RISK: Health Factor = {}%", health_factor);
-            msg!("Action: Monitor carefully (เฝ้าระวัง)");
+            msg!("Action: Monitor carefully ");
         } else {
             msg!("✅ SAFE: Health Factor = {}%", health_factor);
         }
@@ -1015,17 +1015,17 @@ pub struct SystemConfig {
     pub total_borrowed: u64,
     pub total_collateral: u64,
 
-    // ✅ เพิ่มใหม่สำหรับ Staking
-    pub total_staked: u64,          // ยอดเงินต้นรวมทั้งหมดใน Pool
-    pub acc_reward_per_share: u128, // ดัชนีปันผลสะสม (Precision 1e12)
+    // Staking fields
+    pub total_staked: u64,          // Total staked amount
+    pub acc_reward_per_share: u128, // Accumulated reward per share
 }
 
 #[account]
 #[derive(Default)]
 pub struct UserStake {
     pub owner: Pubkey,
-    pub staked_amount: u64, // เงินต้นที่ฝาก
-    pub reward_debt: u128,  // หนี้รางวัล (ใช้คำนวณกำไรที่ถอนไปแล้ว)
+    pub staked_amount: u64, // Staked amount
+    pub reward_debt: u128,  // Reward debt for calculating claimed rewards
 }
 
 #[account]
@@ -1404,11 +1404,11 @@ pub struct ClaimReward<'info> {
 
 #[derive(Accounts)]
 pub struct CheckHealthFactor<'info> {
-    /// ใครก็เช็คได้ ไม่จำเป็นต้องเป็นเจ้าของ (Transparency)
+    /// Anyone can check
     pub user: Signer<'info>,
 
     #[account(
-        seeds = [b"loan", loan_account.borrower.as_ref()], // ใช้ borrower จาก account
+        seeds = [b"loan", loan_account.borrower.as_ref()], 
         bump
     )]
     pub loan_account: Account<'info, LoanAccount>,
