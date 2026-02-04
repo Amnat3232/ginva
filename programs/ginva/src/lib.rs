@@ -842,6 +842,71 @@ pub mod ginva {
         );
         Ok(())
     }
+
+    // ═════════════════════════════════════════════════════════════
+    // 1️⃣1️⃣ CHECK HEALTH FACTOR (Risk Monitoring)
+    // ═════════════════════════════════════════════════════════════
+    pub fn check_health_factor(ctx: Context<CheckHealthFactor>) -> Result<()> {
+        let loan_account = &ctx.accounts.loan_account;
+
+        require!(
+            loan_account.status == LoanStatus::Active as u8,
+            GinvaError::LoanNotActive
+        );
+
+        // 1️⃣ Get current price from Pyth
+        let feed_id = get_feed_id_from_hex(SOL_USD_FEED_ID).map_err(|_| GinvaError::PythError)?;
+        let (current_price, price_exponent) =
+            get_pyth_price_with_exponent(&ctx.accounts.pyth_price_feed, &feed_id)?;
+
+        // 2️⃣ Calculate current collateral value
+        let collateral_value = calculate_collateral_value(
+            loan_account.collateral_amount,
+            current_price,
+            price_exponent,
+            9, // SOL decimals
+            6, // USDC decimals
+        )?;
+
+        // 3️⃣ Calculate health factor
+        // Health Factor = (Collateral Value * 85%) / Loan Amount
+        let safety_threshold = collateral_value
+            .saturating_mul(85)
+            .checked_div(100)
+            .unwrap_or(0);
+
+        let health_factor = if loan_account.loan_amount > 0 {
+            (safety_threshold * 100)
+                .checked_div(loan_account.loan_amount)
+                .unwrap_or(0)
+        } else {
+            1000 // Infinite health if no loan
+        };
+
+        // 4️⃣ Emit appropriate message
+        if health_factor < 100 {
+            msg!("🚨 CRITICAL RISK: Health Factor = {}%", health_factor);
+            msg!("Action: LIQUIDATION ELIGIBLE NOW!");
+        } else if health_factor < 150 {
+            msg!("⚠️ HIGH RISK: Health Factor = {}%", health_factor);
+            msg!("Action: Consider repaying soon!");
+        } else if health_factor < 200 {
+            msg!("⚡ MEDIUM RISK: Health Factor = {}%", health_factor);
+            msg!("Action: Monitor carefully");
+        } else {
+            msg!("✅ SAFE: Health Factor = {}%", health_factor);
+        }
+
+        // 5️⃣ Detailed metrics
+        msg!(
+            "Collateral Value: ${}, Loan: ${}, Threshold: ${}",
+            collateral_value,
+            loan_account.loan_amount,
+            safety_threshold
+        );
+
+        Ok(())
+    }
 }
 
 // ═════════════════════════════════════════════════════════════
@@ -1317,6 +1382,19 @@ pub struct ClaimReward<'info> {
     pub capital_wallet_authority: AccountInfo<'info>,
 
     pub token_program: Program<'info, Token>,
+}
+
+#[derive(Accounts)]
+pub struct CheckHealthFactor<'info> {
+    pub user: Signer<'info>,
+
+    #[account(
+        seeds = [b"loan", user.key().as_ref()],
+        bump
+    )]
+    pub loan_account: Account<'info, LoanAccount>,
+
+    pub pyth_price_feed: Box<Account<'info, PriceUpdateV2>>,
 }
 
 // ═════════════════════════════════════════════════════════════
