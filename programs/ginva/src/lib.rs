@@ -616,6 +616,70 @@ pub mod ginva {
         msg!("💰 Total Paid: {}", total_repayment);
         Ok(())
     }
+
+    // ═════════════════════════════════════════════════════════════
+    // 9️⃣ PAY INTEREST (Monthly Payment)
+    // ═════════════════════════════════════════════════════════════
+    pub fn pay_interest(ctx: Context<PayInterest>) -> Result<()> {
+        let loan_account = &mut ctx.accounts.loan_account;
+        let user = ctx.accounts.user.key();
+        let current_time = Clock::get()?.unix_timestamp;
+
+        // 1️⃣ Validation
+        require!(
+            loan_account.status == LoanStatus::Active as u8,
+            GinvaError::LoanNotActive
+        );
+
+        require!(loan_account.borrower == user, GinvaError::Unauthorized);
+
+        // 2️⃣ Calculate interest due
+        // ใช้ last_payment_at เพื่อเช็คกับระบบ Liquidation ด้วย
+        let last_paid = loan_account.last_payment_at;
+        let seconds_since_payment = (current_time - last_paid) as u64;
+        let days_since = seconds_since_payment / 86400;
+
+        // Interest compounds every 30 days (mandatory)
+        require!(days_since >= 30, GinvaError::PaymentTooEarly);
+
+        // 3️⃣ Calculate amount due
+        let interest_per_30d = (loan_account
+            .loan_amount
+            .saturating_mul(loan_account.interest_rate_bps as u64))
+        .checked_div(10000)
+        .unwrap_or(0);
+
+        let num_periods = days_since / 30;
+        let interest_due = interest_per_30d.saturating_mul(num_periods as u64);
+
+        require!(interest_due > 0, GinvaError::InvalidAmount);
+
+        // 4️⃣ Transfer USDC from user -> revenue wallet
+        let cpi_program = ctx.accounts.token_program.to_account_info();
+        let cpi_accounts = Transfer {
+            from: ctx.accounts.user_usdc_account.to_account_info(),
+            to: ctx.accounts.revenue_wallet.to_account_info(),
+            authority: ctx.accounts.user.to_account_info(),
+        };
+        let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+        token::transfer(cpi_ctx, interest_due)?;
+
+        // 5️⃣ Update loan state
+        // อัปเดตเวลาจ่ายล่าสุด เพื่อรีเซ็ตระยะเวลา Liquidation
+        loan_account.last_payment_at = current_time;
+        loan_account.total_interest_paid = loan_account
+            .total_interest_paid
+            .saturating_add(interest_due);
+
+        msg!(
+            "✅ Interest paid: {} USDC ({} periods of {} days)",
+            interest_due,
+            num_periods,
+            30
+        );
+
+        Ok(())
+    }
 }
 
 // ═════════════════════════════════════════════════════════════
@@ -1002,6 +1066,27 @@ pub struct RepayLoan<'info> {
     pub token_program: Program<'info, Token>,
 }
 
+#[derive(Accounts)]
+pub struct PayInterest<'info> {
+    #[account(mut)]
+    pub user: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [b"loan", user.key().as_ref()],
+        bump
+    )]
+    pub loan_account: Account<'info, LoanAccount>,
+
+    #[account(mut)]
+    pub user_usdc_account: Account<'info, TokenAccount>,
+
+    #[account(mut)]
+    pub revenue_wallet: Account<'info, TokenAccount>,
+
+    pub token_program: Program<'info, Token>,
+}
+
 // ═════════════════════════════════════════════════════════════
 // 🚨 ERROR CODES
 // ═════════════════════════════════════════════════════════════
@@ -1038,4 +1123,8 @@ pub enum GinvaError {
     SameKeeperNotAllowed,
     #[msg("Insufficient funds to return principal")]
     InsufficientFundsForPrincipal,
+    #[msg("Payment too early (minimum 30 days)")]
+    PaymentTooEarly,
+    #[msg("Unauthorized")]
+    Unauthorized,
 }
