@@ -598,19 +598,21 @@ pub mod ginva {
             GinvaError::InvalidLiquidationStatus
         );
 
-        let seized_sol_amount = liquidation_process.seized_collateral_amount;
-        require!(seized_sol_amount > 0, GinvaError::InvalidAmount);
+        let seized_amount = liquidation_process.seized_collateral_amount;
+        require!(seized_amount > 0, GinvaError::InvalidAmount);
 
-        // 2. Calculate Fair Value via Pyth
-        let feed_id = get_feed_id_from_hex(SOL_USD_FEED_ID).map_err(|_| GinvaError::PythError)?;
+        // 2. Calculate Fair Value via Pyth using dynamic asset config
+        let asset_config = &ctx.accounts.asset_config;
+        require!(asset_config.is_active, GinvaError::AssetNotActive);
+
         let (current_price, price_exponent) =
-            get_pyth_price_with_exponent(&ctx.accounts.pyth_price_feed, &feed_id)?;
+            get_pyth_price_with_exponent(&ctx.accounts.pyth_price_feed, &asset_config.feed_id)?;
 
         let gross_usdc_value = calculate_collateral_value(
-            seized_sol_amount,
+            seized_amount,
             current_price,
             price_exponent,
-            9, // SOL decimals
+            asset_config.decimals,
             6, // USDC decimals
         )?;
 
@@ -626,8 +628,12 @@ pub mod ginva {
         require!(usdc_required_from_caller > 0, GinvaError::InvalidAmount);
 
         // 4. ACTION A: Pull USDC from Caller -> Processing Vault
-
-        msg!("🔄 Caller paying {} USDC...", usdc_required_from_caller);
+        msg!(
+            "🔄 Caller paying {} USDC for {} of {:?}...",
+            usdc_required_from_caller,
+            seized_amount,
+            asset_config.mint
+        );
         let cpi_program = ctx.accounts.token_program.to_account_info();
         let cpi_accounts_pay = Transfer {
             from: ctx.accounts.caller_usdc_account.to_account_info(),
@@ -637,9 +643,12 @@ pub mod ginva {
         let cpi_ctx_pay = CpiContext::new(cpi_program.clone(), cpi_accounts_pay);
         token::transfer(cpi_ctx_pay, usdc_required_from_caller)?;
 
-        // 5. ACTION B: Push Seized SOL -> Caller
-
-        msg!("📦 System sending {} SOL...", seized_sol_amount);
+        // 5. ACTION B: Push Seized Collateral -> Caller
+        msg!(
+            "📦 System sending {} of {:?} to caller...",
+            seized_amount,
+            asset_config.mint
+        );
 
         let bump = ctx.bumps.seized_assets_authority;
         let seeds = &[b"seized_auth".as_ref(), &[bump]];
@@ -651,7 +660,7 @@ pub mod ginva {
             authority: ctx.accounts.seized_assets_authority.to_account_info(),
         };
         let cpi_ctx_send = CpiContext::new_with_signer(cpi_program, cpi_accounts_send, signer);
-        token::transfer(cpi_ctx_send, seized_sol_amount)?;
+        token::transfer(cpi_ctx_send, seized_amount)?;
 
         // 6. Update State
         liquidation_process.swapped = true;
@@ -663,8 +672,9 @@ pub mod ginva {
             current_time + ctx.accounts.protocol_config.liquidation_timeout;
 
         msg!(
-            "✅ OTC Swap Complete! Sold {} SOL for {} USDC (Discount: {})",
-            seized_sol_amount,
+            "✅ OTC Swap Complete! Sold {} of {:?} for {} USDC (Discount: {})",
+            seized_amount,
+            asset_config.mint,
             usdc_required_from_caller,
             caller_discount
         );
@@ -1905,10 +1915,18 @@ pub struct ExecuteAutoSwap<'info> {
     pub caller: Signer<'info>, // Anyone can call this
     #[account(mut)]
     pub liquidation_process: Box<Account<'info, LiquidationProcess>>,
+    #[account(mut)]
+    pub loan_account: Box<Account<'info, LoanAccount>>,
     #[account(seeds = [b"config"], bump)]
     pub system_config: Box<Account<'info, SystemConfig>>,
     #[account(seeds = [b"protocol_config"], bump)]
     pub protocol_config: Box<Account<'info, ProtocolConfig>>,
+
+    #[account(
+        seeds = [b"asset_config", loan_account.collateral_mint.as_ref()],
+        bump
+    )]
+    pub asset_config: Box<Account<'info, AssetConfig>>,
 
     /// CHECK: PDA derived from [b"seized_auth"]
     #[account(seeds = [b"seized_auth"], bump)]
@@ -1938,7 +1956,7 @@ pub struct ExecuteAutoSwap<'info> {
     #[account(mut)]
     pub caller_usdc_account: Box<Account<'info, TokenAccount>>,
 
-    // 2. Caller receives SOL (collateral) into this account
+    // 2. Caller receives collateral into this account
     #[account(mut)]
     pub caller_collateral_account: Box<Account<'info, TokenAccount>>,
 
