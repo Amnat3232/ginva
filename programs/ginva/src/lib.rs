@@ -1040,7 +1040,7 @@ pub struct UserStake {
     pub staked_amount: u64, // Staked amount
     pub reward_debt: u128,  // Reward debt for calculating claimed rewards
 
-    // Rate limiting fields
+    // Rate limiting fields - FIXED: Added all missing fields
     pub last_operation_time: i64, // Last operation timestamp
     pub operation_count: u64,     // Operations in current window
     pub is_rate_limited: bool,    // Rate limiting flag
@@ -1382,7 +1382,7 @@ pub struct StakeLP<'info> {
     #[account(
         init_if_needed,
         payer = user,
-        space = 8 + 32 + 8 + 16,
+        space = 8 + 32 + 8 + 16 + 8 + 8 + 1, // FIXED: 73 bytes total
         seeds = [b"stake", user.key().as_ref()],
         bump
     )]
