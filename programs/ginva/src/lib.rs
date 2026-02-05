@@ -410,6 +410,75 @@ pub mod ginva {
     }
 
     // ═════════════════════════════════════════════════════════════
+    // 3.5 🔄 EXTEND LOAN ("ต่อดอก")
+    // ═════════════════════════════════════════════════════════════
+    pub fn extend_loan(ctx: Context<ExtendLoan>) -> Result<()> {
+        let system_config = &ctx.accounts.system_config;
+        let loan_account = &mut ctx.accounts.loan_account;
+
+        // 🛡️ SECURITY GUARD: ตรวจสอบสถานะระบบ
+        require!(!system_config.is_paused, GinvaError::ProtocolPaused);
+        // ตรวจสอบว่าเป็นเจ้าของสัญญาตัวจริง
+        require!(
+            loan_account.borrower == ctx.accounts.user.key(),
+            GinvaError::Unauthorized
+        );
+        // ต้องเป็นสัญญาที่ยัง Active อยู่ (ยังไม่ถูกยึด)
+        require!(
+            loan_account.status == LoanStatus::Active as u8,
+            GinvaError::LoanNotActive
+        );
+
+        let current_time = Clock::get()?.unix_timestamp;
+
+        // 1. คำนวณดอกเบี้ยที่ค้างจ่าย (Accrued Interest) ตั้งแต่จ่ายล่าสุด จนถึง ปัจจุบัน
+        // สูตร: (เงินต้น * ดอกเบี้ย% * ระยะเวลา) / (1 ปี * 10000 bps)
+        let time_elapsed = current_time.saturating_sub(loan_account.last_payment_at);
+        require!(time_elapsed > 0, GinvaError::NoInterestDue);
+
+        let interest_amount = (loan_account.loan_amount as u128)
+            .checked_mul(loan_account.interest_rate_bps as u128)
+            .unwrap()
+            .checked_mul(time_elapsed as u128)
+            .unwrap()
+            .checked_div(31_536_000 * 10000)
+            .unwrap(); // 365 days in seconds * bps scale
+
+        let interest_payment = interest_amount as u64;
+
+        // ถ้ามีดอกเบี้ยเล็กน้อย ให้ปัดเป็นอย่างน้อย 1 หน่วย เพื่อไม่ให้ transaction fail ฟรี
+        let final_payment = if interest_payment == 0 && time_elapsed > 3600 {
+            1 // ขั้นต่ำ 1 unit ถ้าผ่านไปเกิน 1 ชม.
+        } else {
+            interest_payment
+        };
+
+        require!(final_payment > 0, GinvaError::NoInterestDue);
+
+        // 2. โอนเงินค่าดอกเบี้ย: User -> Revenue Wallet (รายได้เข้าระบบ)
+        // หมายเหตุ: เงินนี้คือ Real Yield ที่เอาไปแจกจ่ายได้เลย ไม่ต้องเก็บเข้า Vault
+        let cpi_program = ctx.accounts.token_program.to_account_info();
+        let cpi_accounts = Transfer {
+            from: ctx.accounts.user_usdc_account.to_account_info(),
+            to: ctx.accounts.revenue_wallet.to_account_info(),
+            authority: ctx.accounts.user.to_account_info(),
+        };
+        let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+        token::transfer(cpi_ctx, final_payment)?;
+
+        // 3. อัปเดตสัญญา (รีเซ็ตเวลา)
+        // เลื่อนวันครบกำหนด (Maturity) ไปข้างหน้า เท่ากับระยะเวลาสัญญาเดิม (Duration)
+        // เสมือนการ "ฉีกตั๋วเก่า ออกตั๋วใหม่" เริ่มนับหนึ่งใหม่ตั้งแต่วันนี้
+        loan_account.last_payment_at = current_time;
+        loan_account.maturity_at = current_time + (loan_account.duration_days as i64 * 86400);
+
+        msg!("✅ ต่อดอกสำเร็จ: จ่ายดอกเบี้ย {} USDC", final_payment);
+        msg!("📅 ครบกำหนดรอบใหม่: {}", loan_account.maturity_at);
+
+        Ok(())
+    }
+
+    // ═════════════════════════════════════════════════════════════
     // 4️⃣ STEP 1: TRIGGER LIQUIDATION (Keeper A - 1% Reward)
     // OPTIMIZED: Split into two transactions to avoid stack overflow
     // ═════════════════════════════════════════════════════════════
@@ -2134,7 +2203,7 @@ pub struct RepayLoan<'info> {
 }
 
 #[derive(Accounts)]
-pub struct PayInterest<'info> {
+pub struct ExtendLoan<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
 
@@ -2145,23 +2214,22 @@ pub struct PayInterest<'info> {
     )]
     pub loan_account: Account<'info, LoanAccount>,
 
-    #[account(mut, seeds = [b"config"], bump)]
-    pub system_config: Account<'info, SystemConfig>,
-
     #[account(mut)]
     pub user_usdc_account: Account<'info, TokenAccount>,
 
-    #[account(mut, token::authority = system_config.capital_wallet_authority)]
-    pub capital_wallet: Account<'info, TokenAccount>,
-
-    #[account(mut)]
+    // รับดอกเบี้ยเข้ากระเป๋า Revenue (เพื่อเอาไปเป็น Profit ของระบบ)
+    #[account(
+        mut,
+        token::authority = system_config.revenue_wallet_authority
+    )]
     pub revenue_wallet: Account<'info, TokenAccount>,
 
     #[account(
-        mut,
-        constraint = ops_token_account.owner == system_config.ops_wallet
+        seeds = [b"config"], 
+        bump,
+        constraint = !system_config.is_paused @ GinvaError::ProtocolPaused
     )]
-    pub ops_token_account: Account<'info, TokenAccount>,
+    pub system_config: Account<'info, SystemConfig>,
 
     pub token_program: Program<'info, Token>,
 }
@@ -2365,6 +2433,9 @@ pub enum GinvaError {
     PriceConfidenceTooLow = 1930,
     #[msg("Price is too stale for reliable calculation")]
     PriceTooStale = 1931,
+
+    #[msg("No interest due for payment")]
+    NoInterestDue = 1951,
 
     #[msg("Asset is not active for collateral")]
     AssetNotActive = 1940,
