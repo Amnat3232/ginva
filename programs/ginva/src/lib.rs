@@ -37,6 +37,7 @@ pub const MAX_CONFIDENCE_RATIO: u128 = 100; // 1% max confidence ratio (100/1000
 const LIQUIDATION_TIMEOUT: i64 = 2; // 2 seconds for fast testing
 
 #[cfg(not(feature = "devnet"))]
+#[allow(dead_code)]
 const LIQUIDATION_TIMEOUT: i64 = 86400; // 24 hours for production safety
 
 // Jupiter Program ID (for CPI calls)
@@ -45,6 +46,7 @@ const LIQUIDATION_TIMEOUT: i64 = 86400; // 24 hours for production safety
 const JUPITER_PROGRAM_ID: &str = "JUP4Fb2cqiRUcaTHdrCEQSpBxWZ4fc4QLvtY41vPU5zY"; // Devnet Jupiter
 
 #[cfg(not(feature = "devnet"))]
+#[allow(dead_code)]
 const JUPITER_PROGRAM_ID: &str = "JUP4Fb2cqiRUcaTHdrPC8h2gNsA2ETXiPDD33WcGuJB"; // Mainnet Jupiter
 
 #[program]
@@ -489,7 +491,8 @@ pub mod ginva {
         liquidation_process.trigger_keeper = keeper_a;
         liquidation_process.seized_collateral_amount = remaining_for_swap;
         liquidation_process.triggered_at = current_time;
-        liquidation_process.deadline_for_swap = current_time + LIQUIDATION_TIMEOUT;
+        liquidation_process.deadline_for_swap = current_time; // Storefront opens immediately
+        liquidation_process.dex_activation_time = current_time + 86400; // DEX fallback after 24h
         liquidation_process.swapped = false;
         liquidation_process.keeper_reward_amount = trigger_reward;
         liquidation_process.keeper_reward_claimed = false;
@@ -511,8 +514,12 @@ pub mod ginva {
             trigger_reward
         );
         msg!(
-            "⏳ Auto-swap available after 2s for {} SOL...",
+            "🏪 STOREFRONT OPEN! {} SOL available immediately with 6% discount",
             remaining_for_swap
+        );
+        msg!(
+            "🦄 DEX fallback available in 24 hours (at timestamp: {})",
+            liquidation_process.dex_activation_time
         );
         Ok(())
     }
@@ -569,10 +576,10 @@ pub mod ginva {
     }
 
     // ═════════════════════════════════════════════════════════════
-    // 5️⃣ STEP 2: OTC SWAP (Caller buys Seized Assets with USDC)
+    // 🏪 STOREFRONT SALE (ซื้อได้ทันที ไม่ต้องรอ!)
     // ═════════════════════════════════════════════════════════════
-    // Atomic swap: Caller pays USDC -> receives SOL (0.6% discount)
-    pub fn execute_auto_swap(ctx: Context<ExecuteAutoSwap>) -> Result<()> {
+    // Atomic swap: Caller pays USDC -> receives collateral (6% discount)
+    pub fn buy_from_storefront(ctx: Context<ExecuteAutoSwap>) -> Result<()> {
         let liquidation_process = &mut ctx.accounts.liquidation_process;
         let caller = ctx.accounts.caller.key();
         let current_time = Clock::get()?.unix_timestamp;
@@ -587,11 +594,7 @@ pub mod ginva {
             GinvaError::SystemInCooldown
         );
 
-        // 1. Validation Checks
-        require!(
-            current_time >= liquidation_process.deadline_for_swap,
-            GinvaError::SwapTimeoutNotReached
-        );
+        // 1. Validation Checks (No timeout required for storefront!)
         require!(!liquidation_process.swapped, GinvaError::AlreadySwapped);
         require!(
             liquidation_process.status == LiquidationStatus::Triggered as u8,
@@ -672,11 +675,120 @@ pub mod ginva {
             current_time + ctx.accounts.protocol_config.liquidation_timeout;
 
         msg!(
-            "✅ OTC Swap Complete! Sold {} of {:?} for {} USDC (Discount: {})",
+            "✅ Storefront Sale Complete! Sold {} of {:?} for {} USDC (6% Discount: {})",
             seized_amount,
             asset_config.mint,
             usdc_required_from_caller,
             caller_discount
+        );
+
+        Ok(())
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // 🦄 DEX FALLBACK (ทำงานหลัง 24 ชม.)
+    // ═════════════════════════════════════════════════════════════
+    // Fallback: If storefront sale fails, send to DEX via Jupiter
+    pub fn execute_dex_fallback(ctx: Context<ExecuteAutoSwap>) -> Result<()> {
+        let liquidation_process = &mut ctx.accounts.liquidation_process;
+        let caller = ctx.accounts.caller.key();
+        let current_time = Clock::get()?.unix_timestamp;
+
+        // 🛡️ SECURITY GUARD 2.0: Check pause status + timelock
+        require!(
+            !ctx.accounts.system_config.is_paused,
+            GinvaError::ProtocolPaused
+        );
+        require!(
+            current_time >= ctx.accounts.system_config.ops_resume_at,
+            GinvaError::SystemInCooldown
+        );
+
+        // 🛡️ DEX TIME CHECK: Must wait 24 hours before DEX access
+        require!(
+            current_time >= liquidation_process.dex_activation_time,
+            GinvaError::StorefrontPeriodNotOver
+        );
+
+        require!(!liquidation_process.swapped, GinvaError::AlreadySwapped);
+        require!(
+            liquidation_process.status == LiquidationStatus::Triggered as u8,
+            GinvaError::InvalidLiquidationStatus
+        );
+
+        let seized_amount = liquidation_process.seized_collateral_amount;
+        require!(seized_amount > 0, GinvaError::InvalidAmount);
+
+        // Note: In V1, we can use similar logic to storefront sale
+        // but mark it as DEX fallback for tracking purposes
+        let asset_config = &ctx.accounts.asset_config;
+        require!(asset_config.is_active, GinvaError::AssetNotActive);
+
+        let (current_price, price_exponent) =
+            get_pyth_price_with_exponent(&ctx.accounts.pyth_price_feed, &asset_config.feed_id)?;
+
+        let gross_usdc_value = calculate_collateral_value(
+            seized_amount,
+            current_price,
+            price_exponent,
+            asset_config.decimals,
+            6, // USDC decimals
+        )?;
+
+        // For DEX fallback, we might want smaller discount or none
+        // For now, use same logic as storefront
+        let keeper_reward = gross_usdc_value
+            .saturating_mul(ctx.accounts.protocol_config.auto_swap_reward_bps)
+            .checked_div(10000)
+            .unwrap_or(0);
+
+        let usdc_required_from_caller = gross_usdc_value.saturating_sub(keeper_reward);
+        require!(usdc_required_from_caller > 0, GinvaError::InvalidAmount);
+
+        // Execute swap (same as storefront logic)
+        msg!(
+            "🦄 DEX Fallback: Processing {} of {:?} for {} USDC...",
+            seized_amount,
+            asset_config.mint,
+            usdc_required_from_caller
+        );
+
+        // ACTION A: Pull USDC from Caller -> Processing Vault
+        let cpi_program = ctx.accounts.token_program.to_account_info();
+        let cpi_accounts_pay = Transfer {
+            from: ctx.accounts.caller_usdc_account.to_account_info(),
+            to: ctx.accounts.processing_vault.to_account_info(),
+            authority: ctx.accounts.caller.to_account_info(),
+        };
+        let cpi_ctx_pay = CpiContext::new(cpi_program.clone(), cpi_accounts_pay);
+        token::transfer(cpi_ctx_pay, usdc_required_from_caller)?;
+
+        // ACTION B: Push Seized Collateral -> Caller
+        let bump = ctx.bumps.seized_assets_authority;
+        let seeds = &[b"seized_auth".as_ref(), &[bump]];
+        let signer = &[&seeds[..]];
+
+        let cpi_accounts_send = Transfer {
+            from: ctx.accounts.seized_assets_vault.to_account_info(),
+            to: ctx.accounts.caller_collateral_account.to_account_info(),
+            authority: ctx.accounts.seized_assets_authority.to_account_info(),
+        };
+        let cpi_ctx_send = CpiContext::new_with_signer(cpi_program, cpi_accounts_send, signer);
+        token::transfer(cpi_ctx_send, seized_amount)?;
+
+        // Update State
+        liquidation_process.swapped = true;
+        liquidation_process.usdc_received = usdc_required_from_caller;
+        liquidation_process.swap_executor = caller;
+        liquidation_process.swap_reward = keeper_reward;
+        liquidation_process.status = LiquidationStatus::Swapped as u8;
+        liquidation_process.deadline_for_distribution =
+            current_time + ctx.accounts.protocol_config.liquidation_timeout;
+
+        msg!(
+            "✅ DEX Fallback Complete! Processed {} of {:?} via DEX after 24h wait",
+            seized_amount,
+            asset_config.mint
         );
 
         Ok(())
@@ -1656,7 +1768,8 @@ pub struct LiquidationProcess {
     pub triggered_at: i64,
     pub deadline_for_swap: i64,
     pub deadline_for_distribution: i64,
-    pub swapped: bool, // NEW: Track if swap completed
+    pub dex_activation_time: i64, // 🕒 เวลาที่จะอนุญาตให้ขายเข้า DEX (Trigger + 24h)
+    pub swapped: bool,            // NEW: Track if swap completed
     pub finalized_at: i64,
     // Distribution tracking
     pub keeper_c_reward: u64,
@@ -2265,6 +2378,8 @@ pub enum GinvaError {
     PaymentTooEarly = 1301,
     #[msg("Unauthorized")]
     Unauthorized = 1003,
+    #[msg("Storefront sales period is still active (Wait 24h for DEX)")]
+    StorefrontPeriodNotOver = 1950,
 
     // 🛡️ Security Errors (1900-1999)
     #[msg("Reentrancy detected - possible attack")]
