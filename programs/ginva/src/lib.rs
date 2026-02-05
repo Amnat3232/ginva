@@ -1448,6 +1448,48 @@ fn calculate_collateral_value(
     Ok(value as u64)
 }
 
+fn calculate_dynamic_interest(total_borrowed: u64, current_liquidity: u64) -> u16 {
+    let total_supply = match total_borrowed.checked_add(current_liquidity) {
+        Some(val) => val,
+        None => return 250,
+    };
+
+    if total_supply == 0 {
+        return 250;
+    }
+
+    let utilization_bps = (total_borrowed as u128)
+        .checked_mul(10000)
+        .unwrap()
+        .checked_div(total_supply as u128)
+        .unwrap_or(0) as u64;
+
+    let optimal_utilization = 8000;
+    let base_rate = 200;
+    let slope_1 = 400;
+    let slope_2 = 3000;
+
+    if utilization_bps <= optimal_utilization {
+        let rate_increase = utilization_bps
+            .checked_mul(slope_1)
+            .unwrap()
+            .checked_div(optimal_utilization)
+            .unwrap();
+        return (base_rate + rate_increase) as u16;
+    } else {
+        let rate_at_optimal = base_rate + slope_1;
+        let excess_utilization = utilization_bps - optimal_utilization;
+        let excess_range = 10000 - optimal_utilization;
+        let surge_increase = excess_utilization
+            .checked_mul(slope_2)
+            .unwrap()
+            .checked_div(excess_range)
+            .unwrap();
+        let final_rate = rate_at_optimal + surge_increase;
+        return std::cmp::min(final_rate, 5000) as u16;
+    }
+}
+
 // ═════════════════════════════════════════════════════════════
 // 📋 ENUMS
 // ═════════════════════════════════════════════════════════════
