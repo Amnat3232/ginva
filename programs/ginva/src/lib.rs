@@ -736,22 +736,18 @@ pub mod ginva {
         let config = &mut ctx.accounts.system_config;
         let stake = &mut ctx.accounts.user_stake;
 
-        // 1. Claim pending rewards first
+        // 1. Check pending rewards FIRST (V1: Prevent loss by requiring manual claim)
         if stake.staked_amount > 0 {
             let pending = (stake.staked_amount as u128)
                 .checked_mul(config.acc_reward_per_share)
                 .unwrap()
                 .checked_div(1_000_000_000_000)
-                .unwrap() // precision 1e12
+                .unwrap()
                 .checked_sub(stake.reward_debt)
                 .unwrap();
 
-            if pending > 0 {
-                msg!(
-                    "⚠️ Pending reward {} not claimed (Auto-claim logic omitted for brevity)",
-                    pending
-                );
-            }
+            // V1 Safety: Require user to claim pending rewards before staking more
+            require!(pending == 0, GinvaError::MustClaimRewardsFirst);
         }
 
         // 2. Transfer USDC User -> Capital Wallet
@@ -803,15 +799,15 @@ pub mod ginva {
 
         require!(pending > 0, GinvaError::InvalidAmount);
 
-        // 2. Transfer Reward: Capital Wallet -> User
-        let bump = ctx.bumps.capital_wallet_authority;
-        let seeds = &[b"capital_auth".as_ref(), &[bump]];
+        // 2. Transfer Reward: Revenue Wallet -> User
+        let bump = ctx.bumps.revenue_wallet_authority;
+        let seeds = &[b"revenue_auth".as_ref(), &[bump]];
         let signer = &[&seeds[..]];
 
         let cpi_accounts = Transfer {
-            from: ctx.accounts.capital_wallet.to_account_info(),
+            from: ctx.accounts.revenue_wallet.to_account_info(),
             to: ctx.accounts.user_usdc_account.to_account_info(),
-            authority: ctx.accounts.capital_wallet_authority.to_account_info(),
+            authority: ctx.accounts.revenue_wallet_authority.to_account_info(),
         };
         let cpi_ctx = CpiContext::new_with_signer(
             ctx.accounts.token_program.to_account_info(),
@@ -828,7 +824,7 @@ pub mod ginva {
     }
 
     // Unstake LP tokens
-    pub fn unstake_lp(ctx: Context<ClaimReward>, amount: u64) -> Result<()> {
+    pub fn unstake_lp(ctx: Context<UnstakeLP>, amount: u64) -> Result<()> {
         let config = &mut ctx.accounts.system_config;
         let stake = &mut ctx.accounts.user_stake;
 
@@ -1382,7 +1378,7 @@ pub struct StakeLP<'info> {
     #[account(
         init_if_needed,
         payer = user,
-        space = 8 + 32 + 8 + 16 + 8 + 8 + 1, // FIXED: 73 bytes total
+        space = 8 + 32 + 8 + 16 + 8 + 8 + 1,
         seeds = [b"stake", user.key().as_ref()],
         bump
     )]
@@ -1397,12 +1393,44 @@ pub struct StakeLP<'info> {
     #[account(mut)]
     pub capital_wallet: Account<'info, TokenAccount>,
 
+    /// CHECK: PDA derived from [b"capital_auth"]
+    #[account(seeds = [b"capital_auth"], bump)]
+    pub capital_wallet_authority: AccountInfo<'info>,
+
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
 pub struct ClaimReward<'info> {
+    #[account(mut, seeds = [b"config"], bump)]
+    pub system_config: Account<'info, SystemConfig>,
+
+    #[account(
+        mut,
+        seeds = [b"stake", user.key().as_ref()],
+        bump
+    )]
+    pub user_stake: Account<'info, UserStake>,
+
+    #[account(mut)]
+    pub user: Signer<'info>,
+
+    #[account(mut)]
+    pub user_usdc_account: Account<'info, TokenAccount>,
+
+    #[account(mut)]
+    pub revenue_wallet: Account<'info, TokenAccount>,
+
+    /// CHECK: PDA Authority
+    #[account(seeds = [b"revenue_auth"], bump)]
+    pub revenue_wallet_authority: AccountInfo<'info>,
+
+    pub token_program: Program<'info, Token>,
+}
+
+#[derive(Accounts)]
+pub struct UnstakeLP<'info> {
     #[account(mut, seeds = [b"config"], bump)]
     pub system_config: Account<'info, SystemConfig>,
 
@@ -1499,4 +1527,6 @@ pub enum GinvaError {
     SlippageExceeded = 1904,
     #[msg("Operation timestamp mismatch - replay attack")]
     TimestampMismatch = 1905,
+    #[msg("Must claim pending rewards before staking more")]
+    MustClaimRewardsFirst = 1906,
 }
