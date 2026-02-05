@@ -377,16 +377,33 @@ pub mod ginva {
         loan_account.duration_days = duration_days;
         loan_account.borrow_at = current_time;
         loan_account.maturity_at = current_time + (duration_days as i64 * 86400);
-        loan_account.interest_rate_bps = match duration_days {
-            30 => 250,
-            90 => 225,
-            380 => 200,
-            _ => 0,
+
+        // Calculate dynamic interest rate based on utilization
+        let current_liquidity = ctx.accounts.capital_wallet.amount;
+        let total_supply = system_config
+            .total_borrowed
+            .saturating_add(current_liquidity);
+        let utilization_bps = if total_supply > 0 {
+            (system_config.total_borrowed as u128)
+                .checked_mul(10000)
+                .unwrap()
+                .checked_div(total_supply as u128)
+                .unwrap_or(0) as u64
+        } else {
+            0
         };
+        let dynamic_rate =
+            calculate_dynamic_interest(system_config.total_borrowed, current_liquidity);
+        loan_account.interest_rate_bps = dynamic_rate;
 
         system_config.total_borrowed = system_config.total_borrowed.saturating_add(loan_amount);
 
-        msg!("💰 Loan created: {} USDC", loan_amount);
+        msg!(
+            "💰 Loan created: {} USDC at {}% APR (Utilization: {}%)",
+            loan_amount,
+            dynamic_rate as f64 / 100.0,
+            utilization_bps as f64 / 100.0
+        );
         Ok(())
     }
 
