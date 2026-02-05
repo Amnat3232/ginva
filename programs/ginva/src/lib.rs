@@ -241,6 +241,7 @@ pub mod ginva {
     pub fn deposit_collateral(ctx: Context<DepositCollateral>, amount: u64) -> Result<()> {
         let system_config = &mut ctx.accounts.system_config;
         let loan_account = &mut ctx.accounts.loan_account;
+        let asset_config = &ctx.accounts.asset_config;
         let user = ctx.accounts.user.key();
 
         require!(amount > 0, GinvaError::InvalidAmount);
@@ -251,15 +252,20 @@ pub mod ginva {
             Clock::get()?.unix_timestamp >= system_config.ops_resume_at,
             GinvaError::SystemInCooldown
         );
+        require!(asset_config.is_active, GinvaError::AssetNotActive);
 
         if loan_account.borrower == Pubkey::default() {
             loan_account.borrower = user;
-            loan_account.collateral_mint = system_config.collateral_mint;
+            loan_account.collateral_mint = asset_config.mint;
             loan_account.created_at = Clock::get()?.unix_timestamp;
         } else {
             require!(
                 loan_account.borrower == user,
                 GinvaError::AccountAlreadyInUse
+            );
+            require!(
+                loan_account.collateral_mint == asset_config.mint,
+                GinvaError::InvalidAssetMint
             );
         }
 
@@ -279,7 +285,11 @@ pub mod ginva {
         loan_account.last_payment_at = Clock::get()?.unix_timestamp;
         system_config.total_collateral = system_config.total_collateral.saturating_add(amount);
 
-        msg!("✅ Collateral deposited: {}", amount);
+        msg!(
+            "✅ Collateral deposited: {} of {:?}",
+            amount,
+            asset_config.mint
+        );
         Ok(())
     }
 
@@ -1647,6 +1657,12 @@ pub struct DepositCollateral<'info> {
     pub user: Signer<'info>,
     #[account(mut, seeds = [b"config"], bump)]
     pub system_config: Account<'info, SystemConfig>,
+
+    #[account(
+        seeds = [b"asset_config", user_collateral_account.mint.as_ref()],
+        bump
+    )]
+    pub asset_config: Account<'info, AssetConfig>,
 
     #[account(
         init_if_needed,
