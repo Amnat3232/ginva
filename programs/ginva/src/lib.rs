@@ -95,6 +95,14 @@ pub mod ginva {
         protocol_config.min_loan_size = 1_000_000; // 1 USDC (6 decimals)
         protocol_config.max_loan_size = 1_000_000_000_000; // 1M USDC (6 decimals)
 
+        // 🛡️ SAFETY CHECK: ตรวจสอบ Feature Flag ตอนรันจริง
+        #[cfg(feature = "local-test")]
+        {
+            msg!("🚨🚨🚨 CRITICAL WARNING: THIS CONTRACT IS IN LOCAL-TEST MODE! 🚨🚨🚨");
+            msg!("🚨 ORACLE TIME CHECKS ARE DISABLED! DO NOT USE ON MAINNET! 🚨");
+            msg!("🚨 THIS IS A TEST BUILD ONLY - DEPLOYING ON MAINNET IS DANGEROUS! 🚨");
+        }
+
         msg!("✅ System initialized with Auto-Swap Liquidation v3.0");
         Ok(())
     }
@@ -1578,9 +1586,19 @@ fn get_pyth_price_with_exponent(
 ) -> Result<(u64, i32)> {
     let clock = Clock::get()?;
 
-    // Get price no older than 60 seconds
+    // 🛡️ INTELLIGENT MOCK: ปรับแต่ง Logic ตามสภาพแวดล้อม
+    // ถ้าเป็น Local Test -> ให้ max_age เป็นอนันต์ (u64::MAX) เพื่อรับ Mock Data ได้ทุกแบบ
+    // ถ้าเป็น Production -> ต้องเป็น MAX_PRICE_AGE_SECONDS (60 วิ) เท่านั้น!
+    let max_age = if cfg!(feature = "local-test") {
+        msg!("⚠️ WARNING: Local Test Mode - Oracle Time Check Disabled");
+        u64::MAX
+    } else {
+        MAX_PRICE_AGE_SECONDS
+    };
+
+    // Get price with dynamic max_age
     let price = price_update
-        .get_price_no_older_than(&clock, MAX_PRICE_AGE_SECONDS, feed_id)
+        .get_price_no_older_than(&clock, max_age, feed_id)
         .map_err(|_| GinvaError::PythPriceUnavailable)?;
 
     // Validate price confidence (confidence / price should be reasonable)
@@ -2235,68 +2253,106 @@ pub struct ExtendLoan<'info> {
 }
 
 #[derive(Accounts)]
-pub struct StakeLP<'info> {
+pub struct PayInterest<'info> {
+    #[account(mut)]
+    pub user: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [b"loan", user.key().as_ref()],
+        bump,
+        constraint = loan_account.borrower == user.key() @ GinvaError::Unauthorized
+    )]
+    pub loan_account: Account<'info, LoanAccount>,
+
     #[account(mut, seeds = [b"config"], bump)]
     pub system_config: Account<'info, SystemConfig>,
 
+    #[account(mut)]
+    pub user_usdc_account: Account<'info, TokenAccount>,
+
+    /// CHECK: PDA derived from [b"capital_auth"]
+    #[account(seeds = [b"capital_auth"], bump)]
+    pub capital_wallet_authority: AccountInfo<'info>,
+    #[account(mut, token::authority = capital_wallet_authority)]
+    pub capital_wallet: Account<'info, TokenAccount>,
+
+    /// CHECK: PDA derived from [b"vault_auth"]
+    #[account(seeds = [b"vault_auth"], bump)]
+    pub vault_authority: AccountInfo<'info>,
+
+    #[account(mut, token::authority = vault_authority)]
+    pub ops_token_account: Account<'info, TokenAccount>,
+
+    #[account(mut, token::authority = vault_authority)]
+    pub revenue_wallet: Account<'info, TokenAccount>,
+
+    pub token_program: Program<'info, Token>,
+}
+
+#[derive(Accounts)]
+pub struct ClaimReward<'info> {
+    #[account(mut)]
+    pub user: Signer<'info>,
+
     #[account(
-        init_if_needed,
-        payer = user,
-        space = 8 + 32 + 8 + 16 + 8 + 8 + 1,
+        mut,
         seeds = [b"stake", user.key().as_ref()],
         bump
     )]
     pub user_stake: Account<'info, UserStake>,
 
-    #[account(mut)]
-    pub user: Signer<'info>,
+    #[account(seeds = [b"config"], bump)]
+    pub system_config: Account<'info, SystemConfig>,
+
+    /// CHECK: PDA derived from [b"revenue_auth"]
+    #[account(seeds = [b"revenue_auth"], bump)]
+    pub revenue_wallet_authority: AccountInfo<'info>,
+
+    #[account(mut, token::authority = revenue_wallet_authority)]
+    pub revenue_wallet: Account<'info, TokenAccount>,
 
     #[account(mut)]
     pub user_usdc_account: Account<'info, TokenAccount>,
 
+    pub token_program: Program<'info, Token>,
+}
+
+#[derive(Accounts)]
+pub struct StakeLP<'info> {
     #[account(mut)]
-    pub capital_wallet: Account<'info, TokenAccount>,
+    pub user: Signer<'info>,
+
+    #[account(
+        init_if_needed,
+        payer = user,
+        space = 8 + size_of::<UserStake>(),
+        seeds = [b"stake", user.key().as_ref()],
+        bump
+    )]
+    pub user_stake: Account<'info, UserStake>,
+
+    #[account(mut, seeds = [b"config"], bump)]
+    pub system_config: Account<'info, SystemConfig>,
 
     /// CHECK: PDA derived from [b"capital_auth"]
     #[account(seeds = [b"capital_auth"], bump)]
     pub capital_wallet_authority: AccountInfo<'info>,
+
+    #[account(mut, token::authority = capital_wallet_authority)]
+    pub capital_wallet: Account<'info, TokenAccount>,
+
+    #[account(mut)]
+    pub user_usdc_account: Account<'info, TokenAccount>,
 
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
-pub struct ClaimReward<'info> {
-    #[account(mut, seeds = [b"config"], bump)]
-    pub system_config: Account<'info, SystemConfig>,
-
-    #[account(
-        mut,
-        seeds = [b"stake", user.key().as_ref()],
-        bump
-    )]
-    pub user_stake: Account<'info, UserStake>,
-
-    #[account(mut)]
-    pub user: Signer<'info>,
-
-    #[account(mut)]
-    pub user_usdc_account: Account<'info, TokenAccount>,
-
-    #[account(mut)]
-    pub revenue_wallet: Account<'info, TokenAccount>,
-
-    /// CHECK: PDA Authority
-    #[account(seeds = [b"revenue_auth"], bump)]
-    pub revenue_wallet_authority: AccountInfo<'info>,
-
-    pub token_program: Program<'info, Token>,
-}
-
-#[derive(Accounts)]
 pub struct UnstakeLP<'info> {
-    #[account(mut, seeds = [b"config"], bump)]
-    pub system_config: Account<'info, SystemConfig>,
+    #[account(mut)]
+    pub user: Signer<'info>,
 
     #[account(
         mut,
@@ -2305,32 +2361,36 @@ pub struct UnstakeLP<'info> {
     )]
     pub user_stake: Account<'info, UserStake>,
 
-    #[account(mut)]
-    pub user: Signer<'info>,
+    #[account(mut, seeds = [b"config"], bump)]
+    pub system_config: Account<'info, SystemConfig>,
 
-    #[account(mut)]
-    pub user_usdc_account: Account<'info, TokenAccount>,
-
-    #[account(mut)]
-    pub capital_wallet: Account<'info, TokenAccount>,
-
-    /// CHECK: PDA Authority
+    /// CHECK: PDA derived from [b"capital_auth"]
     #[account(seeds = [b"capital_auth"], bump)]
     pub capital_wallet_authority: AccountInfo<'info>,
+
+    #[account(mut, token::authority = capital_wallet_authority)]
+    pub capital_wallet: Account<'info, TokenAccount>,
+
+    #[account(mut)]
+    pub user_usdc_account: Account<'info, TokenAccount>,
 
     pub token_program: Program<'info, Token>,
 }
 
 #[derive(Accounts)]
 pub struct CheckHealthFactor<'info> {
-    /// Anyone can check
+    #[account(mut)]
     pub user: Signer<'info>,
 
     #[account(
-        seeds = [b"loan", loan_account.borrower.as_ref()], 
+        mut,
+        seeds = [b"loan", loan_account.borrower.as_ref()],
         bump
     )]
     pub loan_account: Account<'info, LoanAccount>,
+
+    #[account(seeds = [b"asset_config", loan_account.collateral_mint.as_ref()], bump)]
+    pub asset_config: Account<'info, AssetConfig>,
 
     pub pyth_price_feed: Account<'info, PriceUpdateV2>,
 }
