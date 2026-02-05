@@ -8,6 +8,7 @@
     "build": "anchor build",
     "build:docker": "./docker-build.sh",
     "test": "anchor test",
+    "test:extend": "ts-node tests/extend_loan_simple.test.ts",
     "test:docker": "docker-compose up --build test",
     "test:liquidation": "anchor test --grep 'Liquidation'",
     "deploy:devnet": "anchor deploy --provider.cluster devnet",
