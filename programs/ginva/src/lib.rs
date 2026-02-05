@@ -59,7 +59,57 @@ pub mod ginva {
         system_config.total_borrowed = 0;
         system_config.total_collateral = 0;
 
+        // Initialize staking fields
+        system_config.total_staked = 0;
+        system_config.acc_reward_per_share = 0;
+
+        // Initialize emergency pause fields
+        system_config.is_paused = false;
+        system_config.paused_at = 0;
+        system_config.pause_reason = [0u8; 50];
+
         msg!("✅ System initialized with Auto-Swap Liquidation v3.0");
+        Ok(())
+    }
+
+    // ═════════════════════════════════════════════════════════════════════
+    // 🛑 EMERGENCY CONTROLS
+    // ═════════════════════════════════════════════════════════════════════
+
+    pub fn emergency_pause(ctx: Context<AdminOnly>) -> Result<()> {
+        let system_config = &mut ctx.accounts.system_config;
+        require!(!system_config.is_paused, GinvaError::AlreadyPaused);
+
+        system_config.is_paused = true;
+        system_config.paused_at = Clock::get()?.unix_timestamp;
+
+        msg!("🛑 PROTOCOL EMERGENCY PAUSE ACTIVATED");
+        msg!("All transactions blocked until admin resumes");
+
+        Ok(())
+    }
+
+    pub fn emergency_resume(ctx: Context<AdminOnly>) -> Result<()> {
+        let system_config = &mut ctx.accounts.system_config;
+        require!(system_config.is_paused, GinvaError::NotPaused);
+
+        // 1. Unlock status (but operations still locked until timelock expires)
+        system_config.is_paused = false;
+
+        // 2. Set timelock: 48 hours (172800 sec) - Use 60 sec for devnet testing
+        let timelock_seconds = 172800;
+        let current_time = Clock::get()?.unix_timestamp;
+        system_config.ops_resume_at = current_time + timelock_seconds;
+
+        let paused_duration = Clock::get()?.unix_timestamp - system_config.paused_at;
+        msg!("✅ PROTOCOL RESUME INITIATED");
+        msg!("Paused for: {} seconds", paused_duration);
+        msg!(
+            "Operations unlock at timestamp: {}",
+            system_config.ops_resume_at
+        );
+        msg!("Timelock: 48 hours");
+
         Ok(())
     }
 
@@ -72,6 +122,13 @@ pub mod ginva {
         let user = ctx.accounts.user.key();
 
         require!(amount > 0, GinvaError::InvalidAmount);
+
+        // 🛡️ SECURITY GUARD 2.0: Check pause status + timelock
+        require!(!system_config.is_paused, GinvaError::ProtocolPaused);
+        require!(
+            Clock::get()?.unix_timestamp >= system_config.ops_resume_at,
+            GinvaError::SystemInCooldown
+        );
 
         if loan_account.borrower == Pubkey::default() {
             loan_account.borrower = user;
@@ -110,6 +167,13 @@ pub mod ginva {
     pub fn borrow_usdc(ctx: Context<BorrowUsdc>, ltv_option: u8, duration_days: u16) -> Result<()> {
         let loan_account = &mut ctx.accounts.loan_account;
         let system_config = &mut ctx.accounts.system_config;
+
+        // 🛡️ SECURITY GUARD 2.0: Check pause status + timelock
+        require!(!system_config.is_paused, GinvaError::ProtocolPaused);
+        require!(
+            Clock::get()?.unix_timestamp >= system_config.ops_resume_at,
+            GinvaError::SystemInCooldown
+        );
 
         // Get Price and Exponent from Pyth
         let feed_id = get_feed_id_from_hex(SOL_USD_FEED_ID).map_err(|_| GinvaError::PythError)?;
@@ -187,6 +251,13 @@ pub mod ginva {
         let liquidation_process = &mut ctx.accounts.liquidation_process;
         let keeper_a = ctx.accounts.keeper_a.key();
         let current_time = Clock::get()?.unix_timestamp;
+
+        // 🛡️ SECURITY GUARD 2.0: Check pause status + timelock
+        require!(!system_config.is_paused, GinvaError::ProtocolPaused);
+        require!(
+            current_time >= system_config.ops_resume_at,
+            GinvaError::SystemInCooldown
+        );
 
         // 1. Check Health Factor
         let feed_id = get_feed_id_from_hex(SOL_USD_FEED_ID).map_err(|_| GinvaError::PythError)?;
@@ -296,6 +367,16 @@ pub mod ginva {
         let caller = ctx.accounts.caller.key();
         let current_time = Clock::get()?.unix_timestamp;
 
+        // 🛡️ SECURITY GUARD 2.0: Check pause status + timelock
+        require!(
+            !ctx.accounts.system_config.is_paused,
+            GinvaError::ProtocolPaused
+        );
+        require!(
+            current_time >= ctx.accounts.system_config.ops_resume_at,
+            GinvaError::SystemInCooldown
+        );
+
         // 1. Validation Checks
         require!(
             current_time >= liquidation_process.deadline_for_swap,
@@ -389,6 +470,13 @@ pub mod ginva {
         let system_config = &mut ctx.accounts.system_config;
         let keeper_c = ctx.accounts.keeper_c.key();
         let current_time = Clock::get()?.unix_timestamp;
+
+        // 🛡️ SECURITY GUARD 2.0: Check pause status + timelock
+        require!(!system_config.is_paused, GinvaError::ProtocolPaused);
+        require!(
+            current_time >= system_config.ops_resume_at,
+            GinvaError::SystemInCooldown
+        );
 
         // 1. Check Status and Timeout
         require!(
@@ -563,6 +651,13 @@ pub mod ginva {
         let loan_account = &mut ctx.accounts.loan_account;
         let system_config = &mut ctx.accounts.system_config;
 
+        // 🛡️ SECURITY GUARD 2.0: Check pause status + timelock
+        require!(!system_config.is_paused, GinvaError::ProtocolPaused);
+        require!(
+            Clock::get()?.unix_timestamp >= system_config.ops_resume_at,
+            GinvaError::SystemInCooldown
+        );
+
         require!(
             loan_account.status == LoanStatus::Active as u8,
             GinvaError::LoanNotActive
@@ -650,7 +745,15 @@ pub mod ginva {
     pub fn pay_interest(ctx: Context<PayInterest>) -> Result<()> {
         let loan_account = &mut ctx.accounts.loan_account;
         let user = ctx.accounts.user.key();
+        let system_config = &mut ctx.accounts.system_config;
         let current_time = Clock::get()?.unix_timestamp;
+
+        // 🛡️ SECURITY GUARD 2.0: Check pause status + timelock
+        require!(!system_config.is_paused, GinvaError::ProtocolPaused);
+        require!(
+            current_time >= system_config.ops_resume_at,
+            GinvaError::SystemInCooldown
+        );
 
         // 1️⃣ Validation
         require!(
@@ -736,6 +839,13 @@ pub mod ginva {
         let config = &mut ctx.accounts.system_config;
         let stake = &mut ctx.accounts.user_stake;
 
+        // 🛡️ SECURITY GUARD 2.0: Check pause status + timelock
+        require!(!config.is_paused, GinvaError::ProtocolPaused);
+        require!(
+            Clock::get()?.unix_timestamp >= config.ops_resume_at,
+            GinvaError::SystemInCooldown
+        );
+
         // 1. Check pending rewards FIRST (V1: Prevent loss by requiring manual claim)
         if stake.staked_amount > 0 {
             let pending = (stake.staked_amount as u128)
@@ -788,6 +898,13 @@ pub mod ginva {
 
         require!(stake.staked_amount > 0, GinvaError::InsufficientFunds);
 
+        // 🛡️ SECURITY GUARD 2.0: Check pause status + timelock
+        require!(!config.is_paused, GinvaError::ProtocolPaused);
+        require!(
+            Clock::get()?.unix_timestamp >= config.ops_resume_at,
+            GinvaError::SystemInCooldown
+        );
+
         // 1. Calculate Pending Reward
         let accumulated = (stake.staked_amount as u128)
             .checked_mul(config.acc_reward_per_share)
@@ -829,6 +946,13 @@ pub mod ginva {
         let stake = &mut ctx.accounts.user_stake;
 
         require!(stake.staked_amount >= amount, GinvaError::InsufficientFunds);
+
+        // 🛡️ SECURITY GUARD 2.0: Check pause status + timelock
+        require!(!config.is_paused, GinvaError::ProtocolPaused);
+        require!(
+            Clock::get()?.unix_timestamp >= config.ops_resume_at,
+            GinvaError::SystemInCooldown
+        );
 
         // 1. Transfer Principal: Capital Wallet -> User
         let bump = ctx.bumps.capital_wallet_authority;
@@ -1010,7 +1134,6 @@ pub enum LiquidationStatus {
 // ═════════════════════════════════════════════════════════════
 
 #[account]
-#[derive(Default)]
 pub struct SystemConfig {
     pub admin: Pubkey,
     pub capital_wallet_authority: Pubkey,
@@ -1027,6 +1150,19 @@ pub struct SystemConfig {
     // Staking fields
     pub total_staked: u64,          // Total staked amount
     pub acc_reward_per_share: u128, // Accumulated reward per share
+
+    // Emergency pause fields
+    pub is_paused: bool,
+    pub paused_at: i64,
+    pub pause_reason: [u8; 50],
+    pub ops_resume_at: i64,
+}
+
+impl SystemConfig {
+    pub fn init(&mut self) {
+        self.pause_reason = [0u8; 50];
+        self.ops_resume_at = 0;
+    }
 }
 
 #[account]
@@ -1129,6 +1265,20 @@ pub struct InitializeSystem<'info> {
     pub collateral_mint: Account<'info, Mint>,
     pub loan_mint: Account<'info, Mint>,
     pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct AdminOnly<'info> {
+    #[account(mut)]
+    pub admin: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [b"config"],
+        bump,
+        constraint = system_config.admin == admin.key() @ GinvaError::Unauthorized
+    )]
+    pub system_config: Account<'info, SystemConfig>,
 }
 
 #[derive(Accounts)]
@@ -1529,4 +1679,12 @@ pub enum GinvaError {
     TimestampMismatch = 1905,
     #[msg("Must claim pending rewards before staking more")]
     MustClaimRewardsFirst = 1906,
+    #[msg("Protocol is currently paused")]
+    ProtocolPaused = 1907,
+    #[msg("Protocol is already paused")]
+    AlreadyPaused = 1908,
+    #[msg("Protocol is not paused")]
+    NotPaused = 1909,
+    #[msg("System is in cooldown period after resume (Wait 48h)")]
+    SystemInCooldown = 1910,
 }
