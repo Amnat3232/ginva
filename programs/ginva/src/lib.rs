@@ -27,9 +27,10 @@ pub const SOL_USD_FEED_ID: &str =
     "0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d";
 pub const MAX_PRICE_AGE_SECONDS: u64 = 60; // Maximum age of price data in seconds
                                            // ═════════════════════════════════════════════════════════════
+                                           // Note: LIQUIDATION_TIMEOUT, AUTO_SWAP_REWARD_BPS, DISTRIBUTE_REWARD_BPS
+                                           // are now stored in ProtocolConfig for dynamic updates
+                                           // Keeping LIQUIDATION_TIMEOUT constant for TriggerLiquidation to avoid stack overflow
 const LIQUIDATION_TIMEOUT: i64 = 2; // 2 seconds for testing (change to 86400 for production)
-const AUTO_SWAP_REWARD_BPS: u64 = 600; // 6% = 600 basis points for auto-swap caller
-const DISTRIBUTE_REWARD_BPS: u64 = 100; // 1% for keeper C
 
 // Jupiter Program ID (for CPI calls)
 // Note: This is the mainnet address. For devnet, use different address
@@ -67,6 +68,16 @@ pub mod ginva {
         system_config.is_paused = false;
         system_config.paused_at = 0;
         system_config.pause_reason = [0u8; 50];
+        system_config.ops_resume_at = 0;
+
+        // Initialize Protocol Config
+        let protocol_config = &mut ctx.accounts.protocol_config;
+        protocol_config.admin = ctx.accounts.admin.key();
+        protocol_config.liquidation_timeout = 2; // Devnet: 2 seconds (Prod: 86400)
+        protocol_config.auto_swap_reward_bps = 600; // 6%
+        protocol_config.distribute_reward_bps = 100; // 1%
+        protocol_config.min_loan_size = 1_000_000; // 1 USDC (6 decimals)
+        protocol_config.max_loan_size = 1_000_000_000_000; // 1M USDC (6 decimals)
 
         msg!("✅ System initialized with Auto-Swap Liquidation v3.0");
         Ok(())
@@ -109,6 +120,53 @@ pub mod ginva {
             system_config.ops_resume_at
         );
         msg!("Timelock: 48 hours");
+
+        Ok(())
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // ⚙️ ADMIN CONFIG UPDATES (Dynamic Parameters)
+    // ═════════════════════════════════════════════════════════════
+    pub fn update_protocol_config(
+        ctx: Context<UpdateProtocolConfig>,
+        new_timeout: Option<i64>,
+        new_swap_reward_bps: Option<u64>,
+        new_distribute_reward_bps: Option<u64>,
+        new_min_loan: Option<u64>,
+        new_max_loan: Option<u64>,
+    ) -> Result<()> {
+        let protocol_config = &mut ctx.accounts.protocol_config;
+
+        // Update Liquidation Timeout
+        if let Some(timeout) = new_timeout {
+            require!(timeout > 0, GinvaError::InvalidAmount);
+            protocol_config.liquidation_timeout = timeout;
+            msg!("✅ Liquidation timeout updated to {} seconds", timeout);
+        }
+
+        // Update Swap Reward (e.g. 600 = 6%)
+        if let Some(reward) = new_swap_reward_bps {
+            require!(reward < 10000, GinvaError::InvalidAmount);
+            protocol_config.auto_swap_reward_bps = reward;
+            msg!("✅ Swap reward updated to {}%", reward / 100);
+        }
+
+        // Update Distribute Reward (e.g. 100 = 1%)
+        if let Some(reward) = new_distribute_reward_bps {
+            require!(reward < 10000, GinvaError::InvalidAmount);
+            protocol_config.distribute_reward_bps = reward;
+            msg!("✅ Distribute reward updated to {}%", reward / 100);
+        }
+
+        // Update Loan Limits
+        if let Some(min_loan) = new_min_loan {
+            protocol_config.min_loan_size = min_loan;
+            msg!("✅ Min loan size updated to {} units", min_loan);
+        }
+        if let Some(max_loan) = new_max_loan {
+            protocol_config.max_loan_size = max_loan;
+            msg!("✅ Max loan size updated to {} units", max_loan);
+        }
 
         Ok(())
     }
@@ -202,6 +260,17 @@ pub mod ginva {
             .saturating_mul(ltv_percentage)
             .checked_div(100)
             .unwrap_or(0);
+
+        // Validate min/max loan size using protocol config
+        let protocol_config = &ctx.accounts.protocol_config;
+        require!(
+            loan_amount >= protocol_config.min_loan_size,
+            GinvaError::LoanTooSmall
+        );
+        require!(
+            loan_amount <= protocol_config.max_loan_size,
+            GinvaError::LoanTooLarge
+        );
 
         require!(
             ctx.accounts.capital_wallet.amount >= loan_amount,
@@ -301,11 +370,9 @@ pub mod ginva {
             .saturating_sub(trigger_reward);
 
         // 3. Transfer 1% to Keeper A immediately
-        let bump = ctx.bumps.vault_authority;
-        let seeds = &[b"vault_auth".as_ref(), &[bump]];
-        let signer = &[&seeds[..]];
-
-        let cpi_program = ctx.accounts.token_program.to_account_info();
+        // Note: Temporarily commented out to reduce stack usage
+        // TODO: Move keeper reward to a separate claim function
+        /*
         let cpi_accounts = Transfer {
             from: ctx.accounts.vault_collateral_account.to_account_info(),
             to: ctx.accounts.keeper_a_collateral_account.to_account_info(),
@@ -313,8 +380,13 @@ pub mod ginva {
         };
         let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
         token::transfer(cpi_ctx, trigger_reward)?;
+        */
 
         // 4. Transfer 99% to Seized Assets Vault (waiting for auto-swap after 24h)
+        let bump = ctx.bumps.vault_authority;
+        let seeds = &[b"vault_auth".as_ref(), &[bump]];
+        let signer = &[&seeds[..]];
+
         let cpi_accounts_seized = Transfer {
             from: ctx.accounts.vault_collateral_account.to_account_info(),
             to: ctx.accounts.seized_assets_vault.to_account_info(),
@@ -328,6 +400,7 @@ pub mod ginva {
         token::transfer(cpi_ctx_seized, remaining_for_swap)?;
 
         // 5. Initialize Liquidation Process
+        // Using constant to save stack space (ProtocolConfig would add ~100+ bytes)
         liquidation_process.loan_account = loan_account.key();
         liquidation_process.status = LiquidationStatus::Triggered as u8;
         liquidation_process.trigger_keeper = keeper_a;
@@ -405,9 +478,9 @@ pub mod ginva {
         )?;
 
         // 3. Calculate Discounted Price for Caller
-        // Reward 0.6% -> Caller pays 99.4% of the value
+        // Reward based on config -> Caller pays (100% - reward%) of the value
         let caller_discount = gross_usdc_value
-            .saturating_mul(AUTO_SWAP_REWARD_BPS)
+            .saturating_mul(ctx.accounts.protocol_config.auto_swap_reward_bps)
             .checked_div(10000)
             .unwrap_or(0);
 
@@ -449,7 +522,8 @@ pub mod ginva {
         liquidation_process.swap_executor = caller;
         liquidation_process.swap_reward = caller_discount;
         liquidation_process.status = LiquidationStatus::Swapped as u8;
-        liquidation_process.deadline_for_distribution = current_time + LIQUIDATION_TIMEOUT;
+        liquidation_process.deadline_for_distribution =
+            current_time + ctx.accounts.protocol_config.liquidation_timeout;
 
         msg!(
             "✅ OTC Swap Complete! Sold {} SOL for {} USDC (Discount: {})",
@@ -506,9 +580,10 @@ pub mod ginva {
         let principal_return = loan_principal;
         let gross_profit = total_usdc.saturating_sub(principal_return);
 
-        // Keeper C reward: 0.6% of total
+        // Keeper C reward: based on config (e.g., 1% of total)
+        let protocol_config = &ctx.accounts.protocol_config;
         let keeper_c_reward = total_usdc
-            .saturating_mul(DISTRIBUTE_REWARD_BPS)
+            .saturating_mul(protocol_config.distribute_reward_bps)
             .checked_div(10000)
             .unwrap_or(0);
 
@@ -605,6 +680,7 @@ pub mod ginva {
     // ═════════════════════════════════════════════════════════════
     pub fn claim_expired_swap(ctx: Context<ClaimExpiredSwap>) -> Result<()> {
         let liquidation_process = &mut ctx.accounts.liquidation_process;
+        let protocol_config = &ctx.accounts.protocol_config;
         let current_time = Clock::get()?.unix_timestamp;
 
         require!(
@@ -618,7 +694,7 @@ pub mod ginva {
         require!(!liquidation_process.swapped, GinvaError::AlreadySwapped);
 
         // Reset deadline to allow new caller
-        liquidation_process.deadline_for_swap = current_time + LIQUIDATION_TIMEOUT;
+        liquidation_process.deadline_for_swap = current_time + protocol_config.liquidation_timeout;
 
         msg!("⚠️ Swap timeout extended! Anyone can now execute auto-swap");
         Ok(())
@@ -626,6 +702,7 @@ pub mod ginva {
 
     pub fn claim_expired_distribution(ctx: Context<ClaimExpiredDistribution>) -> Result<()> {
         let liquidation_process = &mut ctx.accounts.liquidation_process;
+        let protocol_config = &ctx.accounts.protocol_config;
         let current_time = Clock::get()?.unix_timestamp;
 
         require!(
@@ -638,7 +715,8 @@ pub mod ginva {
         );
 
         liquidation_process.distribute_keeper = Pubkey::default();
-        liquidation_process.deadline_for_distribution = current_time + LIQUIDATION_TIMEOUT;
+        liquidation_process.deadline_for_distribution =
+            current_time + protocol_config.liquidation_timeout;
 
         msg!("⚠️ Distribution timeout! New keeper can now take over");
         Ok(())
@@ -1056,6 +1134,66 @@ pub mod ginva {
 
         Ok(())
     }
+
+    // ═════════════════════════════════════════════════════════════
+    // 1️⃣2️⃣ STATUS TRACKING (Loan Lifecycle)
+    // ═════════════════════════════════════════════════════════════
+    pub fn check_overdue_loan(ctx: Context<CheckLoanStatus>) -> Result<()> {
+        let loan = &mut ctx.accounts.loan_account;
+        let current_time = Clock::get()?.unix_timestamp;
+
+        // เช็คเฉพาะสถานะที่ยังไม่จบ (Active หรือ Overdue)
+        require!(
+            loan.status == LoanStatus::Active as u8 || loan.status == LoanStatus::Overdue as u8,
+            GinvaError::LoanNotActive
+        );
+
+        let days_since_payment = (current_time - loan.last_payment_at) / 86400;
+
+        if days_since_payment >= 34 {
+            // เกิน 33 วัน = Default (ผิดนัดชำระหนี้ - รอโดนยึด)
+            loan.status = LoanStatus::Default as u8;
+            msg!("🚨 LOAN DEFAULTED! Days overdue: {}", days_since_payment);
+        } else if days_since_payment >= 31 {
+            // 31-33 วัน = Overdue (ค้างชำระ - เริ่มเตือน)
+            loan.status = LoanStatus::Overdue as u8;
+            msg!("⚠️ LOAN OVERDUE! Days overdue: {}", days_since_payment);
+        } else {
+            msg!(
+                "✅ Loan status healthy. Days since payment: {}",
+                days_since_payment
+            );
+        }
+
+        Ok(())
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // 1️⃣3️⃣ ADMIN RECOVERY (Seized Assets)
+    // ═════════════════════════════════════════════════════════════
+    pub fn admin_withdraw_seized(ctx: Context<AdminWithdrawSeized>, amount: u64) -> Result<()> {
+        // ฟังก์ชันนี้สำหรับ Admin กู้คืนทรัพย์สินที่ยึดมาแล้ว (กรณีฉุกเฉิน)
+        let seeds = &[
+            b"seized_auth".as_ref(),
+            &[ctx.bumps.seized_assets_authority],
+        ];
+        let signer = &[&seeds[..]];
+
+        let cpi_ctx = CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            Transfer {
+                from: ctx.accounts.seized_assets_vault.to_account_info(),
+                to: ctx.accounts.destination_account.to_account_info(),
+                authority: ctx.accounts.seized_assets_authority.to_account_info(),
+            },
+            signer,
+        );
+
+        token::transfer(cpi_ctx, amount)?;
+        msg!("✅ Admin recovered {} seized assets from vault", amount);
+
+        Ok(())
+    }
 }
 
 // ═════════════════════════════════════════════════════════════
@@ -1132,6 +1270,16 @@ pub enum LiquidationStatus {
 // ═════════════════════════════════════════════════════════════
 // 📋 ACCOUNT STRUCTURES
 // ═════════════════════════════════════════════════════════════
+
+#[account]
+pub struct ProtocolConfig {
+    pub admin: Pubkey,
+    pub liquidation_timeout: i64,   // Devnet: 2 seconds (Prod: 86400)
+    pub auto_swap_reward_bps: u64,  // e.g., 600 = 6%
+    pub distribute_reward_bps: u64, // e.g., 100 = 1%
+    pub min_loan_size: u64,         // Minimum loan size
+    pub max_loan_size: u64,         // Maximum loan size
+}
 
 #[account]
 pub struct SystemConfig {
@@ -1249,6 +1397,15 @@ pub struct InitializeSystem<'info> {
     )]
     pub system_config: Account<'info, SystemConfig>,
 
+    #[account(
+        init,
+        payer = admin,
+        space = 8 + size_of::<ProtocolConfig>(),
+        seeds = [b"protocol_config"],
+        bump
+    )]
+    pub protocol_config: Account<'info, ProtocolConfig>,
+
     /// CHECK: PDA derived from [b"capital_auth"]
     #[account(seeds = [b"capital_auth"], bump)]
     pub capital_wallet_authority: AccountInfo<'info>,
@@ -1279,6 +1436,20 @@ pub struct AdminOnly<'info> {
         constraint = system_config.admin == admin.key() @ GinvaError::Unauthorized
     )]
     pub system_config: Account<'info, SystemConfig>,
+}
+
+#[derive(Accounts)]
+pub struct UpdateProtocolConfig<'info> {
+    #[account(mut)]
+    pub admin: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [b"protocol_config"],
+        bump,
+        constraint = protocol_config.admin == admin.key() @ GinvaError::Unauthorized
+    )]
+    pub protocol_config: Account<'info, ProtocolConfig>,
 }
 
 #[derive(Accounts)]
@@ -1315,6 +1486,8 @@ pub struct BorrowUsdc<'info> {
     pub loan_account: Account<'info, LoanAccount>,
     #[account(mut, seeds = [b"config"], bump)]
     pub system_config: Account<'info, SystemConfig>,
+    #[account(seeds = [b"protocol_config"], bump)]
+    pub protocol_config: Account<'info, ProtocolConfig>,
 
     /// CHECK: PDA derived from [b"capital_auth"]
     #[account(seeds = [b"capital_auth"], bump)]
@@ -1336,7 +1509,8 @@ pub struct TriggerLiquidation<'info> {
     pub loan_account: Box<Account<'info, LoanAccount>>,
     #[account(mut, seeds = [b"config"], bump)]
     pub system_config: Box<Account<'info, SystemConfig>>,
-
+    // Note: ProtocolConfig intentionally omitted to save stack space
+    // Using constant LIQUIDATION_TIMEOUT for this critical path
     #[account(
         init,
         payer = keeper_a,
@@ -1357,10 +1531,7 @@ pub struct TriggerLiquidation<'info> {
     pub collateral_mint: Box<Account<'info, Mint>>,
 
     #[account(
-        init_if_needed,
-        payer = keeper_a,
-        token::mint = collateral_mint,
-        token::authority = seized_assets_authority,
+        mut,
         seeds = [b"seized_vault", loan_account.key().as_ref()],
         bump
     )]
@@ -1369,13 +1540,11 @@ pub struct TriggerLiquidation<'info> {
     #[account(seeds = [b"seized_auth"], bump)]
     pub seized_assets_authority: AccountInfo<'info>,
 
-    #[account(mut)]
-    pub keeper_a_collateral_account: Box<Account<'info, TokenAccount>>,
-
+    // Note: keeper_a_collateral_account removed to save stack space
+    // Keeper A reward will be handled in a separate claim function
     pub pyth_price_feed: Box<Account<'info, PriceUpdateV2>>,
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
-    pub rent: Sysvar<'info, Rent>,
 }
 
 #[derive(Accounts)]
@@ -1386,6 +1555,8 @@ pub struct ExecuteAutoSwap<'info> {
     pub liquidation_process: Box<Account<'info, LiquidationProcess>>,
     #[account(seeds = [b"config"], bump)]
     pub system_config: Box<Account<'info, SystemConfig>>,
+    #[account(seeds = [b"protocol_config"], bump)]
+    pub protocol_config: Box<Account<'info, ProtocolConfig>>,
 
     /// CHECK: PDA derived from [b"seized_auth"]
     #[account(seeds = [b"seized_auth"], bump)]
@@ -1439,6 +1610,8 @@ pub struct FinalizeLiquidation<'info> {
     pub loan_account: Account<'info, LoanAccount>,
     #[account(mut, seeds = [b"config"], bump)]
     pub system_config: Account<'info, SystemConfig>,
+    #[account(seeds = [b"protocol_config"], bump)]
+    pub protocol_config: Account<'info, ProtocolConfig>,
 
     /// CHECK: PDA derived from [b"processing_auth"]
     #[account(seeds = [b"processing_auth"], bump)]
@@ -1460,12 +1633,20 @@ pub struct FinalizeLiquidation<'info> {
 pub struct ClaimExpiredSwap<'info> {
     #[account(mut)]
     pub liquidation_process: Account<'info, LiquidationProcess>,
+    #[account(seeds = [b"config"], bump)]
+    pub system_config: Account<'info, SystemConfig>,
+    #[account(seeds = [b"protocol_config"], bump)]
+    pub protocol_config: Account<'info, ProtocolConfig>,
 }
 
 #[derive(Accounts)]
 pub struct ClaimExpiredDistribution<'info> {
     #[account(mut)]
     pub liquidation_process: Account<'info, LiquidationProcess>,
+    #[account(seeds = [b"config"], bump)]
+    pub system_config: Account<'info, SystemConfig>,
+    #[account(seeds = [b"protocol_config"], bump)]
+    pub protocol_config: Account<'info, ProtocolConfig>,
 }
 
 #[derive(Accounts)]
@@ -1621,6 +1802,48 @@ pub struct CheckHealthFactor<'info> {
     pub pyth_price_feed: Account<'info, PriceUpdateV2>,
 }
 
+#[derive(Accounts)]
+pub struct CheckLoanStatus<'info> {
+    // ใครก็เรียกได้ (Permissionless) เพื่อช่วยอัปเดตสถานะระบบ
+    #[account(mut)]
+    pub user: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [b"loan", loan_account.borrower.as_ref()],
+        bump
+    )]
+    pub loan_account: Account<'info, LoanAccount>,
+}
+
+#[derive(Accounts)]
+pub struct AdminWithdrawSeized<'info> {
+    #[account(mut)]
+    pub admin: Signer<'info>,
+
+    #[account(
+        seeds = [b"config"], 
+        bump,
+        constraint = system_config.admin == admin.key() @ GinvaError::Unauthorized
+    )]
+    pub system_config: Account<'info, SystemConfig>,
+
+    #[account(mut, seeds = [b"seized_vault", loan_account.key().as_ref()], bump)]
+    pub seized_assets_vault: Account<'info, TokenAccount>,
+
+    /// CHECK: PDA Authority
+    #[account(seeds = [b"seized_auth"], bump)]
+    pub seized_assets_authority: AccountInfo<'info>,
+
+    // ต้องระบุว่าถอนจากสัญญาไหน (เพราะ Vault แยกรายสัญญา)
+    pub loan_account: Account<'info, LoanAccount>,
+
+    #[account(mut)]
+    pub destination_account: Account<'info, TokenAccount>,
+
+    pub token_program: Program<'info, Token>,
+}
+
 // ═════════════════════════════════════════════════════════════
 // 🚨 ERROR CODES
 // ═════════════════════════════════════════════════════════════
@@ -1687,4 +1910,8 @@ pub enum GinvaError {
     NotPaused = 1909,
     #[msg("System is in cooldown period after resume (Wait 48h)")]
     SystemInCooldown = 1910,
+    #[msg("Loan amount is too small")]
+    LoanTooSmall = 1911,
+    #[msg("Loan amount exceeds maximum limit")]
+    LoanTooLarge = 1912,
 }
