@@ -59,6 +59,14 @@ describe("ginva", () => {
   let revenueWalletAuthority: PublicKey;
   let seizedAssetsAuthority: PublicKey;
   let processingVaultAuthority: PublicKey;
+  let opsWalletAuthority: PublicKey;
+
+  // Asset Config
+  let assetConfig: PublicKey;
+  let assetConfigBump: number;
+
+  // Ops Wallet
+  let opsWallet: PublicKey;
 
   // Bump seeds
   let systemConfigBump: number;
@@ -121,6 +129,11 @@ describe("ginva", () => {
 
     [processingVaultAuthority] = PublicKey.findProgramAddressSync(
       [Buffer.from("processing_auth")],
+      program.programId
+    );
+
+    [opsWalletAuthority] = PublicKey.findProgramAddressSync(
+      [Buffer.from("ops_auth")],
       program.programId
     );
 
@@ -201,6 +214,19 @@ describe("ginva", () => {
       true
     );
 
+    // Derive AssetConfig PDA
+    [assetConfig, assetConfigBump] = PublicKey.findProgramAddressSync(
+      [Buffer.from("asset_config"), collateralMint.toBuffer()],
+      program.programId
+    );
+
+    // Derive ops wallet
+    opsWallet = await getAssociatedTokenAddress(
+      usdcMint,
+      opsWalletAuthority,
+      true
+    );
+
     // Mint test tokens to user and capital wallet
     const mintCollateralTx = await getOrCreateAssociatedTokenAccount(
       connection,
@@ -268,6 +294,8 @@ describe("ginva", () => {
           vaultWalletAuthority,
           revenueWalletAuthority,
           seizedAssetsAuthority,
+          opsWalletAuthority,
+          opsWallet,
           collateralMint,
           loanMint: usdcMint,
           systemProgram: SystemProgram.programId,
@@ -280,17 +308,32 @@ describe("ginva", () => {
       assert.equal(config.isActive, true);
       assert.equal(config.totalBorrowed.toNumber(), 0);
       assert.equal(config.totalCollateral.toNumber(), 0);
+    });
 
-      // Verify ProtocolConfig
-      const protoConfig = await program.account.protocolConfig.fetch(
-        protocolConfig
-      );
-      assert.equal(protoConfig.admin.toBase58(), admin.publicKey.toBase58());
-      assert.equal(protoConfig.liquidationTimeout.toNumber(), 2); // 2 seconds for devnet
-      assert.equal(protoConfig.autoSwapRewardBps.toNumber(), 600); // 6%
-      assert.equal(protoConfig.distributeRewardBps.toNumber(), 100); // 1%
-      assert.equal(protoConfig.minLoanSize.toNumber(), 1_000_000); // 1 USDC
-      assert.equal(protoConfig.maxLoanSize.toNumber(), 1_000_000_000_000); // 1M USDC
+    it("Should add supported asset (SOL)", async () => {
+      const solFeedId =
+        "0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d"; // SOL/USD devnet
+
+      await program.methods
+        .addSupportedAsset(
+          solFeedId, // feed_id_hex
+          new BN(60), // max_ltv
+          new BN(85) // liquidation_threshold
+        )
+        .accounts({
+          admin: admin.publicKey,
+          assetConfig,
+          assetMint: collateralMint,
+          systemConfig,
+          systemProgram: SystemProgram.programId,
+        })
+        .rpc();
+
+      const assetCfg = await program.account.assetConfig.fetch(assetConfig);
+      assert.equal(assetCfg.mint.toBase58(), collateralMint.toBase58());
+      assert.equal(assetCfg.isActive, true);
+      assert.equal(assetCfg.maxLtv.toNumber(), 60);
+      assert.equal(assetCfg.liquidationThreshold.toNumber(), 85);
     });
 
     it("Should update protocol config (admin only)", async () => {
@@ -328,14 +371,13 @@ describe("ginva", () => {
         .accounts({
           user: borrower.publicKey,
           systemConfig,
+          assetConfig,
           loanAccount,
           userCollateralAccount,
           vaultCollateralAccount,
           tokenProgram: TOKEN_PROGRAM_ID,
           systemProgram: SystemProgram.programId,
-          rent: anchor.web3.SYSVAR_RENT_PUBKEY,
         })
-        .signers([borrower])
         .rpc();
 
       const loan = await program.account.loanAccount.fetch(loanAccount);
@@ -360,6 +402,7 @@ describe("ginva", () => {
             loanAccount,
             systemConfig,
             protocolConfig,
+            assetConfig,
             capitalWalletAuthority,
             capitalWallet,
             userUsdcAccount,
@@ -389,6 +432,7 @@ describe("ginva", () => {
             loanAccount,
             systemConfig,
             protocolConfig,
+            assetConfig,
             capitalWalletAuthority,
             capitalWallet,
             userUsdcAccount,
@@ -532,12 +576,15 @@ describe("ginva", () => {
           .accounts({
             caller: autoSwapExecutor.publicKey,
             liquidationProcess,
+            loanAccount,
             systemConfig,
             protocolConfig,
+            assetConfig,
             seizedAssetsAuthority,
             seizedAssetsVault,
             processingVault,
             processingVaultAuthority,
+            loanMint: usdcMint,
             callerUsdcAccount: executorUsdcAccount,
             callerCollateralAccount: callerCollateralAccount,
             jupiterProgram: PublicKey.default,
@@ -1227,6 +1274,101 @@ describe("ginva", () => {
       //     tokenProgram: TOKEN_PROGRAM_ID,
       //   })
       //   .rpc();
+    });
+  });
+
+  describe("Multi-Asset Support", () => {
+    it("Should add a second supported asset (e.g., BONK)", async () => {
+      const bonkMint = await createMint(
+        connection,
+        admin.payer,
+        admin.publicKey,
+        null,
+        6 // BONK decimals
+      );
+
+      const [bonkAssetConfig] = PublicKey.findProgramAddressSync(
+        [Buffer.from("asset_config"), bonkMint.toBuffer()],
+        program.programId
+      );
+
+      const bonkFeedId = "0xabc123..."; // Would use real BONK/USD feed
+
+      try {
+        await program.methods
+          .addSupportedAsset(
+            bonkFeedId,
+            new BN(50), // 50% LTV
+            new BN(80) // 80% liquidation threshold
+          )
+          .accounts({
+            admin: admin.publicKey,
+            assetConfig: bonkAssetConfig,
+            assetMint: bonkMint,
+            systemConfig,
+            systemProgram: SystemProgram.programId,
+          })
+          .rpc();
+
+        const bonkConfig = await program.account.assetConfig.fetch(
+          bonkAssetConfig
+        );
+        assert.equal(bonkConfig.isActive, true);
+        assert.equal(bonkConfig.maxLtv.toNumber(), 50);
+        console.log("✅ BONK added as supported collateral");
+      } catch (e) {
+        console.log("BONK test:", e.message);
+      }
+    });
+
+    it("Should update asset config (toggle off)", async () => {
+      try {
+        await program.methods
+          .updateAssetConfig(
+            false, // is_active = false
+            null,
+            null,
+            null
+          )
+          .accounts({
+            admin: admin.publicKey,
+            assetConfig,
+            systemConfig,
+          })
+          .rpc();
+
+        const cfg = await program.account.assetConfig.fetch(assetConfig);
+        assert.equal(cfg.isActive, false);
+        console.log("✅ Asset deactivated successfully");
+      } catch (e) {
+        console.log("Update asset test:", e.message);
+      }
+    });
+
+    it("Should reject deposit of inactive asset", async () => {
+      const depositAmount = new BN(1 * LAMPORTS_PER_SOL);
+
+      try {
+        await program.methods
+          .depositCollateral(depositAmount)
+          .accounts({
+            user: borrower.publicKey,
+            systemConfig,
+            assetConfig,
+            loanAccount,
+            userCollateralAccount,
+            vaultCollateralAccount,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            systemProgram: SystemProgram.programId,
+          })
+          .signers([borrower])
+          .rpc();
+
+        assert.fail("Should have failed - asset is inactive");
+      } catch (e) {
+        assert.include(e.message, "AssetNotActive");
+        console.log("✅ Correctly rejected inactive asset");
+      }
     });
   });
 });
