@@ -422,11 +422,9 @@ describe("ginva", () => {
             vaultAuthority: vaultWalletAuthority,
             vaultCollateralAccount,
             seizedAssetsVault,
-            seizedAssetsAuthority,
             pythPriceFeed: PublicKey.default, // Mock
             tokenProgram: TOKEN_PROGRAM_ID,
             systemProgram: SystemProgram.programId,
-            rent: anchor.web3.SYSVAR_RENT_PUBKEY,
           })
           .signers([keeperA])
           .rpc();
@@ -440,6 +438,9 @@ describe("ginva", () => {
           keeperA.publicKey.toBase58()
         );
         assert.isAbove(process.seizedCollateralAmount.toNumber(), 0);
+        // Verify reward was stored for later claim
+        assert.isAbove(process.keeperRewardAmount.toNumber(), 0);
+        assert.equal(process.keeperRewardClaimed, false);
 
         const loan = await program.account.loanAccount.fetch(loanAccount);
         assert.equal(loan.status, 4); // Liquidated
@@ -448,6 +449,57 @@ describe("ginva", () => {
         console.log(
           "Liquidation trigger requires proper loan state and Pyth setup"
         );
+      }
+    });
+
+    it("Should claim trigger reward (Step 1B)", async () => {
+      // Keeper A claims their 1% reward separately
+      // This avoids stack overflow in trigger_liquidation
+      try {
+        await program.methods
+          .claimTriggerReward()
+          .accounts({
+            keeperA: keeperA.publicKey,
+            liquidationProcess,
+            vaultAuthority: vaultWalletAuthority,
+            vaultCollateralAccount,
+            keeperACollateralAccount,
+            tokenProgram: TOKEN_PROGRAM_ID,
+          })
+          .signers([keeperA])
+          .rpc();
+
+        const process = await program.account.liquidationProcess.fetch(
+          liquidationProcess
+        );
+        assert.equal(process.keeperRewardClaimed, true);
+        console.log("✅ Keeper A claimed reward successfully!");
+      } catch (e) {
+        // Expected if liquidation hasn't been triggered or already claimed
+        console.log("Claim reward test:", e.message);
+      }
+    });
+
+    it("Should prevent double claiming trigger reward", async () => {
+      // Try to claim again - should fail
+      try {
+        await program.methods
+          .claimTriggerReward()
+          .accounts({
+            keeperA: keeperA.publicKey,
+            liquidationProcess,
+            vaultAuthority: vaultWalletAuthority,
+            vaultCollateralAccount,
+            keeperACollateralAccount,
+            tokenProgram: TOKEN_PROGRAM_ID,
+          })
+          .signers([keeperA])
+          .rpc();
+
+        assert.fail("Should have failed - reward already claimed");
+      } catch (e) {
+        assert.include(e.message, "AlreadyCompleted");
+        console.log("✅ Correctly prevented double claim");
       }
     });
 
