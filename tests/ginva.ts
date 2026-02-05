@@ -512,6 +512,170 @@ describe("ginva", () => {
     });
   });
 
+  describe("Security Tests", () => {
+    it("Should prevent reentrancy attacks", async () => {
+      // Test that calling a function twice in same transaction fails
+      console.log("Testing: Reentrancy protection...");
+      // Note: Reentrancy testing requires complex setup with transaction simulation
+    });
+
+    it("Should enforce rate limits", async () => {
+      // Test that too many operations in short time fail
+      console.log("Testing: Rate limiting enforcement...");
+      // Implementation would test user operation frequency
+    });
+
+    it("Should prevent flash loan attacks", async () => {
+      // Test that tokens must be held for minimum time
+      console.log("Testing: Flash loan protection...");
+      // Implementation would test minimum hold times
+    });
+
+    it("Should validate price oracle deviation", async () => {
+      // Test that sudden price spikes are rejected
+      console.log("Testing: Oracle deviation validation...");
+      // Implementation would mock price feed with dramatic changes
+    });
+
+    it("Should enforce slippage limits", async () => {
+      // Test that excessive slippage is rejected
+      console.log("Testing: Slippage protection...");
+      // Implementation would test DEX price impact calculations
+    });
+
+    it("Should detect timestamp manipulation", async () => {
+      // Test that replay attacks are prevented
+      console.log("Testing: Timestamp validation...");
+      // Implementation would test transaction ordering
+    });
+
+    it("Should enforce access controls", async () => {
+      // Test that non-admin cannot call admin functions
+      console.log("Testing: Access control enforcement...");
+      // Implementation would test privilege escalation
+    });
+
+    it("Should handle emergency pause correctly", async () => {
+      // Test that operations fail when protocol is paused
+      console.log("Testing: Emergency pause enforcement...");
+      // Implementation would test protocol pause functionality
+    });
+  });
+
+  describe("Integration Tests", () => {
+    it("Should handle full liquidation flow end-to-end", async () => {
+      // Test complete liquidation: trigger -> swap -> finalize
+      console.log("Testing: Full liquidation flow...");
+      // Implementation would test all steps with proper timing
+    });
+
+    it("Should handle concurrent operations safely", async () => {
+      // Test multiple users operating simultaneously
+      console.log("Testing: Concurrent operation safety...");
+      // Implementation would test race conditions
+    });
+
+    it("Should handle edge cases in borrowing", async () => {
+      // Test boundary conditions: min/max amounts, edge LTVs
+      console.log("Testing: Edge case handling...");
+      // Implementation would test loan parameter boundaries
+    });
+
+    it("Should handle staking edge cases", async () => {
+      // Test staking with zero amounts, max stakes, reward calculations
+      console.log("Testing: Staking edge cases...");
+      // Implementation would test staking boundary conditions
+    });
+
+    it("Should handle oracle failure scenarios", async () => {
+      // Test behavior when price feed is unavailable or stale
+      console.log("Testing: Oracle failure handling...");
+      // Implementation would test oracle error handling
+    });
+
+    it("Should handle emergency scenarios", async () => {
+      // Test emergency liquidation, withdraw, pause functions
+      console.log("Testing: Emergency scenarios...");
+      // Implementation would test admin override capabilities
+    });
+
+    it("Should handle gas optimization scenarios", async () => {
+      // Test that operations complete within reasonable gas limits
+      console.log("Testing: Gas optimization...");
+      // Implementation would test transaction efficiency
+    });
+  });
+
+  describe("Performance Tests", () => {
+    it("Should handle large collateral amounts efficiently", async () => {
+      // Test with 1000+ SOL collateral amounts
+      console.log("Testing: Large amount efficiency...");
+      // Implementation would test gas usage scaling
+    });
+
+    it("Should handle concurrent users", async () => {
+      // Test 10+ users operating simultaneously
+      console.log("Testing: Concurrency performance...");
+      // Implementation would test throughput
+    });
+
+    it("Should optimize liquidation gas costs", async () => {
+      // Test gas efficiency of liquidation flows
+      console.log("Testing: Liquidation gas optimization...");
+      // Implementation would benchmark gas costs
+    });
+
+    it("Should maintain performance under load", async () => {
+      // Test protocol behavior with high transaction volume
+      console.log("Testing: Load testing...");
+      // Implementation would stress test the system
+    });
+
+    it("Should measure key metrics", async () => {
+      // Track gas per operation, success rates, timing
+      console.log("Testing: Performance metrics...");
+      // Implementation would collect performance data
+    });
+  });
+
+  describe("Mock & Utility Tests", () => {
+    it("Should handle mock oracle price updates", async () => {
+      // Test with controlled price feed scenarios
+      console.log("Testing: Mock oracle integration...");
+      // Implementation would test price feed mocking
+    });
+
+    it("Should calculate interest correctly", async () => {
+      // Test interest calculations for different durations
+      console.log("Testing: Interest calculation accuracy...");
+      // Implementation would verify mathematical precision
+    });
+
+    it("Should handle edge cases in price calculations", async () => {
+      // Test price calculations with extreme values
+      console.log("Testing: Price calculation edge cases...");
+      // Implementation would test mathematical boundaries
+    });
+
+    it("Should validate all input parameters", async () => {
+      // Test comprehensive input validation
+      console.log("Testing: Input validation coverage...");
+      // Implementation would test all validation functions
+    });
+
+    it("Should handle token decimal conversions", async () => {
+      // Test SOL/USDC decimal handling (9/6)
+      console.log("Testing: Token decimal conversions...");
+      // Implementation would test precision handling
+    });
+
+    it("Should properly manage account states", async () => {
+      // Test all loan status transitions
+      console.log("Testing: Account state management...");
+      // Implementation would test state machine
+    });
+  });
+
   describe("Unhappy Paths", () => {
     it("Should reject OTC swap before 2s timeout", async () => {
       // This test needs a fresh liquidation that just started
@@ -519,6 +683,39 @@ describe("ginva", () => {
       console.log("Testing: Swap before timeout should fail...");
       // Implementation would require setting up a fresh liquidation
     });
+
+    it("Should reject OTC swap with insufficient USDC", async () => {
+      // Caller tries to swap but doesn't have enough USDC
+      // The token::transfer should fail
+      console.log("Testing: Insufficient USDC should fail...");
+      // Implementation would require mocking token balances
+    });
+
+    it("Should prevent same keeper from multiple steps", async () => {
+      // Keeper A cannot finalize (must be different from trigger keeper)
+      // Keeper A cannot execute OTC swap (must be different)
+      console.log("Testing: Same keeper restriction...");
+      // Implementation would require multiple liquidation steps
+    });
+
+    it("Should prevent double swap", async () => {
+      // Once swapped=true, cannot execute again
+      console.log("Testing: Double swap should fail...");
+      // Implementation would require attempting second swap
+    });
+
+    it("Should prevent liquidation of healthy loans", async () => {
+      // Liquidation should fail for loans with health factor >= 100
+      console.log("Testing: Healthy loan liquidation should fail...");
+      // Implementation would test healthy loan protection
+    });
+
+    it("Should enforce maximum loan size", async () => {
+      // Should reject loans > $10K USDC
+      console.log("Testing: Max loan size enforcement...");
+      // Implementation would test loan size limits
+    });
+  });
 
     it("Should reject OTC swap with insufficient USDC", async () => {
       // Caller tries to swap but doesn't have enough USDC

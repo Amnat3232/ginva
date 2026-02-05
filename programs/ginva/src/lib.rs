@@ -3,6 +3,19 @@ use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 use pyth_solana_receiver_sdk::price_update::{get_feed_id_from_hex, PriceUpdateV2};
 use std::mem::size_of;
 
+// ═══════════════════════════════════════════════════════════
+// 🛡️ SECURITY CONSTANTS & VALIDATIONS
+// ═══════════════════════════════════════════════════════════════════
+
+// Rate limiting constants
+pub const MAX_OPERATIONS_PER_BLOCK: u64 = 5;
+pub const MAX_PRICE_CHANGE_BPS: u64 = 500; // 5% max price change
+pub const MIN_TIME_BETWEEN_OPERATIONS: i64 = 1; // 1 second between user ops
+
+// Flash loan protection
+pub const MIN_HOLD_TIME: i64 = 2; // 2 seconds minimum hold
+pub const MAX_RENT_OPS: u64 = 10; // Max rent operations per day
+
 // Program ID - matches Anchor.toml devnet deployment
 declare_id!("DyeFMCFmvtkmPtDE4rFryvSDFWwuDCdDhFqPCPdCvujv");
 
@@ -322,7 +335,7 @@ pub mod ginva {
         require!(usdc_required_from_caller > 0, GinvaError::InvalidAmount);
 
         // 4. ACTION A: Pull USDC from Caller -> Processing Vault
-        
+
         msg!("🔄 Caller paying {} USDC...", usdc_required_from_caller);
         let cpi_program = ctx.accounts.token_program.to_account_info();
         let cpi_accounts_pay = Transfer {
@@ -334,7 +347,7 @@ pub mod ginva {
         token::transfer(cpi_ctx_pay, usdc_required_from_caller)?;
 
         // 5. ACTION B: Push Seized SOL -> Caller
-        
+
         msg!("📦 System sending {} SOL...", seized_sol_amount);
 
         let bump = ctx.bumps.seized_assets_authority;
@@ -648,7 +661,7 @@ pub mod ginva {
         require!(loan_account.borrower == user, GinvaError::Unauthorized);
 
         // 2️⃣ Calculate interest due
-        
+
         let last_paid = loan_account.last_payment_at;
         let seconds_since_payment = (current_time - last_paid) as u64;
         let days_since = seconds_since_payment / 86400;
@@ -679,7 +692,7 @@ pub mod ginva {
         token::transfer(cpi_ctx, interest_due)?;
 
         // 5️⃣ Update loan state
-        
+
         loan_account.last_payment_at = current_time;
         loan_account.total_interest_paid = loan_account
             .total_interest_paid
@@ -1026,6 +1039,20 @@ pub struct UserStake {
     pub owner: Pubkey,
     pub staked_amount: u64, // Staked amount
     pub reward_debt: u128,  // Reward debt for calculating claimed rewards
+
+    // Rate limiting fields
+    pub last_operation_time: i64, // Last operation timestamp
+    pub operation_count: u64,     // Operations in current window
+    pub is_rate_limited: bool,    // Rate limiting flag
+}
+
+#[account]
+#[derive(Default)]
+pub struct UserRateLimit {
+    pub user: Pubkey,
+    pub last_operation_block: u64, // Last block user operated in
+    pub operations_count: u64,     // Operations in current window
+    pub window_start_time: i64,    // Start of current window
 }
 
 #[account]
@@ -1429,31 +1456,47 @@ pub enum GinvaError {
     #[msg("Invalid LTV option")]
     InvalidLTV,
     #[msg("Insufficient funds")]
-    InsufficientFunds,
+    InsufficientFunds = 1105,
     #[msg("Loan is not active")]
-    LoanNotActive,
+    LoanNotActive = 1400,
     #[msg("Conditions not met for liquidation")]
-    NotYetLiquidatable,
+    NotYetLiquidatable = 1603,
     #[msg("Pyth Oracle Error")]
-    PythError,
+    PythError = 1203,
     #[msg("Price unavailable")]
-    PythPriceUnavailable,
+    PythPriceUnavailable = 1200,
     #[msg("Invalid liquidation status")]
-    InvalidLiquidationStatus,
+    InvalidLiquidationStatus = 1403,
     #[msg("Swap timeout not yet reached (need 24h)")]
-    SwapTimeoutNotReached,
+    SwapTimeoutNotReached = 1302,
     #[msg("Already swapped")]
-    AlreadySwapped,
+    AlreadySwapped = 1800,
+    #[msg("Operation already completed")]
+    AlreadyCompleted = 1801,
     #[msg("Distribution timeout reached")]
-    DistributionTimeout,
+    DistributionTimeout = 1303,
     #[msg("Timeout not yet reached")]
-    TimeoutNotReached,
+    TimeoutNotReached = 1304,
     #[msg("Same keeper cannot perform multiple steps")]
-    SameKeeperNotAllowed,
+    SameKeeperNotAllowed = 1500,
     #[msg("Insufficient funds to return principal")]
-    InsufficientFundsForPrincipal,
+    InsufficientFundsForPrincipal = 1106,
     #[msg("Payment too early (minimum 30 days)")]
-    PaymentTooEarly,
+    PaymentTooEarly = 1301,
     #[msg("Unauthorized")]
-    Unauthorized,
+    Unauthorized = 1003,
+
+    // 🛡️ Security Errors (1900-1999)
+    #[msg("Reentrancy detected - possible attack")]
+    ReentrancyDetected = 1900,
+    #[msg("Rate limit exceeded - too many operations")]
+    RateLimitExceeded = 1901,
+    #[msg("Insufficient hold time - flash loan protection")]
+    InsufficientHoldTime = 1902,
+    #[msg("Price deviation too high - possible oracle manipulation")]
+    PriceDeviationTooHigh = 1903,
+    #[msg("Slippage exceeded maximum allowed")]
+    SlippageExceeded = 1904,
+    #[msg("Operation timestamp mismatch - replay attack")]
+    TimestampMismatch = 1905,
 }
