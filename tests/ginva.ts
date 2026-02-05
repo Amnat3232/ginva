@@ -1239,43 +1239,13 @@ describe("ginva", () => {
     });
   });
 
-  describe("Admin Emergency Recovery", () => {
-    it("Should allow admin to withdraw seized assets", async () => {
-      // Setup destination account for admin
-      const adminSeizedAccount = await getAssociatedTokenAddress(
-        collateralMint,
-        admin.publicKey
-      );
-
-      await getOrCreateAssociatedTokenAccount(
-        connection,
-        admin.payer,
-        collateralMint,
-        admin.publicKey
-      );
-
-      // This would require a liquidation to have occurred first
-      // For now, just test that the account validation works
-      console.log("Testing: Admin emergency asset recovery...");
-      console.log("Admin can withdraw seized assets if auto-swap fails");
-
-      // Note: In real test, would need:
-      // 1. A completed liquidation with seized assets
-      // 2. Call adminWithdrawSeized with proper accounts
-      // await program.methods
-      //   .adminWithdrawSeized(new BN(1000000))
-      //   .accounts({
-      //     admin: admin.publicKey,
-      //     systemConfig,
-      //     seizedAssetsVault,
-      //     seizedAssetsAuthority,
-      //     loanAccount,
-      //     destinationAccount: adminSeizedAccount,
-      //     tokenProgram: TOKEN_PROGRAM_ID,
-      //   })
-      //   .rpc();
-    });
-  });
+  // ═════════════════════════════════════════════════════════════
+  // ❌ ADMIN EMERGENCY RECOVERY - REMOVED FOR DeFi COMPLIANCE
+  // ═════════════════════════════════════════════════════════════
+  // Admin functions that can access user funds have been removed
+  // to maintain true DeFi principles:
+  // ✅ Admin can only control system fees
+  // ❌ Admin cannot withdraw user funds/seized assets
 
   describe("Multi-Asset Support", () => {
     it("Should add a second supported asset (e.g., BONK)", async () => {

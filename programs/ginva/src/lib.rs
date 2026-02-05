@@ -1497,33 +1497,6 @@ pub mod ginva {
 
         Ok(())
     }
-
-    // ═════════════════════════════════════════════════════════════
-    // 1️⃣3️⃣ ADMIN RECOVERY (Seized Assets)
-    // ═════════════════════════════════════════════════════════════
-    pub fn admin_withdraw_seized(ctx: Context<AdminWithdrawSeized>, amount: u64) -> Result<()> {
-        // ฟังก์ชันนี้สำหรับ Admin กู้คืนทรัพย์สินที่ยึดมาแล้ว (กรณีฉุกเฉิน)
-        let seeds = &[
-            b"seized_auth".as_ref(),
-            &[ctx.bumps.seized_assets_authority],
-        ];
-        let signer = &[&seeds[..]];
-
-        let cpi_ctx = CpiContext::new_with_signer(
-            ctx.accounts.token_program.to_account_info(),
-            Transfer {
-                from: ctx.accounts.seized_assets_vault.to_account_info(),
-                to: ctx.accounts.destination_account.to_account_info(),
-                authority: ctx.accounts.seized_assets_authority.to_account_info(),
-            },
-            signer,
-        );
-
-        token::transfer(cpi_ctx, amount)?;
-        msg!("✅ Admin recovered {} seized assets from vault", amount);
-
-        Ok(())
-    }
 }
 
 // ═════════════════════════════════════════════════════════════
@@ -2306,34 +2279,6 @@ pub struct CheckLoanStatus<'info> {
         bump
     )]
     pub loan_account: Account<'info, LoanAccount>,
-}
-
-#[derive(Accounts)]
-pub struct AdminWithdrawSeized<'info> {
-    #[account(mut)]
-    pub admin: Signer<'info>,
-
-    #[account(
-        seeds = [b"config"], 
-        bump,
-        constraint = system_config.admin == admin.key() @ GinvaError::Unauthorized
-    )]
-    pub system_config: Account<'info, SystemConfig>,
-
-    #[account(mut, seeds = [b"seized_vault", loan_account.key().as_ref()], bump)]
-    pub seized_assets_vault: Account<'info, TokenAccount>,
-
-    /// CHECK: PDA Authority
-    #[account(seeds = [b"seized_auth"], bump)]
-    pub seized_assets_authority: AccountInfo<'info>,
-
-    // ต้องระบุว่าถอนจากสัญญาไหน (เพราะ Vault แยกรายสัญญา)
-    pub loan_account: Account<'info, LoanAccount>,
-
-    #[account(mut)]
-    pub destination_account: Account<'info, TokenAccount>,
-
-    pub token_program: Program<'info, Token>,
 }
 
 // ═════════════════════════════════════════════════════════════
