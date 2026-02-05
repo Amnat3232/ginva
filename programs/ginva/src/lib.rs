@@ -183,6 +183,59 @@ pub mod ginva {
     }
 
     // ═════════════════════════════════════════════════════════════
+    // 💎 FEATURE #6: MULTI-ASSET MANAGEMENT
+    // ═════════════════════════════════════════════════════════════
+
+    pub fn add_supported_asset(
+        ctx: Context<AddSupportedAsset>,
+        feed_id_hex: String,
+        max_ltv: u64,
+        liquidation_threshold: u64,
+    ) -> Result<()> {
+        let asset_config = &mut ctx.accounts.asset_config;
+
+        let feed_id = get_feed_id_from_hex(&feed_id_hex).map_err(|_| GinvaError::InvalidFeedId)?;
+
+        asset_config.mint = ctx.accounts.asset_mint.key();
+        asset_config.feed_id = feed_id;
+        asset_config.decimals = ctx.accounts.asset_mint.decimals;
+        asset_config.max_ltv = max_ltv;
+        asset_config.liquidation_threshold = liquidation_threshold;
+        asset_config.is_active = true;
+        asset_config.created_at = Clock::get()?.unix_timestamp;
+
+        msg!("✅ Asset Added: {:?}", asset_config.mint);
+        Ok(())
+    }
+
+    pub fn update_asset_config(
+        ctx: Context<UpdateAssetConfig>,
+        is_active: Option<bool>,
+        max_ltv: Option<u64>,
+        liquidation_threshold: Option<u64>,
+        new_feed_id_hex: Option<String>,
+    ) -> Result<()> {
+        let asset_config = &mut ctx.accounts.asset_config;
+
+        if let Some(active) = is_active {
+            asset_config.is_active = active;
+            msg!("🔄 Asset Active Status: {}", active);
+        }
+        if let Some(ltv) = max_ltv {
+            asset_config.max_ltv = ltv;
+        }
+        if let Some(liq) = liquidation_threshold {
+            asset_config.liquidation_threshold = liq;
+        }
+        if let Some(hex) = new_feed_id_hex {
+            let feed_id = get_feed_id_from_hex(&hex).map_err(|_| GinvaError::InvalidFeedId)?;
+            asset_config.feed_id = feed_id;
+        }
+
+        Ok(())
+    }
+
+    // ═════════════════════════════════════════════════════════════
     // 2️⃣ DEPOSIT COLLATERAL
     // ═════════════════════════════════════════════════════════════
     pub fn deposit_collateral(ctx: Context<DepositCollateral>, amount: u64) -> Result<()> {
@@ -236,6 +289,7 @@ pub mod ginva {
     pub fn borrow_usdc(ctx: Context<BorrowUsdc>, ltv_option: u8, duration_days: u16) -> Result<()> {
         let loan_account = &mut ctx.accounts.loan_account;
         let system_config = &mut ctx.accounts.system_config;
+        let asset_config = &ctx.accounts.asset_config;
 
         // 🛡️ SECURITY GUARD 2.0: Check pause status + timelock
         require!(!system_config.is_paused, GinvaError::ProtocolPaused);
@@ -244,20 +298,21 @@ pub mod ginva {
             GinvaError::SystemInCooldown
         );
 
-        // Get Price and Exponent from Pyth
-        let feed_id = get_feed_id_from_hex(SOL_USD_FEED_ID).map_err(|_| GinvaError::PythError)?;
-        let (current_price, price_exponent) =
-            get_pyth_price_with_exponent(&ctx.accounts.pyth_price_feed, &feed_id)?;
+        require!(asset_config.is_active, GinvaError::AssetNotActive);
+        require!(
+            loan_account.collateral_mint == asset_config.mint,
+            GinvaError::InvalidAssetMint
+        );
 
-        // Calculate collateral value in USDC with proper decimals
-        let collateral_decimals = 9u8; // SOL decimals
-        let usdc_decimals = 6u8;
+        let (current_price, price_exponent) =
+            get_pyth_price_with_exponent(&ctx.accounts.pyth_price_feed, &asset_config.feed_id)?;
+
         let collateral_value_usdc = calculate_collateral_value(
             loan_account.collateral_amount,
             current_price,
             price_exponent,
-            collateral_decimals,
-            usdc_decimals,
+            asset_config.decimals,
+            6,
         )?;
 
         let ltv_percentage = match ltv_option {
@@ -1392,6 +1447,18 @@ impl SystemConfig {
 
 #[account]
 #[derive(Default)]
+pub struct AssetConfig {
+    pub mint: Pubkey,
+    pub feed_id: [u8; 32],
+    pub decimals: u8,
+    pub max_ltv: u64,
+    pub liquidation_threshold: u64,
+    pub is_active: bool,
+    pub created_at: i64,
+}
+
+#[account]
+#[derive(Default)]
 pub struct UserStake {
     pub owner: Pubkey,
     pub staked_amount: u64, // Staked amount
@@ -1533,6 +1600,48 @@ pub struct UpdateProtocolConfig<'info> {
 }
 
 #[derive(Accounts)]
+pub struct AddSupportedAsset<'info> {
+    #[account(mut)]
+    pub admin: Signer<'info>,
+
+    #[account(
+        init,
+        payer = admin,
+        space = 8 + 32 + 32 + 1 + 8 + 8 + 1 + 8,
+        seeds = [b"asset_config", asset_mint.key().as_ref()],
+        bump
+    )]
+    pub asset_config: Account<'info, AssetConfig>,
+
+    pub asset_mint: Account<'info, Mint>,
+
+    #[account(
+        seeds = [b"config"],
+        bump,
+        has_one = admin
+    )]
+    pub system_config: Account<'info, SystemConfig>,
+
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct UpdateAssetConfig<'info> {
+    #[account(mut)]
+    pub admin: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [b"asset_config", asset_config.mint.as_ref()],
+        bump
+    )]
+    pub asset_config: Account<'info, AssetConfig>,
+
+    #[account(seeds = [b"config"], bump, has_one = admin)]
+    pub system_config: Account<'info, SystemConfig>,
+}
+
+#[derive(Accounts)]
 pub struct DepositCollateral<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
@@ -1568,6 +1677,12 @@ pub struct BorrowUsdc<'info> {
     pub system_config: Account<'info, SystemConfig>,
     #[account(seeds = [b"protocol_config"], bump)]
     pub protocol_config: Account<'info, ProtocolConfig>,
+
+    #[account(
+        seeds = [b"asset_config", loan_account.collateral_mint.as_ref()],
+        bump
+    )]
+    pub asset_config: Account<'info, AssetConfig>,
 
     /// CHECK: PDA derived from [b"capital_auth"]
     #[account(seeds = [b"capital_auth"], bump)]
@@ -2023,4 +2138,11 @@ pub enum GinvaError {
     PriceConfidenceTooLow = 1930,
     #[msg("Price is too stale for reliable calculation")]
     PriceTooStale = 1931,
+
+    #[msg("Asset is not active for collateral")]
+    AssetNotActive = 1940,
+    #[msg("Invalid feed ID format")]
+    InvalidFeedId = 1941,
+    #[msg("Asset mint does not match config")]
+    InvalidAssetMint = 1942,
 }
