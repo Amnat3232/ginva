@@ -71,6 +71,9 @@ pub mod ginva {
         system_config.total_borrowed = 0;
         system_config.total_collateral = 0;
 
+        // Initialize ops wallet
+        system_config.ops_wallet = ctx.accounts.ops_wallet.key();
+
         // Initialize staking fields
         system_config.total_staked = 0;
         system_config.acc_reward_per_share = 0;
@@ -979,27 +982,87 @@ pub mod ginva {
 
         require!(interest_due > 0, GinvaError::InvalidAmount);
 
-        // 4️⃣ Transfer USDC from user -> revenue wallet
+        // 4️⃣ Calculate distribution shares
+        // 10% to Capital (Growth Fund)
+        let capital_share = interest_due
+            .checked_div(10)
+            .ok_or(GinvaError::ArithmeticUnderflow)?;
+
+        // 90% remaining for distribution
+        let distributable = interest_due
+            .checked_sub(capital_share)
+            .ok_or(GinvaError::ArithmeticUnderflow)?;
+
+        // Ops = 27.5% of distributable (24.75% of total)
+        let ops_share = distributable
+            .checked_mul(2750)
+            .ok_or(GinvaError::ArithmeticOverflow)?
+            .checked_div(10000)
+            .ok_or(GinvaError::ArithmeticUnderflow)?;
+
+        // Stakers = remaining 72.5% of distributable (65.25% of total)
+        let staker_share = distributable
+            .checked_sub(ops_share)
+            .ok_or(GinvaError::ArithmeticUnderflow)?;
+
+        // 5️⃣ Transfer USDC to respective wallets
         let cpi_program = ctx.accounts.token_program.to_account_info();
-        let cpi_accounts = Transfer {
-            from: ctx.accounts.user_usdc_account.to_account_info(),
-            to: ctx.accounts.revenue_wallet.to_account_info(),
-            authority: ctx.accounts.user.to_account_info(),
-        };
-        let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
-        token::transfer(cpi_ctx, interest_due)?;
 
-        // 5️⃣ Update loan state
+        // 5.1 Transfer to Capital (10%)
+        if capital_share > 0 {
+            token::transfer(
+                CpiContext::new(
+                    cpi_program.clone(),
+                    Transfer {
+                        from: ctx.accounts.user_usdc_account.to_account_info(),
+                        to: ctx.accounts.capital_wallet.to_account_info(),
+                        authority: ctx.accounts.user.to_account_info(),
+                    },
+                ),
+                capital_share,
+            )?;
+        }
 
+        // 5.2 Transfer to Ops Wallet (27.5% of 90)
+        if ops_share > 0 {
+            token::transfer(
+                CpiContext::new(
+                    cpi_program.clone(),
+                    Transfer {
+                        from: ctx.accounts.user_usdc_account.to_account_info(),
+                        to: ctx.accounts.ops_token_account.to_account_info(),
+                        authority: ctx.accounts.user.to_account_info(),
+                    },
+                ),
+                ops_share,
+            )?;
+        }
+
+        // 5.3 Transfer to Revenue Wallet for Stakers (72.5% of 90)
+        if staker_share > 0 {
+            token::transfer(
+                CpiContext::new(
+                    cpi_program.clone(),
+                    Transfer {
+                        from: ctx.accounts.user_usdc_account.to_account_info(),
+                        to: ctx.accounts.revenue_wallet.to_account_info(),
+                        authority: ctx.accounts.user.to_account_info(),
+                    },
+                ),
+                staker_share,
+            )?;
+        }
+
+        // 6️⃣ Update loan state
         loan_account.last_payment_at = current_time;
         loan_account.total_interest_paid = loan_account
             .total_interest_paid
             .saturating_add(interest_due);
 
-        // 6️⃣ Distribute rewards to staking pool
+        // 7️⃣ Distribute rewards to staking pool (from staker_share only)
         let config = &mut ctx.accounts.system_config;
         if config.total_staked > 0 {
-            let reward_per_share_increment = (interest_due as u128)
+            let reward_per_share_increment = (staker_share as u128)
                 .checked_mul(1_000_000_000_000)
                 .ok_or(GinvaError::ArithmeticOverflow)?
                 .checked_div(config.total_staked as u128)
@@ -1008,18 +1071,15 @@ pub mod ginva {
                 .acc_reward_per_share
                 .checked_add(reward_per_share_increment)
                 .ok_or(GinvaError::ArithmeticOverflow)?;
-            msg!(
-                "💰 Reward distributed to stakers: {} USDC, acc_reward_per_share increased by {}",
-                interest_due,
-                reward_per_share_increment
-            );
+            msg!("💰 Reward distributed to stakers: {} USDC", staker_share);
         }
 
         msg!(
-            "✅ Interest paid: {} USDC ({} periods of {} days)",
+            "✅ Interest paid: {} USDC. Capital: {}, Ops: {}, Stakers: {}",
             interest_due,
-            num_periods,
-            30
+            capital_share,
+            ops_share,
+            staker_share
         );
 
         Ok(())
@@ -1437,6 +1497,9 @@ pub struct SystemConfig {
     pub total_borrowed: u64,
     pub total_collateral: u64,
 
+    // Ops Wallet (single wallet for all operations)
+    pub ops_wallet: Pubkey,
+
     // Staking fields
     pub total_staked: u64,          // Total staked amount
     pub acc_reward_per_share: u128, // Accumulated reward per share
@@ -1575,6 +1638,8 @@ pub struct InitializeSystem<'info> {
     /// CHECK: PDA derived from [b"seized_auth"]
     #[account(seeds = [b"seized_auth"], bump)]
     pub seized_assets_authority: AccountInfo<'info>,
+    #[account(mut)]
+    pub ops_wallet: Account<'info, TokenAccount>,
 
     pub collateral_mint: Account<'info, Mint>,
     pub loan_mint: Account<'info, Mint>,
@@ -1923,8 +1988,17 @@ pub struct PayInterest<'info> {
     #[account(mut)]
     pub user_usdc_account: Account<'info, TokenAccount>,
 
+    #[account(mut, token::authority = system_config.capital_wallet_authority)]
+    pub capital_wallet: Account<'info, TokenAccount>,
+
     #[account(mut)]
     pub revenue_wallet: Account<'info, TokenAccount>,
+
+    #[account(
+        mut,
+        constraint = ops_token_account.owner == system_config.ops_wallet
+    )]
+    pub ops_token_account: Account<'info, TokenAccount>,
 
     pub token_program: Program<'info, Token>,
 }
