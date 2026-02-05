@@ -26,15 +26,26 @@ declare_id!("DyeFMCFmvtkmPtDE4rFryvSDFWwuDCdDhFqPCPdCvujv");
 pub const SOL_USD_FEED_ID: &str =
     "0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d";
 pub const MAX_PRICE_AGE_SECONDS: u64 = 60; // Maximum age of price data in seconds
-                                           // ═════════════════════════════════════════════════════════════
-                                           // Note: LIQUIDATION_TIMEOUT, AUTO_SWAP_REWARD_BPS, DISTRIBUTE_REWARD_BPS
-                                           // are now stored in ProtocolConfig for dynamic updates
-                                           // Keeping LIQUIDATION_TIMEOUT constant for TriggerLiquidation to avoid stack overflow
-const LIQUIDATION_TIMEOUT: i64 = 2; // 2 seconds for testing (change to 86400 for production)
+pub const MAX_CONFIDENCE_RATIO: u128 = 100; // 1% max confidence ratio (100/10000 = 1%)
+                                            // ═════════════════════════════════════════════════════════════
+                                            // Note: LIQUIDATION_TIMEOUT, AUTO_SWAP_REWARD_BPS, DISTRIBUTE_REWARD_BPS
+                                            // are now stored in ProtocolConfig for dynamic updates
+                                            // Keeping LIQUIDATION_TIMEOUT constant for TriggerLiquidation to avoid stack overflow
+                                            // Liquidation timeout configuration
+                                            // Use feature flag to automatically switch between devnet (2s) and production (24h)
+#[cfg(feature = "devnet")]
+const LIQUIDATION_TIMEOUT: i64 = 2; // 2 seconds for fast testing
+
+#[cfg(not(feature = "devnet"))]
+const LIQUIDATION_TIMEOUT: i64 = 86400; // 24 hours for production safety
 
 // Jupiter Program ID (for CPI calls)
-// Note: This is the mainnet address. For devnet, use different address
-const JUPITER_PROGRAM_ID: &str = "JUP4Fb2cqiRUcaTHdrPC8h2gNsA2ETXiPDD33WcGuJB";
+// Use feature flag for devnet vs mainnet
+#[cfg(feature = "devnet")]
+const JUPITER_PROGRAM_ID: &str = "JUP4Fb2cqiRUcaTHdrCEQSpBxWZ4fc4QLvtY41vPU5zY"; // Devnet Jupiter
+
+#[cfg(not(feature = "devnet"))]
+const JUPITER_PROGRAM_ID: &str = "JUP4Fb2cqiRUcaTHdrPC8h2gNsA2ETXiPDD33WcGuJB"; // Mainnet Jupiter
 
 #[program]
 pub mod ginva {
@@ -925,13 +936,13 @@ pub mod ginva {
         if config.total_staked > 0 {
             let reward_per_share_increment = (interest_due as u128)
                 .checked_mul(1_000_000_000_000)
-                .unwrap()
+                .ok_or(GinvaError::ArithmeticOverflow)?
                 .checked_div(config.total_staked as u128)
-                .unwrap();
+                .ok_or(GinvaError::ArithmeticUnderflow)?;
             config.acc_reward_per_share = config
                 .acc_reward_per_share
                 .checked_add(reward_per_share_increment)
-                .unwrap();
+                .ok_or(GinvaError::ArithmeticOverflow)?;
             msg!(
                 "💰 Reward distributed to stakers: {} USDC, acc_reward_per_share increased by {}",
                 interest_due,
@@ -969,11 +980,11 @@ pub mod ginva {
         if stake.staked_amount > 0 {
             let pending = (stake.staked_amount as u128)
                 .checked_mul(config.acc_reward_per_share)
-                .unwrap()
+                .ok_or(GinvaError::ArithmeticOverflow)?
                 .checked_div(1_000_000_000_000)
-                .unwrap()
+                .ok_or(GinvaError::ArithmeticUnderflow)?
                 .checked_sub(stake.reward_debt)
-                .unwrap();
+                .ok_or(GinvaError::ArithmeticUnderflow)?;
 
             // V1 Safety: Require user to claim pending rewards before staking more
             require!(pending == 0, GinvaError::MustClaimRewardsFirst);
@@ -992,15 +1003,21 @@ pub mod ginva {
         if stake.staked_amount == 0 {
             stake.owner = *ctx.accounts.user.key;
         }
-        stake.staked_amount = stake.staked_amount.checked_add(amount).unwrap();
-        config.total_staked = config.total_staked.checked_add(amount).unwrap();
+        stake.staked_amount = stake
+            .staked_amount
+            .checked_add(amount)
+            .ok_or(GinvaError::ArithmeticOverflow)?;
+        config.total_staked = config
+            .total_staked
+            .checked_add(amount)
+            .ok_or(GinvaError::ArithmeticOverflow)?;
 
         // 4. Update Reward Debt
         stake.reward_debt = (stake.staked_amount as u128)
             .checked_mul(config.acc_reward_per_share)
-            .unwrap()
+            .ok_or(GinvaError::ArithmeticOverflow)?
             .checked_div(1_000_000_000_000)
-            .unwrap();
+            .ok_or(GinvaError::ArithmeticUnderflow)?;
 
         msg!(
             "Staked: {} USDC. Total Staked: {}",
@@ -1027,11 +1044,13 @@ pub mod ginva {
         // 1. Calculate Pending Reward
         let accumulated = (stake.staked_amount as u128)
             .checked_mul(config.acc_reward_per_share)
-            .unwrap()
+            .ok_or(GinvaError::ArithmeticOverflow)?
             .checked_div(1_000_000_000_000)
-            .unwrap();
+            .ok_or(GinvaError::ArithmeticUnderflow)?;
 
-        let pending = accumulated.checked_sub(stake.reward_debt).unwrap();
+        let pending = accumulated
+            .checked_sub(stake.reward_debt)
+            .ok_or(GinvaError::ArithmeticUnderflow)?;
 
         require!(pending > 0, GinvaError::InvalidAmount);
 
@@ -1091,15 +1110,21 @@ pub mod ginva {
         token::transfer(cpi_ctx, amount)?;
 
         // 2. Update State
-        stake.staked_amount = stake.staked_amount.checked_sub(amount).unwrap();
-        config.total_staked = config.total_staked.checked_sub(amount).unwrap();
+        stake.staked_amount = stake
+            .staked_amount
+            .checked_sub(amount)
+            .ok_or(GinvaError::ArithmeticUnderflow)?;
+        config.total_staked = config
+            .total_staked
+            .checked_sub(amount)
+            .ok_or(GinvaError::ArithmeticUnderflow)?;
 
         // Update Debt based on new amount
         stake.reward_debt = (stake.staked_amount as u128)
             .checked_mul(config.acc_reward_per_share)
-            .unwrap()
+            .ok_or(GinvaError::ArithmeticOverflow)?
             .checked_div(1_000_000_000_000)
-            .unwrap();
+            .ok_or(GinvaError::ArithmeticUnderflow)?;
 
         msg!(
             "Unstaked: {} USDC. Remaining: {}",
@@ -1251,6 +1276,17 @@ fn get_pyth_price_with_exponent(
     let price = price_update
         .get_price_no_older_than(&clock, MAX_PRICE_AGE_SECONDS, feed_id)
         .map_err(|_| GinvaError::PythPriceUnavailable)?;
+
+    // Validate price confidence (confidence / price should be reasonable)
+    // Using 1% threshold for stable assets (adjust based on asset volatility)
+    let price_abs = price.price.unsigned_abs();
+    require!(price_abs > 0, GinvaError::PriceConfidenceTooLow);
+    let confidence_ratio = price.conf as u128 * 10000 / price_abs as u128; // in basis points
+
+    require!(
+        confidence_ratio <= MAX_CONFIDENCE_RATIO,
+        GinvaError::PriceConfidenceTooLow
+    );
 
     let price_u64 = price.price.unsigned_abs();
     let exponent = price.exponent;
@@ -1975,4 +2011,16 @@ pub enum GinvaError {
     LoanTooSmall = 1911,
     #[msg("Loan amount exceeds maximum limit")]
     LoanTooLarge = 1912,
+
+    // 🔢 Arithmetic Errors (1920-1929)
+    #[msg("Arithmetic overflow occurred")]
+    ArithmeticOverflow = 1920,
+    #[msg("Arithmetic underflow occurred")]
+    ArithmeticUnderflow = 1921,
+
+    // 📊 Price Validation Errors (1930-1939)
+    #[msg("Price confidence too low - oracle data unreliable")]
+    PriceConfidenceTooLow = 1930,
+    #[msg("Price is too stale for reliable calculation")]
+    PriceTooStale = 1931,
 }
