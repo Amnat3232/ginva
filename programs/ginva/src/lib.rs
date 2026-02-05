@@ -313,6 +313,7 @@ pub mod ginva {
 
     // ═════════════════════════════════════════════════════════════
     // 4️⃣ STEP 1: TRIGGER LIQUIDATION (Keeper A - 1% Reward)
+    // OPTIMIZED: Split into two transactions to avoid stack overflow
     // ═════════════════════════════════════════════════════════════
     pub fn trigger_liquidation(ctx: Context<TriggerLiquidation>) -> Result<()> {
         let loan_account = &mut ctx.accounts.loan_account;
@@ -359,7 +360,7 @@ pub mod ginva {
             GinvaError::NotYetLiquidatable
         );
 
-        // 2. Calculate Rewards (1% for Keeper A, 99% for auto-swap)
+        // 2. Calculate Split (1% reward + 99% for swap)
         let trigger_reward = loan_account
             .collateral_amount
             .saturating_mul(100)
@@ -369,20 +370,7 @@ pub mod ginva {
             .collateral_amount
             .saturating_sub(trigger_reward);
 
-        // 3. Transfer 1% to Keeper A immediately
-        // Note: Temporarily commented out to reduce stack usage
-        // TODO: Move keeper reward to a separate claim function
-        /*
-        let cpi_accounts = Transfer {
-            from: ctx.accounts.vault_collateral_account.to_account_info(),
-            to: ctx.accounts.keeper_a_collateral_account.to_account_info(),
-            authority: ctx.accounts.vault_authority.to_account_info(),
-        };
-        let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
-        token::transfer(cpi_ctx, trigger_reward)?;
-        */
-
-        // 4. Transfer 99% to Seized Assets Vault (waiting for auto-swap after 24h)
+        // 3. Transfer 99% to Seized Assets Vault (waiting for auto-swap)
         let bump = ctx.bumps.vault_authority;
         let seeds = &[b"vault_auth".as_ref(), &[bump]];
         let signer = &[&seeds[..]];
@@ -399,8 +387,7 @@ pub mod ginva {
         );
         token::transfer(cpi_ctx_seized, remaining_for_swap)?;
 
-        // 5. Initialize Liquidation Process
-        // Using constant to save stack space (ProtocolConfig would add ~100+ bytes)
+        // 4. Initialize Liquidation Process
         liquidation_process.loan_account = loan_account.key();
         liquidation_process.status = LiquidationStatus::Triggered as u8;
         liquidation_process.trigger_keeper = keeper_a;
@@ -408,26 +395,80 @@ pub mod ginva {
         liquidation_process.triggered_at = current_time;
         liquidation_process.deadline_for_swap = current_time + LIQUIDATION_TIMEOUT;
         liquidation_process.swapped = false;
+        liquidation_process.keeper_reward_amount = trigger_reward;
+        liquidation_process.keeper_reward_claimed = false;
 
         // Update Loan
         loan_account.status = LoanStatus::Liquidated as u8;
         loan_account.liquidated_at = current_time;
         loan_account.keeper_address = keeper_a;
+        let total_collateral_to_subtract = loan_account.collateral_amount;
         loan_account.collateral_amount = 0;
 
         // Update System
         system_config.total_collateral = system_config
             .total_collateral
-            .saturating_sub(loan_account.collateral_amount);
+            .saturating_sub(total_collateral_to_subtract);
 
         msg!(
-            "🔨 Step 1 Complete! Keeper A received: {} SOL (1%)",
+            "🔨 Step 1 Complete! Keeper A can claim: {} SOL (1%)",
             trigger_reward
         );
         msg!(
-            "⏳ Auto-swap available after 24h for {} SOL...",
+            "⏳ Auto-swap available after 2s for {} SOL...",
             remaining_for_swap
         );
+        Ok(())
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // 4️⃣ STEP 1B: CLAIM TRIGGER REWARD (Keeper A)
+    // SEPARATE FUNCTION: Avoids stack overflow in trigger_liquidation
+    // ═════════════════════════════════════════════════════════════
+    pub fn claim_trigger_reward(ctx: Context<ClaimTriggerReward>) -> Result<()> {
+        let liquidation_process = &mut ctx.accounts.liquidation_process;
+        let keeper_a = ctx.accounts.keeper_a.key();
+
+        // Verify caller is the trigger keeper
+        require!(
+            liquidation_process.trigger_keeper == keeper_a,
+            GinvaError::Unauthorized
+        );
+
+        // Verify reward hasn't been claimed yet
+        require!(
+            liquidation_process.keeper_reward_amount > 0,
+            GinvaError::AlreadyCompleted
+        );
+
+        require!(
+            !liquidation_process.keeper_reward_claimed,
+            GinvaError::AlreadyCompleted
+        );
+
+        let reward_amount = liquidation_process.keeper_reward_amount;
+
+        // Transfer reward to Keeper A
+        let bump = ctx.bumps.vault_authority;
+        let seeds = &[b"vault_auth".as_ref(), &[bump]];
+        let signer = &[&seeds[..]];
+
+        let cpi_accounts = Transfer {
+            from: ctx.accounts.vault_collateral_account.to_account_info(),
+            to: ctx.accounts.keeper_a_collateral_account.to_account_info(),
+            authority: ctx.accounts.vault_authority.to_account_info(),
+        };
+        let cpi_ctx = CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            cpi_accounts,
+            signer,
+        );
+        token::transfer(cpi_ctx, reward_amount)?;
+
+        // Mark reward as claimed
+        liquidation_process.keeper_reward_claimed = true;
+
+        msg!("✅ Keeper A claimed reward: {} SOL", reward_amount);
         Ok(())
     }
 
@@ -1377,6 +1418,9 @@ pub struct LiquidationProcess {
     pub principal_returned: u64,
     pub growth_fund: u64,
     pub revenue_share: u64,
+    // Keeper A reward tracking (for separate claim)
+    pub keeper_reward_amount: u64,
+    pub keeper_reward_claimed: bool,
 }
 
 // ═════════════════════════════════════════════════════════════
@@ -1509,8 +1553,7 @@ pub struct TriggerLiquidation<'info> {
     pub loan_account: Box<Account<'info, LoanAccount>>,
     #[account(mut, seeds = [b"config"], bump)]
     pub system_config: Box<Account<'info, SystemConfig>>,
-    // Note: ProtocolConfig intentionally omitted to save stack space
-    // Using constant LIQUIDATION_TIMEOUT for this critical path
+
     #[account(
         init,
         payer = keeper_a,
@@ -1523,12 +1566,9 @@ pub struct TriggerLiquidation<'info> {
     /// CHECK: PDA derived from [b"vault_auth"]
     #[account(seeds = [b"vault_auth"], bump)]
     pub vault_authority: AccountInfo<'info>,
+
     #[account(mut, token::authority = vault_authority)]
     pub vault_collateral_account: Box<Account<'info, TokenAccount>>,
-
-    // Mint account for seized vault initialization
-    #[account(address = system_config.collateral_mint)]
-    pub collateral_mint: Box<Account<'info, Mint>>,
 
     #[account(
         mut,
@@ -1536,15 +1576,36 @@ pub struct TriggerLiquidation<'info> {
         bump
     )]
     pub seized_assets_vault: Box<Account<'info, TokenAccount>>,
-    /// CHECK: PDA derived from [b"seized_auth"]
-    #[account(seeds = [b"seized_auth"], bump)]
-    pub seized_assets_authority: AccountInfo<'info>,
 
-    // Note: keeper_a_collateral_account removed to save stack space
-    // Keeper A reward will be handled in a separate claim function
     pub pyth_price_feed: Box<Account<'info, PriceUpdateV2>>,
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct ClaimTriggerReward<'info> {
+    #[account(mut)]
+    pub keeper_a: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [b"liquidation", liquidation_process.loan_account.as_ref()],
+        bump,
+        constraint = liquidation_process.trigger_keeper == keeper_a.key() @ GinvaError::Unauthorized
+    )]
+    pub liquidation_process: Account<'info, LiquidationProcess>,
+
+    /// CHECK: PDA derived from [b"vault_auth"]
+    #[account(seeds = [b"vault_auth"], bump)]
+    pub vault_authority: AccountInfo<'info>,
+
+    #[account(mut, token::authority = vault_authority)]
+    pub vault_collateral_account: Account<'info, TokenAccount>,
+
+    #[account(mut)]
+    pub keeper_a_collateral_account: Account<'info, TokenAccount>,
+
+    pub token_program: Program<'info, Token>,
 }
 
 #[derive(Accounts)]
