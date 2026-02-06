@@ -1,7 +1,6 @@
 import {
   Box,
   SimpleGrid,
-  Stat,
   StatLabel,
   StatNumber,
   StatHelpText,
