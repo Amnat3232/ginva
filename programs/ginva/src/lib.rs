@@ -1,4 +1,6 @@
 use anchor_lang::prelude::*;
+use anchor_lang::solana_program::instruction::{AccountMeta, Instruction};
+use anchor_lang::solana_program::program::invoke_signed;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 use pyth_solana_receiver_sdk::price_update::{get_feed_id_from_hex, PriceUpdateV2};
 use std::mem::size_of;
@@ -801,28 +803,26 @@ pub mod ginva {
     }
 
     // ═════════════════════════════════════════════════════════════
-    // 🦄 DEX FALLBACK (ทำงานหลัง 24 ชม.)
+    // 🦄 DEX FALLBACK via Jupiter CPI (ทำงานหลัง 24 ชม.)
     // ═════════════════════════════════════════════════════════════
-    // Fallback: If storefront sale fails, send to DEX via Jupiter
-    pub fn execute_dex_fallback(ctx: Context<ExecuteAutoSwap>) -> Result<()> {
+    // Fallback: Use Jupiter Aggregator for on-chain swap
+    // Client must provide route_data and remaining_accounts from Jupiter API
+    pub fn execute_dex_fallback(ctx: Context<ExecuteDexFallback>, data: Vec<u8>) -> Result<()> {
         let liquidation_process = &mut ctx.accounts.liquidation_process;
         let system_config = &mut ctx.accounts.system_config;
-        let caller = ctx.accounts.caller.key();
-        let current_time = Clock::get()?.unix_timestamp;
+        let clock = Clock::get()?;
+        let current_time = clock.unix_timestamp;
 
-        // 🛡️ SECURITY GUARD 2.0: Check pause status + timelock
+        // 1️⃣ SECURITY GUARDS
         require!(!system_config.is_paused, GinvaError::ProtocolPaused);
         require!(
             current_time >= system_config.ops_resume_at,
             GinvaError::SystemInCooldown
         );
-
-        // 🛡️ DEX TIME CHECK: Must wait 24 hours before DEX access
         require!(
             current_time >= liquidation_process.dex_activation_time,
             GinvaError::StorefrontPeriodNotOver
         );
-
         require!(!liquidation_process.swapped, GinvaError::AlreadySwapped);
         require!(
             liquidation_process.status == LiquidationStatus::Triggered as u8,
@@ -832,80 +832,126 @@ pub mod ginva {
         let seized_amount = liquidation_process.seized_collateral_amount;
         require!(seized_amount > 0, GinvaError::InvalidAmount);
 
-        // Note: In V1, we can use similar logic to storefront sale
-        // but mark it as DEX fallback for tracking purposes
-        let asset_config = &ctx.accounts.asset_config;
-        require!(asset_config.is_active, GinvaError::AssetNotActive);
+        // 2️⃣ VALIDATE REMAINING ACCOUNTS
+        require!(
+            !ctx.remaining_accounts.is_empty(),
+            GinvaError::InvalidJupiterRoute
+        );
 
-        let (current_price, price_exponent) = get_pyth_price_with_exponent_and_validation(
+        // 3️⃣ PRE-SWAP BALANCE CHECK
+        ctx.accounts.seized_assets_vault.reload()?;
+        ctx.accounts.processing_vault.reload()?;
+
+        let initial_collateral_balance = ctx.accounts.seized_assets_vault.amount;
+        let initial_usdc_balance = ctx.accounts.processing_vault.amount;
+
+        require!(
+            initial_collateral_balance >= seized_amount,
+            GinvaError::InsufficientCollateral
+        );
+
+        msg!(
+            "🦄 Jupiter Swap: Selling {} collateral via DEX...",
+            seized_amount
+        );
+
+        // 4️⃣ CONSTRUCT JUPITER CPI
+        // Convert remaining_accounts to AccountMeta
+        let mut accounts: Vec<AccountMeta> = ctx
+            .remaining_accounts
+            .iter()
+            .map(|acc| AccountMeta {
+                pubkey: *acc.key,
+                is_signer: acc.is_signer,
+                is_writable: acc.is_writable,
+            })
+            .collect();
+
+        // Add our PDA signer (seized_assets_authority) to accounts list
+        // This allows Jupiter to transfer from seized_assets_vault
+        accounts.push(AccountMeta {
+            pubkey: ctx.accounts.seized_assets_authority.key(),
+            is_signer: true,
+            is_writable: false,
+        });
+
+        // Prepare signer seeds
+        let bump = ctx.bumps.seized_assets_authority;
+        let seeds = &[b"seized_auth".as_ref(), &[bump]];
+        let signer_seeds = &[&seeds[..]];
+
+        // Create Jupiter instruction
+        let jupiter_instruction = Instruction {
+            program_id: ctx.accounts.jupiter_program.key(),
+            accounts,
+            data,
+        };
+
+        // 5️⃣ INVOKE JUPITER
+        let account_infos: Vec<AccountInfo> = ctx
+            .remaining_accounts
+            .iter()
+            .map(|acc| acc.to_account_info())
+            .collect();
+
+        invoke_signed(&jupiter_instruction, &account_infos, signer_seeds)
+            .map_err(|_| GinvaError::JupiterSwapFailed)?;
+
+        // 6️⃣ POST-SWAP VERIFICATION
+        ctx.accounts.seized_assets_vault.reload()?;
+        ctx.accounts.processing_vault.reload()?;
+
+        let final_collateral_balance = ctx.accounts.seized_assets_vault.amount;
+        let final_usdc_balance = ctx.accounts.processing_vault.amount;
+
+        let collateral_spent = initial_collateral_balance.saturating_sub(final_collateral_balance);
+        let usdc_received = final_usdc_balance.saturating_sub(initial_usdc_balance);
+
+        // Verify swap actually happened
+        require!(collateral_spent > 0, GinvaError::SwapFailed);
+        require!(usdc_received > 0, GinvaError::SlippageExceeded);
+
+        // Verify we got reasonable amount (check against oracle price - 15% slippage max)
+        let asset_config = &ctx.accounts.asset_config;
+        let (oracle_price, price_exponent) = get_pyth_price_with_exponent_and_validation(
             &ctx.accounts.pyth_price_feed,
             &asset_config.feed_id,
             system_config,
         )?;
 
-        let gross_usdc_value = calculate_collateral_value(
-            seized_amount,
-            current_price,
+        let expected_usdc = calculate_collateral_value(
+            collateral_spent,
+            oracle_price,
             price_exponent,
             asset_config.decimals,
-            6, // USDC decimals
+            6,
         )?;
 
-        // For DEX fallback, we might want smaller discount or none
-        // For now, use same logic as storefront
-        let keeper_reward = gross_usdc_value
-            .saturating_mul(ctx.accounts.protocol_config.auto_swap_reward_bps)
-            .checked_div(10000)
+        // Allow 15% slippage for DEX fallback (higher than storefront due to volatility)
+        let min_expected_usdc = expected_usdc
+            .saturating_mul(85)
+            .checked_div(100)
             .unwrap_or(0);
-
-        let usdc_required_from_caller = gross_usdc_value.saturating_sub(keeper_reward);
-        require!(usdc_required_from_caller > 0, GinvaError::InvalidAmount);
-
-        // Execute swap (same as storefront logic)
-        msg!(
-            "🦄 DEX Fallback: Processing {} of {:?} for {} USDC...",
-            seized_amount,
-            asset_config.mint,
-            usdc_required_from_caller
+        require!(
+            usdc_received >= min_expected_usdc,
+            GinvaError::ExcessiveSlippage
         );
 
-        // ACTION A: Pull USDC from Caller -> Processing Vault
-        let cpi_program = ctx.accounts.token_program.to_account_info();
-        let cpi_accounts_pay = Transfer {
-            from: ctx.accounts.caller_usdc_account.to_account_info(),
-            to: ctx.accounts.processing_vault.to_account_info(),
-            authority: ctx.accounts.caller.to_account_info(),
-        };
-        let cpi_ctx_pay = CpiContext::new(cpi_program.clone(), cpi_accounts_pay);
-        token::transfer(cpi_ctx_pay, usdc_required_from_caller)?;
+        msg!(
+            "✅ Jupiter Swap Success! Spent {} collateral -> Received {} USDC (Expected: {})",
+            collateral_spent,
+            usdc_received,
+            expected_usdc
+        );
 
-        // ACTION B: Push Seized Collateral -> Caller
-        let bump = ctx.bumps.seized_assets_authority;
-        let seeds = &[b"seized_auth".as_ref(), &[bump]];
-        let signer = &[&seeds[..]];
-
-        let cpi_accounts_send = Transfer {
-            from: ctx.accounts.seized_assets_vault.to_account_info(),
-            to: ctx.accounts.caller_collateral_account.to_account_info(),
-            authority: ctx.accounts.seized_assets_authority.to_account_info(),
-        };
-        let cpi_ctx_send = CpiContext::new_with_signer(cpi_program, cpi_accounts_send, signer);
-        token::transfer(cpi_ctx_send, seized_amount)?;
-
-        // Update State
+        // 7️⃣ UPDATE STATE
         liquidation_process.swapped = true;
-        liquidation_process.usdc_received = usdc_required_from_caller;
-        liquidation_process.swap_executor = caller;
-        liquidation_process.swap_reward = keeper_reward;
+        liquidation_process.usdc_received = usdc_received;
+        liquidation_process.swap_executor = ctx.accounts.caller.key();
+        liquidation_process.swap_reward = 0; // DEX fallback may have lower/no reward
         liquidation_process.status = LiquidationStatus::Swapped as u8;
         liquidation_process.deadline_for_distribution =
             current_time + ctx.accounts.protocol_config.liquidation_timeout;
-
-        msg!(
-            "✅ DEX Fallback Complete! Processed {} of {:?} via DEX after 24h wait",
-            seized_amount,
-            asset_config.mint
-        );
 
         Ok(())
     }
@@ -2350,6 +2396,53 @@ pub struct ExecuteAutoSwap<'info> {
 }
 
 #[derive(Accounts)]
+pub struct ExecuteDexFallback<'info> {
+    #[account(mut)]
+    pub caller: Signer<'info>, // Keeper that executes the swap
+
+    #[account(mut)]
+    pub liquidation_process: Box<Account<'info, LiquidationProcess>>,
+
+    #[account(mut, seeds = [b"config"], bump)]
+    pub system_config: Box<Account<'info, SystemConfig>>,
+
+    #[account(seeds = [b"protocol_config"], bump)]
+    pub protocol_config: Box<Account<'info, ProtocolConfig>>,
+
+    #[account(
+        seeds = [b"asset_config", liquidation_process.loan_account.as_ref()],
+        bump
+    )]
+    pub asset_config: Box<Account<'info, AssetConfig>>,
+
+    /// CHECK: PDA derived from [b"seized_auth"]
+    #[account(seeds = [b"seized_auth"], bump)]
+    pub seized_assets_authority: AccountInfo<'info>,
+
+    #[account(mut, token::authority = seized_assets_authority)]
+    pub seized_assets_vault: Box<Account<'info, TokenAccount>>,
+
+    /// CHECK: PDA derived from [b"processing_auth"]
+    #[account(seeds = [b"processing_auth"], bump)]
+    pub processing_vault_authority: AccountInfo<'info>,
+
+    #[account(mut, token::authority = processing_vault_authority)]
+    pub processing_vault: Box<Account<'info, TokenAccount>>,
+
+    /// CHECK: Jupiter V6 Program ID
+    /// JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4
+    #[account(
+        constraint = jupiter_program.key().to_bytes()[..4] == [6, 155, 197, 153] @ GinvaError::InvalidJupiterProgram
+    )]
+    pub jupiter_program: AccountInfo<'info>,
+
+    pub pyth_price_feed: Box<Account<'info, PriceUpdateV2>>,
+    pub token_program: Program<'info, Token>,
+    pub system_program: Program<'info, System>,
+    // ⚠️ IMPORTANT: Additional accounts required by Jupiter will be passed in remaining_accounts
+}
+
+#[derive(Accounts)]
 pub struct FinalizeLiquidation<'info> {
     #[account(mut)]
     pub keeper_c: Signer<'info>,
@@ -2712,4 +2805,18 @@ pub enum GinvaError {
     InvalidFeedId = 1941,
     #[msg("Asset mint does not match config")]
     InvalidAssetMint = 1942,
+
+    // 🪐 Jupiter/DEX Integration Errors (1960-1969)
+    #[msg("Invalid Jupiter program ID")]
+    InvalidJupiterProgram = 1960,
+    #[msg("Invalid Jupiter route data")]
+    InvalidJupiterRoute = 1961,
+    #[msg("Jupiter swap execution failed")]
+    JupiterSwapFailed = 1962,
+    #[msg("Swap failed - no tokens transferred")]
+    SwapFailed = 1963,
+    #[msg("Excessive slippage detected")]
+    ExcessiveSlippage = 1964,
+    #[msg("Insufficient collateral in vault")]
+    InsufficientCollateral = 1965,
 }
