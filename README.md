@@ -285,6 +285,69 @@ solana program show <PROGRAM_ID>
 
 ---
 
+## 🗓️ Development Roadmap
+
+> **Current Status**: Phase 1 - Pre-Deploy (Devnet)
+
+Track our progress below. Tasks will be removed from this list once completed and moved to [CHANGELOG.md](./CHANGELOG.md).
+
+### 🚨 Phase 1: Pre-Deploy (Critical - Do First)
+
+- [ ] **LICENSE** - Create LICENSE file (MIT or Apache 2.0)
+- [ ] **.env.example** - Environment variables template with documentation
+- [ ] **CI/CD** - GitHub Actions workflow for automated testing
+- [ ] **SECURITY.md** - Vulnerability reporting process
+
+### 🎯 Phase 2: Development (Build the System)
+
+- [ ] **Frontend** - Complete React + Wallet Adapter UI
+- [ ] **Deploy to Vercel** - Host frontend on Vercel (Devnet)
+- [ ] **Keeper Bot** - TypeScript bot script for liquidation
+- [ ] **Test Keeper Bot** - Run and validate on Devnet
+- [ ] **CHANGELOG.md** - Version tracking
+- [ ] **API Docs** - Documentation for all program instructions
+
+### 🔒 Phase 3: Security & Testing (Before Mainnet)
+
+- [ ] **Security Audit** - Third-party audit of smart contracts
+- [ ] **Edge Case Tests** - 100+ users, leap year, extreme conditions
+- [ ] **CODE_OF_CONDUCT.md** - Community guidelines
+- [ ] **Backup Plan** - Recovery procedures
+
+### 🚀 Phase 4: Mainnet Launch (Production Ready)
+
+- [ ] **Mainnet Deploy** - Deploy smart contracts to Solana Mainnet
+- [ ] **Fleek Migration** - Move frontend to Fleek (Web3 hosting)
+- [ ] **Whitepaper** - Technical whitepaper
+- [ ] **Keeper Bot Docs** - Public documentation for bot operators
+
+### 🌟 Phase 5: Growth (Expansion)
+
+- [ ] **Domain** - Purchase ginva.io
+- [ ] **Community** - Setup Discord and Twitter
+- [ ] **Monitoring** - Logs, alerts, and analytics
+- [ ] **Troubleshooting Guide** - FAQ and problem solving
+- [ ] **Multisig** - Add multisig wallet support (when team grows)
+- [ ] **More Assets** - Support ETH, BTC, and other collaterals
+
+---
+
+### 📊 Progress Tracker
+
+```
+Phase 1:  ░░░░░░░░░░ 0%  (0/4 tasks)
+Phase 2:  ░░░░░░░░░░ 0%  (0/6 tasks)
+Phase 3:  ░░░░░░░░░░ 0%  (0/4 tasks)
+Phase 4:  ░░░░░░░░░░ 0%  (0/4 tasks)
+Phase 5:  ░░░░░░░░░░ 0%  (0/6 tasks)
+
+Total:    ░░░░░░░░░░ 0%  (0/24 tasks)
+```
+
+**Legend:** ✅ Done | ⏳ In Progress | ⬜ Not Started
+
+---
+
 ## 🤝 Contributing
 
 We welcome contributions! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
