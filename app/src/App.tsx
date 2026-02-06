@@ -1,5 +1,5 @@
 import { Routes, Route } from "react-router-dom";
-import { Box } from "@chakra-ui/react";
+import { Container } from "react-bootstrap";
 import Navbar from "./components/Navbar";
 import Dashboard from "./pages/Dashboard";
 import Deposit from "./pages/Deposit";
@@ -8,15 +8,17 @@ import Repay from "./pages/Repay";
 
 function App() {
   return (
-    <Box minH="100vh" bg="gray.50">
+    <div style={{ minHeight: "100vh", backgroundColor: "#f8f9fa" }}>
       <Navbar />
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/deposit" element={<Deposit />} />
-        <Route path="/borrow" element={<Borrow />} />
-        <Route path="/repay" element={<Repay />} />
-      </Routes>
-    </Box>
+      <Container fluid>
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/deposit" element={<Deposit />} />
+          <Route path="/borrow" element={<Borrow />} />
+          <Route path="/repay" element={<Repay />} />
+        </Routes>
+      </Container>
+    </div>
   );
 }
 

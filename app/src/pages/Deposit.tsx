@@ -1,21 +1,28 @@
-import { Box, Heading, Text, VStack } from "@chakra-ui/react";
+import { Container, Card, Stack } from "react-bootstrap";
 
 const Deposit = () => {
   return (
-    <Box maxW="4xl" mx="auto" p={6}>
-      <VStack align="start" spacing={6}>
-        <Box>
-          <Heading size="lg">Deposit Collateral</Heading>
-          <Text color="gray.500">Deposit SOL, BTC, or ETH as collateral</Text>
-        </Box>
+    <Container>
+      <Stack direction="vertical" gap={4} className="mb-4">
+        <h1>Deposit Collateral</h1>
+        <p className="text-muted">Deposit SOL, BTC, or ETH as collateral</p>
 
-        <Box w="full" p={6} bg="white" borderRadius="lg" shadow="sm">
-          <Text color="gray.500" textAlign="center" py={10}>
-            Deposit interface coming soon...
-          </Text>
-        </Box>
-      </VStack>
-    </Box>
+        <Card>
+          <Card.Body className="text-center py-5">
+            <Stack direction="vertical" gap={3}>
+              <h3>🚧 Coming Soon...</h3>
+              <p className="text-muted">
+                Deposit interface is under development. Check back soon!
+              </p>
+              <p className="text-muted small">
+                • Support for SOL, BTC, ETH collaterals • Real-time collateral
+                tracking • Automatic LTV calculation
+              </p>
+            </Stack>
+          </Card.Body>
+        </Card>
+      </Stack>
+    </Container>
   );
 };
 

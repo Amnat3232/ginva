@@ -1,21 +1,28 @@
-import { Box, Heading, Text, VStack } from "@chakra-ui/react";
+import { Container, Card, Stack } from "react-bootstrap";
 
 const Borrow = () => {
   return (
-    <Box maxW="4xl" mx="auto" p={6}>
-      <VStack align="start" spacing={6}>
-        <Box>
-          <Heading size="lg">Borrow USDC</Heading>
-          <Text color="gray.500">Borrow against your deposited collateral</Text>
-        </Box>
+    <Container>
+      <Stack direction="vertical" gap={4} className="mb-4">
+        <h1>Borrow USDC</h1>
+        <p className="text-muted">Borrow against your deposited collateral</p>
 
-        <Box w="full" p={6} bg="white" borderRadius="lg" shadow="sm">
-          <Text color="gray.500" textAlign="center" py={10}>
-            Borrow interface coming soon...
-          </Text>
-        </Box>
-      </VStack>
-    </Box>
+        <Card>
+          <Card.Body className="text-center py-5">
+            <Stack direction="vertical" gap={3}>
+              <h3>🚧 Coming Soon...</h3>
+              <p className="text-muted">
+                Borrow interface is under development. Check back soon!
+              </p>
+              <p className="text-muted small">
+                • Calculate borrowing power based on LTV • Real-time interest
+                rates • Flexible loan terms
+              </p>
+            </Stack>
+          </Card.Body>
+        </Card>
+      </Stack>
+    </Container>
   );
 };
 
