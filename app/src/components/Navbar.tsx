@@ -1,5 +1,5 @@
 import {
-  FiWallet,
+  FiCreditCard,
   FiArrowDown,
   FiArrowUp,
   FiShield,
@@ -63,7 +63,7 @@ const Navbar = () => {
             </Link>
             <Link to="/repay">
               <HStack color="gray.600" _hover={{ color: "ginva.500" }}>
-                <Icon as={FiWallet} />
+                <Icon as={FiCreditCard} />
                 <Text>Repay</Text>
               </HStack>
             </Link>
@@ -73,7 +73,7 @@ const Navbar = () => {
         <Button
           colorScheme="ginva"
           size="sm"
-          leftIcon={<FiWallet />}
+          leftIcon={<FiCreditCard />}
           variant="outline"
         >
           Connect Wallet
