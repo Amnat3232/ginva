@@ -566,17 +566,17 @@ pub mod ginva {
         );
 
         // 1. Check Health Factor
-        let feed_id = get_feed_id_from_hex(SOL_USD_FEED_ID).map_err(|_| GinvaError::PythError)?;
+        let asset_config = &ctx.accounts.asset_config;
         let (current_price, price_exponent) = get_pyth_price_with_exponent_and_validation(
             &ctx.accounts.pyth_price_feed,
-            &feed_id,
+            &asset_config.feed_id,
             system_config,
         )?;
         let collateral_value = calculate_collateral_value(
             loan_account.collateral_amount,
             current_price,
             price_exponent,
-            9, // SOL decimals
+            asset_config.decimals,
             6, // USDC decimals
         )?;
 
@@ -1113,9 +1113,7 @@ pub mod ginva {
         liquidation_process.growth_fund = growth_fund;
         liquidation_process.revenue_share = protocol_revenue;
 
-        system_config.total_borrowed = system_config
-            .total_borrowed
-            .saturating_sub(principal_return);
+        system_config.total_borrowed = system_config.total_borrowed.saturating_sub(loan_principal);
 
         // 5. Logging
         msg!("✅ Step 3 Complete! Liquidation Finalized");
@@ -1614,11 +1612,10 @@ pub mod ginva {
             GinvaError::LoanNotActive
         );
 
-        // 1. Get current price from Pyth with validation
-        let feed_id = get_feed_id_from_hex(SOL_USD_FEED_ID).map_err(|_| GinvaError::PythError)?;
+        let asset_config = &ctx.accounts.asset_config;
         let (current_price, price_exponent) = get_pyth_price_with_exponent_and_validation(
             &ctx.accounts.pyth_price_feed,
-            &feed_id,
+            &asset_config.feed_id,
             system_config,
         )?;
 
@@ -1627,7 +1624,7 @@ pub mod ginva {
             loan_account.collateral_amount,
             current_price,
             price_exponent,
-            9, // SOL decimals
+            asset_config.decimals,
             6, // USDC decimals
         )?;
 
@@ -2352,6 +2349,13 @@ pub struct TriggerLiquidation<'info> {
         bump
     )]
     pub seized_assets_vault: Box<Account<'info, TokenAccount>>,
+
+    /// Get feed_id dynamically based on collateral type
+    #[account(
+        seeds = [b"asset_config", loan_account.collateral_mint.as_ref()],
+        bump
+    )]
+    pub asset_config: Box<Account<'info, AssetConfig>>,
 
     pub pyth_price_feed: Box<Account<'info, PriceUpdateV2>>,
     pub token_program: Program<'info, Token>,

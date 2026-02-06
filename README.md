@@ -2,7 +2,7 @@
 
 > **Next-Generation Lending Protocol with Task-Based Liquidation on Solana**
 
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![License](https://img.shields.io/badge/license-BUSL--1.1-red)](LICENSE)
 [![Network](https://img.shields.io/badge/network-Solana%20Devnet-blueviolet)](https://explorer.solana.com)
 [![Anchor](https://img.shields.io/badge/Anchor-0.29.0-blue)](https://anchor-lang.com)
 [![Status](https://img.shields.io/badge/status-Active-success)](https://github.com/Amnat3232/ginva)
@@ -285,15 +285,27 @@ solana program show <PROGRAM_ID>
 
 ---
 
-## 🗓️ Development Roadmap
+## 🗓️ Development Roadmap (สำหรับนักพัฒนา)
 
-> **Current Status**: Phase 1 - Pre-Deploy (Devnet)
-
-Track our progress below. Tasks will be removed from this list once completed and moved to [CHANGELOG.md](./CHANGELOG.md).
+> **⚠️ หมายเหตุสำคัญ**: รายการด้านล่างคือ **TODO List สำหรับนักพัฒนา** เพื่อติดตามว่าจะพัฒนาต่อไปอะไร ไม่ใช่คำอธิบายฟีเจอร์ทั้งหมดของระบบ!
+>
+> Ginva Protocol **มีฟังก์ชันครบแล้ว** ดังนี้:
+>
+> - ✅ ระบบ Liquidation 3 ขั้นตอน + รางวัล Keeper
+> - ✅ การแบ่งดอกเบี้ย (10% Capital, 27.5% Ops, 65.25% Stakers)
+> - ✅ ระบบ Emergency Pause
+> - ✅ รองรับหลายสินทรัพย์ (SOL, BTC, ETH ผ่าน AssetConfig)
+> - ✅ ระบบ Staking และ Rewards
+>
+> ดูรายละเอียดระบบที่ **[Architecture](#-architecture)** และ **[Core Flows](#-flow-การทำงานหลัก-core-flows)**
+>
+> รายการด้านล่างจะถูกลบออกเมื่อเสร็จสิ้นและย้ายไป [CHANGELOG.md](./CHANGELOG.md)
 
 ### 🚨 Phase 1: Pre-Deploy (Critical - Do First)
 
 - [x] **LICENSE** - Create LICENSE file (BUSL-1.1 with 4-year exclusivity)
+- [x] **FIX: Hardcoded Feed ID** - Replace SOL_USD_FEED_ID with dynamic asset_config.feed_id
+- [x] **FIX: Debt Accounting** - Use full loan_amount in finalize_liquidation (prevent zombie debt)
 - [ ] **.env.example** - Environment variables template with documentation
 - [ ] **CI/CD** - GitHub Actions workflow for automated testing
 - [ ] **SECURITY.md** - Vulnerability reporting process
@@ -335,13 +347,13 @@ Track our progress below. Tasks will be removed from this list once completed an
 ### 📊 Progress Tracker
 
 ```
-Phase 1:  ███░░░░░░░ 25%  (1/4 tasks)
+Phase 1:  ████████░░ 75%  (3/4 tasks)
 Phase 2:  ░░░░░░░░░░ 0%   (0/6 tasks)
 Phase 3:  ░░░░░░░░░░ 0%   (0/4 tasks)
 Phase 4:  ░░░░░░░░░░ 0%   (0/4 tasks)
 Phase 5:  ░░░░░░░░░░ 0%   (0/6 tasks)
 
-Total:    █░░░░░░░░░ 4%   (1/24 tasks)
+Total:    ████░░░░░░ 13%  (3/24 tasks)
 ```
 
 **Legend:** ✅ Done | ⏳ In Progress | ⬜ Not Started
@@ -362,7 +374,7 @@ We welcome contributions! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for gu
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the BUSL-1.1 License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
