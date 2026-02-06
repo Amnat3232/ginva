@@ -10,17 +10,17 @@ const Navbar = () => {
   return (
     <BootstrapNavbar bg="white" className="shadow-sm" sticky="top">
       <Container>
-        <Navbar.Brand href="/">
+        <BootstrapNavbar.Brand href="/">
           <FiActivity size={24} color="#16a34a" className="me-2" />
           <span
             style={{ fontSize: "24px", fontWeight: "bold", color: "#16a34a" }}
           >
             Ginva
           </span>
-        </Navbar.Brand>
+        </BootstrapNavbar.Brand>
 
-        <Navbar.Toggle aria-controls="basic-navbar-nav" />
-        <Navbar.Collapse id="basic-navbar-nav">
+        <BootstrapNavbar.Toggle aria-controls="basic-navbar-nav" />
+        <BootstrapNavbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
             <Nav.Link href="/dashboard" className="me-3">
               Dashboard
@@ -39,7 +39,7 @@ const Navbar = () => {
             <FiCreditCard className="me-2" />
             Connect Wallet
           </Button>
-        </Navbar.Collapse>
+        </BootstrapNavbar.Collapse>
       </Container>
     </BootstrapNavbar>
   );

@@ -1,14 +1,4 @@
-import {
-  Card,
-  Spinner,
-  Button,
-  Container,
-  Row,
-  Col,
-  Text,
-  Badge,
-  Stack,
-} from "react-bootstrap";
+import { Card, Container, Row, Col, Badge, Stack } from "react-bootstrap";
 import { FiDollarSign, FiTrendingUp, FiUsers, FiPercent } from "react-icons/fi";
 
 const Dashboard = () => {
