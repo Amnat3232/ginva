@@ -16,6 +16,10 @@ pub const MIN_TIME_BETWEEN_OPERATIONS: i64 = 1; // 1 second between user ops
 pub const MIN_HOLD_TIME: i64 = 2; // 2 seconds minimum hold
 pub const MAX_RENT_OPS: u64 = 10; // Max rent operations per day
 
+// Reentrancy protection
+pub const REENTRANCY_GUARD_ACTIVE: u8 = 1;
+pub const REENTRANCY_GUARD_INACTIVE: u8 = 0;
+
 // Program ID - matches Anchor.toml devnet deployment
 declare_id!("DyeFMCFmvtkmPtDE4rFryvSDFWwuDCdDhFqPCPdCvujv");
 
@@ -85,6 +89,10 @@ pub mod ginva {
         system_config.paused_at = 0;
         system_config.pause_reason = [0u8; 50];
         system_config.ops_resume_at = 0;
+
+        // Initialize price tracking fields
+        system_config.last_oracle_price = 0;
+        system_config.last_price_update = 0;
 
         // Initialize Protocol Config
         let protocol_config = &mut ctx.accounts.protocol_config;
@@ -256,21 +264,26 @@ pub mod ginva {
         let loan_account = &mut ctx.accounts.loan_account;
         let asset_config = &ctx.accounts.asset_config;
         let user = ctx.accounts.user.key();
+        let clock = Clock::get()?;
 
         require!(amount > 0, GinvaError::InvalidAmount);
 
         // 🛡️ SECURITY GUARD 2.0: Check pause status + timelock
         require!(!system_config.is_paused, GinvaError::ProtocolPaused);
         require!(
-            Clock::get()?.unix_timestamp >= system_config.ops_resume_at,
+            clock.unix_timestamp >= system_config.ops_resume_at,
             GinvaError::SystemInCooldown
         );
         require!(asset_config.is_active, GinvaError::AssetNotActive);
 
+        // 🛡️ RATE LIMITING: Check user operation limits
+        let current_slot = clock.slot;
+        check_rate_limit(&mut ctx.accounts.user_rate_limit, current_slot, user)?;
+
         if loan_account.borrower == Pubkey::default() {
             loan_account.borrower = user;
             loan_account.collateral_mint = asset_config.mint;
-            loan_account.created_at = Clock::get()?.unix_timestamp;
+            loan_account.created_at = clock.unix_timestamp;
         } else {
             require!(
                 loan_account.borrower == user,
@@ -295,7 +308,7 @@ pub mod ginva {
         // Update State
         loan_account.collateral_amount = loan_account.collateral_amount.saturating_add(amount);
         loan_account.status = LoanStatus::Active as u8;
-        loan_account.last_payment_at = Clock::get()?.unix_timestamp;
+        loan_account.last_payment_at = clock.unix_timestamp;
         system_config.total_collateral = system_config.total_collateral.saturating_add(amount);
 
         msg!(
@@ -313,13 +326,25 @@ pub mod ginva {
         let loan_account = &mut ctx.accounts.loan_account;
         let system_config = &mut ctx.accounts.system_config;
         let asset_config = &ctx.accounts.asset_config;
+        let clock = Clock::get()?;
 
         // 🛡️ SECURITY GUARD 2.0: Check pause status + timelock
         require!(!system_config.is_paused, GinvaError::ProtocolPaused);
         require!(
-            Clock::get()?.unix_timestamp >= system_config.ops_resume_at,
+            clock.unix_timestamp >= system_config.ops_resume_at,
             GinvaError::SystemInCooldown
         );
+
+        // 🛡️ RATE LIMITING: Check user operation limits
+        let current_slot = clock.slot;
+        check_rate_limit(
+            &mut ctx.accounts.user_rate_limit,
+            current_slot,
+            ctx.accounts.user.key(),
+        )?;
+
+        // 🛡️ FLASH LOAN PROTECTION: Ensure collateral has been held for minimum time
+        check_flash_loan_protection(loan_account.created_at, clock.unix_timestamp)?;
 
         require!(asset_config.is_active, GinvaError::AssetNotActive);
         require!(
@@ -327,8 +352,11 @@ pub mod ginva {
             GinvaError::InvalidAssetMint
         );
 
-        let (current_price, price_exponent) =
-            get_pyth_price_with_exponent(&ctx.accounts.pyth_price_feed, &asset_config.feed_id)?;
+        let (current_price, price_exponent) = get_pyth_price_with_exponent_and_validation(
+            &ctx.accounts.pyth_price_feed,
+            &asset_config.feed_id,
+            system_config,
+        )?;
 
         let collateral_value_usdc = calculate_collateral_value(
             loan_account.collateral_amount,
@@ -381,7 +409,7 @@ pub mod ginva {
         token::transfer(cpi_ctx, loan_amount)?;
 
         // Update Loan Account
-        let current_time = Clock::get()?.unix_timestamp;
+        let current_time = clock.unix_timestamp;
         loan_account.loan_amount = loan_account.loan_amount.saturating_add(loan_amount);
         loan_account.ltv_option = ltv_option;
         loan_account.duration_days = duration_days;
@@ -504,10 +532,19 @@ pub mod ginva {
             GinvaError::SystemInCooldown
         );
 
+        // 🛡️ REENTRANCY GUARD: Prevent reentrancy attacks
+        require!(
+            liquidation_process.status == 0, // Only allow if not initialized
+            GinvaError::ReentrancyDetected
+        );
+
         // 1. Check Health Factor
         let feed_id = get_feed_id_from_hex(SOL_USD_FEED_ID).map_err(|_| GinvaError::PythError)?;
-        let (current_price, price_exponent) =
-            get_pyth_price_with_exponent(&ctx.accounts.pyth_price_feed, &feed_id)?;
+        let (current_price, price_exponent) = get_pyth_price_with_exponent_and_validation(
+            &ctx.accounts.pyth_price_feed,
+            &feed_id,
+            system_config,
+        )?;
         let collateral_value = calculate_collateral_value(
             loan_account.collateral_amount,
             current_price,
@@ -658,16 +695,14 @@ pub mod ginva {
     // Atomic swap: Caller pays USDC -> receives collateral (6% discount)
     pub fn buy_from_storefront(ctx: Context<ExecuteAutoSwap>) -> Result<()> {
         let liquidation_process = &mut ctx.accounts.liquidation_process;
+        let system_config = &mut ctx.accounts.system_config;
         let caller = ctx.accounts.caller.key();
         let current_time = Clock::get()?.unix_timestamp;
 
         // 🛡️ SECURITY GUARD 2.0: Check pause status + timelock
+        require!(!system_config.is_paused, GinvaError::ProtocolPaused);
         require!(
-            !ctx.accounts.system_config.is_paused,
-            GinvaError::ProtocolPaused
-        );
-        require!(
-            current_time >= ctx.accounts.system_config.ops_resume_at,
+            current_time >= system_config.ops_resume_at,
             GinvaError::SystemInCooldown
         );
 
@@ -685,8 +720,11 @@ pub mod ginva {
         let asset_config = &ctx.accounts.asset_config;
         require!(asset_config.is_active, GinvaError::AssetNotActive);
 
-        let (current_price, price_exponent) =
-            get_pyth_price_with_exponent(&ctx.accounts.pyth_price_feed, &asset_config.feed_id)?;
+        let (current_price, price_exponent) = get_pyth_price_with_exponent_and_validation(
+            &ctx.accounts.pyth_price_feed,
+            &asset_config.feed_id,
+            system_config,
+        )?;
 
         let gross_usdc_value = calculate_collateral_value(
             seized_amount,
@@ -768,16 +806,14 @@ pub mod ginva {
     // Fallback: If storefront sale fails, send to DEX via Jupiter
     pub fn execute_dex_fallback(ctx: Context<ExecuteAutoSwap>) -> Result<()> {
         let liquidation_process = &mut ctx.accounts.liquidation_process;
+        let system_config = &mut ctx.accounts.system_config;
         let caller = ctx.accounts.caller.key();
         let current_time = Clock::get()?.unix_timestamp;
 
         // 🛡️ SECURITY GUARD 2.0: Check pause status + timelock
+        require!(!system_config.is_paused, GinvaError::ProtocolPaused);
         require!(
-            !ctx.accounts.system_config.is_paused,
-            GinvaError::ProtocolPaused
-        );
-        require!(
-            current_time >= ctx.accounts.system_config.ops_resume_at,
+            current_time >= system_config.ops_resume_at,
             GinvaError::SystemInCooldown
         );
 
@@ -801,8 +837,11 @@ pub mod ginva {
         let asset_config = &ctx.accounts.asset_config;
         require!(asset_config.is_active, GinvaError::AssetNotActive);
 
-        let (current_price, price_exponent) =
-            get_pyth_price_with_exponent(&ctx.accounts.pyth_price_feed, &asset_config.feed_id)?;
+        let (current_price, price_exponent) = get_pyth_price_with_exponent_and_validation(
+            &ctx.accounts.pyth_price_feed,
+            &asset_config.feed_id,
+            system_config,
+        )?;
 
         let gross_usdc_value = calculate_collateral_value(
             seized_amount,
@@ -1480,6 +1519,7 @@ pub mod ginva {
     // ═════════════════════════════════════════════════════════════
     pub fn check_health_factor(ctx: Context<CheckHealthFactor>) -> Result<()> {
         let loan_account = &ctx.accounts.loan_account;
+        let system_config = &mut ctx.accounts.system_config;
 
         // Check if loan is active
         require!(
@@ -1487,10 +1527,13 @@ pub mod ginva {
             GinvaError::LoanNotActive
         );
 
-        // 1. Get current price from Pyth
+        // 1. Get current price from Pyth with validation
         let feed_id = get_feed_id_from_hex(SOL_USD_FEED_ID).map_err(|_| GinvaError::PythError)?;
-        let (current_price, price_exponent) =
-            get_pyth_price_with_exponent(&ctx.accounts.pyth_price_feed, &feed_id)?;
+        let (current_price, price_exponent) = get_pyth_price_with_exponent_and_validation(
+            &ctx.accounts.pyth_price_feed,
+            &feed_id,
+            system_config,
+        )?;
 
         // 2. Calculate current collateral value
         let collateral_value = calculate_collateral_value(
@@ -1580,6 +1623,146 @@ pub mod ginva {
 // 🛠️ HELPER FUNCTIONS
 // ═════════════════════════════════════════════════════════════
 
+/// 🛡️ RATE LIMITING: Check and update user operation rate limits
+/// Uses slot-based tracking for more accurate rate limiting on Solana
+fn check_rate_limit(
+    rate_limit: &mut UserRateLimit,
+    current_slot: u64,
+    user_key: Pubkey,
+) -> Result<()> {
+    // Initialize rate limit account if new
+    if rate_limit.user == Pubkey::default() {
+        rate_limit.user = user_key;
+        rate_limit.last_operation_block = current_slot;
+        rate_limit.operations_count = 1;
+        rate_limit.window_start_time = Clock::get()?.unix_timestamp;
+        return Ok(());
+    }
+
+    // Check if we're in the same block
+    if rate_limit.last_operation_block == current_slot {
+        // Same block - increment counter
+        rate_limit.operations_count = rate_limit
+            .operations_count
+            .checked_add(1)
+            .ok_or(GinvaError::ArithmeticOverflow)?;
+
+        // Check if max operations per block exceeded
+        require!(
+            rate_limit.operations_count <= MAX_OPERATIONS_PER_BLOCK,
+            GinvaError::RateLimitExceeded
+        );
+    } else {
+        // New block - reset counter
+        rate_limit.last_operation_block = current_slot;
+        rate_limit.operations_count = 1;
+        rate_limit.window_start_time = Clock::get()?.unix_timestamp;
+    }
+
+    // Additional check: minimum time between operations across blocks
+    let current_time = Clock::get()?.unix_timestamp;
+    let time_since_last = current_time.saturating_sub(rate_limit.window_start_time);
+    require!(
+        time_since_last >= MIN_TIME_BETWEEN_OPERATIONS,
+        GinvaError::RateLimitExceeded
+    );
+
+    Ok(())
+}
+
+/// 🛡️ FLASH LOAN PROTECTION: Check minimum hold time
+fn check_flash_loan_protection(deposit_time: i64, current_time: i64) -> Result<()> {
+    let hold_duration = current_time.saturating_sub(deposit_time);
+    require!(
+        hold_duration >= MIN_HOLD_TIME,
+        GinvaError::InsufficientHoldTime
+    );
+    Ok(())
+}
+
+/// 🛡️ REENTRANCY GUARD: Check if function is not already executing
+fn check_reentrancy_guard(guard: u8) -> Result<()> {
+    require!(
+        guard == REENTRANCY_GUARD_INACTIVE,
+        GinvaError::ReentrancyDetected
+    );
+    Ok(())
+}
+
+/// 🛡️ PRICE DEVIATION: Validate price doesn't deviate too much from reference
+fn validate_price_deviation(current_price: u64, reference_price: u64) -> Result<()> {
+    if reference_price == 0 {
+        return Ok(()); // First price, no reference
+    }
+
+    let price_diff = if current_price > reference_price {
+        current_price.saturating_sub(reference_price)
+    } else {
+        reference_price.saturating_sub(current_price)
+    };
+
+    let deviation_bps = price_diff
+        .saturating_mul(10000)
+        .checked_div(reference_price)
+        .unwrap_or(0);
+
+    require!(
+        deviation_bps <= MAX_PRICE_CHANGE_BPS,
+        GinvaError::PriceDeviationTooHigh
+    );
+
+    Ok(())
+}
+
+fn get_pyth_price_with_exponent_and_validation(
+    price_update: &Account<PriceUpdateV2>,
+    feed_id: &[u8; 32],
+    system_config: &mut SystemConfig,
+) -> Result<(u64, i32)> {
+    let clock = Clock::get()?;
+
+    // 🛡️ INTELLIGENT MOCK: ปรับแต่ง Logic ตามสภาพแวดล้อม
+    // ถ้าเป็น Local Test -> ให้ max_age เป็นอนันต์ (u64::MAX) เพื่อรับ Mock Data ได้ทุกแบบ
+    // ถ้าเป็น Production -> ต้องเป็น MAX_PRICE_AGE_SECONDS (60 วิ) เท่านั้น!
+    let max_age = if cfg!(feature = "local-test") {
+        msg!("⚠️ WARNING: Local Test Mode - Oracle Time Check Disabled");
+        u64::MAX
+    } else {
+        MAX_PRICE_AGE_SECONDS
+    };
+
+    // Get price with dynamic max_age
+    let price = price_update
+        .get_price_no_older_than(&clock, max_age, feed_id)
+        .map_err(|_| GinvaError::PythPriceUnavailable)?;
+
+    // Validate price confidence (confidence / price should be reasonable)
+    // Using 1% threshold for stable assets (adjust based on asset volatility)
+    let price_abs = price.price.unsigned_abs();
+    require!(price_abs > 0, GinvaError::PriceConfidenceTooLow);
+    let confidence_ratio = price.conf as u128 * 10000 / price_abs as u128; // in basis points
+
+    require!(
+        confidence_ratio <= MAX_CONFIDENCE_RATIO,
+        GinvaError::PriceConfidenceTooLow
+    );
+
+    let price_u64 = price.price.unsigned_abs();
+    let exponent = price.exponent;
+
+    // 🛡️ PRICE DEVIATION CHECK: Validate price doesn't deviate too much
+    if system_config.last_oracle_price > 0 {
+        validate_price_deviation(price_u64, system_config.last_oracle_price)?;
+    }
+
+    // Update price tracking
+    system_config.last_oracle_price = price_u64;
+    system_config.last_price_update = clock.unix_timestamp;
+
+    Ok((price_u64, exponent))
+}
+
+/// Original function without validation (for backward compatibility)
 fn get_pyth_price_with_exponent(
     price_update: &Account<PriceUpdateV2>,
     feed_id: &[u8; 32],
@@ -1750,6 +1933,10 @@ pub struct SystemConfig {
     pub paused_at: i64,
     pub pause_reason: [u8; 50],
     pub ops_resume_at: i64,
+
+    // 🛡️ Price tracking for deviation detection
+    pub last_oracle_price: u64, // Last validated oracle price
+    pub last_price_update: i64, // Timestamp of last price update
 }
 
 impl SystemConfig {
@@ -1963,13 +2150,13 @@ pub struct DepositCollateral<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
     #[account(mut, seeds = [b"config"], bump)]
-    pub system_config: Account<'info, SystemConfig>,
+    pub system_config: Box<Account<'info, SystemConfig>>,
 
     #[account(
         seeds = [b"asset_config", user_collateral_account.mint.as_ref()],
         bump
     )]
-    pub asset_config: Account<'info, AssetConfig>,
+    pub asset_config: Box<Account<'info, AssetConfig>>,
 
     #[account(
         init_if_needed,
@@ -1978,12 +2165,21 @@ pub struct DepositCollateral<'info> {
         seeds = [b"loan", user.key().as_ref()],
         bump
     )]
-    pub loan_account: Account<'info, LoanAccount>,
+    pub loan_account: Box<Account<'info, LoanAccount>>,
+
+    #[account(
+        init_if_needed,
+        payer = user,
+        space = 8 + size_of::<UserRateLimit>(),
+        seeds = [b"rate_limit", user.key().as_ref()],
+        bump
+    )]
+    pub user_rate_limit: Box<Account<'info, UserRateLimit>>,
 
     #[account(mut)]
-    pub user_collateral_account: Account<'info, TokenAccount>,
+    pub user_collateral_account: Box<Account<'info, TokenAccount>>,
     #[account(mut, token::authority = system_config.vault_wallet_authority)]
-    pub vault_collateral_account: Account<'info, TokenAccount>,
+    pub vault_collateral_account: Box<Account<'info, TokenAccount>>,
 
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
@@ -1995,28 +2191,38 @@ pub struct BorrowUsdc<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
     #[account(mut, seeds = [b"loan", user.key().as_ref()], bump)]
-    pub loan_account: Account<'info, LoanAccount>,
+    pub loan_account: Box<Account<'info, LoanAccount>>,
     #[account(mut, seeds = [b"config"], bump)]
-    pub system_config: Account<'info, SystemConfig>,
+    pub system_config: Box<Account<'info, SystemConfig>>,
     #[account(seeds = [b"protocol_config"], bump)]
-    pub protocol_config: Account<'info, ProtocolConfig>,
+    pub protocol_config: Box<Account<'info, ProtocolConfig>>,
 
     #[account(
         seeds = [b"asset_config", loan_account.collateral_mint.as_ref()],
         bump
     )]
-    pub asset_config: Account<'info, AssetConfig>,
+    pub asset_config: Box<Account<'info, AssetConfig>>,
+
+    #[account(
+        init_if_needed,
+        payer = user,
+        space = 8 + size_of::<UserRateLimit>(),
+        seeds = [b"rate_limit", user.key().as_ref()],
+        bump
+    )]
+    pub user_rate_limit: Box<Account<'info, UserRateLimit>>,
 
     /// CHECK: PDA derived from [b"capital_auth"]
     #[account(seeds = [b"capital_auth"], bump)]
     pub capital_wallet_authority: AccountInfo<'info>,
     #[account(mut, token::authority = capital_wallet_authority)]
-    pub capital_wallet: Account<'info, TokenAccount>,
+    pub capital_wallet: Box<Account<'info, TokenAccount>>,
     #[account(mut)]
-    pub user_usdc_account: Account<'info, TokenAccount>,
+    pub user_usdc_account: Box<Account<'info, TokenAccount>>,
 
-    pub pyth_price_feed: Account<'info, PriceUpdateV2>,
+    pub pyth_price_feed: Box<Account<'info, PriceUpdateV2>>,
     pub token_program: Program<'info, Token>,
+    pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
@@ -2090,7 +2296,7 @@ pub struct ExecuteAutoSwap<'info> {
     pub liquidation_process: Box<Account<'info, LiquidationProcess>>,
     #[account(mut)]
     pub loan_account: Box<Account<'info, LoanAccount>>,
-    #[account(seeds = [b"config"], bump)]
+    #[account(mut, seeds = [b"config"], bump)]
     pub system_config: Box<Account<'info, SystemConfig>>,
     #[account(seeds = [b"protocol_config"], bump)]
     pub protocol_config: Box<Account<'info, ProtocolConfig>>,
@@ -2388,6 +2594,9 @@ pub struct CheckHealthFactor<'info> {
         bump
     )]
     pub loan_account: Account<'info, LoanAccount>,
+
+    #[account(mut, seeds = [b"config"], bump)]
+    pub system_config: Account<'info, SystemConfig>,
 
     #[account(seeds = [b"asset_config", loan_account.collateral_mint.as_ref()], bump)]
     pub asset_config: Account<'info, AssetConfig>,
