@@ -259,6 +259,31 @@ pub mod ginva {
     }
 
     // ═════════════════════════════════════════════════════════════
+    // 1️⃣7️⃣ UPDATE OPS WALLET (สำหรับค่าใช้จ่ายทีม ค่าเซิร์ฟเวอร์)
+    // ═════════════════════════════════════════════════════════════
+    pub fn update_ops_wallet(ctx: Context<UpdateOpsWallet>, new_ops_wallet: Pubkey) -> Result<()> {
+        let system_config = &mut ctx.accounts.system_config;
+
+        require!(
+            ctx.accounts.admin.key() == system_config.admin,
+            GinvaError::Unauthorized
+        );
+
+        // บันทึก ops wallet เก่า
+        let old_wallet = system_config.ops_wallet;
+
+        // อัปเดตเป็น wallet ใหม่
+        system_config.ops_wallet = new_ops_wallet;
+
+        msg!("✅ Ops Wallet updated:");
+        msg!("   Old: {:?}", old_wallet);
+        msg!("   New: {:?}", new_ops_wallet);
+        msg!("   Purpose: Team salaries, server costs, marketing, etc.");
+
+        Ok(())
+    }
+
+    // ═════════════════════════════════════════════════════════════
     // 2️⃣ DEPOSIT COLLATERAL
     // ═════════════════════════════════════════════════════════════
     pub fn deposit_collateral(ctx: Context<DepositCollateral>, amount: u64) -> Result<()> {
@@ -2204,6 +2229,15 @@ pub struct UpdateAssetConfig<'info> {
     pub asset_config: Account<'info, AssetConfig>,
 
     #[account(seeds = [b"config"], bump, has_one = admin)]
+    pub system_config: Account<'info, SystemConfig>,
+}
+
+#[derive(Accounts)]
+pub struct UpdateOpsWallet<'info> {
+    #[account(mut)]
+    pub admin: Signer<'info>,
+
+    #[account(mut, seeds = [b"config"], bump, has_one = admin)]
     pub system_config: Account<'info, SystemConfig>,
 }
 
