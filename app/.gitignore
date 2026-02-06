@@ -1,0 +1,9 @@
+# Ginva Protocol Environment Variables
+# Copy this file to .env and fill in your values
+
+# ===========================================
+# 🔧 GINVA PROGRAM CONFIG (Required)
+# ===========================================
+VITE_GINVA_PROGRAM_ID=your_program_id_here
+VITE_SOLANA_RPC_ENDPOINT=https://api.devnet.solana.com
+VITE_SOLANA_NETWORK=devnet
