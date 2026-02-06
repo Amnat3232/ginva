@@ -275,6 +275,60 @@ solana program show <PROGRAM_ID>
 
 ---
 
+## 🚀 Deployment
+
+### Frontend (Vercel)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  📍 DEPLOY TO VERCEL (Free & Automatic)                         │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  1️⃣ Push code to GitHub                                        │
+│     git add .                                                   │
+│     git commit -m "feat: prepare for vercel"                    │
+│     git push origin develop                                     │
+│                                                                 │
+│  2️⃣ Go to https://vercel.com                                   │
+│                                                                 │
+│  3️⃣ Sign Up with GitHub                                        │
+│                                                                 │
+│  4️⃣ Import Repository: ginva                                   │
+│                                                                 │
+│  5️⃣ Configure:                                                 │
+│     - Root Directory: app                                       │
+│     - Build Command: npm run build                              │
+│     - Output Directory: dist                                    │
+│                                                                 │
+│  6️⃣ Add Environment Variables:                                 │
+│     VITE_GINVA_PROGRAM_ID = (from anchor build)                 │
+│     VITE_SOLANA_RPC_ENDPOINT = https://api.devnet.solana.com   │
+│     VITE_SOLANA_NETWORK = devnet                                │
+│                                                                 │
+│  7️⃣ Click Deploy!                                              │
+│                                                                 │
+│  🌐 Your URL: https://ginva.vercel.app                         │
+│                                                                 │
+│  🔄 Auto-deploys on every git push!                             │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Program (Solana Devnet)
+
+```bash
+# Airdrop SOL for deployment
+solana airdrop 2
+
+# Deploy program
+anchor deploy --provider.cluster devnet
+
+# Verify deployment
+solana program show <PROGRAM_ID>
+```
+
+---
+
 ## 🔗 Resources & Links
 
 - 📖 **Documentation**: [docs.ginva.io](https://docs.ginva.io) _(Coming Soon)_
@@ -313,7 +367,7 @@ solana program show <PROGRAM_ID>
 ### 🎯 Phase 2: Development (Build the System)
 
 - [x] **Frontend Structure** - React + Vite + Tailwind + Chakra UI skeleton
-- [ ] **Deploy to Vercel** - Host frontend on Vercel (Devnet)
+- [x] **Deploy to Vercel** - Host frontend on Vercel (Devnet)
 - [ ] **Keeper Bot** - TypeScript bot script for liquidation
 - [ ] **Test Keeper Bot** - Run and validate on Devnet
 - [ ] **CHANGELOG.md** - Version tracking
@@ -348,12 +402,22 @@ solana program show <PROGRAM_ID>
 
 ```
 Phase 1:  ██████████ 100%  (6/6 tasks) ✅ COMPLETE
-Phase 2:  █░░░░░░░░░ 17%  (1/6 tasks)
-Phase 3:  ░░░░░░░░░░ 0%   (0/4 tasks)
-Phase 4:  ░░░░░░░░░░ 0%   (0/4 tasks)
-Phase 5:  ░░░░░░░░░░ 0%   (0/6 tasks)
+Phase 2:  ████░░░░░░ 33%   (2/6 tasks)
+Phase 3:  ░░░░░░░░░ 0%    (0/4 tasks)
+Phase 4:  ░░░░░░░░░ 0%    (0/4 tasks)
+Phase 5:  ░░░░░░░░░ 0%    (0/6 tasks)
 
-Total:    ███░░░░░░░ 29%  (7/24 tasks)
+Total:    ████░░░░░░ 33%   (8/24 tasks)
+```
+
+Phase 1: ██████████ 100% (6/6 tasks) ✅ COMPLETE
+Phase 2: █░░░░░░░░░ 17% (1/6 tasks)
+Phase 3: ░░░░░░░░░░ 0% (0/4 tasks)
+Phase 4: ░░░░░░░░░░ 0% (0/4 tasks)
+Phase 5: ░░░░░░░░░░ 0% (0/6 tasks)
+
+Total: ███░░░░░░░ 29% (7/24 tasks)
+
 ```
 
 **Legend:** ✅ Done | ⏳ In Progress | ⬜ Not Started
@@ -385,3 +449,4 @@ This project is licensed under the BUSL-1.1 License - see the [LICENSE](LICENSE)
 [Website](https://ginva.io) • [Docs](https://docs.ginva.io) • [GitHub](https://github.com/Amnat3232/ginva) • [Twitter](https://twitter.com/ginva_protocol)
 
 </div>
+```
