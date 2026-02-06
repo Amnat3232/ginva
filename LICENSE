@@ -1,0 +1,52 @@
+Business Source License 1.1
+
+Parameters
+
+Licensor:             Dr.SoloDev, the Ginva Protocol team, and their successors and assigns
+Licensed Work:        Ginva Protocol smart contract source code and related software artifacts
+                       (available at https://github.com/Amnat3232/ginva)
+Change Date:          2030-02-06
+Change License:       GNU General Public License Version 2.0 or later (GPL-2.0-or-later)
+
+-------------------------------------------------------------------------
+
+Business Source License 1.1 Terms
+
+The Licensor hereby grants you the right to copy, modify, create derivative works, redistribute, and make non-production use of the Licensed Work. The Licensor does not grant you the right to make Production Use of the Licensed Work.
+
+"Licensor" means Dr.SoloDev, the Ginva Protocol team, and their successors and assigns.
+
+"Licensed Work" means the Ginva Protocol smart contract source code and related software artifacts made available under this license.
+
+"Production Use" means using the Licensed Work to create a decentralized finance protocol, application, or service that competes with the Licensor's protocol, or using the Licensed Work in a commercial environment where value is extracted from the software.
+
+"Change Date" means 2030-02-06.
+
+"Change License" means the GNU General Public License, version 2.0 or later (GPL-2.0-or-later).
+
+-------------------------------------------------------------------------
+STANDARD BUSINESS SOURCE LICENSE 1.1 TERMS
+-------------------------------------------------------------------------
+
+Term: The Licensor grants you the rights to the Licensed Work under the terms of this License for the period starting on the date the Licensed Work is made available and ending on the Change Date.
+
+Rights: You may copy, modify, create derivative works, redistribute, and make non-production use of the Licensed Work.
+
+Limitations: You may not make Production Use of the Licensed Work.
+
+Change License: On the Change Date, the License for the Licensed Work will automatically convert to the Change License.
+
+No Warranty: THE LICENSED WORK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE LICENSORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE LICENSED WORK OR THE USE OR OTHER DEALINGS IN THE LICENSED WORK.
+
+Additional Permissions: None.
+
+Additional Restrictions: 
+- The Licensed Work may not be used to create a competing decentralized finance protocol without express written permission from the Licensor.
+- The Licensed Work may not be deployed on mainnet or production environment by third parties prior to the Change Date.
+- All copies or substantial portions of the Licensed Work must include this license notice.
+
+For inquiries about commercial licensing or partnership opportunities,
+please contact: [Your Email]
+
+Copyright (c) 2026 Dr.SoloDev, the Ginva Protocol team, and their successors and assigns.
+All rights reserved.
