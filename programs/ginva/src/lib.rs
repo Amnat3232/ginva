@@ -100,8 +100,8 @@ pub mod ginva {
         let protocol_config = &mut ctx.accounts.protocol_config;
         protocol_config.admin = ctx.accounts.admin.key();
         protocol_config.liquidation_timeout = 2; // Devnet: 2 seconds (Prod: 86400)
-        protocol_config.auto_swap_reward_bps = 600; // 6%
-        protocol_config.distribute_reward_bps = 100; // 1%
+        protocol_config.auto_swap_reward_bps = 800; // 8% discount for storefront buyers
+        protocol_config.distribute_reward_bps = 100; // 1% base rate (will be overridden by fixed 1.0 USDC)
         protocol_config.min_loan_size = 1_000_000; // 1 USDC (6 decimals)
         protocol_config.max_loan_size = 1_000_000_000_000; // 1M USDC (6 decimals)
 
@@ -517,7 +517,7 @@ pub mod ginva {
     }
 
     // ═════════════════════════════════════════════════════════════
-    // 4️⃣ STEP 1: TRIGGER LIQUIDATION (Keeper A - 1% Reward)
+    // 4️⃣ STEP 1: TRIGGER LIQUIDATION (Keeper A - 0.6% Reward)
     // OPTIMIZED: Split into two transactions to avoid stack overflow
     // ═════════════════════════════════════════════════════════════
     pub fn trigger_liquidation(ctx: Context<TriggerLiquidation>) -> Result<()> {
@@ -574,10 +574,10 @@ pub mod ginva {
             GinvaError::NotYetLiquidatable
         );
 
-        // 2. Calculate Split (1% reward + 99% for swap)
+        // 2. Calculate Split (0.6% reward + 99.4% for swap)
         let trigger_reward = loan_account
             .collateral_amount
-            .saturating_mul(100)
+            .saturating_mul(60) // 0.6% reward
             .checked_div(10000)
             .unwrap_or(0);
         let remaining_for_swap = loan_account
@@ -626,7 +626,7 @@ pub mod ginva {
             .saturating_sub(total_collateral_to_subtract);
 
         msg!(
-            "🔨 Step 1 Complete! Keeper A can claim: {} SOL (1%)",
+            "🔨 Step 1 Complete! Keeper A can claim: {} SOL (0.6%)",
             trigger_reward
         );
         msg!(
@@ -792,7 +792,7 @@ pub mod ginva {
             current_time + ctx.accounts.protocol_config.liquidation_timeout;
 
         msg!(
-            "✅ Storefront Sale Complete! Sold {} of {:?} for {} USDC (6% Discount: {})",
+            "✅ Storefront Sale Complete! Sold {} of {:?} for {} USDC (8% Discount: {})",
             seized_amount,
             asset_config.mint,
             usdc_required_from_caller,
@@ -957,8 +957,13 @@ pub mod ginva {
     }
 
     // ═════════════════════════════════════════════════════════════
-    // 6️⃣ STEP 3: FINALIZE LIQUIDATION (Keeper C - 0.6% Reward)
+    // 6️⃣ STEP 3: FINALIZE LIQUIDATION (Keeper C - Fixed 1.0 USDC)
     // ═════════════════════════════════════════════════════════════
+    // NEW LOGIC:
+    // - Keeper C gets FIXED 1.0 USDC (or max 10% if dust amount)
+    // - Priority: Keeper C gets paid FIRST, then principal return
+    // - Protocol gets remaining profit (if any)
+    // - Supports Bad Debt scenarios (no panic if insufficient funds)
     pub fn finalize_liquidation(ctx: Context<FinalizeLiquidation>) -> Result<()> {
         let liquidation_process = &mut ctx.accounts.liquidation_process;
         let loan_account = &mut ctx.accounts.loan_account;
@@ -991,43 +996,63 @@ pub mod ginva {
         let total_usdc = liquidation_process.usdc_received;
         let loan_principal = loan_account.loan_amount;
 
-        // 2. VALIDATE: Ensure we have enough to cover principal
-        require!(
-            total_usdc >= loan_principal,
-            GinvaError::InsufficientFundsForPrincipal
-        );
+        // 2. Calculate Keeper C Reward (Fixed 1.0 USDC or max 10% for dust)
+        const FIXED_KEEPER_C_REWARD: u64 = 1_000_000; // 1.0 USDC (6 decimals)
+        const MAX_KEEPER_C_PERCENTAGE: u64 = 1000; // 10% max for dust scenarios
 
-        // 3. Calculate waterfall distribution
-        let principal_return = loan_principal;
-        let gross_profit = total_usdc.saturating_sub(principal_return);
-
-        // Keeper C reward: based on config (e.g., 1% of total)
-        let protocol_config = &ctx.accounts.protocol_config;
-        let keeper_c_reward = total_usdc
-            .saturating_mul(protocol_config.distribute_reward_bps)
+        // Calculate max allowed (10% of total)
+        let max_keeper_reward = total_usdc
+            .saturating_mul(MAX_KEEPER_C_PERCENTAGE)
             .checked_div(10000)
             .unwrap_or(0);
 
-        // Adjust if profit insufficient
-        let net_profit = if gross_profit >= keeper_c_reward {
-            gross_profit.saturating_sub(keeper_c_reward)
+        // Use fixed 1.0 USDC, but cap at 10% for very small amounts
+        let keeper_c_reward = if FIXED_KEEPER_C_REWARD <= max_keeper_reward {
+            FIXED_KEEPER_C_REWARD
         } else {
-            // If profit < reward, reduce reward to 50% of profit
-            let adjusted_reward = gross_profit / 2;
-            liquidation_process.swap_reward = adjusted_reward;
-            gross_profit - adjusted_reward
+            max_keeper_reward
         };
 
-        // Split net profit: 5% Growth Fund, 95% Revenue
-        let growth_fund = net_profit.saturating_mul(5).checked_div(100).unwrap_or(0);
-        let revenue_share = net_profit.saturating_sub(growth_fund);
+        // 3. WATERFALL DISTRIBUTION (Priority Order)
+        // Priority 1: Keeper C Reward (always paid first)
+        // Priority 2: Return principal to Capital (as much as possible)
+        // Priority 3: Protocol profit (remaining, if any)
 
         let bump = ctx.bumps.processing_vault_authority;
         let seeds = &[b"processing_auth".as_ref(), &[bump]];
         let signer = &[&seeds[..]];
         let cpi_program = ctx.accounts.token_program.to_account_info();
 
-        // 4. Transfer Principal to Capital Wallet
+        // Track remaining funds after each step
+        let mut remaining_funds = total_usdc;
+
+        // Step A: Pay Keeper C (PRIORITY 1)
+        let actual_keeper_reward = if remaining_funds >= keeper_c_reward {
+            keeper_c_reward
+        } else {
+            // Edge case: not even enough for keeper reward
+            remaining_funds
+        };
+
+        if actual_keeper_reward > 0 {
+            let cpi_accounts = Transfer {
+                from: ctx.accounts.processing_vault.to_account_info(),
+                to: ctx.accounts.keeper_c_usdc_account.to_account_info(),
+                authority: ctx.accounts.processing_vault_authority.to_account_info(),
+            };
+            let cpi_ctx = CpiContext::new_with_signer(cpi_program.clone(), cpi_accounts, signer);
+            token::transfer(cpi_ctx, actual_keeper_reward)?;
+            remaining_funds = remaining_funds.saturating_sub(actual_keeper_reward);
+        }
+
+        // Step B: Return Principal to Capital (PRIORITY 2)
+        // In case of Bad Debt, return whatever is left (may be less than principal)
+        let principal_return = if remaining_funds >= loan_principal {
+            loan_principal
+        } else {
+            remaining_funds // Partial return in bad debt scenario
+        };
+
         if principal_return > 0 {
             let cpi_accounts = Transfer {
                 from: ctx.accounts.processing_vault.to_account_info(),
@@ -1036,63 +1061,54 @@ pub mod ginva {
             };
             let cpi_ctx = CpiContext::new_with_signer(cpi_program.clone(), cpi_accounts, signer);
             token::transfer(cpi_ctx, principal_return)?;
+            remaining_funds = remaining_funds.saturating_sub(principal_return);
         }
 
-        // 5. Transfer Keeper C Reward
-        if liquidation_process.swap_reward > 0 {
-            let cpi_accounts = Transfer {
-                from: ctx.accounts.processing_vault.to_account_info(),
-                to: ctx.accounts.keeper_c_usdc_account.to_account_info(),
-                authority: ctx.accounts.processing_vault_authority.to_account_info(),
-            };
-            let cpi_ctx = CpiContext::new_with_signer(cpi_program.clone(), cpi_accounts, signer);
-            token::transfer(cpi_ctx, liquidation_process.swap_reward)?;
-        }
+        // Step C: Protocol Revenue (PRIORITY 3 - only if there's profit)
+        // All remaining funds go to protocol revenue wallet
+        let protocol_revenue = remaining_funds;
+        let growth_fund = 0u64; // Deprecated - all profit goes to revenue
 
-        // 6. Transfer Growth Fund (5% of net profit) to Capital
-        if growth_fund > 0 {
-            let cpi_accounts = Transfer {
-                from: ctx.accounts.processing_vault.to_account_info(),
-                to: ctx.accounts.capital_wallet.to_account_info(),
-                authority: ctx.accounts.processing_vault_authority.to_account_info(),
-            };
-            let cpi_ctx = CpiContext::new_with_signer(cpi_program.clone(), cpi_accounts, signer);
-            token::transfer(cpi_ctx, growth_fund)?;
-        }
-
-        // 7. Transfer Revenue Share (95% of net profit) to Revenue Wallet
-        if revenue_share > 0 {
+        if protocol_revenue > 0 {
             let cpi_accounts = Transfer {
                 from: ctx.accounts.processing_vault.to_account_info(),
                 to: ctx.accounts.revenue_wallet.to_account_info(),
                 authority: ctx.accounts.processing_vault_authority.to_account_info(),
             };
             let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
-            token::transfer(cpi_ctx, revenue_share)?;
+            token::transfer(cpi_ctx, protocol_revenue)?;
         }
 
-        // 8. Update Status
+        // 4. Update Status
         liquidation_process.status = LiquidationStatus::Finalized as u8;
         liquidation_process.distribute_keeper = keeper_c;
         liquidation_process.finalized_at = current_time;
-        liquidation_process.keeper_c_reward = liquidation_process.swap_reward;
+        liquidation_process.keeper_c_reward = actual_keeper_reward;
         liquidation_process.principal_returned = principal_return;
         liquidation_process.growth_fund = growth_fund;
-        liquidation_process.revenue_share = revenue_share;
+        liquidation_process.revenue_share = protocol_revenue;
 
-        // Update System
         system_config.total_borrowed = system_config
             .total_borrowed
             .saturating_sub(principal_return);
 
+        // 5. Logging
         msg!("✅ Step 3 Complete! Liquidation Finalized");
+        msg!("📊 Distribution Summary:");
+        msg!("   💰 Total USDC Available: {}", total_usdc);
+        msg!("   🎯 Keeper C Reward: {}", actual_keeper_reward);
         msg!(
-            "💸 Principal: {}, Keeper C: {}, Growth: {}, Revenue: {}",
+            "   🏦 Principal Returned: {} / {}",
             principal_return,
-            liquidation_process.swap_reward,
-            growth_fund,
-            revenue_share
+            loan_principal
         );
+        msg!("   📈 Protocol Revenue: {}", protocol_revenue);
+
+        if principal_return < loan_principal {
+            let bad_debt = loan_principal.saturating_sub(principal_return);
+            msg!("   ⚠️  BAD DEBT DETECTED: {} USDC", bad_debt);
+        }
+
         Ok(())
     }
 
