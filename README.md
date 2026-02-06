@@ -2,17 +2,16 @@
 
 > **Next-Generation Lending Protocol with Task-Based Liquidation on Solana**
 
-![License](https://img.shields.io/badge/license-MIT-green)
-![Network](https://img.shields.io/badge/network-Solana%20Devnet-blueviolet)
-![Status](https://img.shields.io/badge/status-Active-success)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![Network](https://img.shields.io/badge/network-Solana%20Devnet-blueviolet)](https://explorer.solana.com)
+[![Anchor](https://img.shields.io/badge/Anchor-0.29.0-blue)](https://anchor-lang.com)
+[![Status](https://img.shields.io/badge/status-Active-success)](https://github.com/Amnat3232/ginva)
 
 ## 📖 ภาพรวมระบบ (Overview)
 
 **Ginva Protocol** คือระบบ Lending/Borrowing บน Solana ที่มีจุดเด่นคือระบบ **Liquidation แบบ 3 ขั้นตอน (Task-Based)** ที่แบ่งงานให้ Keepers (Bots) ทำงานร่วมกันเพื่อประสิทธิภาพสูงสุด ลดความเสี่ยงหนี้เสีย และสร้างความเป็นธรรมให้กับทุกฝ่าย
 
----
-
-## 🎯 ปรัชญาหลัก (Core Philosophy)
+### 🎯 ปรัชญาหลัก (Core Philosophy)
 
 ```mermaid
 graph LR
@@ -21,114 +20,196 @@ graph LR
     B -- "Interest + Collateral" --> P
     P -- "Yield + Rewards" --> L
 
-    style P fill:#f9f,stroke:#333,stroke-width:2px
+    style P fill:#f9f,stroke:#333,stroke-width:4px
 ```
 
 ---
 
-## 🔄 Flow การทำงานหลัก (Core Flow)
+## 🔄 Flow การทำงานหลัก (Core Flows)
 
 ### 1️⃣ ฝากเงินและกู้ (Deposit & Borrow)
 
-**Deposit**: ฝากสินทรัพย์ (เช่น SOL) เพื่อใช้เป็นหลักประกัน
-**Borrow**: กู้ USDC ออกไป (Max LTV ตามกำหนด)
+```mermaid
+graph LR
+    A[👤 Borrower] -->|1. Deposit<br/>10 SOL| B[🏦 Vault]
+    B -->|2. Lock Collateral<br/>Value: $2,000| C[🔒 Loan Account]
+    C -->|3. Calculate LTV<br/>60% Max| D[💰 Capital Wallet]
+    D -->|4. Send Loan<br/>$1,200 USDC| A
 
-**Example:**
+    style A fill:#e1f5ff
+    style B fill:#fff4e1
+    style D fill:#e1ffe1
+```
+
+**ตัวอย่างการคำนวณ:**
 
 ```
-ฝาก: 10 SOL (มูลค่า ~$2,000)
-กู้ได้: $1,200 USDC (60% LTV)
-ดอกเบี้ย: 8% APR (Dynamic)
+ฝาก: 10 SOL (มูลค่า $2,000 @ $200/SOL)
+LTV 60%: $2,000 × 0.60 = $1,200 USDC (ที่กู้ได้)
+ดอกเบี้ย: 8% APR (Dynamic Rate)
 ```
 
 ---
 
 ### 2️⃣ คืนเงินกู้ (Repay Loan)
 
-การไหลของเงินเมื่อผู้กู้ชำระคืน:
+```mermaid
+graph LR
+    A[👤 Borrower] -->|1. Repay Principal<br/>1,000 USDC| B[🏦 Capital Wallet]
+    A -->|2. Pay Interest<br/>20 USDC| C[💎 Revenue Wallet]
+    D[🔒 Vault] -->|3. Return Collateral<br/>10 SOL| A
 
-| ประเภทเงิน | จำนวน      | ไปที่ไหน (Destination) | วัตถุประสงค์                  |
-| ---------- | ---------- | ---------------------- | ----------------------------- |
-| Principal  | 1,000 USDC | Capital Wallet         | คืนเงินต้นเข้าระบบ            |
-| Interest   | 20 USDC    | Revenue Wallet         | รายได้ Protocol / แจก Stakers |
-| Collateral | 10 SOL     | Borrower               | คืนหลักประกันให้ผู้กู้        |
+    style A fill:#e1f5ff
+    style B fill:#e1ffe1
+    style C fill:#ffe1e1
+    style D fill:#fff4e1
+```
+
+**การไหลของเงิน:**
+
+| ประเภท         | จำนวน      | ไปที่          | วัตถุประสงค์                   |
+| -------------- | ---------- | -------------- | ------------------------------ |
+| **Principal**  | 1,000 USDC | Capital Wallet | คืนเงินต้นให้ระบบ              |
+| **Interest**   | 20 USDC    | Revenue Wallet | แจก Stakers / Protocol Revenue |
+| **Collateral** | 10 SOL     | Borrower       | คืนหลักประกันเต็มจำนวน         |
 
 ---
 
-### 3️⃣ การชำระบัญชี (Liquidation) - 🌊 The 3-Step Waterfall
+### 3️⃣ การชำระบัญชี (Liquidation) - 🌊 3-Step Waterfall
 
-ระบบ Liquidation ของ Ginva ออกแบบมาเพื่อความรวดเร็วและป้องกันการผูกขาด โดยแบ่งหน้าที่ชัดเจน:
+ระบบ Liquidation ของ Ginva ออกแบบมาเพื่อความรวดเร็วและป้องกันการผูกขาด:
 
 ```mermaid
 sequenceDiagram
-    participant K1 as 🔨 Keeper A (Trigger)
-    participant V as 🔒 Seized Vault
-    participant B as 🛒 Buyer (Swap)
-    participant K3 as ⚡ Keeper C (Finalize)
+    participant K1 as 🔨 Keeper A<br/>(Trigger)
+    participant V as 📦 Seized Vault
+    participant B as 🛒 Buyer<br/>(Storefront)
+    participant K3 as ⚡ Keeper C<br/>(Finalize)
     participant P as 🏦 Protocol
 
-    Note over K1,P: Step 1: Trigger
-    K1->>V: สั่งยึดหลักประกัน (Health Factor < 100)
-    V->>K1: จ่าย Reward 0.6% (Collateral)
+    Note over K1,P: Step 1: Health Factor < 100%
+    K1->>V: สั่งยึดหลักประกัน
+    V->>K1: จ่าย Reward 0.6%
 
-    Note over K1,P: Step 2: Storefront Sale
-    B->>P: จ่าย USDC (ราคาลด 8%)
-    P->>B: ส่ง Collateral ให้ Buyer
+    Note over K1,P: Step 2: Storefront Sale (24h)
+    B->>P: จ่าย USDC ลด 8%
+    P->>B: ส่ง Collateral
 
-    Note over K1,P: Step 3: Finalize
-    K3->>P: สั่งจัดสรรเงิน (Distribute)
-    P->>K3: จ่าย Fixed Reward 1.0 USDC
-    P->>P: คืนเงินต้น + เก็บกำไรเข้าระบบ
+    Note over K1,P: Step 3: Distribute
+    K3->>P: สั่งจัดสรรเงิน
+    P->>K3: จ่าย Fixed 1.0 USDC
+    P->>P: คืนต้น + เก็บกำไร
 ```
 
 ---
 
 ## 💰 ตัวอย่างการแบ่งเงิน (Distribution Example)
 
-**Scenario:** ยึดหลักประกัน 10 SOL (Market Price $2,000) | หนี้สิน $1,200
+**Scenario:** ยึดหลักประกัน 10 SOL (Market: $2,000) | หนี้: $1,200
 
-| Step            | Action          | Detail                                                               |
-| --------------- | --------------- | -------------------------------------------------------------------- |
-| **1. Trigger**  | Keeper A        | รับ 0.6% = $12 (0.06 SOL) <br> เหลือเข้า Vault: $1,988               |
-| **2. Swap**     | Auto-Swap Buyer | ซื้อของมูลค่า $1,988 ในราคา **ลด 8%** <br> _Buyer จ่าย: $1,828 USDC_ |
-| **3. Finalize** | Keeper C        | จ่าย **Fixed 1.0 USDC** <br> คืนต้น $1,200 <br> กำไรเข้าระบบ ~$627   |
+| Step            | Actor    | Action          | Calculation          | ผลลัพธ์              |
+| --------------- | -------- | --------------- | -------------------- | -------------------- |
+| **1. Trigger**  | Keeper A | รับ 0.6% Reward | $2,000 × 0.006       | **$12** (0.06 SOL)   |
+|                 |          | เข้า Vault      | $2,000 - $12         | **$1,988**           |
+| **2. Swap**     | Buyer    | ซื้อลด 8%       | $1,988 × 0.92        | จ่าย **$1,828** USDC |
+| **3. Finalize** | Keeper C | Fixed Reward    | -                    | **$1.00** USDC       |
+|                 | Capital  | คืนเงินต้น      | -                    | **$1,200** USDC      |
+|                 | Protocol | กำไร            | $1,828 - $1 - $1,200 | **~$627** USDC       |
 
 ---
 
 ## 🎭 ตัวละครในระบบ (Actors)
 
-| บทบาท (Role)    | หน้าที่ (Responsibility)               | สิ่งที่ได้รับ (Incentive)     |
-| --------------- | -------------------------------------- | ----------------------------- |
-| 👤 **Borrower** | ฝาก Collateral, กู้ USDC, จ่ายดอกเบี้ย | สภาพคล่อง (Liquidity)         |
-| 🏦 **Lender**   | ฝาก USDC เข้า Capital Pool             | ดอกเบี้ย + ส่วนแบ่งรายได้     |
-| 🔨 **Keeper A** | ตรวจจับหนี้เสีย และสั่ง Trigger        | 0.6% ของ Collateral           |
-| 🛒 **Buyer**    | ซื้อ Collateral จาก Storefront         | ส่วนลด 8.0% จากราคาตลาด       |
-| ⚡ **Keeper C** | สั่งปิดงานและจัดสรรเงิน (Finalize)     | 1.0 USDC (Fixed Priority Fee) |
+| บทบาท           | หน้าที่                                | รางวัล                          | ความเสี่ยง                      |
+| --------------- | -------------------------------------- | ------------------------------- | ------------------------------- |
+| 👤 **Borrower** | ฝาก Collateral, กู้ USDC, จ่ายดอกเบี้ย | ได้สภาพคล่อง                    | ถูก Liquidate ถ้า LTV สูงเกินไป |
+| 🏦 **Lender**   | ฝาก USDC เข้า Capital Pool             | ดอกเบี้ย 8% APR + Revenue Share | Smart contract risk             |
+| 🔨 **Keeper A** | ตรวจจับหนี้เสีย, Trigger liquidation   | 0.6% ของ Collateral             | Gas cost, Opportunity cost      |
+| 🛒 **Buyer**    | ซื้อ Collateral จาก Storefront         | ส่วนลด 8% จากตลาด               | ราคา Collateral ผันผวน          |
+| ⚡ **Keeper C** | Finalize, จัดสรรเงิน                   | Fixed 1.0 USDC                  | Gas cost                        |
 
 ---
 
-## 🛡️ ความปลอดภัย & เศรษฐศาสตร์ (Security & Economics)
+## 📊 Economic Model
 
-### Security Features
-
-- ✅ **Flash Loan Protection**: ต้องถือครองอย่างน้อย 2 วินาที
-- ✅ **Rate Limiting**: จำกัดจำนวน Transaction ต่อ Block
-- ✅ **Emergency Pause**: Admin สามารถหยุดระบบได้ทันทีหากพบความผิดปกติ
-- ✅ **Fail-Safe Distribution**: Logic การแบ่งเงินแบบ Priority (จ่าย Keeper -> คืนต้น) ป้องกันระบบค้าง
-
-### Interest Model (Dynamic)
+### Dynamic Interest Rate
 
 ```
 Base Rate: 8% APR
-Utilization < 80%: ขยับขึ้นช้าๆ (Linear)
-Utilization ≥ 80%: ขยับขึ้นแรง (Surge) เพื่อดึงดูดเงินฝาก
+
+ถ้า Utilization < 80%:
+  Interest Rate = Base Rate + (Utilization × 0.5%)
+
+ถ้า Utilization ≥ 80%:
+  Interest Rate = Base Rate + 4% + ((Utilization - 80%) × 2%)
+
+Max Rate: 50% APR (Hard Cap)
+```
+
+**ตัวอย่าง:**
+
+- Utilization 60% → Rate = 8% + (60 × 0.5%) = **11%**
+- Utilization 90% → Rate = 8% + 4% + (10 × 2%) = **22%**
+
+### Revenue Distribution
+
+```
+Protocol Revenue จาก:
+├── Interest (จาก Borrowers)
+├── Liquidation Profits
+└── Protocol Fees
+
+Allocation:
+├── 100% → Revenue Wallet
+└── แจก Stakers ตามสัดส่วนการฝาก
+```
+
+---
+
+## 🛡️ Security Features
+
+| Feature                       | รายละเอียด                                              |
+| ----------------------------- | ------------------------------------------------------- |
+| ✅ **Flash Loan Protection**  | ต้องถือครอง Collateral อย่างน้อย 2 วินาทีก่อนกู้        |
+| ✅ **Rate Limiting**          | จำกัด 5 transactions ต่อ block ต่อ user                 |
+| ✅ **Emergency Pause**        | Admin สามารถหยุดระบบได้ทันที (48h timelock ก่อน resume) |
+| ✅ **Fail-Safe Distribution** | Priority: Keeper C → Principal → Protocol (ป้องกันค้าง) |
+| ✅ **Price Deviation Check**  | Oracle price ต้องไม่ผันผวนเกิน 5% จากรอบก่อน            |
+| ✅ **Reentrancy Guards**      | ป้องกันการเรียก function ซ้ำในขณะ execute               |
+
+---
+
+## 📁 โครงสร้างโปรเจค (Project Structure)
+
+```
+ginva/
+├── 📁 programs/
+│   └── ginva/                 # Smart Contract (Rust/Anchor)
+│       └── src/
+│           ├── lib.rs         # Main program logic
+│           ├── state.rs       # Account structures
+│           └── error.rs       # Custom error codes
+│
+├── 📁 tests/
+│   ├── ginva.ts              # Main integration tests
+│   ├── repay_loan_test.ts    # Repayment flow tests
+│   └── liquidation_test.ts   # Liquidation flow tests
+│
+├── 📁 app/                   # Frontend (Next.js + React)
+│   ├── components/
+│   ├── hooks/
+│   └── pages/
+│
+├── 📄 Anchor.toml            # Anchor configuration
+├── 📄 Cargo.toml             # Rust dependencies
+└── 📄 package.json           # Node.js dependencies
 ```
 
 ---
 
 ## 🚀 Quick Start
 
-### 1. Install Dependencies
+### 1. Prerequisites
 
 ```bash
 # Install Solana CLI
@@ -138,19 +219,23 @@ sh -c "$(curl -sSfL https://release.solana.com/v1.18.0/install)"
 cargo install --git https://github.com/coral-xyz/anchor avm --locked --force
 avm install latest
 avm use latest
+
+# Verify installations
+solana --version
+anchor --version
 ```
 
-### 2. Build Project
+### 2. Clone & Setup
 
 ```bash
 # Clone repository
-git clone https://github.com/DrSoloDev/ginva.git
+git clone https://github.com/Amnat3232/ginva.git
 cd ginva
 
 # Install dependencies
 yarn install
 
-# Build program
+# Generate types
 anchor build
 ```
 
@@ -160,57 +245,68 @@ anchor build
 # Run all tests
 anchor test
 
-# Run specific test (e.g. Liquidation Logic)
+# Run specific test suite
+anchor test --grep "Loan Repayment"
 anchor test --grep "Liquidation"
+
+# Run with verbose output
+anchor test --verbose
 ```
 
 ### 4. Deploy to Devnet
 
 ```bash
-# Configure to devnet
+# Configure Solana CLI
 solana config set --url devnet
+
+# Create/Load wallet
+solana-keygen new --outfile ~/.config/solana/devnet.json
+solana config set --keypair ~/.config/solana/devnet.json
 
 # Airdrop SOL for deployment
 solana airdrop 2
 
-# Deploy
+# Deploy program
 anchor deploy --provider.cluster devnet
+
+# Verify deployment
+solana program show <PROGRAM_ID>
 ```
 
 ---
 
-## 📁 โครงสร้างโปรเจค (Project Structure)
+## 🔗 Resources & Links
 
-```
-ginva/
-├── 📁 programs/
-│   └── ginva/           # Smart Contract (Rust)
-│       └── src/
-│           ├── lib.rs   # Main Program Logic
-│           ├── state.rs # Account Structs
-│           └── error.rs # Custom Errors
-├── 📁 tests/
-│   └── ginva.ts         # Integration Tests
-├── 📁 app/              # Frontend (Next.js)
-├── 📄 Anchor.toml       # Anchor Configuration
-└── 📄 Cargo.toml        # Rust Dependencies
-```
+- 📖 **Documentation**: [docs.ginva.io](https://docs.ginva.io) _(Coming Soon)_
+- 💬 **Discord Community**: [Join Discord](https://discord.gg/ginva) _(Coming Soon)_
+- 🐦 **Twitter**: [@ginva_protocol](https://twitter.com/ginva_protocol) _(Coming Soon)_
+- 📊 **Devnet Explorer**: [View on Solana Explorer](https://explorer.solana.com/?cluster=devnet)
+- 📝 **Whitepaper**: [Read Whitepaper](./WHITEPAPER.md) _(Coming Soon)_
 
 ---
 
-## 🔗 สื่อการเรียนรู้เพิ่มเติม
+## 🤝 Contributing
 
-- 📖 [Documentation](https://docs.ginva.io)
-- 💬 [Discord Community](https://discord.gg/ginva)
-- 🐦 [Twitter](https://twitter.com/ginva_protocol)
-- 📊 [Devnet Explorer](https://explorer.solana.com)
+We welcome contributions! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'feat: Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
 <div align="center">
 
-**Built with ❤️ by Dr.SoloDev on Solana**
+**Built with ❤️ on Solana**
 
-[Website](https://ginva.io) • [Docs](https://docs.ginva.io) • [GitHub](https://github.com/ginva)
+[Website](https://ginva.io) • [Docs](https://docs.ginva.io) • [GitHub](https://github.com/Amnat3232/ginva) • [Twitter](https://twitter.com/ginva_protocol)
 
 </div>
