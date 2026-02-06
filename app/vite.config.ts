@@ -15,8 +15,31 @@ export default defineConfig({
   },
   build: {
     outDir: "dist",
+    commonjsOptions: {
+      transformMixedEsModules: true,
+    },
+    rollupOptions: {
+      external: [],
+    },
   },
   define: {
     global: "globalThis",
+    "process.env": {},
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      define: {
+        global: "globalThis",
+      },
+    },
+    include: [
+      "@solana/web3.js",
+      "@solana/wallet-adapter-react",
+      "@solana/wallet-adapter-react-ui",
+      "@solana/wallet-adapter-base",
+      "@solana/wallet-adapter-phantom",
+      "@solana/wallet-adapter-solflare",
+      "buffer",
+    ],
   },
 });

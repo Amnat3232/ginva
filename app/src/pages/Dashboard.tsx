@@ -1,7 +1,9 @@
 import { Card, Container, Row, Col, Badge, Stack } from "react-bootstrap";
 import { FiDollarSign, FiTrendingUp, FiUsers, FiPercent } from "react-icons/fi";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 const Dashboard = () => {
+  const { connected, publicKey } = useWallet();
   return (
     <Container>
       <Stack direction="vertical" gap={3} className="mb-4">
@@ -55,9 +57,11 @@ const Dashboard = () => {
                 <div>
                   <h5 className="text-muted">Active Users</h5>
                   <h3 className="mb-1" style={{ color: "#6f42c1" }}>
-                    1
+                    {connected ? "1" : "0"}
                   </h3>
-                  <p className="text-muted small">You are connected</p>
+                  <p className="text-muted small">
+                    {connected ? "You are connected" : "Not connected"}
+                  </p>
                 </div>
                 <div className="text-end">
                   <FiUsers size={24} color="#6f42c1" />
@@ -97,12 +101,22 @@ const Dashboard = () => {
               <Stack gap={2}>
                 <div>
                   <strong>Address:</strong>
-                  <p className="font-monospace small">Not Connected</p>
+                  <p className="font-monospace small">
+                    {connected && publicKey
+                      ? `${publicKey.toString().slice(0, 8)}...${publicKey
+                          .toString()
+                          .slice(-8)}`
+                      : "Not Connected"}
+                  </p>
                 </div>
                 <div>
                   <strong>Status:</strong>
-                  <Badge bg="warning" text="dark" className="ms-2">
-                    Not Connected
+                  <Badge
+                    bg={connected ? "success" : "warning"}
+                    text={connected ? "light" : "dark"}
+                    className="ms-2"
+                  >
+                    {connected ? "Connected" : "Not Connected"}
                   </Badge>
                 </div>
               </Stack>
