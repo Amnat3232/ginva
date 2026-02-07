@@ -2,12 +2,11 @@ import { Routes, Route } from "react-router-dom";
 import { Container } from "react-bootstrap";
 import Navbar from "./components/Navbar";
 import Dashboard from "./pages/Dashboard";
-import Deposit from "./pages/Deposit";
+import Earn from "./pages/Earn";
 import Pawn from "./pages/Pawn";
 import Redeem from "./pages/Redeem";
 import MyTickets from "./pages/MyTickets";
 import Storefront from "./pages/Storefront";
-import Staking from "./pages/Staking";
 
 function App() {
   return (
@@ -16,12 +15,11 @@ function App() {
       <Container fluid>
         <Routes>
           <Route path="/" element={<Dashboard />} />
-          <Route path="/deposit" element={<Deposit />} />
+          <Route path="/earn" element={<Earn />} />
           <Route path="/pawn" element={<Pawn />} />
           <Route path="/redeem" element={<Redeem />} />
           <Route path="/my-tickets" element={<MyTickets />} />
           <Route path="/storefront" element={<Storefront />} />
-          <Route path="/stake" element={<Staking />} />
         </Routes>
       </Container>
     </div>

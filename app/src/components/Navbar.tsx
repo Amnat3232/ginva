@@ -24,11 +24,11 @@ const Navbar = () => {
         <BootstrapNavbar.Toggle aria-controls="basic-navbar-nav" />
         <BootstrapNavbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
-            <Nav.Link href="/dashboard" className="me-3">
+            <Nav.Link href="/" className="me-3">
               Dashboard
             </Nav.Link>
-            <Nav.Link href="/deposit" className="me-3">
-              Deposit
+            <Nav.Link href="/earn" className="me-3">
+              Earn
             </Nav.Link>
             <Nav.Link href="/pawn" className="me-3">
               Pawn
@@ -41,9 +41,6 @@ const Navbar = () => {
             </Nav.Link>
             <Nav.Link href="/storefront" className="me-3">
               Storefront
-            </Nav.Link>
-            <Nav.Link href="/stake" className="me-3">
-              Stake
             </Nav.Link>
           </Nav>
           {connected ? (
