@@ -1,77 +1,324 @@
-import { Container, Card, Button, Stack } from "react-bootstrap";
-import { FiCheckCircle } from "react-icons/fi";
+import { useState, useEffect, useMemo } from "react";
+import {
+  Container,
+  Card,
+  Button,
+  Stack,
+  Alert,
+  Badge,
+  Spinner,
+  Form,
+} from "react-bootstrap";
+import {
+  FiCheckCircle,
+  FiClock,
+  FiAlertTriangle,
+  FiRefreshCw,
+} from "react-icons/fi";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { useGinvaProgram } from "../hooks/useGinvaProgram";
+import { showSuccess, showError } from "../utils/helpers";
 
 const Redeem = () => {
+  const { publicKey } = useWallet();
+  const { program } = useGinvaProgram();
+
+  const [tickets, setTickets] = useState<any[]>([]);
+  const [selectedTicket, setSelectedTicket] = useState<any | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
+
+  // 1️⃣ ดึงข้อมูลตั๋วจำนำของ User
+  const fetchTickets = async () => {
+    if (!program || !publicKey) return;
+    setFetching(true);
+    try {
+      // ดึง LoanAccount ทั้งหมดแล้วกรองเฉพาะที่เป็นของ User
+      const allLoans = await program.account.loanAccount.all([
+        {
+          memcmp: {
+            offset: 8, // ข้าม discriminator
+            bytes: publicKey.toBase58(), // หา borrower = user
+          },
+        },
+      ]);
+
+      // แปลงข้อมูลและกรองเฉพาะสถานะ Active (1) หรือ Overdue (2)
+      const activeTickets = allLoans
+        .map((loan: { publicKey: any; account: any }) => ({
+          pubkey: loan.publicKey,
+          account: loan.account,
+        }))
+        .filter((t: any) => t.account.status === 1 || t.account.status === 2);
+
+      setTickets(activeTickets);
+
+      // ถ้ามีตั๋วใบเดียว เลือกให้อัตโนมัติ
+      if (activeTickets.length === 1 && !selectedTicket) {
+        setSelectedTicket(activeTickets[0]);
+      }
+    } catch (error) {
+      console.error("Error fetching tickets:", error);
+    } finally {
+      setFetching(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTickets();
+    // ตั้งเวลา Refresh ดอกเบี้ยทุก 60 วินาที
+    const interval = setInterval(fetchTickets, 60000);
+    return () => clearInterval(interval);
+  }, [program, publicKey]);
+
+  // 2️⃣ คำนวณดอกเบี้ยแบบ Real-time (สูตรเดียวกับ Smart Contract)
+  const calculateDebt = (ticket: any) => {
+    if (!ticket) return { principal: 0, interest: 0, total: 0 };
+
+    const principal = ticket.account.loanAmount.toNumber() / 1_000_000; // USDC decimals 6
+    const rateBps = ticket.account.interestRateBps; // e.g. 800 = 8%
+    const lastPayment = ticket.account.lastPaymentAt.toNumber();
+    const now = Math.floor(Date.now() / 1000);
+
+    // ระยะเวลา (วินาที)
+    const timeElapsed = Math.max(0, now - lastPayment);
+    const secondsPerYear = 31_536_000;
+
+    // สูตร: Interest = Principal * Rate * Time / (Year * 10000)
+    const interest =
+      (principal * rateBps * timeElapsed) / (secondsPerYear * 10000);
+
+    return {
+      principal,
+      interest,
+      total: principal + interest,
+    };
+  };
+
+  const debtInfo = useMemo(
+    () => calculateDebt(selectedTicket),
+    [selectedTicket]
+  );
+
+  // 3️⃣ ฟังก์ชันไถ่ถอน (Redeem)
+  const handleRedeem = async () => {
+    if (!program || !selectedTicket) return;
+    setLoading(true);
+    try {
+      // เรียก Smart Contract: repay_loan
+      const tx = await program.methods
+        .repayLoan()
+        .accounts({
+          loanAccount: selectedTicket.pubkey,
+        })
+        .rpc();
+
+      showSuccess("Redemption Successful!", `Tx: ${tx.substring(0, 10)}...`);
+      fetchTickets();
+      setSelectedTicket(null);
+    } catch (error: any) {
+      console.error(error);
+      showError("Redemption Failed", error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 4️⃣ ฟังก์ชันต่อดอก (Extend)
+  const handleExtend = async () => {
+    if (!program || !selectedTicket) return;
+    setLoading(true);
+    try {
+      await program.methods
+        .extendLoan()
+        .accounts({
+          loanAccount: selectedTicket.pubkey,
+        })
+        .rpc();
+
+      showSuccess("Ticket Extended!", "You have paid the interest.");
+      fetchTickets();
+    } catch (error: any) {
+      console.error(error);
+      showError("Extension Failed", error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <Container>
+    <Container className="py-5">
       <Stack direction="vertical" gap={3} className="mb-4">
-        <h1>Redeem Your Assets</h1>
+        <div className="d-flex justify-content-between align-items-center">
+          <h1>🔐 Redeem Your Assets</h1>
+          <Button variant="light" onClick={fetchTickets} disabled={fetching}>
+            <FiRefreshCw className={fetching ? "spin" : ""} />
+          </Button>
+        </div>
         <p className="text-muted">
-          Redeem your pledged assets by paying the amount due before your pawn
-          ticket expires.
+          Manage your pawn tickets. Repay the loan to get your asset back, or
+          pay interest to extend the duration.
         </p>
       </Stack>
 
-      <Card>
-        <Card.Header>
-          <h4>Your Active Pawn Tickets</h4>
-        </Card.Header>
-        <Card.Body className="text-center py-5">
-          <p className="text-muted">No active pawn tickets to redeem.</p>
-        </Card.Body>
-      </Card>
-
-      <Card className="mt-4">
-        <Card.Header>
-          <h4>Redeem Pawn Ticket</h4>
+      {/* --- ส่วนรายการตั๋ว (List of Tickets) --- */}
+      <Card className="mb-4 shadow-sm">
+        <Card.Header className="bg-white">
+          <h5 className="mb-0">🎫 Your Active Pawn Tickets</h5>
         </Card.Header>
         <Card.Body>
-          <Stack gap={3}>
-            <div>
-              <label className="form-label">Amount Due</label>
-              <div className="form-control-plaintext">0.00 USDC</div>
-              <small className="text-muted">Principal + Accrued Interest</small>
+          {fetching ? (
+            <div className="text-center py-4">
+              <Spinner animation="border" variant="primary" />
             </div>
-
-            <div>
-              <label className="form-label">Pledged Asset</label>
-              <div className="form-control-plaintext">-</div>
-            </div>
-
-            <div>
-              <label className="form-label">Redemption Amount</label>
-              <input
-                type="number"
-                className="form-control"
-                placeholder="0.00 USDC"
-                disabled
-              />
-            </div>
-
-            <div className="d-grid">
-              <Button variant="success" size="lg" disabled>
-                <FiCheckCircle className="me-2" />
-                Redeem Asset
+          ) : tickets.length === 0 ? (
+            <div className="text-center py-5 text-muted">
+              <p>No active pawn tickets found.</p>
+              <Button variant="primary" href="/pawn">
+                Create New Loan
               </Button>
             </div>
-          </Stack>
+          ) : (
+            <Stack gap={2}>
+              {tickets.map((t, idx) => (
+                <div
+                  key={idx}
+                  className={`p-3 border rounded cursor-pointer ${
+                    selectedTicket?.pubkey.equals(t.pubkey)
+                      ? "border-primary bg-light"
+                      : ""
+                  }`}
+                  style={{ cursor: "pointer" }}
+                  onClick={() => setSelectedTicket(t)}
+                >
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <Badge
+                        bg={t.account.status === 1 ? "success" : "warning"}
+                      >
+                        {t.account.status === 1 ? "Active" : "Overdue"}
+                      </Badge>
+                      <span className="ms-2 fw-bold">
+                        Loan ID: #{t.account.loanId}
+                      </span>
+                    </div>
+                    <div className="text-end">
+                      <div className="fw-bold">
+                        {(t.account.loanAmount.toNumber() / 1e6).toFixed(2)}{" "}
+                        USDC
+                      </div>
+                      <small className="text-muted">
+                        Collateral:{" "}
+                        {(t.account.collateralAmount.toNumber() / 1e9).toFixed(
+                          4
+                        )}{" "}
+                        SOL
+                      </small>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </Stack>
+          )}
         </Card.Body>
       </Card>
 
-      <Card className="mt-4">
-        <Card.Header>
-          <h5>Extend Your Ticket (Optional)</h5>
-        </Card.Header>
-        <Card.Body>
-          <p className="text-muted">
-            Can't redeem yet? Pay the interest due to extend your pawn ticket
-            for another term.
-          </p>
-          <Button variant="outline-primary" disabled>
-            Extend Ticket (Pay Interest)
-          </Button>
-        </Card.Body>
-      </Card>
+      {/* --- ส่วนไถ่ถอน (Redeem Section) - แสดงเมื่อเลือกตั๋ว --- */}
+      {selectedTicket && (
+        <Card className="shadow border-primary">
+          <Card.Header className="bg-primary text-white d-flex justify-content-between align-items-center">
+            <h4 className="mb-0">💳 Action Console</h4>
+            <Badge bg="light" text="dark">
+              ID: {selectedTicket.account.loanId}
+            </Badge>
+          </Card.Header>
+          <Card.Body>
+            <div className="row g-4">
+              {/* ฝั่งซ้าย: ข้อมูลหนี้ */}
+              <div className="col-md-6">
+                <h6 className="text-muted mb-3">Debt Summary</h6>
+                <Stack gap={3}>
+                  <div className="d-flex justify-content-between">
+                    <span>Principal:</span>
+                    <span className="fw-bold">
+                      {debtInfo.principal.toFixed(2)} USDC
+                    </span>
+                  </div>
+                  <div className="d-flex justify-content-between text-warning">
+                    <span>Accrued Interest:</span>
+                    <span>+ {debtInfo.interest.toFixed(4)} USDC</span>
+                  </div>
+                  <hr />
+                  <div className="d-flex justify-content-between fs-5">
+                    <span>Total Due:</span>
+                    <span className="fw-bold text-danger">
+                      {debtInfo.total.toFixed(4)} USDC
+                    </span>
+                  </div>
+                </Stack>
+              </div>
+
+              {/* ฝั่งขวา: ปุ่มกด */}
+              <div className="col-md-6 border-start ps-md-4">
+                <h6 className="text-muted mb-3">Choose Action</h6>
+
+                <div className="d-grid gap-3">
+                  {/* ปุ่ม Redeem */}
+                  <Button
+                    variant="success"
+                    size="lg"
+                    onClick={handleRedeem}
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <Spinner as="span" animation="border" size="sm" />
+                    ) : (
+                      <FiCheckCircle className="me-2" />
+                    )}
+                    Redeem (Pay Full)
+                  </Button>
+                  <Form.Text className="text-muted text-center">
+                    Pay full amount to retrieve your{" "}
+                    {(
+                      selectedTicket.account.collateralAmount.toNumber() / 1e9
+                    ).toFixed(2)}{" "}
+                    SOL
+                  </Form.Text>
+
+                  <hr className="my-2" />
+
+                  {/* ปุ่ม Extend */}
+                  <Button
+                    variant="outline-primary"
+                    onClick={handleExtend}
+                    disabled={loading || debtInfo.interest < 0.0001}
+                  >
+                    {loading ? (
+                      <Spinner as="span" animation="border" size="sm" />
+                    ) : (
+                      <FiClock className="me-2" />
+                    )}
+                    Extend Ticket (Pay Interest Only)
+                  </Button>
+                  <Form.Text className="text-muted text-center">
+                    Pay {debtInfo.interest.toFixed(4)} USDC interest to reset
+                    deadline.
+                  </Form.Text>
+                </div>
+              </div>
+            </div>
+          </Card.Body>
+        </Card>
+      )}
+
+      {/* --- ส่วนแจ้งเตือน (Warning) --- */}
+      {selectedTicket?.account.status === 2 && (
+        <Alert variant="danger" className="mt-4">
+          <FiAlertTriangle className="me-2" />
+          <strong>Warning:</strong> This ticket is OVERDUE! Please redeem or
+          extend immediately to avoid liquidation.
+        </Alert>
+      )}
     </Container>
   );
 };

@@ -37,3 +37,16 @@ export const shortenAddress = (address: string): string => {
 export const sleep = (ms: number): Promise<void> => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
+
+// Toast notification helpers
+export const showSuccess = (title: string, message?: string) => {
+  console.log(`[SUCCESS] ${title}: ${message}`);
+  // In production, integrate with your toast library (e.g., react-toastify, chakra-ui toast)
+  alert(`${title}${message ? `: ${message}` : ""}`);
+};
+
+export const showError = (title: string, message?: string) => {
+  console.error(`[ERROR] ${title}: ${message}`);
+  // In production, integrate with your toast library
+  alert(`Error - ${title}${message ? `: ${message}` : ""}`);
+};
