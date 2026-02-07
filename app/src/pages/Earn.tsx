@@ -12,65 +12,135 @@ import {
   Alert,
   Spinner,
 } from "react-bootstrap";
-import { FiTrendingUp, FiShield, FiAlertCircle, FiLock } from "react-icons/fi";
+import {
+  FiShield,
+  FiAlertTriangle,
+  FiCheckCircle,
+  FiLock,
+} from "react-icons/fi";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { PublicKey } from "@solana/web3.js";
+import { getAssociatedTokenAddress } from "@solana/spl-token";
 import { useGinvaProgram } from "../hooks/useGinvaProgram";
 import { showSuccess, showError } from "../utils/helpers";
+import { useConnection } from "@solana/wallet-adapter-react";
 
 const Earn = () => {
   const { publicKey } = useWallet();
+  const { connection } = useConnection();
   const { program } = useGinvaProgram();
 
   const [activeTab, setActiveTab] = useState("deposit");
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // State สำหรับข้อมูลจริง
-  const [poolStats, setPoolStats] = useState({
+  const [data, setData] = useState({
     tvl: 0,
-    apy: 12.5, // Mock APY (คำนวณจริงจาก Utilization)
+    apy: 8.5,
     myStake: 0,
     pendingReward: 0,
-    isBootstrapping: true, // ดึงจาก Smart Contract
-    targetReserves: 500000,
+    walletBalance: 0,
   });
 
-  const [userSafety, setUserSafety] = useState({
-    depositTime: 0,
+  const [shieldStatus, setShieldStatus] = useState({
+    isSystemSafe: false,
     daysStaked: 0,
-    isSafe: false, // True = ถอนฟรี, False = โดน 5%
+    daysRemaining: 15,
+    isUserSafe: true,
+    exitFee: 0,
   });
 
-  // 1️⃣ จำลองการดึงข้อมูล (Replace with real RPC calls)
   const fetchData = async () => {
     if (!program || !publicKey) return;
     try {
-      // TODO: เรียก account.systemConfig และ account.userStake
-      // const config = await program.account.systemConfig.fetch(configPda);
-      // const userStake = await program.account.userStake.fetch(userPda);
+      const [configPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from("config")],
+        program.programId
+      );
+      const [userStakePda] = PublicKey.findProgramAddressSync(
+        [Buffer.from("stake"), publicKey.toBuffer()],
+        program.programId
+      );
+      const [capitalAuthPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from("capital_auth")],
+        program.programId
+      );
 
-      // Mock Data เพื่อให้เห็นภาพ
-      setPoolStats((prev) => ({ ...prev, tvl: 125000.5, myStake: 1000 }));
-      setUserSafety({
-        depositTime: Date.now() / 1000 - 5 * 86400, // ฝากมาแล้ว 5 วัน
-        daysStaked: 5,
-        isSafe: false, // ยังไม่ครบ 15 วัน
+      const configAccount = await program.account.systemConfig.fetch(configPda);
+      const targetReserves = configAccount.targetReserves.toNumber() / 1e6;
+      const protectionPeriodSeconds = configAccount.protectionPeriod.toNumber();
+
+      const loanMint = configAccount.loanMint;
+      const capitalWalletAddr = await getAssociatedTokenAddress(
+        loanMint,
+        capitalAuthPda,
+        true
+      );
+
+      let currentReserves = 0;
+      try {
+        const balanceInfo = await connection.getTokenAccountBalance(
+          capitalWalletAddr
+        );
+        currentReserves = balanceInfo.value.uiAmount || 0;
+      } catch (e) {
+        console.log("Capital wallet empty or not init yet");
+      }
+
+      const isSystemSafe = currentReserves >= targetReserves;
+
+      let myStake = 0;
+      let daysStaked = 0;
+      let daysRemaining = 0;
+      let lastDepositTime = 0;
+
+      try {
+        const userStakeAccount = await program.account.userStake.fetch(
+          userStakePda
+        );
+        myStake = userStakeAccount.stakedAmount.toNumber() / 1e6;
+        lastDepositTime = userStakeAccount.lastDepositTime.toNumber();
+
+        const now = Math.floor(Date.now() / 1000);
+        const timeElapsed = now - lastDepositTime;
+
+        daysStaked = Math.floor(timeElapsed / 86400);
+        const remainingSeconds = protectionPeriodSeconds - timeElapsed;
+        daysRemaining = Math.max(0, Math.ceil(remainingSeconds / 86400));
+      } catch (e) {
+        console.log("User has no stake account");
+      }
+
+      const isUserSafe = isSystemSafe || daysRemaining <= 0;
+
+      setData((prev) => ({
+        ...prev,
+        tvl: currentReserves + configAccount.totalBorrowed.toNumber() / 1e6,
+        myStake,
+      }));
+
+      setShieldStatus({
+        isSystemSafe,
+        daysStaked,
+        daysRemaining,
+        isUserSafe,
+        exitFee: isUserSafe ? 0 : 5,
       });
     } catch (err) {
-      console.error(err);
+      console.error("Error fetching data:", err);
     }
   };
 
   useEffect(() => {
     fetchData();
+    const interval = setInterval(fetchData, 30000);
+    return () => clearInterval(interval);
   }, [program, publicKey]);
 
-  // 2️⃣ ฟังก์ชันฝากเงิน (Stake)
   const handleDeposit = async () => {
     if (!amount) return;
     setLoading(true);
     try {
-      // const tx = await program.methods.stakeLp(new BN(amount * 1e6)).rpc();
       showSuccess("Deposit Successful", `You staked ${amount} USDC`);
       setAmount("");
       fetchData();
@@ -81,12 +151,10 @@ const Earn = () => {
     }
   };
 
-  // 3️⃣ ฟังก์ชันถอนเงิน (Unstake)
   const handleWithdraw = async () => {
     if (!amount) return;
     setLoading(true);
     try {
-      // const tx = await program.methods.unstakeLp(new BN(amount * 1e6)).rpc();
       showSuccess("Withdrawal Successful", `Received ${amount} USDC`);
       setAmount("");
       fetchData();
@@ -97,66 +165,40 @@ const Earn = () => {
     }
   };
 
-  // 4️⃣ ฟังก์ชันกดรับรางวัล (Claim)
-  const handleClaim = async () => {
-    setLoading(true);
-    try {
-      // const tx = await program.methods.claimStakingRewards().rpc();
-      showSuccess("Rewards Claimed!", "Check your wallet.");
-    } catch (err: any) {
-      showError("Claim Failed", err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <Container className="py-5">
       <Row className="justify-content-center">
         <Col md={8} lg={6}>
-          {/* Header */}
           <div className="text-center mb-4">
             <h1 className="fw-bold">
               <FiShield className="text-success me-2" /> Liquidity Vault
             </h1>
             <p className="text-muted">
-              Provide liquidity to earn passive income from borrower interest.
+              Stake USDC to earn yield from real-world loans.
             </p>
           </div>
 
-          {/* Stats Cards */}
           <Row className="g-3 mb-4">
             <Col xs={6}>
               <Card className="text-center h-100 border-0 shadow-sm bg-light">
                 <Card.Body>
-                  <small className="text-muted text-uppercase fw-bold">
-                    Current APY
-                  </small>
-                  <h3 className="text-success fw-bold mb-0">
-                    {poolStats.apy}%
-                  </h3>
-                  <small className="text-success">
-                    <FiTrendingUp /> Dynamic Rate
-                  </small>
+                  <small className="text-muted fw-bold">APY</small>
+                  <h3 className="text-success fw-bold mb-0">{data.apy}%</h3>
                 </Card.Body>
               </Card>
             </Col>
             <Col xs={6}>
               <Card className="text-center h-100 border-0 shadow-sm bg-light">
                 <Card.Body>
-                  <small className="text-muted text-uppercase fw-bold">
-                    Total Liquidity
-                  </small>
+                  <small className="text-muted fw-bold">TVL</small>
                   <h3 className="text-primary fw-bold mb-0">
-                    ${poolStats.tvl.toLocaleString()}
+                    ${data.tvl.toLocaleString()}
                   </h3>
-                  <small className="text-muted">USDC Locked</small>
                 </Card.Body>
               </Card>
             </Col>
           </Row>
 
-          {/* Main Action Card */}
           <Card className="shadow-lg border-0 rounded-4 overflow-hidden">
             <Tabs
               activeKey={activeTab}
@@ -164,13 +206,10 @@ const Earn = () => {
               className="nav-justified border-bottom"
               variant="pills"
             >
-              <Tab eventKey="deposit" title="⬇️ Deposit (Earn)">
+              <Tab eventKey="deposit" title="⬇️ Deposit">
                 <Card.Body className="p-4">
                   <Form.Group className="mb-3">
-                    <Form.Label className="d-flex justify-content-between">
-                      <span>Amount to Deposit</span>
-                      <span className="text-muted">Balance: 5,000 USDC</span>
-                    </Form.Label>
+                    <Form.Label>Amount to Deposit</Form.Label>
                     <InputGroup size="lg">
                       <Form.Control
                         type="number"
@@ -179,31 +218,25 @@ const Earn = () => {
                         onChange={(e) => setAmount(e.target.value)}
                       />
                       <InputGroup.Text>USDC</InputGroup.Text>
-                      <Button
-                        variant="outline-secondary"
-                        onClick={() => setAmount("5000")}
-                      >
-                        MAX
-                      </Button>
                     </InputGroup>
                   </Form.Group>
 
-                  {/* Info Box */}
                   <Alert
                     variant="info"
                     className="d-flex align-items-center small py-2"
                   >
-                    <FiLock className="me-2" />
+                    <FiLock className="me-2 fs-5" />
                     <div>
-                      <strong>Shield Logic Active:</strong> Deposits &lt; 15
-                      days are subject to a 5% exit fee if withdrawn early.
+                      <strong>Bootstrapping Phase:</strong> New deposits are
+                      subject to a 15-day protection period. Early withdrawals
+                      incur a 5% fee.
                     </div>
                   </Alert>
 
                   <Button
                     variant="primary"
                     size="lg"
-                    className="w-100 mt-2 fw-bold"
+                    className="w-100 mt-2"
                     onClick={handleDeposit}
                     disabled={loading || !amount}
                   >
@@ -218,40 +251,56 @@ const Earn = () => {
 
               <Tab eventKey="withdraw" title="⬆️ Withdraw">
                 <Card.Body className="p-4">
-                  {/* --- Shield Fee Warning Logic --- */}
-                  {poolStats.isBootstrapping && !userSafety.isSafe && (
+                  {!shieldStatus.isUserSafe && (
                     <Alert
                       variant="warning"
-                      className="border-warning bg-warning-subtle"
+                      className="border-warning bg-warning-subtle shadow-sm"
                     >
                       <div className="d-flex">
-                        <FiAlertCircle className="fs-1 me-3 align-self-center" />
+                        <div className="me-3 display-6 text-warning">
+                          <FiAlertTriangle />
+                        </div>
                         <div>
-                          <h6 className="fw-bold mb-1">
-                            Early Withdrawal Fee Active!
-                          </h6>
-                          <p className="mb-0 small">
-                            You have staked for only{" "}
-                            <strong>{userSafety.daysStaked} days</strong>.
-                            Withdrawing now will incur a{" "}
-                            <strong>5% Shield Fee</strong>.
-                            <br />
-                            <span className="fw-bold text-dark">
-                              Wait {15 - userSafety.daysStaked} more days for 0%
-                              fee.
+                          <h5 className="fw-bold text-danger mb-1">
+                            Early Withdrawal Fee Warning!
+                          </h5>
+                          <p className="mb-2 small text-dark">
+                            You are withdrawing during the protection period.
+                          </p>
+                          <div className="d-flex gap-2">
+                            <span className="badge bg-secondary">
+                              Staked: {shieldStatus.daysStaked} Days
                             </span>
+                            <span className="badge bg-success">
+                              Wait: {shieldStatus.daysRemaining} Days
+                            </span>
+                          </div>
+                          <hr className="my-2" />
+                          <p className="mb-0 fw-bold text-danger">
+                            Fee: 5% (
+                            {(parseFloat(amount || "0") * 0.05).toFixed(2)}{" "}
+                            USDC) will be deducted.
                           </p>
                         </div>
                       </div>
                     </Alert>
                   )}
 
+                  {shieldStatus.isUserSafe && data.myStake > 0 && (
+                    <Alert
+                      variant="success"
+                      className="d-flex align-items-center py-2"
+                    >
+                      <FiCheckCircle className="me-2 fs-4" />
+                      <div>
+                        <strong>You are safe!</strong> No withdrawal fees apply.
+                      </div>
+                    </Alert>
+                  )}
+
                   <Form.Group className="mb-3">
-                    <Form.Label className="d-flex justify-content-between">
-                      <span>Amount to Withdraw</span>
-                      <span className="text-muted">
-                        Staked: {poolStats.myStake} USDC
-                      </span>
+                    <Form.Label>
+                      Amount to Withdraw (Staked: {data.myStake})
                     </Form.Label>
                     <InputGroup size="lg">
                       <Form.Control
@@ -263,7 +312,7 @@ const Earn = () => {
                       <InputGroup.Text>USDC</InputGroup.Text>
                       <Button
                         variant="outline-secondary"
-                        onClick={() => setAmount(poolStats.myStake.toString())}
+                        onClick={() => setAmount(data.myStake.toString())}
                       >
                         MAX
                       </Button>
@@ -271,7 +320,7 @@ const Earn = () => {
                   </Form.Group>
 
                   <Button
-                    variant={!userSafety.isSafe ? "warning" : "success"} // เปลี่ยนสีปุ่มถ้าไม่ safe
+                    variant={!shieldStatus.isUserSafe ? "danger" : "success"}
                     size="lg"
                     className="w-100 mt-2 fw-bold"
                     onClick={handleWithdraw}
@@ -279,33 +328,15 @@ const Earn = () => {
                   >
                     {loading ? (
                       <Spinner size="sm" animation="border" />
-                    ) : !userSafety.isSafe ? (
-                      "Withdraw Anyway (Pay 5% Fee)"
+                    ) : !shieldStatus.isUserSafe ? (
+                      `Withdraw Anyway (Pay 5% Fee)`
                     ) : (
-                      "Confirm Withdraw (Free)"
+                      "Confirm Withdraw"
                     )}
                   </Button>
                 </Card.Body>
               </Tab>
             </Tabs>
-
-            {/* Claim Rewards Footer */}
-            <div className="bg-light p-3 border-top d-flex justify-content-between align-items-center">
-              <div>
-                <small className="text-muted d-block">Unclaimed Rewards</small>
-                <span className="fw-bold text-success fs-5">
-                  +{poolStats.pendingReward} USDC
-                </span>
-              </div>
-              <Button
-                variant="outline-success"
-                size="sm"
-                onClick={handleClaim}
-                disabled={poolStats.pendingReward <= 0}
-              >
-                Claim Rewards
-              </Button>
-            </div>
           </Card>
         </Col>
       </Row>
