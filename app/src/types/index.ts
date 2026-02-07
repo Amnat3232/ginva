@@ -11,6 +11,18 @@ export interface PawnTicket {
     status: number;
     lastPaymentAt: number;
     totalInterestPaid: number;
+    ticketId: number; // 🎫 Multi-Ticket: Unique ticket identifier
+  };
+}
+
+export interface UserRateLimit {
+  pubkey: PublicKey;
+  account: {
+    user: PublicKey;
+    lastOperationBlock: number;
+    operationsCount: number;
+    windowStartTime: number;
+    ticketCounter: number; // 🎫 Multi-Ticket: Next available ticket ID
   };
 }
 

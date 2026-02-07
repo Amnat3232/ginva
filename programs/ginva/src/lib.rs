@@ -307,20 +307,15 @@ pub mod ginva {
         let current_slot = clock.slot;
         check_rate_limit(&mut ctx.accounts.user_rate_limit, current_slot, user)?;
 
-        if loan_account.borrower == Pubkey::default() {
-            loan_account.borrower = user;
-            loan_account.collateral_mint = asset_config.mint;
-            loan_account.created_at = clock.unix_timestamp;
-        } else {
-            require!(
-                loan_account.borrower == user,
-                GinvaError::AccountAlreadyInUse
-            );
-            require!(
-                loan_account.collateral_mint == asset_config.mint,
-                GinvaError::InvalidAssetMint
-            );
-        }
+        // 🎫 Multi-Ticket: Initialize new ticket with unique ID
+        let ticket_id = user_rate_limit.ticket_counter;
+        loan_account.borrower = user;
+        loan_account.collateral_mint = asset_config.mint;
+        loan_account.created_at = clock.unix_timestamp;
+        loan_account.ticket_id = ticket_id;
+
+        // Increment ticket counter for next ticket
+        user_rate_limit.ticket_counter = user_rate_limit.ticket_counter.saturating_add(1);
 
         // Transfer Collateral: User -> Vault
         let cpi_program = ctx.accounts.token_program.to_account_info();
@@ -377,6 +372,11 @@ pub mod ginva {
         require!(
             loan_account.collateral_mint == asset_config.mint,
             GinvaError::InvalidAssetMint
+        );
+        // 🎫 Multi-Ticket: Verify user owns this ticket
+        require!(
+            loan_account.borrower == ctx.accounts.user.key(),
+            GinvaError::Unauthorized
         );
 
         let (current_price, price_exponent) = get_pyth_price_with_exponent_and_validation(
@@ -2062,6 +2062,7 @@ pub struct UserRateLimit {
     pub last_operation_block: u64, // Last block user operated in
     pub operations_count: u64,     // Operations in current window
     pub window_start_time: i64,    // Start of current window
+    pub ticket_counter: u64,       // 🎫 Multi-Ticket: Next available ticket ID
 }
 
 #[account]
@@ -2083,6 +2084,7 @@ pub struct LoanAccount {
     pub liquidated_at: i64,
     pub repaid_at: i64,
     pub keeper_address: Pubkey,
+    pub ticket_id: u64, // 🎫 Multi-Ticket: Unique ticket identifier
 }
 
 #[account]
@@ -2252,18 +2254,16 @@ pub struct DepositCollateral<'info> {
     pub asset_config: Box<Account<'info, AssetConfig>>,
 
     #[account(
-        init_if_needed,
+        init,
         payer = user,
         space = 8 + size_of::<LoanAccount>(),
-        seeds = [b"loan", user.key().as_ref()],
+        seeds = [b"loan", user.key().as_ref(), &user_rate_limit.ticket_counter.to_le_bytes()],
         bump
     )]
     pub loan_account: Box<Account<'info, LoanAccount>>,
 
     #[account(
-        init_if_needed,
-        payer = user,
-        space = 8 + size_of::<UserRateLimit>(),
+        mut,
         seeds = [b"rate_limit", user.key().as_ref()],
         bump
     )]
@@ -2283,7 +2283,7 @@ pub struct DepositCollateral<'info> {
 pub struct BorrowUsdc<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
-    #[account(mut, seeds = [b"loan", user.key().as_ref()], bump)]
+    #[account(mut)]
     pub loan_account: Box<Account<'info, LoanAccount>>,
     #[account(mut, seeds = [b"config"], bump)]
     pub system_config: Box<Account<'info, SystemConfig>>,
