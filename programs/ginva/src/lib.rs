@@ -105,13 +105,9 @@ pub mod ginva {
         protocol_config.min_loan_size = 1_000_000; // 1 USDC (6 decimals)
         protocol_config.max_loan_size = 1_000_000_000_000; // 1M USDC (6 decimals)
 
-        // 🛡️ SAFETY CHECK: ตรวจสอบ Feature Flag ตอนรันจริง
+        // 🛡️ SAFETY NOTE: แจ้งเตือนสถานะ Test Mode เท่านั้น (ไม่สั่งตายระบบ)
         #[cfg(feature = "local-test")]
-        {
-            msg!("🚨🚨🚨 CRITICAL WARNING: THIS CONTRACT IS IN LOCAL-TEST MODE! 🚨🚨🚨");
-            msg!("🚨 ORACLE TIME CHECKS ARE DISABLED! DO NOT USE ON MAINNET! 🚨");
-            msg!("🚨 THIS IS A TEST BUILD ONLY - DEPLOYING ON MAINNET IS DANGEROUS! 🚨");
-        }
+        msg!("⚠️ Note: Contract running in Local-Test Mode (Oracle checks disabled)");
 
         msg!("✅ System initialized with Auto-Swap Liquidation v3.0");
         Ok(())
