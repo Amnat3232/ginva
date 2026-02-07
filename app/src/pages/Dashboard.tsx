@@ -1,5 +1,5 @@
 import { Card, Container, Row, Col, Badge, Stack } from "react-bootstrap";
-import { FiDollarSign, FiTrendingUp, FiUsers, FiPercent } from "react-icons/fi";
+import { FiDollarSign, FiTrendingUp, FiUsers, FiShield } from "react-icons/fi";
 import { useWallet } from "@solana/wallet-adapter-react";
 
 const Dashboard = () => {
@@ -7,8 +7,11 @@ const Dashboard = () => {
   return (
     <Container>
       <Stack direction="vertical" gap={3} className="mb-4">
-        <h1>Ginva Protocol Dashboard</h1>
-        <p className="text-muted">Overview of Ginva Protocol</p>
+        <h1>Ginva Digital Pawn Shop</h1>
+        <p className="text-muted">
+          The First Digital Pawn Shop on Solana - Turn your assets into instant
+          cash
+        </p>
       </Stack>
 
       <Row xs={1} md={2} lg={4} className="g-4">
@@ -36,11 +39,11 @@ const Dashboard = () => {
             <Card.Body>
               <Stack direction="vertical" gap={2}>
                 <div>
-                  <h5 className="text-muted">Total Borrowed</h5>
+                  <h5 className="text-muted">Total Pawned</h5>
                   <h3 className="mb-1" style={{ color: "#0d6efd" }}>
                     $0
                   </h3>
-                  <p className="text-muted small">0 Loans</p>
+                  <p className="text-muted small">0 Pawn Tickets</p>
                 </div>
                 <div className="text-end">
                   <FiTrendingUp size={24} color="#0d6efd" />
@@ -76,14 +79,14 @@ const Dashboard = () => {
             <Card.Body>
               <Stack direction="vertical" gap={2}>
                 <div>
-                  <h5 className="text-muted">Health Factor</h5>
+                  <h5 className="text-muted">Asset Coverage</h5>
                   <h3 className="mb-1" style={{ color: "#fd7e14" }}>
                     -
                   </h3>
-                  <p className="text-muted small">No Active Loans</p>
+                  <p className="text-muted small">No Active Pawn Tickets</p>
                 </div>
                 <div className="text-end">
-                  <FiPercent size={24} color="#fd7e14" />
+                  <FiShield size={24} color="#fd7e14" />
                 </div>
               </Stack>
             </Card.Body>
@@ -129,12 +132,12 @@ const Dashboard = () => {
         <Col>
           <Card>
             <Card.Header>
-              <h4>Your Loans</h4>
+              <h4>Your Pawn Tickets</h4>
             </Card.Header>
             <Card.Body className="text-center py-5">
               <p className="text-muted">
-                No active loans. Start by depositing collateral and borrowing
-                USDC.
+                No active pawn tickets. Start by pledging your assets and
+                receiving instant USDC.
               </p>
             </Card.Body>
           </Card>
@@ -145,7 +148,7 @@ const Dashboard = () => {
         <Badge bg="success" text="light" className="me-2">
           Devnet
         </Badge>
-        <span className="text-muted small">Version 2.0.0</span>
+        <span className="text-muted small">Ginva Digital Pawn Shop v2.0.0</span>
       </div>
     </Container>
   );

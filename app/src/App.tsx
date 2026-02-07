@@ -3,8 +3,8 @@ import { Container } from "react-bootstrap";
 import Navbar from "./components/Navbar";
 import Dashboard from "./pages/Dashboard";
 import Deposit from "./pages/Deposit";
-import Borrow from "./pages/Borrow";
-import Repay from "./pages/Repay";
+import Pawn from "./pages/Pawn";
+import Redeem from "./pages/Redeem";
 
 function App() {
   return (
@@ -14,8 +14,8 @@ function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/deposit" element={<Deposit />} />
-          <Route path="/borrow" element={<Borrow />} />
-          <Route path="/repay" element={<Repay />} />
+          <Route path="/pawn" element={<Pawn />} />
+          <Route path="/redeem" element={<Redeem />} />
         </Routes>
       </Container>
     </div>

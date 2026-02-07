@@ -1,9 +1,9 @@
 import { PublicKey } from "@solana/web3.js";
 
-export interface LoanAccount {
+export interface PawnTicket {
   pubkey: PublicKey;
   account: {
-    borrower: PublicKey;
+    pawner: PublicKey;
     collateralMint: PublicKey;
     collateralAmount: number;
     loanAmount: number;
@@ -13,6 +13,9 @@ export interface LoanAccount {
     totalInterestPaid: number;
   };
 }
+
+// Legacy alias for backward compatibility
+export type LoanAccount = PawnTicket;
 
 export interface AssetConfig {
   pubkey: PublicKey;
@@ -39,13 +42,19 @@ export interface SystemConfig {
   };
 }
 
-export type LoanStatus = "Active" | "Repaid" | "Liquidated";
+export type PawnTicketStatus = "Active" | "Redeemed" | "Forfeited";
 
-export const LOAN_STATUS_LABELS: Record<number, LoanStatus> = {
+// Legacy alias for backward compatibility
+export type LoanStatus = PawnTicketStatus;
+
+export const PAWN_TICKET_STATUS_LABELS: Record<number, PawnTicketStatus> = {
   0: "Active",
-  1: "Repaid",
-  2: "Liquidated",
+  1: "Redeemed",
+  2: "Forfeited",
 };
+
+// Legacy alias for backward compatibility
+export const LOAN_STATUS_LABELS = PAWN_TICKET_STATUS_LABELS;
 
 export const HEALTH_FACTOR_THRESHOLD = 100;
 export const LIQUIDATION_THRESHOLD = 85;

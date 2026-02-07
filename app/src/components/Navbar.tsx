@@ -1,10 +1,5 @@
-import { FiCreditCard, FiActivity } from "react-icons/fi";
-import {
-  Button,
-  Container,
-  Nav,
-  Navbar as BootstrapNavbar,
-} from "react-bootstrap";
+import { FiActivity } from "react-icons/fi";
+import { Container, Nav, Navbar as BootstrapNavbar } from "react-bootstrap";
 import { useWallet } from "@solana/wallet-adapter-react";
 import {
   WalletModalButton,
@@ -35,11 +30,11 @@ const Navbar = () => {
             <Nav.Link href="/deposit" className="me-3">
               Deposit
             </Nav.Link>
-            <Nav.Link href="/borrow" className="me-3">
-              Borrow
+            <Nav.Link href="/pawn" className="me-3">
+              Pawn
             </Nav.Link>
-            <Nav.Link href="/repay" className="me-3">
-              Repay
+            <Nav.Link href="/redeem" className="me-3">
+              Redeem
             </Nav.Link>
           </Nav>
           {connected ? (
