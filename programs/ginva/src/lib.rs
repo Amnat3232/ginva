@@ -96,6 +96,12 @@ pub mod ginva {
         system_config.last_oracle_price = 0;
         system_config.last_price_update = 0;
 
+        // 🛡️ SHIELD FEE: Initialize bootstrapping protection parameters
+        system_config.target_reserves = 500_000_000_000; // 500,000 USDC (6 decimals)
+        system_config.protection_period = 15 * 24 * 60 * 60; // 15 days in seconds
+        system_config.exit_fee_bps = 500; // 5% exit fee (500 basis points)
+        system_config.reserve_wallet = ctx.accounts.reserve_wallet.key();
+
         // Initialize Protocol Config
         let protocol_config = &mut ctx.accounts.protocol_config;
         protocol_config.admin = ctx.accounts.admin.key();
@@ -1488,6 +1494,9 @@ pub mod ginva {
             .checked_add(amount)
             .ok_or(GinvaError::ArithmeticOverflow)?;
 
+        // 🛡️ SHIELD FEE: Record deposit time for bootstrapping protection
+        stake.last_deposit_time = Clock::get()?.unix_timestamp;
+
         // 4. Update Reward Debt
         stake.reward_debt = (stake.staked_amount as u128)
             .checked_mul(config.acc_reward_per_share)
@@ -1554,7 +1563,7 @@ pub mod ginva {
         Ok(())
     }
 
-    // Unstake LP tokens
+    // Unstake LP tokens with Shield Fee Mechanism
     pub fn unstake_lp(ctx: Context<UnstakeLP>, amount: u64) -> Result<()> {
         let config = &mut ctx.accounts.system_config;
         let stake = &mut ctx.accounts.user_stake;
@@ -1568,7 +1577,38 @@ pub mod ginva {
             GinvaError::SystemInCooldown
         );
 
-        // 1. Transfer Principal: Capital Wallet -> User
+        // 🛡️ SHIELD FEE MECHANISM (Bootstrapping Protection)
+        let current_reserves = ctx.accounts.capital_wallet.amount;
+        let is_system_safe = current_reserves >= config.target_reserves;
+        let now = Clock::get()?.unix_timestamp;
+
+        let mut exit_fee_amount: u64 = 0;
+
+        if !is_system_safe {
+            // System is still bootstrapping - check protection period
+            let time_staked = now - stake.last_deposit_time;
+
+            if time_staked < config.protection_period {
+                // Early withdrawal! Apply Shield Fee
+                exit_fee_amount = amount
+                    .checked_mul(config.exit_fee_bps as u64)
+                    .ok_or(GinvaError::ArithmeticOverflow)?
+                    .checked_div(10000)
+                    .ok_or(GinvaError::ArithmeticUnderflow)?;
+
+                msg!(
+                    "🛡️ Shield Fee Applied: {} USDC ({} bps) - Bootstrapping Protection",
+                    exit_fee_amount,
+                    config.exit_fee_bps
+                );
+            }
+        }
+
+        let withdraw_amount = amount
+            .checked_sub(exit_fee_amount)
+            .ok_or(GinvaError::ArithmeticUnderflow)?;
+
+        // 1. Transfer Principal minus Fee: Capital Wallet -> User
         let bump = ctx.bumps.capital_wallet_authority;
         let seeds = &[b"capital_auth".as_ref(), &[bump]];
         let signer = &[&seeds[..]];
@@ -1583,9 +1623,33 @@ pub mod ginva {
             cpi_accounts,
             signer,
         );
-        token::transfer(cpi_ctx, amount)?;
+        token::transfer(cpi_ctx, withdraw_amount)?;
 
-        // 2. Update State
+        // 2. Transfer Shield Fee (if any) to Reserve Pool
+        if exit_fee_amount > 0 {
+            let reserve_bump = ctx.bumps.reserve_wallet_authority;
+            let reserve_seeds = &[b"reserve_auth".as_ref(), &[reserve_bump]];
+            let reserve_signer = &[&reserve_seeds[..]];
+
+            let fee_cpi_accounts = Transfer {
+                from: ctx.accounts.capital_wallet.to_account_info(),
+                to: ctx.accounts.reserve_wallet.to_account_info(),
+                authority: ctx.accounts.capital_wallet_authority.to_account_info(),
+            };
+            let fee_cpi_ctx = CpiContext::new_with_signer(
+                ctx.accounts.token_program.to_account_info(),
+                fee_cpi_accounts,
+                reserve_signer,
+            );
+            token::transfer(fee_cpi_ctx, exit_fee_amount)?;
+
+            msg!(
+                "🛡️ Shield Fee transferred to Reserve Pool: {} USDC",
+                exit_fee_amount
+            );
+        }
+
+        // 3. Update State
         stake.staked_amount = stake
             .staked_amount
             .checked_sub(amount)
@@ -1603,8 +1667,9 @@ pub mod ginva {
             .ok_or(GinvaError::ArithmeticUnderflow)?;
 
         msg!(
-            "Unstaked: {} USDC. Remaining: {}",
-            amount,
+            "Unstaked: {} USDC (Fee: {} USDC). Remaining: {}",
+            withdraw_amount,
+            exit_fee_amount,
             stake.staked_amount
         );
         Ok(())
@@ -2032,6 +2097,12 @@ pub struct SystemConfig {
     // 🛡️ Price tracking for deviation detection
     pub last_oracle_price: u64, // Last validated oracle price
     pub last_price_update: i64, // Timestamp of last price update
+
+    // 🛡️ SHIELD FEE MECHANISM (Bootstrapping Protection)
+    pub target_reserves: u64,   // Safety Target (e.g., 500,000 USDC)
+    pub protection_period: i64, // Protection Period in seconds (e.g., 15 days)
+    pub exit_fee_bps: u16,      // Exit fee in basis points (e.g., 500 = 5%)
+    pub reserve_wallet: Pubkey, // Reserve wallet for collected fees
 }
 
 impl SystemConfig {
@@ -2064,6 +2135,9 @@ pub struct UserStake {
     pub last_operation_time: i64, // Last operation timestamp
     pub operation_count: u64,     // Operations in current window
     pub is_rate_limited: bool,    // Rate limiting flag
+
+    // 🛡️ SHIELD FEE: Track deposit time for bootstrapping protection
+    pub last_deposit_time: i64, // Timestamp of last deposit (for Shield Fee calculation)
 }
 
 #[account]
@@ -2164,8 +2238,13 @@ pub struct InitializeSystem<'info> {
     /// CHECK: PDA derived from [b"seized_auth"]
     #[account(seeds = [b"seized_auth"], bump)]
     pub seized_assets_authority: AccountInfo<'info>,
+    /// CHECK: PDA derived from [b"reserve_auth"]
+    #[account(seeds = [b"reserve_auth"], bump)]
+    pub reserve_wallet_authority: AccountInfo<'info>,
     #[account(mut)]
     pub ops_wallet: Account<'info, TokenAccount>,
+    #[account(mut, token::authority = reserve_wallet_authority)]
+    pub reserve_wallet: Account<'info, TokenAccount>,
 
     pub collateral_mint: Account<'info, Mint>,
     pub loan_mint: Account<'info, Mint>,
@@ -2754,6 +2833,13 @@ pub struct UnstakeLP<'info> {
 
     #[account(mut, token::authority = capital_wallet_authority)]
     pub capital_wallet: Account<'info, TokenAccount>,
+
+    /// CHECK: PDA derived from [b"reserve_auth"]
+    #[account(seeds = [b"reserve_auth"], bump)]
+    pub reserve_wallet_authority: AccountInfo<'info>,
+
+    #[account(mut, token::authority = reserve_wallet_authority)]
+    pub reserve_wallet: Account<'info, TokenAccount>,
 
     #[account(mut)]
     pub user_usdc_account: Account<'info, TokenAccount>,
