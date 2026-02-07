@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, startTransition } from "react";
 import {
   Container,
   Card,
@@ -52,83 +52,96 @@ const Earn = () => {
 
   const fetchData = async () => {
     if (!program || !publicKey) return;
-    try {
-      const [configPda] = PublicKey.findProgramAddressSync(
-        [Buffer.from("config")],
-        program.programId
-      );
-      const [userStakePda] = PublicKey.findProgramAddressSync(
-        [Buffer.from("stake"), publicKey.toBuffer()],
-        program.programId
-      );
-      const [capitalAuthPda] = PublicKey.findProgramAddressSync(
-        [Buffer.from("capital_auth")],
-        program.programId
-      );
 
-      const configAccount = await program.account.systemConfig.fetch(configPda);
-      const targetReserves = configAccount.targetReserves.toNumber() / 1e6;
-      const protectionPeriodSeconds = configAccount.protectionPeriod.toNumber();
+    return new Promise<void>((resolve) => {
+      setTimeout(async () => {
+        try {
+          const [configPda] = PublicKey.findProgramAddressSync(
+            [Buffer.from("config")],
+            program.programId
+          );
+          const [userStakePda] = PublicKey.findProgramAddressSync(
+            [Buffer.from("stake"), publicKey.toBuffer()],
+            program.programId
+          );
+          const [capitalAuthPda] = PublicKey.findProgramAddressSync(
+            [Buffer.from("capital_auth")],
+            program.programId
+          );
 
-      const loanMint = configAccount.loanMint;
-      const capitalWalletAddr = await getAssociatedTokenAddress(
-        loanMint,
-        capitalAuthPda,
-        true
-      );
+          const configAccount = await program.account.systemConfig.fetch(
+            configPda
+          );
+          const targetReserves = configAccount.targetReserves.toNumber() / 1e6;
+          const protectionPeriodSeconds =
+            configAccount.protectionPeriod.toNumber();
 
-      let currentReserves = 0;
-      try {
-        const balanceInfo = await connection.getTokenAccountBalance(
-          capitalWalletAddr
-        );
-        currentReserves = balanceInfo.value.uiAmount || 0;
-      } catch (e) {
-        console.log("Capital wallet empty or not init yet");
-      }
+          const loanMint = configAccount.loanMint;
+          const capitalWalletAddr = await getAssociatedTokenAddress(
+            loanMint,
+            capitalAuthPda,
+            true
+          );
 
-      const isSystemSafe = currentReserves >= targetReserves;
+          let currentReserves = 0;
+          try {
+            const balanceInfo = await connection.getTokenAccountBalance(
+              capitalWalletAddr
+            );
+            currentReserves = balanceInfo.value.uiAmount || 0;
+          } catch (e) {
+            console.log("Capital wallet empty or not init yet");
+          }
 
-      let myStake = 0;
-      let daysStaked = 0;
-      let daysRemaining = 0;
-      let lastDepositTime = 0;
+          const isSystemSafe = currentReserves >= targetReserves;
 
-      try {
-        const userStakeAccount = await program.account.userStake.fetch(
-          userStakePda
-        );
-        myStake = userStakeAccount.stakedAmount.toNumber() / 1e6;
-        lastDepositTime = userStakeAccount.lastDepositTime.toNumber();
+          let myStake = 0;
+          let daysStaked = 0;
+          let daysRemaining = 0;
+          let lastDepositTime = 0;
 
-        const now = Math.floor(Date.now() / 1000);
-        const timeElapsed = now - lastDepositTime;
+          try {
+            const userStakeAccount = await program.account.userStake.fetch(
+              userStakePda
+            );
+            myStake = userStakeAccount.stakedAmount.toNumber() / 1e6;
+            lastDepositTime = userStakeAccount.lastDepositTime.toNumber();
 
-        daysStaked = Math.floor(timeElapsed / 86400);
-        const remainingSeconds = protectionPeriodSeconds - timeElapsed;
-        daysRemaining = Math.max(0, Math.ceil(remainingSeconds / 86400));
-      } catch (e) {
-        console.log("User has no stake account");
-      }
+            const now = Math.floor(Date.now() / 1000);
+            const timeElapsed = now - lastDepositTime;
 
-      const isUserSafe = isSystemSafe || daysRemaining <= 0;
+            daysStaked = Math.floor(timeElapsed / 86400);
+            const remainingSeconds = protectionPeriodSeconds - timeElapsed;
+            daysRemaining = Math.max(0, Math.ceil(remainingSeconds / 86400));
+          } catch (e) {
+            console.log("User has no stake account");
+          }
 
-      setData((prev) => ({
-        ...prev,
-        tvl: currentReserves + configAccount.totalBorrowed.toNumber() / 1e6,
-        myStake,
-      }));
+          const isUserSafe = isSystemSafe || daysRemaining <= 0;
 
-      setShieldStatus({
-        isSystemSafe,
-        daysStaked,
-        daysRemaining,
-        isUserSafe,
-        exitFee: isUserSafe ? 0 : 5,
-      });
-    } catch (err) {
-      console.error("Error fetching data:", err);
-    }
+          startTransition(() => {
+            setData((prev) => ({
+              ...prev,
+              tvl:
+                currentReserves + configAccount.totalBorrowed.toNumber() / 1e6,
+              myStake,
+            }));
+
+            setShieldStatus({
+              isSystemSafe,
+              daysStaked,
+              daysRemaining,
+              isUserSafe,
+              exitFee: isUserSafe ? 0 : 5,
+            });
+          });
+        } catch (err) {
+          console.error("Error fetching data:", err);
+        } finally {
+          resolve();
+        }
+      }, 0);
+    });
   };
 
   useEffect(() => {
