@@ -6,6 +6,7 @@ import Deposit from "./pages/Deposit";
 import Pawn from "./pages/Pawn";
 import Redeem from "./pages/Redeem";
 import MyTickets from "./pages/MyTickets";
+import Storefront from "./pages/Storefront";
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Route path="/pawn" element={<Pawn />} />
           <Route path="/redeem" element={<Redeem />} />
           <Route path="/my-tickets" element={<MyTickets />} />
+          <Route path="/storefront" element={<Storefront />} />
         </Routes>
       </Container>
     </div>
