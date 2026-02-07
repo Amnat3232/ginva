@@ -282,7 +282,11 @@ pub mod ginva {
     // ═════════════════════════════════════════════════════════════
     // 2️⃣ DEPOSIT COLLATERAL
     // ═════════════════════════════════════════════════════════════
-    pub fn deposit_collateral(ctx: Context<DepositCollateral>, amount: u64) -> Result<()> {
+    pub fn deposit_collateral(
+        ctx: Context<DepositCollateral>,
+        loan_id: u32,
+        amount: u64,
+    ) -> Result<()> {
         let system_config = &mut ctx.accounts.system_config;
         let loan_account = &mut ctx.accounts.loan_account;
         let asset_config = &ctx.accounts.asset_config;
@@ -303,15 +307,18 @@ pub mod ginva {
         let current_slot = clock.slot;
         check_rate_limit(&mut ctx.accounts.user_rate_limit, current_slot, user)?;
 
-        // 🎫 Multi-Ticket: Initialize new ticket with unique ID
-        let ticket_id = user_rate_limit.ticket_counter;
+        // ✅ Multi-Ticket: Initialize new loan account with loan_id
         loan_account.borrower = user;
+        loan_account.loan_id = loan_id;
         loan_account.collateral_mint = asset_config.mint;
         loan_account.created_at = clock.unix_timestamp;
-        loan_account.ticket_id = ticket_id;
 
-        // Increment ticket counter for next ticket
-        user_rate_limit.ticket_counter = user_rate_limit.ticket_counter.saturating_add(1);
+        // Increment ticket counter for next loan
+        ctx.accounts.user_rate_limit.ticket_counter = ctx
+            .accounts
+            .user_rate_limit
+            .ticket_counter
+            .saturating_add(1);
 
         // Transfer Collateral: User -> Vault
         let cpi_program = ctx.accounts.token_program.to_account_info();
@@ -340,11 +347,19 @@ pub mod ginva {
     // ═════════════════════════════════════════════════════════════
     // 3️⃣ BORROW USDC
     // ═════════════════════════════════════════════════════════════
-    pub fn borrow_usdc(ctx: Context<BorrowUsdc>, ltv_option: u8, duration_days: u16) -> Result<()> {
+    pub fn borrow_usdc(
+        ctx: Context<BorrowUsdc>,
+        loan_id: u32,
+        ltv_option: u8,
+        duration_days: u16,
+    ) -> Result<()> {
         let loan_account = &mut ctx.accounts.loan_account;
         let system_config = &mut ctx.accounts.system_config;
         let asset_config = &ctx.accounts.asset_config;
         let clock = Clock::get()?;
+
+        // ✅ Multi-Ticket: Verify loan_id matches
+        require!(loan_account.loan_id == loan_id, GinvaError::InvalidLoanId);
 
         // 🛡️ SECURITY GUARD 2.0: Check pause status + timelock
         require!(!system_config.is_paused, GinvaError::ProtocolPaused);
@@ -2065,6 +2080,7 @@ pub struct UserRateLimit {
 #[derive(Default)]
 pub struct LoanAccount {
     pub borrower: Pubkey,
+    pub loan_id: u32, // ✅ Multi-Ticket: Unique loan identifier
     pub collateral_amount: u64,
     pub collateral_mint: Pubkey,
     pub loan_amount: u64,
@@ -2080,7 +2096,6 @@ pub struct LoanAccount {
     pub liquidated_at: i64,
     pub repaid_at: i64,
     pub keeper_address: Pubkey,
-    pub ticket_id: u64, // 🎫 Multi-Ticket: Unique ticket identifier
 }
 
 #[account]
@@ -2237,6 +2252,7 @@ pub struct UpdateOpsWallet<'info> {
 }
 
 #[derive(Accounts)]
+#[instruction(loan_id: u32)] // ✅ Multi-Ticket: Receive loan_id parameter
 pub struct DepositCollateral<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
@@ -2253,7 +2269,7 @@ pub struct DepositCollateral<'info> {
         init,
         payer = user,
         space = 8 + size_of::<LoanAccount>(),
-        seeds = [b"loan", user.key().as_ref(), &user_rate_limit.ticket_counter.to_le_bytes()],
+        seeds = [b"loan", user.key().as_ref(), &loan_id.to_le_bytes()], // ✅ Multi-Ticket: Use loan_id in seeds
         bump
     )]
     pub loan_account: Box<Account<'info, LoanAccount>>,
@@ -2276,10 +2292,17 @@ pub struct DepositCollateral<'info> {
 }
 
 #[derive(Accounts)]
+#[instruction(loan_id: u32)] // ✅ Multi-Ticket: Receive loan_id parameter
 pub struct BorrowUsdc<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
-    #[account(mut)]
+    #[account(
+        mut,
+        seeds = [b"loan", user.key().as_ref(), &loan_id.to_le_bytes()], // ✅ Multi-Ticket: Use loan_id in seeds
+        bump,
+        constraint = loan_account.borrower == user.key() @ GinvaError::Unauthorized,
+        constraint = loan_account.loan_id == loan_id @ GinvaError::InvalidLoanId
+    )]
     pub loan_account: Box<Account<'info, LoanAccount>>,
     #[account(mut, seeds = [b"config"], bump)]
     pub system_config: Box<Account<'info, SystemConfig>>,
@@ -2542,10 +2565,17 @@ pub struct ClaimExpiredDistribution<'info> {
 }
 
 #[derive(Accounts)]
+#[instruction(loan_id: u32)] // ✅ Multi-Ticket: Receive loan_id parameter
 pub struct RepayLoan<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
-    #[account(mut, seeds = [b"loan", user.key().as_ref()], bump)]
+    #[account(
+        mut, 
+        seeds = [b"loan", user.key().as_ref(), &loan_id.to_le_bytes()], // ✅ Multi-Ticket: Use loan_id in seeds
+        bump,
+        constraint = loan_account.borrower == user.key() @ GinvaError::Unauthorized,
+        constraint = loan_account.loan_id == loan_id @ GinvaError::InvalidLoanId
+    )]
     pub loan_account: Account<'info, LoanAccount>,
     #[account(mut, seeds = [b"config"], bump)]
     pub system_config: Account<'info, SystemConfig>,
@@ -2570,14 +2600,17 @@ pub struct RepayLoan<'info> {
 }
 
 #[derive(Accounts)]
+#[instruction(loan_id: u32)] // ✅ Multi-Ticket: Receive loan_id parameter
 pub struct ExtendLoan<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
 
     #[account(
         mut,
-        seeds = [b"loan", user.key().as_ref()],
-        bump
+        seeds = [b"loan", user.key().as_ref(), &loan_id.to_le_bytes()], // ✅ Multi-Ticket: Use loan_id in seeds
+        bump,
+        constraint = loan_account.borrower == user.key() @ GinvaError::Unauthorized,
+        constraint = loan_account.loan_id == loan_id @ GinvaError::InvalidLoanId
     )]
     pub loan_account: Account<'info, LoanAccount>,
 
@@ -2602,15 +2635,17 @@ pub struct ExtendLoan<'info> {
 }
 
 #[derive(Accounts)]
+#[instruction(loan_id: u32)] // ✅ Multi-Ticket: Receive loan_id parameter
 pub struct PayInterest<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
 
     #[account(
         mut,
-        seeds = [b"loan", user.key().as_ref()],
+        seeds = [b"loan", user.key().as_ref(), &loan_id.to_le_bytes()], // ✅ Multi-Ticket: Use loan_id in seeds
         bump,
-        constraint = loan_account.borrower == user.key() @ GinvaError::Unauthorized
+        constraint = loan_account.borrower == user.key() @ GinvaError::Unauthorized,
+        constraint = loan_account.loan_id == loan_id @ GinvaError::InvalidLoanId
     )]
     pub loan_account: Account<'info, LoanAccount>,
 
@@ -2727,14 +2762,16 @@ pub struct UnstakeLP<'info> {
 }
 
 #[derive(Accounts)]
+#[instruction(loan_id: u32)] // ✅ Multi-Ticket: Receive loan_id parameter
 pub struct CheckHealthFactor<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
 
     #[account(
         mut,
-        seeds = [b"loan", loan_account.borrower.as_ref()],
-        bump
+        seeds = [b"loan", loan_account.borrower.as_ref(), &loan_id.to_le_bytes()], // ✅ Multi-Ticket: Use loan_id in seeds
+        bump,
+        constraint = loan_account.loan_id == loan_id @ GinvaError::InvalidLoanId
     )]
     pub loan_account: Account<'info, LoanAccount>,
 
@@ -2748,6 +2785,7 @@ pub struct CheckHealthFactor<'info> {
 }
 
 #[derive(Accounts)]
+#[instruction(loan_id: u32)] // ✅ Multi-Ticket: Receive loan_id parameter
 pub struct CheckLoanStatus<'info> {
     // ใครก็เรียกได้ (Permissionless) เพื่อช่วยอัปเดตสถานะระบบ
     #[account(mut)]
@@ -2755,8 +2793,9 @@ pub struct CheckLoanStatus<'info> {
 
     #[account(
         mut,
-        seeds = [b"loan", loan_account.borrower.as_ref()],
-        bump
+        seeds = [b"loan", loan_account.borrower.as_ref(), &loan_id.to_le_bytes()], // ✅ Multi-Ticket: Use loan_id in seeds
+        bump,
+        constraint = loan_account.loan_id == loan_id @ GinvaError::InvalidLoanId
     )]
     pub loan_account: Account<'info, LoanAccount>,
 }
@@ -2855,6 +2894,8 @@ pub enum GinvaError {
     InvalidFeedId = 1941,
     #[msg("Asset mint does not match config")]
     InvalidAssetMint = 1942,
+    #[msg("Invalid loan ID - loan does not exist or belong to user")]
+    InvalidLoanId = 1943,
 
     // 🪐 Jupiter/DEX Integration Errors (1960-1969)
     #[msg("Invalid Jupiter program ID")]
