@@ -42,6 +42,9 @@ const Navbar = () => {
             <Nav.Link href="/storefront" className="me-3">
               Storefront
             </Nav.Link>
+            <Nav.Link href="/stake" className="me-3">
+              Stake
+            </Nav.Link>
           </Nav>
           {connected ? (
             <div className="d-flex align-items-center gap-2">
