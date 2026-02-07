@@ -17,9 +17,19 @@ export default defineConfig({
     outDir: "dist",
     commonjsOptions: {
       transformMixedEsModules: true,
+      ignoreDynamicRequires: true,
     },
     rollupOptions: {
       external: [],
+      onwarn(warning, warn) {
+        if (
+          warning.code === "MODULE_NOT_FOUND" &&
+          warning.message.includes("bigint-buffer")
+        ) {
+          return;
+        }
+        warn(warning);
+      },
     },
   },
   define: {
