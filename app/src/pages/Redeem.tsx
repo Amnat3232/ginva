@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Container,
   Card,
@@ -29,7 +29,7 @@ const Redeem = () => {
   const [fetching, setFetching] = useState(true);
 
   // 1️⃣ ดึงข้อมูลตั๋วจำนำของ User
-  const fetchTickets = async () => {
+  const fetchTickets = useCallback(async () => {
     if (!program || !publicKey) return;
     setFetching(true);
     try {
@@ -62,14 +62,14 @@ const Redeem = () => {
     } finally {
       setFetching(false);
     }
-  };
+  }, [program, publicKey]); // dependency ที่ถูกต้อง
 
   useEffect(() => {
     fetchTickets();
     // ตั้งเวลา Refresh ดอกเบี้ยทุก 60 วินาที
     const interval = setInterval(fetchTickets, 60000);
     return () => clearInterval(interval);
-  }, [program, publicKey]);
+  }, [fetchTickets]); // dependency เปลี่ยนเป็น fetchTickets
 
   // 2️⃣ คำนวณดอกเบี้ยแบบ Real-time (สูตรเดียวกับ Smart Contract)
   const calculateDebt = (ticket: any) => {
