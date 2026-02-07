@@ -166,6 +166,57 @@ Allocation:
 
 ---
 
+## 🛡️ The Shield Fee Mechanism (Bootstrapping Protection)
+
+กลไกป้องกันระบบช่วง **Bootstrapping Phase** เพื่อสร้างความมั่นคงและป้องกันการถอนเงินเร่งด่วน (Bank Run)
+
+### Core Concept
+
+> **"เงินต้นของคุณถอนได้เสมอ แต่ถ้ารีบถอนในช่วงที่ระบบยังไม่อิ่มตัว คุณต้องจ่ายค่าธรรมเนียมเพื่อเข้ากองทุนสำรอง"**
+
+### กลไกการทำงาน
+
+| เงื่อนไข                                                  | ค่าธรรมเนียม            | รายละเอียด                            |
+| --------------------------------------------------------- | ----------------------- | ------------------------------------- |
+| **ระบบปลอดภัย**<br>Current Reserves ≥ 500,000 USDC        | **0%** (Freedom Mode)   | ระบบมีเงินสำรองเพียงพอ ถอนฟรีไม่จำกัด |
+| **ระบบ Bootstrapping**<br>Current Reserves < 500,000 USDC |                         |                                       |
+| └─ **อยู่ครบ 15 วัน**                                     | **0%** (Loyalty Reward) | ถือว่าเป็นผู้ภักดี ถอนฟรี             |
+| └─ **ถอนก่อน 15 วัน**                                     | **5%** (Shield Fee)     | ค่าธรรมเนียมเข้ากองทุนสำรองทันที      |
+
+### ตัวอย่างการคำนวณ
+
+```
+สมมติ: ผู้ใช้ Stake 10,000 USDC
+
+กรณีที่ 1: ระบบปลอดภัย (Reserves ≥ 500K)
+  └─ ถอน 10,000 USDC → ได้รับ 10,000 USDC (0% Fee)
+
+กรณีที่ 2: ระบบ Bootstrapping + อยู่ครบ 15 วัน
+  └─ ถอน 10,000 USDC → ได้รับ 10,000 USDC (0% Fee)
+
+กรณีที่ 3: ระบบ Bootstrapping + ถอนเร็ว (10 วัน)
+  └─ ถอน 10,000 USDC → ได้รับ 9,500 USDC
+     (เสียค่าธรรมเนียม 500 USDC เข้ากองทุนสำรอง)
+```
+
+### ประโยชน์ของ Shield Fee
+
+1. **🚫 Anti-Flash Farm** - ป้องกันผู้ที่กะมากินดอกเบี้ยสั้นๆ แล้วชิ่ง
+2. **📈 Growth Accelerator** - ยิ่งมีคนรีบถอน กองทุนยิ่งโตเร็ว
+3. **🏆 Loyalty Reward** - ให้รางวัลผู้ที่ช่วยระบบระยะยาว
+4. **🛡️ Bank Run Protection** - ลดแรงกดดันการถอนเงินพร้อมกัน
+
+### Technical Parameters
+
+```rust
+Target Reserves:    500,000 USDC    // เป้าหมายเงินสำรอง
+Protection Period:  15 วัน          // ระยะเวลาคุ้มครอง
+Exit Fee:           5% (500 bps)    // ค่าธรรมเนียมถอนก่อนกำหนด
+Reserve Wallet:     PDA แยก         // กระเป๋าเก็บค่าธรรมเนียม
+```
+
+---
+
 ## 🛡️ Security Features
 
 | Feature                       | รายละเอียด                                              |
@@ -176,6 +227,7 @@ Allocation:
 | ✅ **Fail-Safe Distribution** | Priority: Keeper C → Principal → Protocol (ป้องกันค้าง) |
 | ✅ **Price Deviation Check**  | Oracle price ต้องไม่ผันผวนเกิน 5% จากรอบก่อน            |
 | ✅ **Reentrancy Guards**      | ป้องกันการเรียก function ซ้ำในขณะ execute               |
+| ✅ **Shield Fee Mechanism**   | ค่าธรรมเนียม 5% สำหรับการถอนเร็วช่วง Bootstrapping      |
 
 ---
 
