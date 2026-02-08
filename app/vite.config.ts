@@ -7,6 +7,8 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      // Fix bigint-buffer issue by aliasing to buffer
+      "bigint-buffer": "buffer",
     },
   },
   server: {
@@ -21,15 +23,6 @@ export default defineConfig({
     },
     rollupOptions: {
       external: [],
-      onwarn(warning, warn) {
-        if (
-          warning.code === "MODULE_NOT_FOUND" &&
-          warning.message.includes("bigint-buffer")
-        ) {
-          return;
-        }
-        warn(warning);
-      },
     },
   },
   define: {

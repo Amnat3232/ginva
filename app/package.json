@@ -15,7 +15,7 @@
     "@solana/wallet-adapter-react": "^0.15.32",
     "@solana/wallet-adapter-react-ui": "^0.9.35",
     "@solana/wallet-adapter-solflare": "^0.6.28",
-    "@solana/web3.js": "^1.87.6",
+    "@solana/web3.js": "^1.95.3",
     "bootstrap": "^5.3.3",
     "buffer": "^6.0.3",
     "react": "^18.2.0",
@@ -23,6 +23,14 @@
     "react-dom": "^18.2.0",
     "react-icons": "^5.0.1",
     "react-router-dom": "^6.22.0"
+  },
+  "overrides": {
+    "bigint-buffer": {
+      "main": "./index.js",
+      "exports": {
+        ".": "./index.js"
+      }
+    }
   },
   "devDependencies": {
     "@types/react": "^18.2.55",
