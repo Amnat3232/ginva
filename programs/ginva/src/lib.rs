@@ -15,7 +15,8 @@ pub const MAX_PRICE_CHANGE_BPS: u64 = 500; // 5% max price change
 pub const MIN_TIME_BETWEEN_OPERATIONS: i64 = 1; // 1 second between user ops
 
 // Flash loan protection
-pub const MIN_HOLD_TIME: i64 = 2; // 2 seconds minimum hold
+pub const MIN_HOLD_TIME: i64 = 2; // 2 seconds minimum hold (kept for backward compatibility)
+pub const MIN_HOLD_BLOCKS: u64 = 10; // 🛡️ FIX: Block-based protection (~4 seconds on Solana)
 pub const MAX_RENT_OPS: u64 = 10; // Max rent operations per day
 
 // Reentrancy protection
@@ -318,6 +319,7 @@ pub mod ginva {
         loan_account.loan_id = loan_id;
         loan_account.collateral_mint = asset_config.mint;
         loan_account.created_at = clock.unix_timestamp;
+        loan_account.deposit_slot = clock.slot; // 🛡️ FIX: Block-based flash loan protection
 
         // Increment ticket counter for next loan
         ctx.accounts.user_rate_limit.ticket_counter = ctx
@@ -382,8 +384,8 @@ pub mod ginva {
             ctx.accounts.user.key(),
         )?;
 
-        // 🛡️ FLASH LOAN PROTECTION: Ensure collateral has been held for minimum time
-        check_flash_loan_protection(loan_account.created_at, clock.unix_timestamp)?;
+        // 🛡️ FLASH LOAN PROTECTION: Ensure collateral has been held for minimum blocks
+        check_flash_loan_protection(loan_account.deposit_slot, clock.slot)?;
 
         require!(asset_config.is_active, GinvaError::AssetNotActive);
         require!(
@@ -656,7 +658,8 @@ pub mod ginva {
         liquidation_process.keeper_reward_claimed = false;
 
         // Update Loan
-        loan_account.status = LoanStatus::Liquidated as u8;
+        // 🛡️ FIX: Use intermediate state, only mark as Liquidated after finalize succeeds
+        loan_account.status = LoanStatus::LiquidationInProgress as u8;
         loan_account.liquidated_at = current_time;
         loan_account.keeper_address = keeper_a;
         let total_collateral_to_subtract = loan_account.collateral_amount;
@@ -1182,16 +1185,35 @@ pub mod ginva {
                 token::transfer(cpi_ctx, revenue_share)?;
 
                 // Distribute rewards to staking pool (Only from revenue_share)
+                // 🛡️ FIX: Use higher precision and track dust for accuracy
+                const REWARD_PRECISION: u128 = 1_000_000_000_000_000_000u128; // 1e18 precision
                 if system_config.total_staked > 0 {
-                    let reward_per_share_increment = (revenue_share as u128)
-                        .checked_mul(1_000_000_000_000)
-                        .unwrap_or(0)
+                    let reward_with_precision = (revenue_share as u128)
+                        .checked_mul(REWARD_PRECISION)
+                        .unwrap_or(0);
+
+                    let reward_per_share_increment = reward_with_precision
                         .checked_div(system_config.total_staked as u128)
                         .unwrap_or(0);
+
+                    // Track undistributed dust for future distribution
+                    let distributed = reward_per_share_increment
+                        .checked_mul(system_config.total_staked as u128)
+                        .unwrap_or(0);
+                    let dust = reward_with_precision.saturating_sub(distributed);
+                    system_config.reward_dust = system_config.reward_dust.saturating_add(dust);
+
                     system_config.acc_reward_per_share = system_config
                         .acc_reward_per_share
                         .checked_add(reward_per_share_increment)
                         .unwrap_or(system_config.acc_reward_per_share);
+                } else {
+                    // 🛡️ FIX: If no stakers, accumulate dust for later distribution
+                    system_config.reward_dust = system_config.reward_dust.saturating_add(
+                        (revenue_share as u128)
+                            .checked_mul(REWARD_PRECISION)
+                            .unwrap_or(0),
+                    );
                 }
             }
 
@@ -1211,6 +1233,9 @@ pub mod ginva {
         liquidation_process.principal_returned = principal_return;
         liquidation_process.growth_fund = capital_share; // Record capital share
         liquidation_process.revenue_share = total_profit; // Record total profit handled
+
+        // 🛡️ FIX: Now mark loan as fully Liquidated since finalize succeeded
+        loan_account.status = LoanStatus::Liquidated as u8;
 
         system_config.total_borrowed = system_config.total_borrowed.saturating_sub(loan_principal);
 
@@ -1304,18 +1329,33 @@ pub mod ginva {
         );
 
         // 1. Calculate interest
+        // 🛡️ FIX: Use higher precision calculation to prevent rounding to 0
         let current_time = Clock::get()?.unix_timestamp;
         let time_elapsed = (current_time - loan_account.borrow_at) as u64;
         let seconds_per_year: u64 = 31_536_000;
 
-        let interest = loan_account
-            .loan_amount
-            .saturating_mul(loan_account.interest_rate_bps as u64)
-            .saturating_mul(time_elapsed)
-            .checked_div(10000)
-            .unwrap_or(0)
-            .checked_div(seconds_per_year)
-            .unwrap_or(0);
+        // Calculate with u128 for precision
+        let interest_numerator = (loan_account.loan_amount as u128)
+            .checked_mul(loan_account.interest_rate_bps as u128)
+            .ok_or(GinvaError::ArithmeticOverflow)?
+            .checked_mul(time_elapsed as u128)
+            .ok_or(GinvaError::ArithmeticOverflow)?;
+
+        let interest_denominator = (10000u128)
+            .checked_mul(seconds_per_year as u128)
+            .ok_or(GinvaError::ArithmeticOverflow)?;
+
+        let interest = interest_numerator
+            .checked_div(interest_denominator)
+            .unwrap_or(0) as u64;
+
+        // 🛡️ FIX: Enforce minimum interest for loans held > 1 hour
+        // Prevent free borrowing through short-term loans
+        const MIN_INTEREST_TIME: u64 = 3600; // 1 hour
+        const MIN_INTEREST_AMOUNT: u64 = 1000; // 0.001 USDC (6 decimals)
+        if time_elapsed > MIN_INTEREST_TIME && interest < MIN_INTEREST_AMOUNT {
+            return Err(GinvaError::MinimumInterestRequired.into());
+        }
 
         let principal = loan_account.loan_amount;
         let total_repayment = principal.saturating_add(interest);
@@ -1348,6 +1388,12 @@ pub mod ginva {
         let bump = ctx.bumps.vault_authority;
         let seeds = &[b"vault_auth".as_ref(), &[bump]];
         let signer = &[&seeds[..]];
+
+        // 🛡️ FIX: Verify vault has sufficient collateral before transfer
+        require!(
+            ctx.accounts.vault_collateral_account.amount >= loan_account.collateral_amount,
+            GinvaError::InsufficientCollateral
+        );
 
         let cpi_accounts_return = Transfer {
             from: ctx.accounts.vault_collateral_account.to_account_info(),
@@ -1502,18 +1548,47 @@ pub mod ginva {
             .saturating_add(interest_due);
 
         // 7️⃣ Distribute rewards to staking pool (from staker_share only)
+        // 🛡️ FIX: Use higher precision and track dust for accuracy
+        const REWARD_PRECISION: u128 = 1_000_000_000_000_000_000u128; // 1e18 precision
         let config = &mut ctx.accounts.system_config;
         if config.total_staked > 0 {
-            let reward_per_share_increment = (staker_share as u128)
-                .checked_mul(1_000_000_000_000)
-                .ok_or(GinvaError::ArithmeticOverflow)?
+            let reward_with_precision = (staker_share as u128)
+                .checked_mul(REWARD_PRECISION)
+                .ok_or(GinvaError::ArithmeticOverflow)?;
+
+            let reward_per_share_increment = reward_with_precision
                 .checked_div(config.total_staked as u128)
                 .ok_or(GinvaError::ArithmeticUnderflow)?;
+
+            // Track undistributed dust for future distribution
+            let distributed = reward_per_share_increment
+                .checked_mul(config.total_staked as u128)
+                .unwrap_or(0);
+            let dust = reward_with_precision.saturating_sub(distributed);
+            config.reward_dust = config
+                .reward_dust
+                .checked_add(dust)
+                .unwrap_or(config.reward_dust);
+
             config.acc_reward_per_share = config
                 .acc_reward_per_share
                 .checked_add(reward_per_share_increment)
                 .ok_or(GinvaError::ArithmeticOverflow)?;
-            msg!("💰 Reward distributed to stakers: {} USDC", staker_share);
+            msg!(
+                "💰 Reward distributed to stakers: {} USDC (dust: {})",
+                staker_share,
+                dust
+            );
+        } else {
+            // 🛡️ FIX: If no stakers, accumulate dust for later distribution
+            config.reward_dust = config
+                .reward_dust
+                .checked_add(
+                    (staker_share as u128)
+                        .checked_mul(REWARD_PRECISION)
+                        .unwrap_or(0),
+                )
+                .unwrap_or(config.reward_dust);
         }
 
         msg!(
@@ -1915,11 +1990,11 @@ fn check_rate_limit(
     Ok(())
 }
 
-/// 🛡️ FLASH LOAN PROTECTION: Check minimum hold time
-fn check_flash_loan_protection(deposit_time: i64, current_time: i64) -> Result<()> {
-    let hold_duration = current_time.saturating_sub(deposit_time);
+/// 🛡️ FLASH LOAN PROTECTION: Check minimum hold blocks (more secure than time-based)
+fn check_flash_loan_protection(deposit_slot: u64, current_slot: u64) -> Result<()> {
+    let hold_blocks = current_slot.saturating_sub(deposit_slot);
     require!(
-        hold_duration >= MIN_HOLD_TIME,
+        hold_blocks >= MIN_HOLD_BLOCKS,
         GinvaError::InsufficientHoldTime
     );
     Ok(())
@@ -1996,13 +2071,17 @@ fn get_pyth_price_with_exponent_and_validation(
     let exponent = price.exponent;
 
     // 🛡️ PRICE DEVIATION CHECK: Validate price doesn't deviate too much
-    if system_config.last_oracle_price > 0 {
-        validate_price_deviation(price_u64, system_config.last_oracle_price)?;
-    }
+    // ✅ FIX: Store previous price BEFORE updating
+    let previous_price = system_config.last_oracle_price;
 
-    // Update price tracking
+    // Update price tracking FIRST
     system_config.last_oracle_price = price_u64;
     system_config.last_price_update = clock.unix_timestamp;
+
+    // Then validate using the PREVIOUS price
+    if previous_price > 0 {
+        validate_price_deviation(price_u64, previous_price)?;
+    }
 
     Ok((price_u64, exponent))
 }
@@ -2056,21 +2135,38 @@ fn calculate_collateral_value(
     // Formula: value = amount * price / 10^(collateral_decimals + price_exponent - target_decimals)
     let total_decimals = collateral_decimals as i32 + price_exponent - target_decimals as i32;
 
+    // 🛡️ FIX: Add bounds check to prevent panic
+    require!(
+        total_decimals.abs() <= 38,
+        GinvaError::InvalidDecimalConfiguration
+    );
+
     let amount_u128 = collateral_amount as u128;
     let price_u128 = price as u128;
 
     let value = if total_decimals >= 0 {
-        let divisor = 10u128.pow(total_decimals as u32);
+        // Use checked_pow to prevent panic
+        let divisor = 10u128
+            .checked_pow(total_decimals as u32)
+            .ok_or(GinvaError::ArithmeticOverflow)?;
         amount_u128
-            .saturating_mul(price_u128)
+            .checked_mul(price_u128)
+            .ok_or(GinvaError::ArithmeticOverflow)?
             .checked_div(divisor)
             .unwrap_or(0)
     } else {
-        let multiplier = 10u128.pow((-total_decimals) as u32);
+        let multiplier = 10u128
+            .checked_pow((-total_decimals) as u32)
+            .ok_or(GinvaError::ArithmeticOverflow)?;
         amount_u128
-            .saturating_mul(price_u128)
-            .saturating_mul(multiplier)
+            .checked_mul(price_u128)
+            .ok_or(GinvaError::ArithmeticOverflow)?
+            .checked_mul(multiplier)
+            .ok_or(GinvaError::ArithmeticOverflow)?
     };
+
+    // 🛡️ FIX: Ensure value fits in u64
+    require!(value <= u64::MAX as u128, GinvaError::ArithmeticOverflow);
 
     Ok(value as u64)
 }
@@ -2128,6 +2224,7 @@ pub enum LoanStatus {
     Default = 3,
     Liquidated = 4,
     Repaid = 5,
+    LiquidationInProgress = 6, // 🛡️ FIX: Intermediate state for atomic liquidation
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, PartialEq)]
@@ -2188,6 +2285,12 @@ pub struct SystemConfig {
     pub protection_period: i64, // Protection Period in seconds (e.g., 15 days)
     pub exit_fee_bps: u16,      // Exit fee in basis points (e.g., 500 = 5%)
     pub reserve_wallet: Pubkey, // Reserve wallet for collected fees
+
+    // 🛡️ REENTRANCY GUARD
+    pub reentrancy_guard: u8, // 0 = unlocked, 1 = locked
+
+    // 🛡️ REWARD DUST TRACKING (for precision)
+    pub reward_dust: u128, // Undistributed reward dust
 }
 
 impl SystemConfig {
@@ -2255,6 +2358,7 @@ pub struct LoanAccount {
     pub liquidated_at: i64,
     pub repaid_at: i64,
     pub keeper_address: Pubkey,
+    pub deposit_slot: u64, // 🛡️ FIX: Block-based flash loan protection
 }
 
 #[account]
@@ -2646,8 +2750,12 @@ pub struct ExecuteDexFallback<'info> {
     #[account(seeds = [b"protocol_config"], bump)]
     pub protocol_config: Box<Account<'info, ProtocolConfig>>,
 
+    // 🛡️ FIX: Add loan_account to access collateral_mint for correct seed derivation
+    #[account(mut)]
+    pub loan_account: Box<Account<'info, LoanAccount>>,
+
     #[account(
-        seeds = [b"asset_config", liquidation_process.loan_account.as_ref()],
+        seeds = [b"asset_config", loan_account.collateral_mint.as_ref()],
         bump
     )]
     pub asset_config: Box<Account<'info, AssetConfig>>,
@@ -2668,8 +2776,9 @@ pub struct ExecuteDexFallback<'info> {
 
     /// CHECK: Jupiter V6 Program ID
     /// JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4
+    /// 🛡️ FIX: Validate full program ID instead of just 4 bytes
     #[account(
-        constraint = jupiter_program.key().to_bytes()[..4] == [6, 155, 197, 153] @ GinvaError::InvalidJupiterProgram
+        constraint = jupiter_program.key() == Pubkey::from_str("JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4").unwrap() @ GinvaError::InvalidJupiterProgram
     )]
     pub jupiter_program: AccountInfo<'info>,
 
@@ -2739,7 +2848,7 @@ pub struct RepayLoan<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
     #[account(
-        mut, 
+        mut,
         seeds = [b"loan", user.key().as_ref(), &loan_id.to_le_bytes()], // ✅ Multi-Ticket: Use loan_id in seeds
         bump,
         constraint = loan_account.borrower == user.key() @ GinvaError::Unauthorized,
@@ -3086,4 +3195,18 @@ pub enum GinvaError {
     ExcessiveSlippage = 1964,
     #[msg("Insufficient collateral in vault")]
     InsufficientCollateral = 1965,
+
+    // 🔒 New Security Errors (1970-1989)
+    #[msg("Invalid decimal configuration - exceeds maximum")]
+    InvalidDecimalConfiguration = 1970,
+    #[msg("Minimum interest required - free borrowing not allowed")]
+    MinimumInterestRequired = 1971,
+    #[msg("Loan is currently being liquidated")]
+    LoanBeingLiquidated = 1972,
+    #[msg("Invalid max LTV - must be <= 90%")]
+    InvalidMaxLTV = 1973,
+    #[msg("Invalid liquidation threshold - must be > max LTV")]
+    InvalidLiquidationThreshold = 1974,
+    #[msg("Invalid loan limits - min must be <= max")]
+    InvalidLoanLimits = 1975,
 }
