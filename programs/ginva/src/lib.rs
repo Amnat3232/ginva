@@ -1013,12 +1013,12 @@ pub mod ginva {
     }
 
     // ═════════════════════════════════════════════════════════════
-    // 6️⃣ STEP 3: FINALIZE LIQUIDATION (Keeper C - Fixed 1.0 USDC)
+    // 6️⃣ STEP 3: FINALIZE LIQUIDATION (Revised Allocation)
     // ═════════════════════════════════════════════════════════════
     // NEW LOGIC:
     // - Keeper C gets FIXED 1.0 USDC (or max 10% if dust amount)
     // - Priority: Keeper C gets paid FIRST, then principal return
-    // - Protocol gets remaining profit (if any)
+    // - Profit split 3-way: Capital 10% / Ops 24.75% / Revenue 65.25%
     // - Supports Bad Debt scenarios (no panic if insufficient funds)
     pub fn finalize_liquidation(ctx: Context<FinalizeLiquidation>) -> Result<()> {
         let liquidation_process = &mut ctx.accounts.liquidation_process;
@@ -1120,19 +1120,87 @@ pub mod ginva {
             remaining_funds = remaining_funds.saturating_sub(principal_return);
         }
 
-        // Step C: Protocol Revenue (PRIORITY 3 - only if there's profit)
-        // All remaining funds go to protocol revenue wallet
-        let protocol_revenue = remaining_funds;
-        let growth_fund = 0u64; // Deprecated - all profit goes to revenue
+        // Step C: Profit Distribution (PRIORITY 3 - The Surplus)
+        // ✅ NEW LOGIC: Split Surplus exactly like Interest (3-Way Split)
+        let total_profit = remaining_funds;
+        let mut capital_share: u64 = 0;
+        let mut ops_share: u64 = 0;
+        let mut revenue_share: u64 = 0;
 
-        if protocol_revenue > 0 {
-            let cpi_accounts = Transfer {
-                from: ctx.accounts.processing_vault.to_account_info(),
-                to: ctx.accounts.revenue_wallet.to_account_info(),
-                authority: ctx.accounts.processing_vault_authority.to_account_info(),
-            };
-            let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
-            token::transfer(cpi_ctx, protocol_revenue)?;
+        if total_profit > 0 {
+            // 1. Capital Share (10%)
+            capital_share = total_profit.checked_div(10).unwrap_or(0);
+
+            // 2. Remaining for Ops & Stakers (90%)
+            let distributable = total_profit.saturating_sub(capital_share);
+
+            // 3. Ops Share (27.5% of distributable = ~24.75% of total)
+            ops_share = distributable
+                .checked_mul(2750)
+                .unwrap_or(0)
+                .checked_div(10000)
+                .unwrap_or(0);
+
+            // 4. Staker/Revenue Share (Remaining ~65.25%)
+            revenue_share = distributable.saturating_sub(ops_share);
+
+            // --- Execute Transfers ---
+
+            // C.1 -> Capital Wallet (Growth)
+            if capital_share > 0 {
+                let cpi_accounts = Transfer {
+                    from: ctx.accounts.processing_vault.to_account_info(),
+                    to: ctx.accounts.capital_wallet.to_account_info(),
+                    authority: ctx.accounts.processing_vault_authority.to_account_info(),
+                };
+                let cpi_ctx =
+                    CpiContext::new_with_signer(cpi_program.clone(), cpi_accounts, signer);
+                token::transfer(cpi_ctx, capital_share)?;
+            }
+
+            // C.2 -> Ops Wallet (Team)
+            if ops_share > 0 {
+                let cpi_accounts = Transfer {
+                    from: ctx.accounts.processing_vault.to_account_info(),
+                    to: ctx.accounts.ops_wallet.to_account_info(),
+                    authority: ctx.accounts.processing_vault_authority.to_account_info(),
+                };
+                let cpi_ctx =
+                    CpiContext::new_with_signer(cpi_program.clone(), cpi_accounts, signer);
+                token::transfer(cpi_ctx, ops_share)?;
+            }
+
+            // C.3 -> Revenue Wallet (Stakers)
+            if revenue_share > 0 {
+                let cpi_accounts = Transfer {
+                    from: ctx.accounts.processing_vault.to_account_info(),
+                    to: ctx.accounts.revenue_wallet.to_account_info(),
+                    authority: ctx.accounts.processing_vault_authority.to_account_info(),
+                };
+                let cpi_ctx =
+                    CpiContext::new_with_signer(cpi_program.clone(), cpi_accounts, signer);
+                token::transfer(cpi_ctx, revenue_share)?;
+
+                // Distribute rewards to staking pool (Only from revenue_share)
+                if system_config.total_staked > 0 {
+                    let reward_per_share_increment = (revenue_share as u128)
+                        .checked_mul(1_000_000_000_000)
+                        .unwrap_or(0)
+                        .checked_div(system_config.total_staked as u128)
+                        .unwrap_or(0);
+                    system_config.acc_reward_per_share = system_config
+                        .acc_reward_per_share
+                        .checked_add(reward_per_share_increment)
+                        .unwrap_or(system_config.acc_reward_per_share);
+                }
+            }
+
+            msg!(
+                "📊 Profit Split: Capital: {}, Ops: {}, Revenue: {}",
+                capital_share,
+                ops_share,
+                revenue_share
+            );
         }
 
         // 4. Update Status
@@ -1141,13 +1209,13 @@ pub mod ginva {
         liquidation_process.finalized_at = current_time;
         liquidation_process.keeper_c_reward = actual_keeper_reward;
         liquidation_process.principal_returned = principal_return;
-        liquidation_process.growth_fund = growth_fund;
-        liquidation_process.revenue_share = protocol_revenue;
+        liquidation_process.growth_fund = capital_share; // Record capital share
+        liquidation_process.revenue_share = total_profit; // Record total profit handled
 
         system_config.total_borrowed = system_config.total_borrowed.saturating_sub(loan_principal);
 
         // 5. Logging
-        msg!("✅ Step 3 Complete! Liquidation Finalized");
+        msg!("✅ Step 3 Complete! Liquidation Finalized with 3-Way Profit Split!");
         msg!("📊 Distribution Summary:");
         msg!("   💰 Total USDC Available: {}", total_usdc);
         msg!("   🎯 Keeper C Reward: {}", actual_keeper_reward);
@@ -1156,7 +1224,10 @@ pub mod ginva {
             principal_return,
             loan_principal
         );
-        msg!("   📈 Protocol Revenue: {}", protocol_revenue);
+        msg!("   📈 Total Profit: {}", total_profit);
+        msg!("   ├─ Capital (10%): {}", capital_share);
+        msg!("   ├─ Ops (~24.75%): {}", ops_share);
+        msg!("   └─ Revenue (~65.25%): {}", revenue_share);
 
         if principal_return < loan_principal {
             let bad_debt = loan_principal.saturating_sub(principal_return);
@@ -2629,6 +2700,11 @@ pub struct FinalizeLiquidation<'info> {
 
     #[account(mut)]
     pub capital_wallet: Account<'info, TokenAccount>,
+
+    // ✅ เพิ่ม Ops Wallet เข้ามาเพื่อรับส่วนแบ่ง
+    #[account(mut, address = system_config.ops_wallet)]
+    pub ops_wallet: Account<'info, TokenAccount>,
+
     #[account(mut)]
     pub revenue_wallet: Account<'info, TokenAccount>,
     #[account(mut)]
