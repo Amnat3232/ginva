@@ -7,390 +7,371 @@ import {
   Col,
   Badge,
   Form,
+  ProgressBar,
+  Alert,
 } from "react-bootstrap";
-import { FiShoppingBag, FiTag, FiClock, FiPercent } from "react-icons/fi";
-import { useState } from "react";
+import {
+  FiShoppingBag,
+  FiTag,
+  FiClock,
+  FiActivity,
+  FiZap,
+} from "react-icons/fi";
+import { useState, useEffect } from "react";
 
-interface ForfeitedAsset {
+// Types for our Pawn Shop
+interface PawnItem {
   id: string;
   ticketId: number;
   assetType: string;
   assetName: string;
   collateralAmount: string;
-  marketValue: string;
-  discountPrice: string;
-  discountPercent: number;
-  forfeitedAt: string;
-  timeRemaining: string;
+  marketValueUSD: number;
+  forfeitedAt: Date; // Timestamp when it dropped
   image: string;
 }
 
 const Storefront = () => {
   const [filter, setFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("newest");
+  const [now, setNow] = useState<Date>(new Date());
 
-  // Mock data - ในอนาคตจะดึงจาก Smart Contract (LiquidationProcess accounts)
-  const forfeitedAssets: ForfeitedAsset[] = [
+  // Real-time ticker effect
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Mock data - จำลองว่าเพิ่ง Drop เมื่อไม่กี่นาทีที่ผ่านมา
+  const pawnItems: PawnItem[] = [
     {
-      id: "forfeit-001",
-      ticketId: 5,
+      id: "drop-001",
+      ticketId: 1042,
       assetType: "SOL",
       assetName: "Solana",
       collateralAmount: "25.5 SOL",
-      marketValue: "$5,100.00",
-      discountPrice: "$4,692.00",
-      discountPercent: 8,
-      forfeitedAt: "2025-02-05",
-      timeRemaining: "18 hours",
+      marketValueUSD: 5100.0,
+      forfeitedAt: new Date(Date.now() - 1000 * 60 * 5), // 5 mins ago (Golden Hour!)
       image: "🔷",
     },
     {
-      id: "forfeit-002",
-      ticketId: 8,
+      id: "drop-002",
+      ticketId: 1038,
       assetType: "USDC",
       assetName: "USD Coin",
       collateralAmount: "1,000 USDC",
-      marketValue: "$1,000.00",
-      discountPrice: "$920.00",
-      discountPercent: 8,
-      forfeitedAt: "2025-02-06",
-      timeRemaining: "20 hours",
+      marketValueUSD: 1000.0,
+      forfeitedAt: new Date(Date.now() - 1000 * 60 * 15), // 15 mins ago (Silver Tier)
       image: "💵",
     },
     {
-      id: "forfeit-003",
-      ticketId: 12,
+      id: "drop-003",
+      ticketId: 995,
       assetType: "BONK",
       assetName: "Bonk",
-      collateralAmount: "5,000,000 BONK",
-      marketValue: "$850.00",
-      discountPrice: "$782.00",
-      discountPercent: 8,
-      forfeitedAt: "2025-02-06",
-      timeRemaining: "22 hours",
+      collateralAmount: "5M BONK",
+      marketValueUSD: 850.0,
+      forfeitedAt: new Date(Date.now() - 1000 * 60 * 45), // 45 mins ago (Bronze Tier)
       image: "🐕",
     },
     {
-      id: "forfeit-004",
-      ticketId: 15,
+      id: "drop-004",
+      ticketId: 1102,
       assetType: "SOL",
       assetName: "Solana",
-      collateralAmount: "10 SOL",
-      marketValue: "$2,000.00",
-      discountPrice: "$1,840.00",
-      discountPercent: 8,
-      forfeitedAt: "2025-02-07",
-      timeRemaining: "23 hours",
-      image: "🔷",
+      collateralAmount: "100 SOL",
+      marketValueUSD: 20000.0,
+      forfeitedAt: new Date(Date.now() - 1000 * 60 * 2), // 2 mins ago (FRESH DROP!)
+      image: "🔥",
     },
   ];
 
-  const filteredAssets = forfeitedAssets.filter((asset) => {
+  // 📉 The Greed Engine: Calculate dynamic price based on time elapsed
+  const calculatePricing = (forfeitedAt: Date) => {
+    const elapsedSeconds = (now.getTime() - forfeitedAt.getTime()) / 1000;
+
+    let discountPercent = 0;
+    let tierName = "Market Price";
+    let tierColor = "secondary";
+    let nextTierTime = 0;
+
+    if (elapsedSeconds <= 600) {
+      // 0-10 mins
+      discountPercent = 8;
+      tierName = "Golden Hour";
+      tierColor = "warning"; // Gold/Yellow
+      nextTierTime = 600 - elapsedSeconds;
+    } else if (elapsedSeconds <= 1800) {
+      // 10-30 mins
+      discountPercent = 6;
+      tierName = "Silver Tier";
+      tierColor = "secondary"; // Silver/Grey
+      nextTierTime = 1800 - elapsedSeconds;
+    } else if (elapsedSeconds <= 3600) {
+      // 30-60 mins
+      discountPercent = 3;
+      tierName = "Bronze Tier";
+      tierColor = "danger"; // Bronze/Reddish
+      nextTierTime = 3600 - elapsedSeconds;
+    } else {
+      discountPercent = 0;
+      tierName = "Expired";
+      tierColor = "dark";
+    }
+
+    return {
+      elapsedSeconds,
+      discountPercent,
+      tierName,
+      tierColor,
+      nextTierTime,
+    };
+  };
+
+  const formatCurrency = (val: number) =>
+    new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(val);
+
+  const formatTime = (seconds: number) => {
+    if (seconds <= 0) return "00:00";
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m}:${s < 10 ? "0" : ""}${s}`;
+  };
+
+  // Filter & Sort Logic
+  const filteredItems = pawnItems.filter((item) => {
     if (filter === "all") return true;
-    return asset.assetType.toLowerCase() === filter.toLowerCase();
+    return item.assetType.toLowerCase() === filter.toLowerCase();
   });
 
-  const sortedAssets = [...filteredAssets].sort((a, b) => {
+  const sortedItems = [...filteredItems].sort((a, b) => {
+    const pricingA = calculatePricing(a.forfeitedAt);
+    const pricingB = calculatePricing(b.forfeitedAt);
+
     switch (sortBy) {
       case "discount":
-        return b.discountPercent - a.discountPercent;
-      case "price-low":
-        return (
-          parseFloat(a.discountPrice.replace(/[$,]/g, "")) -
-          parseFloat(b.discountPrice.replace(/[$,]/g, ""))
-        );
+        return pricingB.discountPercent - pricingA.discountPercent;
       case "price-high":
-        return (
-          parseFloat(b.discountPrice.replace(/[$,]/g, "")) -
-          parseFloat(a.discountPrice.replace(/[$,]/g, ""))
-        );
+        return b.marketValueUSD - a.marketValueUSD;
       case "newest":
       default:
-        return (
-          new Date(b.forfeitedAt).getTime() - new Date(a.forfeitedAt).getTime()
-        );
+        return b.forfeitedAt.getTime() - a.forfeitedAt.getTime();
     }
   });
 
   return (
-    <Container>
-      <Stack direction="vertical" gap={3} className="mb-4">
-        <div className="d-flex justify-content-between align-items-start">
-          <div>
-            <h1>Storefront</h1>
-            <p className="text-muted">
-              Browse forfeited assets available at a discount. Like a real pawn
-              shop bargain bin!
-            </p>
-          </div>
-          <Badge bg="success" className="fs-6 px-3 py-2">
-            <FiPercent className="me-2" />
-            8% Discount on All Items
+    <Container className="py-4">
+      {/* Hero Section */}
+      <div className="mb-5 text-center">
+        <h1 className="display-4 fw-bold">GINVA Pawn Shop</h1>
+        <p className="lead text-muted">
+          The On-Chain Distressed Asset Exchange.{" "}
+          <span className="text-danger fw-bold">Seize the Edge.</span>
+        </p>
+        <div className="d-flex justify-content-center gap-3 mt-3">
+          <Badge bg="warning" text="dark" className="px-3 py-2 fs-6">
+            ⚡ 0-10m: 8% Edge
+          </Badge>
+          <Badge bg="secondary" className="px-3 py-2 fs-6">
+            🥈 10-30m: 6% Edge
+          </Badge>
+          <Badge bg="danger" className="px-3 py-2 fs-6">
+            🥉 30-60m: 3% Edge
           </Badge>
         </div>
-      </Stack>
+      </div>
 
-      {/* Stats */}
-      <Row className="mb-4">
-        <Col md={3}>
-          <Card className="h-100">
-            <Card.Body>
-              <Stack direction="vertical" gap={2}>
-                <div>
-                  <h5 className="text-muted">Available Items</h5>
-                  <h3 className="mb-1" style={{ color: "#16a34a" }}>
-                    {forfeitedAssets.length}
-                  </h3>
-                </div>
-                <div className="text-end">
-                  <FiShoppingBag size={24} color="#16a34a" />
-                </div>
-              </Stack>
+      {/* Stats Bar */}
+      <Row className="mb-4 g-3">
+        <Col md={4}>
+          <Card className="border-0 shadow-sm bg-primary text-white h-100">
+            <Card.Body className="d-flex align-items-center justify-content-between">
+              <div>
+                <h6 className="mb-1 opacity-75">Active Drops</h6>
+                <h2 className="mb-0 fw-bold">{pawnItems.length} Lots</h2>
+              </div>
+              <FiActivity size={32} className="opacity-50" />
             </Card.Body>
           </Card>
         </Col>
-        <Col md={3}>
-          <Card className="h-100">
-            <Card.Body>
-              <Stack direction="vertical" gap={2}>
-                <div>
-                  <h5 className="text-muted">Total Value</h5>
-                  <h3 className="mb-1" style={{ color: "#0d6efd" }}>
-                    $8,950
-                  </h3>
-                </div>
-                <div className="text-end">
-                  <FiTag size={24} color="#0d6efd" />
-                </div>
-              </Stack>
+        <Col md={4}>
+          <Card className="border-0 shadow-sm h-100">
+            <Card.Body className="d-flex align-items-center justify-content-between">
+              <div>
+                <h6 className="mb-1 text-muted">Total Value Locked</h6>
+                <h2 className="mb-0 text-primary">$28,950</h2>
+              </div>
+              <FiTag size={32} className="text-primary opacity-50" />
             </Card.Body>
           </Card>
         </Col>
-        <Col md={3}>
-          <Card className="h-100">
-            <Card.Body>
-              <Stack direction="vertical" gap={2}>
-                <div>
-                  <h5 className="text-muted">Avg. Discount</h5>
-                  <h3 className="mb-1" style={{ color: "#dc3545" }}>
-                    8%
-                  </h3>
-                </div>
-                <div className="text-end">
-                  <FiPercent size={24} color="#dc3545" />
-                </div>
-              </Stack>
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col md={3}>
-          <Card className="h-100">
-            <Card.Body>
-              <Stack direction="vertical" gap={2}>
-                <div>
-                  <h5 className="text-muted">Time Left</h5>
-                  <h3 className="mb-1" style={{ color: "#fd7e14" }}>
-                    24h
-                  </h3>
-                  <small className="text-muted">Before DEX listing</small>
-                </div>
-                <div className="text-end">
-                  <FiClock size={24} color="#fd7e14" />
-                </div>
-              </Stack>
+        <Col md={4}>
+          <Card className="border-0 shadow-sm h-100">
+            <Card.Body className="d-flex align-items-center justify-content-between">
+              <div>
+                <h6 className="mb-1 text-muted">Next Drop In</h6>
+                <h2 className="mb-0 text-danger">~12m 30s</h2>
+              </div>
+              <FiClock size={32} className="text-danger opacity-50" />
             </Card.Body>
           </Card>
         </Col>
       </Row>
 
-      {/* Filters */}
-      <Card className="mb-4">
-        <Card.Body>
-          <Row className="align-items-center">
-            <Col md={6}>
-              <Form.Group>
-                <Form.Label>Filter by Asset Type</Form.Label>
-                <Form.Select
-                  value={filter}
-                  onChange={(e) => setFilter(e.target.value)}
-                >
-                  <option value="all">All Assets</option>
-                  <option value="SOL">Solana (SOL)</option>
-                  <option value="USDC">USD Coin (USDC)</option>
-                  <option value="BONK">Bonk (BONK)</option>
-                </Form.Select>
-              </Form.Group>
-            </Col>
-            <Col md={6}>
-              <Form.Group>
-                <Form.Label>Sort By</Form.Label>
-                <Form.Select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                >
-                  <option value="newest">Newest First</option>
-                  <option value="discount">Highest Discount</option>
-                  <option value="price-low">Price: Low to High</option>
-                  <option value="price-high">Price: High to Low</option>
-                </Form.Select>
-              </Form.Group>
-            </Col>
-          </Row>
-        </Card.Body>
-      </Card>
+      {/* Controls */}
+      <Row className="mb-4 align-items-center">
+        <Col md={6}>
+          <h4 className="mb-0 fw-bold">🔥 Live Pawn Drops</h4>
+        </Col>
+        <Col md={6}>
+          <div className="d-flex gap-2 justify-content-end">
+            <Form.Select
+              style={{ width: "auto" }}
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+            >
+              <option value="all">All Assets</option>
+              <option value="SOL">SOL Only</option>
+              <option value="USDC">USDC Only</option>
+            </Form.Select>
+            <Form.Select
+              style={{ width: "auto" }}
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+            >
+              <option value="newest">Newest Drops</option>
+              <option value="discount">Highest Edge</option>
+              <option value="price-high">Highest Value</option>
+            </Form.Select>
+          </div>
+        </Col>
+      </Row>
 
-      {/* Assets Grid */}
-      {sortedAssets.length === 0 ? (
-        <Card>
-          <Card.Body className="text-center py-5">
-            <h4 className="text-muted mb-3">No forfeited assets available</h4>
-            <p className="text-muted">Check back later for new bargains!</p>
-          </Card.Body>
-        </Card>
-      ) : (
-        <Row xs={1} md={2} lg={3} className="g-4">
-          {sortedAssets.map((asset) => (
-            <Col key={asset.id}>
-              <Card className="h-100 shadow-sm">
-                <Card.Header className="bg-light">
-                  <div className="d-flex justify-content-between align-items-center">
-                    <Badge bg="primary">{asset.assetType}</Badge>
-                    <Badge bg="danger">-{asset.discountPercent}% OFF</Badge>
+      {/* Grid */}
+      <Row xs={1} md={2} lg={3} className="g-4">
+        {sortedItems.map((item) => {
+          const {
+            discountPercent,
+            tierName,
+            tierColor,
+            nextTierTime,
+            elapsedSeconds,
+          } = calculatePricing(item.forfeitedAt);
+          const discountPrice =
+            item.marketValueUSD * (1 - discountPercent / 100);
+          const profit = item.marketValueUSD - discountPrice;
+
+          // Calculate progress for the current tier (visual flair)
+          let progressValue = 100;
+          let maxTime = 600;
+          if (discountPercent === 8) {
+            maxTime = 600;
+            progressValue = (nextTierTime / maxTime) * 100;
+          } else if (discountPercent === 6) {
+            maxTime = 1200;
+            progressValue = (nextTierTime / maxTime) * 100;
+          } else if (discountPercent === 3) {
+            maxTime = 1800;
+            progressValue = (nextTierTime / maxTime) * 100;
+          } else {
+            progressValue = 0;
+          }
+
+          return (
+            <Col key={item.id}>
+              <Card className="h-100 shadow-sm border-0 position-relative overflow-hidden hover-card">
+                {/* Status Badge */}
+                <div className="position-absolute top-0 end-0 m-3">
+                  <Badge bg={tierColor} className="fs-6 shadow-sm">
+                    {tierName} (-{discountPercent}%)
+                  </Badge>
+                </div>
+
+                <Card.Body className="pt-4">
+                  <div className="text-center mb-3">
+                    <div style={{ fontSize: "3.5rem" }} className="mb-2">
+                      {item.image}
+                    </div>
+                    <h5 className="fw-bold mb-0">{item.assetName}</h5>
+                    <small className="text-muted">
+                      Ticket #{item.ticketId}
+                    </small>
                   </div>
-                </Card.Header>
-                <Card.Body>
-                  <Stack gap={3}>
-                    <div className="text-center py-3">
-                      <span style={{ fontSize: "4rem" }}>{asset.image}</span>
-                    </div>
 
-                    <div>
-                      <h5>{asset.assetName}</h5>
-                      <p className="text-muted mb-1">
-                        Ticket #{asset.ticketId}
-                      </p>
-                      <p className="text-muted small">
-                        Forfeited: {asset.forfeitedAt}
-                      </p>
+                  <div className="bg-light p-3 rounded mb-3">
+                    <div className="d-flex justify-content-between mb-2">
+                      <span className="text-muted small">Collateral</span>
+                      <span className="fw-bold">{item.collateralAmount}</span>
                     </div>
-
-                    <div className="border-top pt-3">
-                      <Row>
-                        <Col xs={6}>
-                          <small className="text-muted">Collateral</small>
-                          <p className="mb-0 fw-bold">
-                            {asset.collateralAmount}
-                          </p>
-                        </Col>
-                        <Col xs={6}>
-                          <small className="text-muted">Market Value</small>
-                          <p className="mb-0 text-decoration-line-through text-muted">
-                            {asset.marketValue}
-                          </p>
-                        </Col>
-                      </Row>
-                    </div>
-
-                    <div className="bg-success bg-opacity-10 p-3 rounded">
-                      <div className="d-flex justify-content-between align-items-center">
-                        <div>
-                          <small className="text-success">Your Price</small>
-                          <h4 className="mb-0 text-success">
-                            {asset.discountPrice}
-                          </h4>
-                        </div>
-                        <div className="text-end">
-                          <small className="text-muted">Save</small>
-                          <p className="mb-0 text-danger fw-bold">
-                            $
-                            {(
-                              parseFloat(
-                                asset.marketValue.replace(/[$,]/g, "")
-                              ) -
-                              parseFloat(
-                                asset.discountPrice.replace(/[$,]/g, "")
-                              )
-                            ).toFixed(2)}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="d-flex justify-content-between align-items-center text-muted small">
-                      <span>
-                        <FiClock className="me-1" />
-                        {asset.timeRemaining} left
+                    <div className="d-flex justify-content-between align-items-center">
+                      <span className="text-muted small">Market Value</span>
+                      <span className="text-decoration-line-through">
+                        {formatCurrency(item.marketValueUSD)}
                       </span>
-                      <span>24h storefront window</span>
                     </div>
+                  </div>
 
-                    <Button variant="success" size="lg" className="w-100">
-                      <FiShoppingBag className="me-2" />
-                      Buy Now
-                    </Button>
-                  </Stack>
+                  <div className="text-center mb-3">
+                    <div className="text-success small fw-bold text-uppercase mb-1">
+                      Your Price
+                    </div>
+                    <h2 className="fw-bold text-success mb-0">
+                      {formatCurrency(discountPrice)}
+                    </h2>
+                    {profit > 0 && (
+                      <Badge
+                        bg="success"
+                        className="bg-opacity-10 text-success border border-success mt-2"
+                      >
+                        Potential Profit: +{formatCurrency(profit)}
+                      </Badge>
+                    )}
+                  </div>
+
+                  {/* Time Decay Visual */}
+                  {discountPercent > 0 ? (
+                    <div className="mb-3">
+                      <div className="d-flex justify-content-between small mb-1">
+                        <span className="text-danger fw-bold">
+                          <FiZap /> Price Increasing in:
+                        </span>
+                        <span className="text-danger fw-bold font-monospace">
+                          {formatTime(nextTierTime)}
+                        </span>
+                      </div>
+                      <ProgressBar
+                        variant={tierColor}
+                        now={progressValue}
+                        style={{ height: "6px" }}
+                        animated={discountPercent === 8}
+                      />
+                    </div>
+                  ) : (
+                    <Alert
+                      variant="secondary"
+                      className="py-2 small text-center mb-3"
+                    >
+                      Listing expired. Moving to DEX...
+                    </Alert>
+                  )}
+
+                  <Button
+                    variant={discountPercent > 0 ? "primary" : "secondary"}
+                    size="lg"
+                    className="w-100 fw-bold"
+                    disabled={discountPercent === 0}
+                  >
+                    {discountPercent > 0 ? "⚡ SEIZE ASSET" : "View on DEX"}
+                  </Button>
                 </Card.Body>
               </Card>
             </Col>
-          ))}
-        </Row>
-      )}
-
-      {/* How It Works */}
-      <Card className="mt-5">
-        <Card.Header>
-          <h5>How the Storefront Works</h5>
-        </Card.Header>
-        <Card.Body>
-          <Row>
-            <Col md={4} className="mb-3">
-              <Stack gap={2}>
-                <div
-                  className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center"
-                  style={{ width: "40px", height: "40px" }}
-                >
-                  1
-                </div>
-                <h6>Assets Are Forfeited</h6>
-                <p className="text-muted small">
-                  When a pawn ticket expires without redemption, the pledged
-                  asset becomes forfeited.
-                </p>
-              </Stack>
-            </Col>
-            <Col md={4} className="mb-3">
-              <Stack gap={2}>
-                <div
-                  className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center"
-                  style={{ width: "40px", height: "40px" }}
-                >
-                  2
-                </div>
-                <h6>24-Hour Storefront Window</h6>
-                <p className="text-muted small">
-                  Forfeited assets are available here at 8% discount for 24
-                  hours before moving to DEX.
-                </p>
-              </Stack>
-            </Col>
-            <Col md={4} className="mb-3">
-              <Stack gap={2}>
-                <div
-                  className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center"
-                  style={{ width: "40px", height: "40px" }}
-                >
-                  3
-                </div>
-                <h6>Buy at a Discount</h6>
-                <p className="text-muted small">
-                  Purchase assets below market price. No bidding, no waiting -
-                  instant ownership!
-                </p>
-              </Stack>
-            </Col>
-          </Row>
-        </Card.Body>
-      </Card>
+          );
+        })}
+      </Row>
     </Container>
   );
 };

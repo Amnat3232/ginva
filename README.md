@@ -1,6 +1,6 @@
-# 🏛️ Ginva DeFi Protocol
+# 🏛️ GINVA: The On-Chain Distressed Asset Exchange
 
-> **The First "Task-Based" Lending Protocol on Solana** > _Unlocking Liquidity with Fairness, Efficiency, and Bank-Run Protection._
+> **"Where Liquidation becomes Opportunity."** > _The first lawful, transparent, and gamified Pawn Shop on Solana._
 
 [![License](https://img.shields.io/badge/license-BUSL--1.1-red)](LICENSE)
 [![Network](https://img.shields.io/badge/network-Solana%20Devnet-blueviolet)](https://explorer.solana.com)
@@ -8,81 +8,75 @@
 
 ---
 
-## 🌟 Why Ginva? (ทำไมต้อง Ginva?)
+## 💀 The Problem: DeFi is Broken
 
-ในโลก DeFi ปัจจุบัน ระบบ Lending มักประสบปัญหา **"Liquidation Wars"** ที่บอทแย่งกันยึดทรัพย์จนค่า Gas พุ่ง หรือเกิด **"Bad Debt"** เมื่อราคาร่วงหนักจนไม่มีใครกล้ายึดทรัพย์
+For years, liquidations have been a war zone.
 
-**Ginva Protocol ถูกสร้างมาเพื่อแก้ปัญหานี้** ด้วยนวัตกรรม:
+- **Keepers** exploit users via gas wars.
+- **Bad debt** destroys protocols.
+- **Borrowers** lose everything in an instant fire sale.
 
-1.  **🚫 Stop PvP, Start Cooperation:** เปลี่ยนสนามรบ Liquidation ให้เป็นระบบงาน (Task-Based) แบ่งหน้าที่กันทำเพื่อประสิทธิภาพสูงสุด
-2.  **🛡️ Bank-Run Proof:** ปกป้องเงินฝากของนักลงทุนด้วยระบบ **"Shield Fee"** ที่ชะลอการถอนเงินแบบตื่นตระหนก
-3.  **⚖️ Fair Price:** ผู้กู้ไม่ถูกยึดทรัพย์ในราคาต่ำติดดิน แต่มีโอกาสขายผ่าน Storefront ในราคาที่ยุติธรรมกว่า
-
----
-
-## 💎 Value Propositions (สิ่งที่คุณจะได้รับ)
-
-### 🏦 For Lenders (นักลงทุน)
-
-- **Sustainable Yield:** รับดอกเบี้ยที่แท้จริง (Real Yield) จากผู้กู้ ไม่ใช่จากการเสกเหรียญแจก
-- **Capital Protection:** มั่นใจด้วยกลไก **Shield Fee** ป้องกันการเก็งกำไรระยะสั้น
-- **Priority Repayment:** ได้รับเงินต้นคืนเป็นลำดับแรกเสมอเมื่อมีการ Liquidation
-
-### 👤 For Borrowers (ผู้กู้)
-
-- **Fair Liquidation:** สินทรัพย์ถูกขายในราคาตลาด (ลดเพียง 6-8%) ไม่ใช่ถูกยึดฟรีๆ
-- **Transparent Rates:** ดอกเบี้ยคำนวณตาม Demand/Supply จริง โปร่งใส
-
-### 🤖 For Keepers (นักล่ารางวัล)
-
-- **Predictable Income:** ไม่ต้องแข่ง Gas War แค่ทำ Task ก็ได้รางวัลแน่นอน
-- **Instant Arb:** ระบบ Storefront เปิดโอกาสทำกำไรส่วนต่างได้ทันที
+We built **GINVA** to change that. Not because we're nice, but because that's how **real finance** should work.
 
 ---
 
-## ⚙️ The Solution: How It Works
+## 💎 The Solution: GINVA Pawn Shop
 
-เราใช้กลไกอัจฉริยะ 2 ส่วนในการขับเคลื่อนระบบ:
+We are **NOT** just another lending protocol. We are an **On-Chain Distressed Asset Exchange**.
 
-### 1️⃣ 3-Step Task-Based Liquidation 🌊
+### 1. 🏛️ For Hunters: The "Pawn Drop" (Time-Decay Pricing)
 
-> _ระบบงานที่ชัดเจน เปลี่ยนการแย่งชิง เป็นความร่วมมือ_
+We turned liquidations into a **Treasure Hunt**. When a borrower defaults, their asset isn't dumped—it's **DROPPED** in our Pawn Shop with a "Time-Decay" price mechanism designed to fuel FOMO and fairness.
 
-1.  **Trigger (Keeper A):** จับหนี้เสีย -> ล็อกระบบ -> รับรางวัล 0.6%
-2.  **Storefront Sale (Buyer):** ขายของหลุดจำนำทันที -> ผู้ซื้อได้ส่วนลด 6%
-3.  **Finalize (Keeper C):** ปิดงาน -> แจกจ่ายเงิน -> รับค่าแรง 1.0 USDC
+| Time Window      | Tier Name          | The "Edge" (Discount) | Status                                        |
+| :--------------- | :----------------- | :-------------------- | :-------------------------------------------- |
+| **0 - 10 Mins**  | ⚡ **Golden Hour** | **-8%**               | _Instant Profit. First come, first served._   |
+| **10 - 30 Mins** | 🥈 **Silver Tier** | **-6%**               | _Still profitable, but the clock is ticking._ |
+| **30 - 60 Mins** | 🥉 **Bronze Tier** | **-3%**               | _Last chance before market price._            |
+| **> 60 Mins**    | 💀 **Expired**     | **0%**                | _Moved to DEX fallback._                      |
 
-### 2️⃣ The Shield Fee Mechanism 🛡️
+**The Result:** You don't need to be a bot to win. You just need to be **ready**.
 
-> _เกราะป้องกันเงินไหลออก (Anti-Bank Run)_
+### 2. 🛡️ For Borrowers: Dignity & Fairness
 
-- **กฎ:** ถอนเงินภายใน 15 วันแรก -> จ่ายค่าปรับ 5% เข้ากองกลาง
-- **ผลลัพธ์:** ลดความผันผวน สร้างเสถียรภาพให้กองทุนในระยะยาว
+If you default, your asset is sold with dignity via our **Staged Sale** system, maximizing its value recovery. No instant Rekt.
+
+### 3. 🏦 For Lenders: Anti-Bank Run
+
+Our **Shield Fee Mechanism** protects your capital. Early withdrawals (within 15 days) incur a 5% fee that goes back to the community pool, discouraging mercenary capital.
+
+---
+
+## ⚙️ The Mechanic (How it Works)
+
+1.  **Trigger:** Keeper A identifies a bad debt and locks it. (Reward: 0.6%)
+2.  **Pawn Drop:** The asset hits the **Storefront**. The countdown begins.
+3.  **Seize:** A user (Hunter) spots the deal and calls `seize_asset`.
+    - They pay the discounted price in USDC.
+    - They receive the collateral instantly.
+4.  **Finalize:** Keeper C closes the loop, distributing funds to lenders.
 
 ---
 
 ## 📚 Documentation & Resources
 
-หากคุณต้องการเจาะลึกรายละเอียดทางเทคนิค เราเตรียมเอกสารไว้ให้แล้ว:
+Want to hunt or build? Check the docs:
 
-| Resource                                           | Description                                             |
-| :------------------------------------------------- | :------------------------------------------------------ |
-| 🛠️ **[Developer Guide](DEVELOPMENT.md)**           | คู่มือติดตั้ง, รัน Node, และทดสอบระบบ (Setup & Testing) |
-| 🏗️ **[System Architecture](docs/ARCHITECTURE.md)** | โครงสร้างภายใน Smart Contract และการออกแบบระบบ          |
-| 🚀 **[Deployment Guide](docs/DEPLOYMENT.md)**      | วิธีการ Deploy ขึ้น Devnet/Mainnet                      |
-| 🔐 **[Security Policy](docs/SECURITY.md)**         | มาตรการความปลอดภัยและ Audit                             |
-| 🐳 **[Docker Setup](docs/DOCKER.md)**              | การรันระบบด้วย Docker Container                         |
+| Resource                                           | Description                              |
+| :------------------------------------------------- | :--------------------------------------- |
+| 🛠️ **[Developer Guide](DEVELOPMENT.md)**           | Setup, Run Node, and Test the System     |
+| 🏗️ **[System Architecture](docs/ARCHITECTURE.md)** | Inside the Smart Contract & Greed Engine |
+| 🚀 **[Deployment Guide](docs/DEPLOYMENT.md)**      | Deploy to Devnet/Mainnet                 |
+| 🔐 **[Security Policy](docs/SECURITY.md)**         | Audits & Safety Measures                 |
 
 ---
 
 ## 🗺️ Roadmap
 
-เรากำลังมุ่งหน้าสู่การเป็นโปรโตคอลหลักบน Solana:
-
 - [x] **Core Protocol Logic** (Lending, Borrowing, Interest)
-- [x] **Liquidation Engine** (3-Step Task System)
+- [x] **The Greed Engine** (Time-Decay Pricing v1)
 - [x] **Shield Fee Mechanism** (Bank-Run Protection)
-- [x] **Frontend Beta** (User Interface)
+- [x] **Pawn Shop UI** (Beta)
 - [ ] **Keeper Bots Open Source** ⏳ _Coming Next_
 - [ ] **Mainnet Launch** 🔒 _Target: Q3 2026_
 
@@ -90,7 +84,7 @@
 
 <div align="center">
 
-**Join the Future of DeFi**
+**Join the Hunt.**
 
 [Website](https://ginva.io) • [Discord](https://discord.gg/ginva) • [Twitter](https://twitter.com/ginva_protocol)
 
