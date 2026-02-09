@@ -650,7 +650,7 @@ pub mod ginva {
         liquidation_process.seized_collateral_amount = remaining_for_swap;
         liquidation_process.triggered_at = current_time;
         liquidation_process.deadline_for_swap = current_time; // Storefront opens immediately
-        liquidation_process.dex_activation_time = current_time + 86400; // DEX fallback after 24h
+        liquidation_process.dex_activation_time = current_time + 21600; // DEX fallback after 6h
         liquidation_process.swapped = false;
         liquidation_process.keeper_reward_amount = trigger_reward;
         liquidation_process.keeper_reward_claimed = false;
@@ -676,7 +676,7 @@ pub mod ginva {
             remaining_for_swap
         );
         msg!(
-            "🦄 DEX fallback available in 24 hours (at timestamp: {})",
+            "🦄 DEX fallback available in 6 hours (at timestamp: {})",
             liquidation_process.dex_activation_time
         );
         Ok(())
@@ -734,9 +734,15 @@ pub mod ginva {
     }
 
     // ═════════════════════════════════════════════════════════════
-    // 🏪 STOREFRONT SALE (ซื้อได้ทันที ไม่ต้องรอ!)
+    // 🏪 GINVA PAWN SHOP (Time-Decay Pricing / Dutch Auction)
     // ═════════════════════════════════════════════════════════════
-    // Atomic swap: Caller pays USDC -> receives collateral (6% discount)
+    // Atomic swap: Caller pays USDC -> receives collateral
+    // Pricing Rule:
+    // 0-10  mins: 8% Discount (Golden Hour)
+    // 10-30 mins: 6% Discount (Silver Tier)
+    // 30-60 mins: 3% Discount (Bronze Tier)
+    // > 60  mins: 0% Discount (Market Price)
+
     pub fn buy_from_storefront(ctx: Context<ExecuteAutoSwap>) -> Result<()> {
         let liquidation_process = &mut ctx.accounts.liquidation_process;
         let system_config = &mut ctx.accounts.system_config;
@@ -750,7 +756,7 @@ pub mod ginva {
             GinvaError::SystemInCooldown
         );
 
-        // 1. Validation Checks (No timeout required for storefront!)
+        // 1. Validation Checks
         require!(!liquidation_process.swapped, GinvaError::AlreadySwapped);
         require!(
             liquidation_process.status == LiquidationStatus::Triggered as u8,
@@ -760,7 +766,7 @@ pub mod ginva {
         let seized_amount = liquidation_process.seized_collateral_amount;
         require!(seized_amount > 0, GinvaError::InvalidAmount);
 
-        // 2. Calculate Fair Value via Pyth using dynamic asset config
+        // 2. Calculate Fair Value via Pyth
         let asset_config = &ctx.accounts.asset_config;
         require!(asset_config.is_active, GinvaError::AssetNotActive);
 
@@ -778,24 +784,41 @@ pub mod ginva {
             6, // USDC decimals
         )?;
 
-        // 3. Calculate Discounted Price for Caller
-        // Reward based on config -> Caller pays (100% - reward%) of the value
+        // ═════════════════════════════════════════════════════════════
+        // 📉 TIME-DECAY PRICING ENGINE (THE GREED ENGINE)
+        // ═════════════════════════════════════════════════════════════
+
+        // คำนวณเวลาที่ผ่านไปตั้งแต่ Trigger (หน่วย: วินาที)
+        let elapsed_time = current_time.saturating_sub(liquidation_process.triggered_at);
+
+        // กำหนดส่วนลดตามช่วงเวลา (Hardcoded as Law)
+        let current_discount_bps = if elapsed_time <= 600 {
+            800 // 0-10 นาที: ลด 8% (Golden Hour - รีบกด!)
+        } else if elapsed_time <= 1800 {
+            600 // 10-30 นาที: ลด 6%
+        } else if elapsed_time <= 3600 {
+            300 // 30-60 นาที: ลด 3%
+        } else {
+            0 // เกิน 1 ชม.: ราคาตลาด (No Discount)
+        };
+
+        // 3. Calculate Final Price
         let caller_discount = gross_usdc_value
-            .saturating_mul(ctx.accounts.protocol_config.auto_swap_reward_bps)
+            .saturating_mul(current_discount_bps)
             .checked_div(10000)
             .unwrap_or(0);
 
         let usdc_required_from_caller = gross_usdc_value.saturating_sub(caller_discount);
-
         require!(usdc_required_from_caller > 0, GinvaError::InvalidAmount);
 
         // 4. ACTION A: Pull USDC from Caller -> Processing Vault
         msg!(
-            "🔄 Caller paying {} USDC for {} of {:?}...",
+            "🔄 Pawn Shop Deal: {} USDC (Discount: {} bps | Time: {}s)",
             usdc_required_from_caller,
-            seized_amount,
-            asset_config.mint
+            current_discount_bps,
+            elapsed_time
         );
+
         let cpi_program = ctx.accounts.token_program.to_account_info();
         let cpi_accounts_pay = Transfer {
             from: ctx.accounts.caller_usdc_account.to_account_info(),
@@ -806,12 +829,6 @@ pub mod ginva {
         token::transfer(cpi_ctx_pay, usdc_required_from_caller)?;
 
         // 5. ACTION B: Push Seized Collateral -> Caller
-        msg!(
-            "📦 System sending {} of {:?} to caller...",
-            seized_amount,
-            asset_config.mint
-        );
-
         let bump = ctx.bumps.seized_assets_authority;
         let seeds = &[b"seized_auth".as_ref(), &[bump]];
         let signer = &[&seeds[..]];
@@ -834,11 +851,8 @@ pub mod ginva {
             current_time + ctx.accounts.protocol_config.liquidation_timeout;
 
         msg!(
-            "✅ Storefront Sale Complete! Sold {} of {:?} for {} USDC (8% Discount: {})",
-            seized_amount,
-            asset_config.mint,
-            usdc_required_from_caller,
-            caller_discount
+            "✅ Pawn Shop Sale Complete! Sold {} units via Time-Decay Pricing",
+            seized_amount
         );
 
         Ok(())
@@ -2186,7 +2200,7 @@ pub struct LiquidationProcess {
     pub triggered_at: i64,
     pub deadline_for_swap: i64,
     pub deadline_for_distribution: i64,
-    pub dex_activation_time: i64, // 🕒 เวลาที่จะอนุญาตให้ขายเข้า DEX (Trigger + 24h)
+    pub dex_activation_time: i64, // 🕒 เวลาที่จะอนุญาตให้ขายเข้า DEX (Trigger + 6h)
     pub swapped: bool,            // NEW: Track if swap completed
     pub finalized_at: i64,
     // Distribution tracking
