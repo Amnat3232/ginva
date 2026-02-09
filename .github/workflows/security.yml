@@ -1,0 +1,162 @@
+name: 🔒 Code Quality & Security
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Run security audit every Monday at 00:00 UTC
+    - cron: "0 0 * * 1"
+
+jobs:
+  code-quality:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.77.0
+          components: rustfmt, clippy
+
+      - name: Run Rustfmt
+        run: cargo fmt --manifest-path programs/ginva/Cargo.toml -- --check
+
+      - name: Run Clippy
+        run: cargo clippy --manifest-path programs/ginva/Cargo.toml -- -D warnings
+        continue-on-error: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Prettier
+        run: npm install -g prettier
+
+      - name: Check formatting
+        run: prettier --check "**/*.{js,ts,tsx,json,md}"
+        continue-on-error: true
+
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.77.0
+
+      - name: Run cargo-audit
+        run: |
+          cargo install cargo-audit
+          cd programs/ginva
+          cargo audit 2>&1 || true
+
+      - name: Check for secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+          extra_args: --debug --only-verified
+
+      - name: Run cargo-deny
+        run: |
+          cargo install cargo-deny
+          cd programs/ginva
+          cargo deny check 2>&1 || true
+
+      - name: Check dependencies for vulnerabilities
+        run: |
+          npm audit --audit-level=high
+        continue-on-error: true
+
+  static-analysis:
+    name: Static Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.77.0
+
+      - name: Install cargo-geiger
+        run: cargo install cargo-geiger
+
+      - name: Check for unsafe code
+        run: |
+          cd programs/ginva
+          cargo geiger --output-format Json 2>&1 | jq -r '.packages[] | select(.unsafety.count.unsafe > 0) | "WARNING: Unsafe code found in \(.package.name): \(.unsafety.count.unsafe) blocks"' || true
+        continue-on-error: true
+
+      - name: Run cargo-udeps (unused dependencies)
+        run: |
+          cargo install cargo-udeps
+          cd programs/ginva
+          cargo udeps 2>&1 || true
+        continue-on-error: true
+
+  size-check:
+    name: Binary Size Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.77.0
+
+      - name: Install Solana CLI
+        run: |
+          sh -c "$(curl -sSfL https://release.solana.com/v1.18.26/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+
+      - name: Install Anchor
+        run: npm install -g @coral-xyz/anchor-cli@0.29.0
+
+      - name: Build program
+        run: anchor build
+
+      - name: Check binary size
+        run: |
+          SIZE=$(ls -lh target/deploy/ginva.so | awk '{print $5}')
+          echo "Binary size: $SIZE"
+          # Warning if over 1MB
+          BYTES=$(stat -c%s target/deploy/ginva.so)
+          if [ $BYTES -gt 1048576 ]; then
+            echo "⚠️ WARNING: Binary size exceeds 1MB"
+          fi
+
+      - name: Comment size on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const stats = fs.statSync('target/deploy/ginva.so');
+            const sizeMB = (stats.size / 1024 / 1024).toFixed(2);
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `📦 **Build Size Report**\n\nProgram binary size: **${sizeMB} MB**\n\n${stats.size > 1048576 ? '⚠️ Warning: Exceeds 1MB limit' : '✅ Size is acceptable'}`
+            });
+        continue-on-error: true

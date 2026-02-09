@@ -1,0 +1,85 @@
+name: 🐳 Docker Build & Test
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "programs/**"
+      - "docker-compose.yml"
+      - "Dockerfile"
+      - ".dockerignore"
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - "programs/**"
+      - "docker-compose.yml"
+      - "Dockerfile"
+
+jobs:
+  docker-build:
+    name: Build with Docker
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Build Docker image
+        run: |
+          docker build -t ginva-build:latest -f Dockerfile .
+
+      - name: Run tests in Docker
+        run: |
+          docker run --rm -v $(pwd):/workspace ginva-build:latest \
+            sh -c "cd /workspace && anchor test --skip-build"
+        continue-on-error: true
+
+      - name: Build program in Docker
+        run: |
+          docker run --rm -v $(pwd):/workspace ginva-build:latest \
+            sh -c "cd /workspace && anchor build"
+
+      - name: Upload IDL
+        uses: actions/upload-artifact@v4
+        with:
+          name: idl-files
+          path: target/idl/*.json
+
+      - name: Upload Types
+        uses: actions/upload-artifact@v4
+        with:
+          name: type-files
+          path: target/types/*.ts
+
+  docker-compose-test:
+    name: Test with Docker Compose
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Copy environment file
+        run: |
+          cp .env.example .env || echo "No .env.example found"
+
+      - name: Run tests with docker-compose
+        run: |
+          docker-compose -f docker-compose.yml up --build --abort-on-container-exit test
+        continue-on-error: true
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker-compose -f docker-compose.yml down -v

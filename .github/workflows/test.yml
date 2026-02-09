@@ -1,0 +1,198 @@
+name: 🧪 Run Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  SOLANA_VERSION: 1.18.26
+  ANCHOR_VERSION: 0.29.0
+  RUST_VERSION: 1.77.0
+
+jobs:
+  test:
+    name: Run Anchor Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          components: rustfmt, clippy
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: programs/ginva
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install Solana CLI
+        run: |
+          sh -c "$(curl -sSfL https://release.solana.com/v${SOLANA_VERSION}/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+          export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
+          solana --version
+
+      - name: Setup Solana Keypair
+        run: |
+          mkdir -p ~/.config/solana
+          solana-keygen new --no-bip39-passphrase --silent --outfile ~/.config/solana/id.json
+
+      - name: Install Anchor CLI
+        run: |
+          npm install -g @coral-xyz/anchor-cli@${ANCHOR_VERSION}
+          anchor --version
+
+      - name: Check Rust formatting
+        run: cargo fmt --manifest-path programs/ginva/Cargo.toml -- --check
+
+      - name: Run Clippy
+        run: cargo clippy --manifest-path programs/ginva/Cargo.toml -- -D warnings
+
+      - name: Build Program
+        run: anchor build
+
+      - name: Run Tests
+        run: anchor test --skip-build
+        env:
+          RUST_LOG: debug
+
+      - name: Upload build artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            target/
+            .anchor/
+
+  lint-and-format:
+    name: Lint & Format Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check JavaScript/TypeScript formatting
+        run: npm run lint
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          components: rustfmt
+
+      - name: Check Rust formatting
+        run: cargo fmt --manifest-path programs/ginva/Cargo.toml -- --check
+
+  test-bots:
+    name: Test Keeper Bots
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install bot dependencies
+        working-directory: bots
+        run: npm ci
+
+      - name: TypeScript check
+        working-directory: bots
+        run: npx tsc --noEmit
+
+      - name: Lint bot code
+        working-directory: bots
+        run: npx eslint . --ext .ts || true
+
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+
+      - name: Run cargo-audit
+        run: |
+          cargo install cargo-audit
+          cd programs/ginva
+          cargo audit || true
+
+      - name: Run cargo-deny (if configured)
+        run: |
+          if [ -f deny.toml ]; then
+            cargo install cargo-deny
+            cargo deny check || true
+          fi
+        working-directory: programs/ginva
+
+  frontend-build:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: app
+        run: |
+          npm ci
+          npm run build
+        continue-on-error: true
+
+      - name: Upload frontend build
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: app/dist/
+        if: success()
