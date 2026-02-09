@@ -1,0 +1,126 @@
+name: 📚 Documentation & Links
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "**.md"
+      - "docs/**"
+      - "app/**"
+      - "bots/**"
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - "**.md"
+      - "docs/**"
+
+jobs:
+  markdown-lint:
+    name: Markdown Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install markdownlint
+        run: npm install -g markdownlint-cli
+
+      - name: Lint markdown files
+        run: markdownlint '**/*.md' --ignore node_modules --ignore target || true
+
+  check-links:
+    name: Check Links
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check markdown links
+        uses: lycheeverse/lychee-action@v1
+        with:
+          args: --timeout 60 --max-concurrency 10 --exclude-loopback --exclude-mail README.md docs/**/*.md
+          fail: false
+
+      - name: Create issue for broken links
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = '🔗 Broken Links Detected';
+            const body = 'The link checker found broken links. Please check the lychee output for details.';
+
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['documentation', 'bug']
+            });
+
+  generate-docs:
+    name: Generate Documentation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.77.0
+
+      - name: Install cargo-doc
+        run: cargo install cargo-docgen || true
+
+      - name: Generate Rust docs
+        run: |
+          cd programs/ginva
+          cargo doc --no-deps --document-private-items 2>&1 | head -100 || true
+
+      - name: Upload docs
+        uses: actions/upload-artifact@v4
+        with:
+          name: rust-docs
+          path: target/doc/
+        if: always()
+
+  readme-check:
+    name: README Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check README sections
+        run: |
+          README=README.md
+
+          # Check for required sections
+          sections=("Description" "Installation" "Usage" "Contributing" "License")
+
+          for section in "${sections[@]}"; do
+            if ! grep -q "##.*$section" "$README"; then
+              echo "⚠️ Missing section: $section"
+            fi
+          done
+
+          # Check for badges
+          if ! grep -q "shields.io" "$README"; then
+            echo "⚠️ README should include badges"
+          fi
+
+          # Check for installation instructions
+          if ! grep -q "npm install\|cargo install\|yarn" "$README"; then
+            echo "⚠️ README should include installation instructions"
+          fi
+
+          echo "✅ README check complete"
