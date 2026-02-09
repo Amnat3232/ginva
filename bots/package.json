@@ -1,0 +1,25 @@
+{
+  "name": "ginva-keeper-bots",
+  "version": "2.0.0",
+  "description": "Automated keeper bots for GINVA Protocol",
+  "main": "keeper-suite.ts",
+  "scripts": {
+    "start": "ts-node keeper-suite.ts",
+    "start:trigger": "ts-node keeper-suite.ts trigger",
+    "start:hunter": "ts-node keeper-suite.ts hunter",
+    "start:finalize": "ts-node keeper-suite.ts finalize",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.29.0",
+    "@solana/web3.js": "^1.98.4",
+    "@solana/spl-token": "^0.4.0",
+    "chalk": "^4.1.2",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}
