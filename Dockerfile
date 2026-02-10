@@ -54,11 +54,10 @@ RUN npm install
 # Copy source code
 COPY . .
 
-# Regenerate Cargo.lock with the correct Rust version
-# Note: Cargo.lock v4 requires -Znext-lockfile-bump flag or Rust 1.87+
+# Regenerate Cargo.lock with stable cargo to avoid v4 format
+# Using stable cargo generates version 3 lockfile which is compatible with Solana toolchain
 RUN rm -f Cargo.lock && \
-    RUSTFLAGS="-Znext-lockfile-bump" cargo +nightly-2025-02-01 generate-lockfile || \
-    cargo +nightly-2025-02-01 generate-lockfile
+    cargo generate-lockfile
 
 # Default command
 CMD ["anchor", "build"]
