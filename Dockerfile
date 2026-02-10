@@ -1,7 +1,7 @@
 # Dockerfile for building Ginva Protocol
 # This solves the toolchain compatibility issue by using controlled environment
 
-FROM rust:1.85-slim-bookworm as builder
+FROM rust:1.87-slim-bookworm as builder
 
 # Install required dependencies
 RUN apt-get update && apt-get install -y \
@@ -33,10 +33,10 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
 
 # Setup Rust toolchain - use nightly for edition2024 support
 # Note: bpfel-unknown-unknown target comes with Solana platform tools
-RUN rustup install nightly-2024-11-01 && \
-    rustup default nightly-2024-11-01 && \
+RUN rustup install nightly-2025-02-01 && \
+    rustup default nightly-2025-02-01 && \
     rustup component add rustfmt && \
-    cargo +nightly-2024-11-01 --version && \
+    cargo +nightly-2025-02-01 --version && \
     rustc --print target-list | grep -E "(bpf|sbf)" || echo "Solana target will be provided by platform tools"
 
 # Set working directory
@@ -54,11 +54,9 @@ RUN npm install
 # Copy source code
 COPY . .
 
-# Fix Cargo.lock version issue (version 4 requires -Z flag)
-# We'll regenerate it with the correct version
+# Regenerate Cargo.lock with the correct Rust version
 RUN rm -f Cargo.lock && \
-    cargo +nightly-2024-11-01 generate-lockfile && \
-    sed -i 's/version = 4/version = 3/' Cargo.lock
+    cargo +nightly-2025-02-01 generate-lockfile
 
 # Default command
 CMD ["anchor", "build"]
