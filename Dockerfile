@@ -55,7 +55,9 @@ RUN npm install
 COPY . .
 
 # Regenerate Cargo.lock with the correct Rust version
+# Note: Cargo.lock v4 requires -Znext-lockfile-bump flag or Rust 1.87+
 RUN rm -f Cargo.lock && \
+    RUSTFLAGS="-Znext-lockfile-bump" cargo +nightly-2025-02-01 generate-lockfile || \
     cargo +nightly-2025-02-01 generate-lockfile
 
 # Default command
