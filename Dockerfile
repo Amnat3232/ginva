@@ -1,7 +1,7 @@
 # Dockerfile for building Ginva Protocol
 # This solves the toolchain compatibility issue by using controlled environment
 
-FROM rust:1.82-slim-bookworm as builder
+FROM rust:1.85-slim-bookworm as builder
 
 # Install required dependencies
 RUN apt-get update && apt-get install -y \

@@ -50,11 +50,15 @@ const LIQUIDATION_TIMEOUT: i64 = 86400; // 24 hours for production safety
 // Jupiter Program ID (for CPI calls)
 // Use feature flag for devnet vs mainnet
 #[cfg(feature = "devnet")]
-const JUPITER_PROGRAM_ID: &str = "JUP4Fb2cqiRUcaTHdrCEQSpBxWZ4fc4QLvtY41vPU5zY"; // Devnet Jupiter
+const JUPITER_PROGRAM_ID: Pubkey = pubkey!("JUP4Fb2cqiRUcaTHdrCEQSpBxWZ4fc4QLvtY41vPU5zY"); // Devnet Jupiter
 
 #[cfg(not(feature = "devnet"))]
 #[allow(dead_code)]
-const JUPITER_PROGRAM_ID: &str = "JUP4Fb2cqiRUcaTHdrPC8h2gNsA2ETXiPDD33WcGuJB"; // Mainnet Jupiter
+const JUPITER_PROGRAM_ID: Pubkey = pubkey!("JUP4Fb2cqiRUcaTHdrPC8h2gNsA2ETXiPDD33WcGuJB"); // Mainnet Jupiter
+
+// 🛡️ SECURITY: Compile-time check to prevent local-test on mainnet
+#[cfg(all(feature = "local-test", not(feature = "devnet")))]
+compile_error!("local-test feature must be used with devnet feature");
 
 #[program]
 pub mod ginva {
@@ -134,6 +138,12 @@ pub mod ginva {
         msg!("🛑 PROTOCOL EMERGENCY PAUSE ACTIVATED");
         msg!("All transactions blocked until admin resumes");
 
+        // Emit event for monitoring
+        emit!(EmergencyPause {
+            admin: ctx.accounts.admin.key(),
+            timestamp: system_config.paused_at,
+        });
+
         Ok(())
     }
 
@@ -157,6 +167,12 @@ pub mod ginva {
             system_config.ops_resume_at
         );
         msg!("Timelock: 48 hours");
+
+        // Emit event for monitoring
+        emit!(EmergencyResume {
+            admin: ctx.accounts.admin.key(),
+            resume_at: system_config.ops_resume_at,
+        });
 
         Ok(())
     }
@@ -488,6 +504,16 @@ pub mod ginva {
             dynamic_rate as f64 / 100.0,
             utilization_bps as f64 / 100.0
         );
+
+        // Emit event for indexing
+        emit!(LoanCreated {
+            borrower: ctx.accounts.user.key(),
+            loan_id,
+            collateral_amount: loan_account.collateral_amount,
+            loan_amount,
+            interest_rate_bps: dynamic_rate,
+        });
+
         Ok(())
     }
 
@@ -682,6 +708,14 @@ pub mod ginva {
             "🦄 DEX fallback available in 6 hours (at timestamp: {})",
             liquidation_process.dex_activation_time
         );
+
+        // Emit event for indexing
+        emit!(LiquidationTriggered {
+            loan_account: loan_account.key(),
+            keeper: keeper_a,
+            collateral_amount: remaining_for_swap,
+        });
+
         Ok(())
     }
 
@@ -1259,6 +1293,14 @@ pub mod ginva {
             msg!("   ⚠️  BAD DEBT DETECTED: {} USDC", bad_debt);
         }
 
+        // Emit event for indexing
+        emit!(LiquidationFinalized {
+            loan_account: loan_account.key(),
+            keeper_c,
+            principal_returned: principal_return,
+            profit: total_profit,
+        });
+
         Ok(())
     }
 
@@ -1422,6 +1464,15 @@ pub mod ginva {
             interest
         );
         msg!("💰 Total Paid: {}", total_repayment);
+
+        // Emit event for indexing
+        emit!(LoanRepaid {
+            borrower: ctx.accounts.user.key(),
+            loan_id: loan_account.loan_id,
+            principal,
+            interest,
+        });
+
         Ok(())
     }
 
@@ -1669,6 +1720,13 @@ pub mod ginva {
             amount,
             config.total_staked
         );
+
+        // Emit event for indexing
+        emit!(StakeDeposited {
+            user: ctx.accounts.user.key(),
+            amount,
+        });
+
         Ok(())
     }
 
@@ -1832,6 +1890,14 @@ pub mod ginva {
             exit_fee_amount,
             stake.staked_amount
         );
+
+        // Emit event for indexing
+        emit!(StakeWithdrawn {
+            user: ctx.accounts.user.key(),
+            amount: withdraw_amount,
+            fee: exit_fee_amount,
+        });
+
         Ok(())
     }
 
@@ -2070,18 +2136,16 @@ fn get_pyth_price_with_exponent_and_validation(
     let price_u64 = price.price.unsigned_abs();
     let exponent = price.exponent;
 
-    // 🛡️ PRICE DEVIATION CHECK: Validate price doesn't deviate too much
-    // ✅ FIX: Store previous price BEFORE updating
+    // 🛡️ PRICE DEVIATION CHECK: Validate price BEFORE updating state
+    // Critical: Must validate BEFORE any state changes to prevent partial updates
     let previous_price = system_config.last_oracle_price;
-
-    // Update price tracking FIRST
-    system_config.last_oracle_price = price_u64;
-    system_config.last_price_update = clock.unix_timestamp;
-
-    // Then validate using the PREVIOUS price
     if previous_price > 0 {
         validate_price_deviation(price_u64, previous_price)?;
     }
+
+    // Only update state AFTER all validations pass
+    system_config.last_oracle_price = price_u64;
+    system_config.last_price_update = clock.unix_timestamp;
 
     Ok((price_u64, exponent))
 }
@@ -2233,6 +2297,67 @@ pub enum LiquidationStatus {
     Swapped = 2,
     Finalized = 3,
     Expired = 4,
+}
+
+// ═════════════════════════════════════════════════════════════
+// 📋 EVENTS (For indexing and monitoring)
+// ═════════════════════════════════════════════════════════════
+
+#[event]
+pub struct LoanCreated {
+    pub borrower: Pubkey,
+    pub loan_id: u32,
+    pub collateral_amount: u64,
+    pub loan_amount: u64,
+    pub interest_rate_bps: u16,
+}
+
+#[event]
+pub struct LoanRepaid {
+    pub borrower: Pubkey,
+    pub loan_id: u32,
+    pub principal: u64,
+    pub interest: u64,
+}
+
+#[event]
+pub struct LiquidationTriggered {
+    pub loan_account: Pubkey,
+    pub keeper: Pubkey,
+    pub collateral_amount: u64,
+}
+
+#[event]
+pub struct LiquidationFinalized {
+    pub loan_account: Pubkey,
+    pub keeper_c: Pubkey,
+    pub principal_returned: u64,
+    pub profit: u64,
+}
+
+#[event]
+pub struct StakeDeposited {
+    pub user: Pubkey,
+    pub amount: u64,
+}
+
+#[event]
+pub struct StakeWithdrawn {
+    pub user: Pubkey,
+    pub amount: u64,
+    pub fee: u64,
+}
+
+#[event]
+pub struct EmergencyPause {
+    pub admin: Pubkey,
+    pub timestamp: i64,
+}
+
+#[event]
+pub struct EmergencyResume {
+    pub admin: Pubkey,
+    pub resume_at: i64,
 }
 
 // ═════════════════════════════════════════════════════════════
@@ -2597,7 +2722,10 @@ pub struct BorrowUsdc<'info> {
     pub capital_wallet_authority: AccountInfo<'info>,
     #[account(mut, token::authority = capital_wallet_authority)]
     pub capital_wallet: Box<Account<'info, TokenAccount>>,
-    #[account(mut)]
+    #[account(
+        mut,
+        token::mint = system_config.loan_mint
+    )]
     pub user_usdc_account: Box<Account<'info, TokenAccount>>,
 
     pub pyth_price_feed: Box<Account<'info, PriceUpdateV2>>,
@@ -2669,7 +2797,10 @@ pub struct ClaimTriggerReward<'info> {
     #[account(mut, token::authority = vault_authority)]
     pub vault_collateral_account: Account<'info, TokenAccount>,
 
-    #[account(mut)]
+    #[account(
+        mut,
+        constraint = keeper_a_collateral_account.owner == keeper_a.key() @ GinvaError::Unauthorized
+    )]
     pub keeper_a_collateral_account: Account<'info, TokenAccount>,
 
     pub token_program: Program<'info, Token>,
@@ -2719,11 +2850,17 @@ pub struct ExecuteAutoSwap<'info> {
     pub processing_vault_authority: AccountInfo<'info>,
 
     // 1. Caller pays USDC from this account
-    #[account(mut)]
+    #[account(
+        mut,
+        token::mint = loan_mint
+    )]
     pub caller_usdc_account: Box<Account<'info, TokenAccount>>,
 
     // 2. Caller receives collateral into this account
-    #[account(mut)]
+    #[account(
+        mut,
+        token::mint = loan_account.collateral_mint
+    )]
     pub caller_collateral_account: Box<Account<'info, TokenAccount>>,
 
     /// CHECK: Jupiter Program for CPI (optional - depends on implementation)
@@ -2776,9 +2913,9 @@ pub struct ExecuteDexFallback<'info> {
 
     /// CHECK: Jupiter V6 Program ID
     /// JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4
-    /// 🛡️ FIX: Validate full program ID instead of just 4 bytes
+    /// 🛡️ FIX: Validate using compile-time constant instead of runtime parsing
     #[account(
-        constraint = jupiter_program.key() == Pubkey::from_str("JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4").unwrap() @ GinvaError::InvalidJupiterProgram
+        constraint = jupiter_program.key() == JUPITER_PROGRAM_ID @ GinvaError::InvalidJupiterProgram
     )]
     pub jupiter_program: AccountInfo<'info>,
 
