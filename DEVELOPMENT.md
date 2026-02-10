@@ -1,112 +1,106 @@
-# 🛠️ Ginva Developer Guide
+# 🛠️ GINVA Developer Guide
 
-ยินดีต้อนรับสู่คู่มือนักพัฒนา! เอกสารนี้จะช่วยคุณติดตั้ง ทดสอบ และรัน Ginva Protocol บนเครื่องของคุณ
+This guide provides instructions for setting up, testing, and deploying the GINVA protocol.
 
 ## 📋 Prerequisites
 
-- Node.js v18+
-- Rust & Cargo
-- Solana CLI v1.18.x
-- Anchor Framework v0.29.0
+Ensure you have the following installed:
+
+- **Rust** (latest stable)
+- **Solana CLI** (v1.18+)
+- **Anchor CLI** (v0.29+)
+- **Node.js** (v18+) & **Yarn**
+
+---
 
 ## 🚀 Quick Start
 
 ### 1. Installation
 
+Clone the repository and install dependencies:
+
 ```bash
-# Clone Repository
 git clone https://github.com/Amnat3232/ginva.git
 cd ginva
-
-# Install Dependencies
 yarn install
 ```
 
-### 2. Build Program
+### 2. Build Smart Contracts
 
-**Option A: Native Build (if no toolchain issues)**
+Compile the Rust programs:
 
 ```bash
 anchor build
 ```
 
-**Option B: Docker Build (Recommended)**
+Or use Docker (recommended):
 
 ```bash
-# Make sure Docker is running
-./docker-build.sh
-# Select option 1 for build
+docker compose up --build
 ```
 
-### 3. Integration Testing
+### 3. Run Tests
 
-เรามีชุดทดสอบสำหรับทดสอบบน Devnet:
+Run the full test suite (Local Validator):
 
 ```bash
-# Quick connectivity test
-npx ts-node tests/quick-test.ts
-
-# Full integration test (requires deployment)
-anchor test tests/integration-devnet.test.ts
+anchor test
 ```
 
-**Test Flows:**
-
-1. **Phase 1**: Initialize Protocol + Add Supported Assets
-2. **Phase 2**: Deposit Collateral + Borrow USDC
-3. **Phase 3**: Repay Loan + Extend Loan
-4. **Phase 4**: Liquidation Flow (Trigger → Storefront → Finalize)
-5. **Phase 5**: Health Checks
-
-### 4. Deploy to Devnet
+Or run specific liquidation scenario tests:
 
 ```bash
-# 1. Ensure wallet has SOL
-solana balance
+anchor test tests/ginva-liquidation-test.ts
+```
 
-# 2. Deploy program
+## 🧪 Visual Demo (Simulation)
+
+To see the "Pawn Shop" mechanics in action via console logs:
+
+```bash
+npx ts-node scripts/visual-demo.ts
+```
+
+## 🌍 Deployment (Devnet)
+
+For detailed deployment steps, refer to [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+
+Quick Deploy Command:
+
+```bash
+# Set cluster to devnet
+solana config set --url devnet
+
+# Build & Deploy
+anchor build
 anchor deploy --provider.cluster devnet
 
-# 3. Verify deployment
-solana program show DyeFMCFmvtkmPtDE4rFryvSDFWwuDCdDhFqPCPdCvujv --url devnet
-```
-
-### 5. Initialize Protocol
-
-หลังจาก Deploy สำเร็จ:
-
-```bash
-# Initialize system
+# Initialize Protocol
 npx ts-node scripts/deploy-and-init.ts
-
-# หรือใช้ Anchor test
-anchor test --grep "Initialize"
 ```
 
-## 🧪 Test Structure
+## 🏗️ Project Structure
 
 ```
-tests/
-├── quick-test.ts                    # ⚡ Quick connectivity check
-├── integration-devnet.test.ts       # 🔥 Full integration test
-├── ginva.ts                         # 🧪 Unit tests
-├── repay_loan_test.ts               # 💳 Repayment tests
-├── extend_loan_simple.test.ts       # 📅 Extension tests
-└── ginva-liquidation-test.ts        # 🌊 Liquidation tests
+programs/       Rust smart contracts (Anchor)
+tests/          TypeScript integration tests
+scripts/        Utility scripts for setup and demo
+app/            Frontend application (React/Vite)
+docs/           Additional documentation
 ```
 
 ## 🤖 Keeper Bots
 
-วิธีรันบอทสำหรับทดสอบระบบ:
+To run the liquidation bot:
 
 ```bash
-# ติดตั้ง dependencies เพิ่มเติม
+# Install additional dependencies
 npm install bs58
 
-# รันบอท (Sniper Mode)
+# Run bot (Sniper Mode)
 npx ts-node auto-swap-bot.ts
 
-# หรือรันผ่าน npm script
+# Or via npm script
 npm run bot:start
 ```
 
@@ -118,7 +112,7 @@ npm run bot:start
 
 ```bash
 # Use Docker instead
-./docker-build.sh
+docker compose up --build
 ```
 
 **Error: `cargo-build-bpf` not found**
@@ -143,6 +137,14 @@ solana airdrop 2
 anchor upgrade target/deploy/ginva.so --program-id <PROGRAM_ID>
 ```
 
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
 ---
 
-[กลับไปหน้าหลัก](README.md)
+[Back to Main](README.md)
