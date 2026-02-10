@@ -54,10 +54,12 @@ RUN npm install
 # Copy source code
 COPY . .
 
-# Regenerate Cargo.lock with stable cargo to avoid v4 format
-# Using stable cargo generates version 3 lockfile which is compatible with Solana toolchain
+# Regenerate Cargo.lock with correct flags for edition2024
 RUN rm -f Cargo.lock && \
-    cargo generate-lockfile
+    RUSTFLAGS="-Znext-lockfile-bump" cargo +nightly-2025-02-01 generate-lockfile
+
+# Upgrade Anchor package in Docker
+RUN yarn upgrade @coral-xyz/anchor@0.32.1
 
 # Default command
 CMD ["anchor", "build"]
