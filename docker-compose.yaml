@@ -1,4 +1,4 @@
-name: "ginva-protocol"
+version: "3.8"
 services:
   build:
     build:

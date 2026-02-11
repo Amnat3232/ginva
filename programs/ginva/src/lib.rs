@@ -25,7 +25,7 @@ pub const REENTRANCY_GUARD_ACTIVE: u8 = 1;
 pub const REENTRANCY_GUARD_INACTIVE: u8 = 0;
 
 // Program ID - matches Anchor.toml devnet deployment
-declare_id!("9pyBrVsbBr1sKqkK9HH6ZT4btAXJNdfuc1NwoUDvW1c5");
+declare_id!("2SiGJi9VkD96oWLNizmMkGFwFpHq1tEETVqrLCezWKou");
 
 // ═════════════════════════════════════════════════════════════
 // CONSTANTS
@@ -111,7 +111,7 @@ pub mod ginva {
         // Initialize Protocol Config
         let protocol_config = &mut ctx.accounts.protocol_config;
         protocol_config.admin = ctx.accounts.admin.key();
-        protocol_config.liquidation_timeout = 2; // Devnet: 2 seconds (Prod: 86400)
+        protocol_config.liquidation_timeout = 259200; // 3 days (259,200 seconds)
         protocol_config.auto_swap_reward_bps = 800; // 8% discount for storefront buyers
         protocol_config.distribute_reward_bps = 100; // 1% base rate (will be overridden by fixed 1.0 USDC)
         protocol_config.min_loan_size = 1_000_000; // 1 USDC (6 decimals)
@@ -694,6 +694,10 @@ pub mod ginva {
         // สูตร: (เงินต้น * ดอกเบี้ย% * ระยะเวลา) / (1 ปี * 10000 bps)
         let time_elapsed = current_time.saturating_sub(loan_account.last_payment_at);
         require!(time_elapsed > 0, GinvaError::NoInterestDue);
+
+        // 30 วัน = 2,592,000 วินาที
+        let days_elapsed = time_elapsed / 86400;
+        require!(days_elapsed >= 30, GinvaError::PaymentPeriodNotMet);
 
         let interest_amount = (loan_account.loan_amount as u128)
             .checked_mul(loan_account.interest_rate_bps as u128)
