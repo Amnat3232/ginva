@@ -16,7 +16,8 @@ pub const MIN_TIME_BETWEEN_OPERATIONS: i64 = 1; // 1 second between user ops
 
 // Flash loan protection
 pub const MIN_HOLD_TIME: i64 = 2; // 2 seconds minimum hold (kept for backward compatibility)
-pub const MIN_HOLD_BLOCKS: u64 = 10; // 🛡️ FIX: Block-based protection (~4 seconds on Solana)
+pub const MIN_HOLD_BLOCKS: u64 = 100; // 🛡️ SECURE: Block-based protection (~40 seconds on Solana)
+pub const MIN_HOLD_TIME_SECONDS: i64 = 300; // 🛡️ SECURE: Minimum 5 minutes time-based protection
 pub const MAX_RENT_OPS: u64 = 10; // Max rent operations per day
 
 // Reentrancy protection
@@ -661,6 +662,9 @@ pub mod ginva {
             interest_rate_bps: fixed_rate,
         });
 
+        // 🛡️ RESET REENTRANCY GUARD: Allow next operation
+        system_config.reentrancy_guard = REENTRANCY_GUARD_INACTIVE;
+
         Ok(())
     }
 
@@ -756,6 +760,17 @@ pub mod ginva {
             liquidation_process.status == 0, // Only allow if not initialized
             GinvaError::ReentrancyDetected
         );
+
+        // 🛡️ ATOMIC LIQUIDATION LOCK: Prevent double liquidation
+        require!(
+            !loan_account.liquidation_lock,
+            GinvaError::AlreadyBeingLiquidated
+        );
+        loan_account.liquidation_lock = true;
+
+        // 🛡️ REENTRANCY GUARD: Prevent recursive calls
+        check_reentrancy_guard(system_config.reentrancy_guard)?;
+        system_config.reentrancy_guard = REENTRANCY_GUARD_ACTIVE;
 
         // 1. Check Health Factor
         let asset_config = &ctx.accounts.asset_config;
@@ -862,6 +877,9 @@ pub mod ginva {
             keeper: keeper_a,
             collateral_amount: remaining_for_swap,
         });
+
+        // 🛡️ RESET REENTRANCY GUARD: Allow next operation
+        system_config.reentrancy_guard = REENTRANCY_GUARD_INACTIVE;
 
         Ok(())
     }
@@ -1508,9 +1526,13 @@ pub mod ginva {
         // 🛡️ SECURITY GUARD 2.0: Check pause status + timelock
         require!(!system_config.is_paused, GinvaError::ProtocolPaused);
         require!(
-            Clock::get()?.unix_timestamp >= system_config.ops_resume_at,
+            clock.unix_timestamp >= system_config.ops_resume_at,
             GinvaError::SystemInCooldown
         );
+
+        // 🛡️ REENTRANCY GUARD: Prevent recursive calls
+        check_reentrancy_guard(system_config.reentrancy_guard)?;
+        system_config.reentrancy_guard = REENTRANCY_GUARD_ACTIVE;
 
         require!(
             loan_account.status == LoanStatus::Active as u8,
@@ -2203,13 +2225,26 @@ fn check_rate_limit(
     Ok(())
 }
 
-/// 🛡️ FLASH LOAN PROTECTION: Check minimum hold blocks (more secure than time-based)
-fn check_flash_loan_protection(deposit_slot: u64, current_slot: u64) -> Result<()> {
+/// 🛡️ ENHANCED FLASH LOAN PROTECTION: Check both blocks AND time
+fn check_flash_loan_protection(
+    deposit_slot: u64,
+    current_slot: u64,
+    deposit_time: i64,
+    current_time: i64,
+) -> Result<()> {
     let hold_blocks = current_slot.saturating_sub(deposit_slot);
+    let hold_time = current_time.saturating_sub(deposit_time);
+
     require!(
         hold_blocks >= MIN_HOLD_BLOCKS,
         GinvaError::InsufficientHoldTime
     );
+
+    require!(
+        hold_time >= MIN_HOLD_TIME_SECONDS,
+        GinvaError::InsufficientHoldTime
+    );
+
     Ok(())
 }
 
@@ -2640,7 +2675,8 @@ pub struct LoanAccount {
     pub liquidated_at: i64,
     pub repaid_at: i64,
     pub keeper_address: Pubkey,
-    pub deposit_slot: u64, // 🛡️ FIX: Block-based flash loan protection
+    pub deposit_slot: u64,      // 🛡️ FIX: Block-based flash loan protection
+    pub liquidation_lock: bool, // 🛡️ FIX: Prevent double liquidation
 }
 
 #[account]
@@ -3519,4 +3555,10 @@ pub enum GinvaError {
     LTVUpdateCooldownNotMet = 1991,
     #[msg("LTV update failed - validation error")]
     LTVUpdateFailed = 1992,
+
+    // 🛡️ Atomic Operation Errors (2000-2009)
+    #[msg("Loan is already being liquidated - atomic lock active")]
+    AlreadyBeingLiquidated = 2000,
+    #[msg("Atomic operation failed - concurrent modification")]
+    AtomicOperationFailed = 2001,
 }
