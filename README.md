@@ -6,141 +6,427 @@
 
 [![License](https://img.shields.io/badge/license-BUSL--1.1-red)](LICENSE)
 [![Network](https://img.shields.io/badge/network-Solana%20Devnet-blueviolet)](https://explorer.solana.com)
-[![Status](https://img.shields.io/badge/status-Active-success)](https://github.com/Amnat3232/ginva)
+[![Status](https://img.shields.io/badge/status-Active-success)](https://github.com/Dr-SoloDev/ginva)
 
 ---
 
-## Overview
+## 🎯 Quick Overview
 
-**GINVA is not a conventional DeFi lending protocol.**
+GINVA is a **time-sensitive distressed asset exchange** that replaces hostile liquidations with a transparent, competitive marketplace.
 
-It is a time-sensitive distressed asset exchange designed to replace opaque liquidation mechanics with a deterministic, public, and competitive marketplace.
-
-Instead of hidden liquidators and MEV-dominated auctions, defaulted collateral is routed into an on-chain **Pawn Shop**, where price discovery happens transparently over time.
-
----
-
-## The Problem
-
-Liquidations in DeFi are structurally hostile to most participants:
-
-- ❌ **Private liquidator access** and whitelists
-- ❌ **MEV and latency-based competition**
-- ❌ **Fire-sale pricing** that destroys asset value
-- ❌ **Protocol bad debt** during market stress
-
-The result is a system optimized for bots, not capital efficiency or fairness.
-
----
-
-## The GINVA Solution
-
-GINVA replaces liquidation wars with a public **time-decay sale mechanism**.
-
-When a loan becomes unhealthy, collateral is not dumped. Instead, it enters a **Pawn Drop** — a public sale event governed entirely by smart contracts.
-
-### 1. Pawn Drop (Public Access)
-
-- All distressed assets are routed to a public storefront.
-- No private liquidators or preferential execution.
-- Identical access rules for all participants.
-
-### 2. Time-Decay Pricing ("Greed Engine")
-
-Pricing follows a deterministic Dutch-style curve. Earlier action carries higher risk but higher expected edge.
-
-| Time Window   | Zone               | Discount | Intended Behavior               |
-| :------------ | :----------------- | :------- | :------------------------------ |
-| **0–10 min**  | ⚡ **Golden Hour** | **-8%**  | High conviction, fast execution |
-| **10–30 min** | 🥈 **Silver**      | **-6%**  | Balanced risk/reward            |
-| **30–60 min** | 🥉 **Bronze**      | **-3%**  | Conservative entry              |
-| **>60 min**   | 💀 **Expired**     | **0%**   | Routed to DEX fallback          |
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        GINVA ECOSYSTEM                            │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│    👤 BORROWERS          💰 INVESTORS           🤖 KEEPERS     │
+│    (Priority #1)          (Priority #2)           (Priority #3) │
+│         │                     │                      │            │
+│         ▼                     ▼                      ▼            │
+│    ┌─────────┐          ┌─────────┐           ┌─────────┐      │
+│    │  Deposit │          │  Stake  │           │ Monitor │      │
+│    │Collateral│          │   LP    │           │ Liquidate│      │
+│    └────┬────┘          └────┬────┘           └────┬────┘      │
+│         │                     │                      │            │
+│         ▼                     ▼                      ▼            │
+│    ┌─────────┐          ┌─────────┐           ┌─────────┐      │
+│    │  Borrow │          │ Earn    │           │ Trigger │      │
+│    │   USDC  │          │ Rewards │           │Liquidate│      │
+│    └────┬────┘          └────┬────┘           └────┬────┘      │
+│         │                     │                      │            │
+│         └──────────┬──────────┘                      │            │
+│                    │                                 │            │
+│                    ▼                                 │            │
+│            ┌──────────────┐                           │            │
+│            │  PAWN SHOP  │◄──────────────────────────┘            │
+│            │ (Liquidation)│                                          │
+│            └──────┬───────┘                                          │
+│                   │                                                  │
+│                   ▼                                                  │
+│            ┌──────────────┐                                          │
+│            │ Time-Decay   │                                          │
+│            │ Pricing      │                                          │
+│            └──────────────┘                                          │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## Capital Flow (Profit Waterfall)
+## 👤 BORROWERS (Priority #1) 🏆
 
-All protocol revenue is distributed automatically by smart contracts. There are no discretionary transfers or off-chain revenue controls.
+You are the foundation of GINVA. Everything starts with you.
 
-| Allocation          | Share         | Description                         |
-| :------------------ | :------------ | :---------------------------------- |
-| **👥 Stakers**      | **~65.25%**   | Yield paid in USDC / SOL            |
-| **🛠️ Operations**   | **~24.75%**   | Development, audits, ecosystem      |
-| **🏦 Capital Pool** | **~10.00%**   | Reinvestment into lending liquidity |
-| **🛡️ Reserve**      | **Fee-based** | Safety buffer from early exits      |
+### What You Do
 
----
+```
+┌────────────────────────────────────────┐
+│         BORROWER WORKFLOW              │
+├────────────────────────────────────────┤
+│                                        │
+│  1️⃣  Deposit Collateral               │
+│      └─► SOL, BTC, ETH → Vault        │
+│                                        │
+│  2️⃣  Borrow USDC                      │
+│      └─► Up to 50% LTV                │
+│                                        │
+│  3️⃣  Repay / Extend                   │
+│      └─► Pay interest OR extend loan   │
+│                                        │
+│  4️⃣  Get Collateral Back             │
+│      └─► Full repayment → Get assets   │
+│                                        │
+└────────────────────────────────────────┘
+```
 
-## Participant Roles
+### Your Benefits
 
-### 🏹 Hunter (Buyer)
+| Feature                    | Description                        |
+| :------------------------- | :--------------------------------- |
+| 🛡️ **Fair Liquidations**   | No bots stealing your assets       |
+| 📊 **Transparent Pricing** | See exactly what buyers pay        |
+| ⏰ **Time to Act**         | 72 hours to save your collateral   |
+| 💰 **Keep More Value**     | Price decays gradually, not dumped |
+| 🔄 **Extend Option**       | Pay interest to delay liquidation  |
 
-- Monitors Pawn Drops
-- Acquires discounted collateral
-- Competes on **information**, not latency
+### How It Works
 
-### 🏦 Capital Provider (Lender)
+```
+BORROWER JOURNEY:
 
-- Supplies liquidity to the protocol
-- Earns protocol-wide revenue
-- Protected by a **Shield Fee** (5% for <15 day withdrawals)
+┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐
+│ Deposit  │───►│  Borrow │───►│ Repay   │───►│ Get     │
+│Collateral│    │  USDC   │    │/Extend  │    │Back     │
+└─────────┘    └─────────┘    └─────────┘    └─────────┘
+     │              │              │              │
+     ▼              ▼              ▼              ▼
+  Assets      USDC to      Interest to    Collateral
+  locked      use          protocol       returned
+```
 
-### 👤 Borrower
+### Key Terms
 
-- Uses crypto assets as collateral
-- Faces transparent liquidation mechanics
-- Collateral is sold publicly, not privately extracted
-
----
-
-## Design Principles
-
-- **Public-by-default** liquidation
-- **Deterministic pricing** over MEV competition
-- **Capital preservation** before growth
-- **Simple mechanisms** over complex incentives
-
----
-
-## Non-Goals & Known Risks
-
-- ⚠️ Not optimized for highly illiquid or meme assets
-- ⚠️ Oracle latency may delay Pawn Drops during volatility
-- ⚠️ Does not guarantee full borrower recovery
-- ⚠️ Not designed for high-frequency trading strategies
-
----
-
-## Roadmap
-
-- ✅ **Core lending and interest engine**
-- ✅ **Pawn Drop mechanism (Devnet)**
-- ✅ **Automated profit waterfall**
-- 🔄 **Q2 2026 — Public Testnet & UI iteration**
-- 🔒 **Q3 2026 — Mainnet launch (audited)**
-- 🌐 **Q4 2026 — DAO-controlled parameters**
+| Term                            | Value         | Description                      |
+| :------------------------------ | :------------ | :------------------------------- |
+| 📅 **Interest Payment**         | Every 30 days | Minimum 30 days between payments |
+| ⏳ **Liquidation Grace Period** | 72 hours      | Time to save collateral          |
+| 📉 **LTV**                      | ≤50%          | Maximum loan-to-value ratio      |
+| 💸 **Interest Rate**            | Variable      | Based on asset risk              |
 
 ---
 
-## Developer Documentation
+## 💰 INVESTORS (Priority #2) 📈
 
-For installation, testing, and deployment instructions, please refer to:
+You provide the liquidity that makes GINVA work. You earn from EVERY transaction.
 
-- 👉 **Developer Guide:** [`DEVELOPMENT.md`](DEVELOPMENT.md)
-- 🏗️ **Architecture Overview:** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
-- 🔐 **Security & Audits:** [`docs/SECURITY.md`](docs/SECURITY.md)
+### What You Do
+
+```
+┌────────────────────────────────────────┐
+│        INVESTOR WORKFLOW               │
+├────────────────────────────────────────┘
+│                                        │
+│  1️⃣  Stake LP Tokens                 │
+│      └─► Provide liquidity             │
+│                                        │
+│  2️⃣  Earn Auto-Compounding           │
+│      └─► Rewards auto-accumulate       │
+│                                        │
+│  3️⃣  Claim Anytime                    │
+│      └─► No lock-up period            │
+│                                        │
+└────────────────────────────────────────┘
+```
+
+### Your Revenue Share
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              REVENUE DISTRIBUTION WATERFALL            │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│   ALL INTEREST PAYMENTS                                 │
+│          │                                              │
+│          ├── 10% ──► 🏦 CAPITAL POOL (Reinvestment)   │
+│          │                                              │
+│          ├── 24.75% ──► 🛠️ OPERATIONS TEAM            │
+│          │                                              │
+│          └── 65.25% ──► 👥 STAKERS (YOU!)             │
+│                       │                                  │
+│                       └── acc_reward_per_share          │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Revenue Flow Diagram
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    INVESTOR REVENUE FLOW                     │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  BORROWER PAYS INTEREST                                      │
+│         │                                                    │
+│         ▼                                                    │
+│  ┌─────────────────────────────────────────┐               │
+│  │         REVENUE SPLIT (100%)             │               │
+│  └────────────────┬──────────────────────────┘               │
+│                   │                                            │
+│         ┌─────────┼─────────┐                                  │
+│         ▼         ▼         ▼                                │
+│    ┌────────┐ ┌────────┐ ┌─────────────┐                     │
+│    │Capital │ │  Ops   │ │   Stakers   │                     │
+│    │  10%   │ │ 24.75% │ │   65.25%    │                     │
+│    └────────┘ └────────┘ └──────┬──────┘                     │
+│                                │                              │
+│                                ▼                              │
+│                        ┌─────────────┐                        │
+│                        │   Reward    │                        │
+│                        │  Calculator │                        │
+│                        └──────┬──────┘                        │
+│                               │                               │
+│                               ▼                               │
+│                        ┌─────────────┐                        │
+│                        │ acc_reward_ │◄─────────────────────┐ │
+│                        │   per_share │                       │ │
+│                        └─────────────┘                       │ │
+│                                                             │ │
+│                        ┌─────────────┐                        │ │
+│                        │    User     │───────────────────────┘ │
+│                        │  Claims &   │                         │
+│                        │  Withdraws  │                         │
+│                        └─────────────┘                         │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Your Benefits
+
+| Feature                          | Description                    |
+| :------------------------------- | :----------------------------- |
+| 📊 **65.25% of All Interest**    | Largest revenue share          |
+| 🔄 **Auto-Compounding**          | Rewards auto-add to your stake |
+| ⏰ **No Lock-up**                | Withdraw anytime               |
+| 🛡️ **Protected by Capital Pool** | 10% buffer for bad debt        |
+| 📈 **Sustainable Yield**         | Real yield from actual lending |
 
 ---
 
-## License
+## 🤖 KEEPERS (Priority #3) 🔧
 
-GINVA is released under the **Business Source License 1.1 (BUSL-1.1)**.
+You keep the system running smoothly and earn fees for your service.
 
-- Source is viewable and auditable
-- Commercial forks are restricted
-- License converts to open-source after the change date
+### Your Roles
 
-See [`LICENSE`](LICENSE) for details.
+```
+┌─────────────────────────────────────────────────────┐
+│              KEEPER RESPONSIBILITIES               │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│  🤖 KEEPER A: TRIGGER BOT                         │
+│  └── Identifies undercollateralized loans          │
+│  └── Calls trigger_liquidation()                    │
+│  └── Earns: 0.6% of collateral value               │
+│                                                     │
+│  🏪 KEEPER B: HUNTER BOT                           │
+│  └── Monitors Pawn Shop for discounts               │
+│  └── Buys assets at time-decay prices              │
+│  └── Earns: Arbitrage profit (discount)            │
+│                                                     │
+│  ✨ KEEPER C: FINALIZE BOT                         │
+│  └── Completes liquidation distribution            │
+│  └── Ensures protocol solvency                      │
+│  └── Earns: Fixed 1.0 USDC per finalize           │
+│                                                     │
+└─────────────────────────────────────────────────────┘
+```
+
+### Keeper Workflow
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    KEEPER WORKFLOW                                │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  KEEPER A (Trigger)                                             │
+│  ┌─────────┐    ┌─────────┐    ┌─────────┐                    │
+│  │ Monitor │───►│  Check  │───►│Trigger  │                    │
+│  │  Loans  │    │ Health  │    │Liquidate│                    │
+│  └─────────┘    └─────────┘    └────┬────┘                    │
+│                                    │                            │
+│                                    ▼                            │
+│                           ┌─────────────────┐                   │
+│                           │  Loan → Pawn    │                   │
+│                           │     Shop       │                   │
+│                           └────────┬────────┘                   │
+│                                    │                            │
+│         ┌──────────────────────────┼──────────────────────────┐  │
+│         ▼                          ▼                          ▼  │
+│  KEEPER B (Hunter)          KEEPER B (Hunter)          KEEPER C (Finalize)  │
+│  ┌─────────┐              ┌─────────┐              ┌─────────┐ │
+│  │ Monitor │───► Discount──►│  Buy   │              │Complete │ │
+│  │  Shop   │    │  Timer  │  Asset  │              │Distribution│ │
+│  └─────────┘              └─────────┘              └────┬────┘ │
+│                                                        │       │
+│                                                        ▼       │
+│                                               ┌────────────────┐│
+│                                               │ Protocol       ││
+│                                               │ Solvency       ││
+│                                               └────────────────┘│
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Keeper Fees
+
+|  Keeper  | Action                | Reward             |
+| :------: | :-------------------- | :----------------- |
+| 🤖 **A** | Trigger Liquidation   | 0.6% of collateral |
+| 🏪 **B** | Buy from Pawn Shop    | Discount profit    |
+| ✨ **C** | Finalize Distribution | 1.0 USDC fixed     |
+
+---
+
+## 🔄 Complete System Flow
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         COMPLETE GINVA FLOW                                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│                                    ┌─────────────┐                          │
+│                                    │  👤 BORROWER │                          │
+│                                    │  Priority 1  │                          │
+│                                    └──────┬──────┘                          │
+│                                           │                                 │
+│                   ┌───────────────────────┼───────────────────────┐         │
+│                   │                       │                       │         │
+│                   ▼                       ▼                       ▼         │
+│            ┌────────────┐         ┌────────────┐         ┌────────────┐    │
+│            │  💰 USDC  │         │ 🛡️Collateral│         │ 📅 Interest│    │
+│            │   Supply   │         │   Locked   │         │  Accrues  │    │
+│            └─────┬──────┘         └─────┬──────┘         └─────┬──────┘    │
+│                  │                      │                      │           │
+│                  ▼                      │                      ▼           │
+│            ┌────────────┐              │              ┌────────────┐     │
+│            │ 💰 INVESTOR │              │              │  📊 SYSTEM │     │
+│            │  Priority 2 │              │              │  Calculates│     │
+│            │  (Stakers) │              │              │   Rewards  │     │
+│            └──────┬─────┘              │              └──────┬─────┘     │
+│                   │                     │                     │            │
+│                   │                     │                     ▼            │
+│                   │                     │              ┌────────────┐     │
+│                   │                     │              │  Revenue   │     │
+│                   │                     │              │  Split     │     │
+│                   │                     │              └──────┬─────┘     │
+│                   │                     │                     │            │
+│                   │                     │         ┌──────────┼──────────┐ │
+│                   │                     │         ▼          ▼          ▼ │
+│                   │                     │    ┌────────┐ ┌────────┐ ┌───────┐│
+│                   │                     │    │Capital │ │  Ops   │ │Stakers││
+│                   │                     │    │  10%   │ │24.75%  │ │65.25% ││
+│                   │                     │    └────────┘ └────────┘ └───┬───┘│
+│                   │                     │                            │     │
+│                   │                     │                            ▼     │
+│                   │                     │              ┌───────────────────┐ │
+│                   │                     │              │  🤖 KEEPER C     │ │
+│                   │                     │              │  Finalize        │ │
+│                   │                     │              └─────────┬────────┘ │
+│                   │                     │                        │          │
+│                   │                     │                        ▼          │
+│                   │                     │              ┌────────────────┐  │
+│                   │                     │              │ Protocol        │  │
+│                   │                     │              │ Solvency        │  │
+│                   │                     │              └────────────────┘  │
+│                   │                     │                                   │
+│                   │                     ▼                                   │
+│                   │              ┌─────────────┐                           │
+│                   │              │ ⚠️ HEALTH  │                           │
+│                   │              │   DROPS    │                           │
+│                   │              └──────┬──────┘                           │
+│                   │                     │                                  │
+│                   │         ┌───────────┴───────────┐                      │
+│                   │         ▼                       ▼                      │
+│                   │  ┌─────────────┐        ┌─────────────┐                 │
+│                   │  │🤖 KEEPER A │        │🏪 KEEPER B │                 │
+│                   │  │  Trigger    │        │   Hunt     │                 │
+│                   │  │Liquidation │        │   Pawn     │                 │
+│                   │  └──────┬──────┘        │    Shop    │                 │
+│                   │         │               └──────┬──────┘                 │
+│                   │         │                      │                        │
+│                   │         ▼                      ▼                        │
+│                   │  ┌─────────────────────────────────────────────┐       │
+│                   │  │           🏪 PAWN SHOP TIMELINE              │       │
+│                   │  ├─────────────────────────────────────────────┤       │
+│                   │  │  0-10 min │ ⚡ Golden Hour │ -8% discount  │       │
+│                   │  │ 10-30 min │ 🥈 Silver     │ -6% discount  │       │
+│                   │  │ 30-60 min │ 🥉 Bronze     │ -3% discount  │       │
+│                   │  │  60+ min  │ 💀 Expired    │ DEX Fallback  │       │
+│                   │  └─────────────────────────────────────────────┘       │
+│                   │                                                    │
+│                   └────────────────────────────────────────────────────┘   │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 📊 Protocol Statistics
+
+| Metric                  | Value                  |
+| :---------------------- | :--------------------- |
+| **Borrower Protection** | 72-hour grace period   |
+| **Staker Share**        | 65.25% of all interest |
+| **Ops Share**           | 24.75% of all interest |
+| **Capital Pool**        | 10% of all interest    |
+| **Keeper A Reward**     | 0.6% of collateral     |
+| **Keeper C Reward**     | 1.0 USDC fixed         |
+| **Interest Interval**   | 30 days minimum        |
+| **Oracle Freshness**    | 15 seconds max         |
+
+---
+
+## 🎯 Why GINVA?
+
+| For              | Benefit                                |
+| :--------------- | :------------------------------------- |
+| **👤 Borrowers** | Fair liquidations, transparent pricing |
+| **💰 Investors** | Sustainable 65.25% yield share         |
+| **🤖 Keepers**   | Clear fee structure, passive income    |
+
+```
+┌─────────────────────────────────────────┐
+│           GINVA VALUE PROPOSITION       │
+├─────────────────────────────────────────┤
+│                                         │
+│   👤 BORROWERS                          │
+│   ✅ No hidden liquidations              │
+│   ✅ 72 hours to save collateral        │
+│   ✅ Transparent time-decay pricing      │
+│                                         │
+│   💰 INVESTORS                          │
+│   ✅ 65.25% of ALL protocol revenue     │
+│   ✅ Auto-compounding rewards            │
+│   ✅ No lock-up required                │
+│                                         │
+│   🤖 KEEPERS                           │
+│   ✅ Clear fee structure                 │
+│   ✅ Multiple revenue streams            │
+│   ✅ Protocol-enforced incentives        │
+│                                         │
+└─────────────────────────────────────────┘
+```
+
+---
+
+## 🔗 Resources
+
+- 📘 **Documentation:** [`docs/`](docs/)
+- 🏗️ **Architecture:** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+- 🔐 **Security:** [`docs/SECURITY.md`](docs/SECURITY.md)
+- 💻 **Development:** [`DEVELOPMENT.md`](DEVELOPMENT.md)
+
+---
 
 > **GINVA is a marketplace, not a promise.**
 > Risk is explicit. Pricing is transparent.
