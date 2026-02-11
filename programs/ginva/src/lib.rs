@@ -672,7 +672,7 @@ pub mod ginva {
             .checked_mul(time_elapsed as u128)
             .unwrap()
             .checked_div(31_536_000 * 10000)
-            .unwrap(); // 365 days in seconds * bps scale
+            .unwrap();
 
         let interest_payment = interest_amount as u64;
 
@@ -684,66 +684,115 @@ pub mod ginva {
 
         require!(final_payment > 0, GinvaError::NoInterestDue);
 
-        // Transfer interest payment: User -> Revenue Wallet
+        // Phase 1: Split Interest into 3 parts: Capital 10%, Ops 24.75%, Stakers 65.25%
+        let mut capital_share: u64 = 0;
+        let mut ops_share: u64 = 0;
+        let mut staker_share: u64 = 0;
+
+        if final_payment > 0 {
+            // 1. Capital 10%
+            capital_share = final_payment
+                .checked_div(10)
+                .ok_or(GinvaError::ArithmeticUnderflow)?;
+
+            // 2. Remaining 90%
+            let distributable = final_payment.checked_sub(capital_share).unwrap();
+
+            // 3. Ops 27.5% of remaining (24.75% of total)
+            ops_share = distributable
+                .checked_mul(2750)
+                .ok_or(GinvaError::ArithmeticOverflow)?
+                .checked_div(10000)
+                .ok_or(GinvaError::ArithmeticUnderflow)?;
+
+            // 4. Stakers get remainder (65.25% of total)
+            staker_share = distributable.checked_sub(ops_share).unwrap();
+        }
+
+        // Phase 2: Transfer to all wallets
         let cpi_program = ctx.accounts.token_program.to_account_info();
-        let cpi_accounts = Transfer {
-            from: ctx.accounts.user_usdc_account.to_account_info(),
-            to: ctx.accounts.revenue_wallet.to_account_info(),
-            authority: ctx.accounts.user.to_account_info(),
-        };
-        let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
-        token::transfer(cpi_ctx, final_payment)?;
+
+        // Transfer to Capital Wallet (10%)
+        if capital_share > 0 {
+            let cpi_accounts = Transfer {
+                from: ctx.accounts.user_usdc_account.to_account_info(),
+                to: ctx.accounts.capital_wallet.to_account_info(),
+                authority: ctx.accounts.user.to_account_info(),
+            };
+            token::transfer(
+                CpiContext::new(cpi_program.clone(), cpi_accounts),
+                capital_share,
+            )?;
+        }
+
+        // Transfer to Ops Wallet (24.75%)
+        if ops_share > 0 {
+            let cpi_accounts = Transfer {
+                from: ctx.accounts.user_usdc_account.to_account_info(),
+                to: ctx.accounts.ops_token_account.to_account_info(),
+                authority: ctx.accounts.user.to_account_info(),
+            };
+            token::transfer(
+                CpiContext::new(cpi_program.clone(), cpi_accounts),
+                ops_share,
+            )?;
+        }
+
+        // Transfer to Revenue Wallet for Stakers (65.25%)
+        if staker_share > 0 {
+            let cpi_accounts = Transfer {
+                from: ctx.accounts.user_usdc_account.to_account_info(),
+                to: ctx.accounts.revenue_wallet.to_account_info(),
+                authority: ctx.accounts.user.to_account_info(),
+            };
+            token::transfer(
+                CpiContext::new(cpi_program.clone(), cpi_accounts),
+                staker_share,
+            )?;
+
+            // Phase 3: Update acc_reward_per_share for stakers
+            const REWARD_PRECISION: u128 = 1_000_000_000_000u128;
+            if system_config.total_staked > 0 {
+                let reward_with_precision = (staker_share as u128)
+                    .checked_mul(REWARD_PRECISION)
+                    .ok_or(GinvaError::ArithmeticOverflow)?;
+
+                let reward_per_share_increment = reward_with_precision
+                    .checked_div(system_config.total_staked as u128)
+                    .unwrap_or(0);
+
+                // Track undistributed dust
+                let distributed = reward_per_share_increment
+                    .checked_mul(system_config.total_staked as u128)
+                    .unwrap_or(0);
+                let dust = reward_with_precision.saturating_sub(distributed);
+                system_config.reward_dust = system_config
+                    .reward_dust
+                    .checked_add(dust)
+                    .unwrap_or(system_config.reward_dust);
+
+                system_config.acc_reward_per_share = system_config
+                    .acc_reward_per_share
+                    .checked_add(reward_per_share_increment)
+                    .ok_or(GinvaError::ArithmeticOverflow)?;
+
+                msg!("💰 Staker reward: {} USDC (dust: {})", staker_share, dust);
+            } else {
+                // If no stakers, accumulate dust for later
+                system_config.reward_dust = system_config
+                    .reward_dust
+                    .checked_add(
+                        (staker_share as u128)
+                            .checked_mul(REWARD_PRECISION)
+                            .unwrap_or(0),
+                    )
+                    .unwrap_or(system_config.reward_dust);
+            }
+        }
 
         // Update loan timing
         loan_account.last_payment_at = current_time;
         loan_account.maturity_at = current_time + (loan_account.duration_days as i64 * 86400);
-
-        // Update acc_reward_per_share for stakers
-        const REVENUE_STAKER_SHARE_BPS: u64 = 6525; // 65.25% per Capital Flow
-        let staker_share = (final_payment as u128)
-            .checked_mul(REVENUE_STAKER_SHARE_BPS as u128)
-            .unwrap()
-            .checked_div(10000)
-            .unwrap() as u64;
-
-        const REWARD_PRECISION: u128 = 1_000_000_000_000_000_000u128;
-        let config = &mut ctx.accounts.system_config;
-        if config.total_staked > 0 && staker_share > 0 {
-            let reward_with_precision = (staker_share as u128)
-                .checked_mul(REWARD_PRECISION)
-                .ok_or(GinvaError::ArithmeticOverflow)?;
-
-            let reward_per_share_increment = reward_with_precision
-                .checked_div(config.total_staked as u128)
-                .ok_or(GinvaError::ArithmeticUnderflow)?;
-
-            // Track undistributed dust
-            let distributed = reward_per_share_increment
-                .checked_mul(config.total_staked as u128)
-                .unwrap_or(0);
-            let dust = reward_with_precision.saturating_sub(distributed);
-            config.reward_dust = config
-                .reward_dust
-                .checked_add(dust)
-                .unwrap_or(config.reward_dust);
-
-            config.acc_reward_per_share = config
-                .acc_reward_per_share
-                .checked_add(reward_per_share_increment)
-                .ok_or(GinvaError::ArithmeticOverflow)?;
-
-            msg!("💰 Reward distributed to stakers: {} USDC", staker_share);
-        } else if staker_share > 0 {
-            // Accumulate dust if no stakers
-            config.reward_dust = config
-                .reward_dust
-                .checked_add(
-                    (staker_share as u128)
-                        .checked_mul(REWARD_PRECISION)
-                        .unwrap_or(0),
-                )
-                .unwrap_or(config.reward_dust);
-        }
 
         msg!("✅ Loan extended: Interest paid {} USDC", final_payment);
         msg!("📅 New maturity: {}", loan_account.maturity_at);
@@ -1384,8 +1433,8 @@ pub mod ginva {
                 token::transfer(cpi_ctx, revenue_share)?;
 
                 // Distribute rewards to staking pool (Only from revenue_share)
-                // 🛡️ FIX: Use higher precision and track dust for accuracy
-                const REWARD_PRECISION: u128 = 1_000_000_000_000_000_000u128; // 1e18 precision
+                // 🛡️ FIX: Use 1e12 precision (same as claim_staking_rewards)
+                const REWARD_PRECISION: u128 = 1_000_000_000_000u128; // 1e12 precision
                 if system_config.total_staked > 0 {
                     let reward_with_precision = (revenue_share as u128)
                         .checked_mul(REWARD_PRECISION)
@@ -1568,7 +1617,7 @@ pub mod ginva {
         let total_repayment = principal.saturating_add(interest);
         loan_account.total_interest_paid = interest;
 
-        // 2. User pays USDC - Separate Principal and Interest
+        // 2. User pays USDC - Split Interest into 3 parts: Capital 10%, Ops 24.75%, Stakers 65.25%
         let cpi_program = ctx.accounts.token_program.to_account_info();
 
         // 2a. Principal -> Capital Wallet
@@ -1580,62 +1629,104 @@ pub mod ginva {
         let cpi_ctx_principal = CpiContext::new(cpi_program.clone(), cpi_accounts_principal);
         token::transfer(cpi_ctx_principal, principal)?;
 
-        // 2b. Interest -> Revenue Wallet (for stakers)
+        // 2b. Interest Split: 10% Capital, 24.75% Ops, 65.25% Stakers
         if interest > 0 {
-            let cpi_accounts_interest = Transfer {
-                from: ctx.accounts.user_usdc_account.to_account_info(),
-                to: ctx.accounts.revenue_wallet.to_account_info(),
-                authority: ctx.accounts.user.to_account_info(),
-            };
-            let cpi_ctx_interest = CpiContext::new(cpi_program.clone(), cpi_accounts_interest);
-            token::transfer(cpi_ctx_interest, interest)?;
+            // Calculate shares
+            let capital_share = interest
+                .checked_div(10)
+                .ok_or(GinvaError::ArithmeticUnderflow)?;
 
-            // 🛡️ CRITICAL FIX: Distribute rewards to staking pool
-            // All interest in repay_loan goes to stakers (100%)
-            const REWARD_PRECISION: u128 = 1_000_000_000_000_000_000u128;
-            if system_config.total_staked > 0 {
-                let reward_with_precision = (interest as u128)
-                    .checked_mul(REWARD_PRECISION)
-                    .ok_or(GinvaError::ArithmeticOverflow)?;
+            let distributable = interest.checked_sub(capital_share).unwrap();
 
-                let reward_per_share_increment = reward_with_precision
-                    .checked_div(system_config.total_staked as u128)
-                    .ok_or(GinvaError::ArithmeticUnderflow)?;
+            let ops_share = distributable
+                .checked_mul(2750)
+                .ok_or(GinvaError::ArithmeticOverflow)?
+                .checked_div(10000)
+                .ok_or(GinvaError::ArithmeticUnderflow)?;
 
-                // Track undistributed dust
-                let distributed = reward_per_share_increment
-                    .checked_mul(system_config.total_staked as u128)
-                    .unwrap_or(0);
-                let dust = reward_with_precision.saturating_sub(distributed);
-                system_config.reward_dust = system_config
-                    .reward_dust
-                    .checked_add(dust)
-                    .unwrap_or(system_config.reward_dust);
+            let staker_share = distributable.checked_sub(ops_share).unwrap();
 
-                system_config.acc_reward_per_share = system_config
-                    .acc_reward_per_share
-                    .checked_add(reward_per_share_increment)
-                    .ok_or(GinvaError::ArithmeticOverflow)?;
+            // Transfer to Capital Wallet (10%)
+            if capital_share > 0 {
+                let cpi_accounts = Transfer {
+                    from: ctx.accounts.user_usdc_account.to_account_info(),
+                    to: ctx.accounts.capital_wallet.to_account_info(),
+                    authority: ctx.accounts.user.to_account_info(),
+                };
+                token::transfer(
+                    CpiContext::new(cpi_program.clone(), cpi_accounts),
+                    capital_share,
+                )?;
+            }
 
-                msg!(
-                    "💰 Reward distributed to stakers: {} USDC (dust: {})",
-                    interest,
-                    dust
-                );
-            } else {
-                // If no stakers, accumulate dust for later
-                system_config.reward_dust = system_config
-                    .reward_dust
-                    .checked_add(
-                        (interest as u128)
-                            .checked_mul(REWARD_PRECISION)
-                            .unwrap_or(0),
-                    )
-                    .unwrap_or(system_config.reward_dust);
+            // Transfer to Ops Wallet (24.75%)
+            if ops_share > 0 {
+                let cpi_accounts = Transfer {
+                    from: ctx.accounts.user_usdc_account.to_account_info(),
+                    to: ctx.accounts.ops_wallet.to_account_info(),
+                    authority: ctx.accounts.user.to_account_info(),
+                };
+                token::transfer(
+                    CpiContext::new(cpi_program.clone(), cpi_accounts),
+                    ops_share,
+                )?;
+            }
+
+            // Transfer to Revenue Wallet for Stakers (65.25%)
+            if staker_share > 0 {
+                let cpi_accounts = Transfer {
+                    from: ctx.accounts.user_usdc_account.to_account_info(),
+                    to: ctx.accounts.revenue_wallet.to_account_info(),
+                    authority: ctx.accounts.user.to_account_info(),
+                };
+                token::transfer(
+                    CpiContext::new(cpi_program.clone(), cpi_accounts),
+                    staker_share,
+                )?;
+
+                // 🛡️ CRITICAL FIX: Update acc_reward_per_share for stakers
+                // Use 1e12 precision (same as claim_staking_rewards)
+                const REWARD_PRECISION: u128 = 1_000_000_000_000u128;
+                if system_config.total_staked > 0 {
+                    let reward_with_precision = (staker_share as u128)
+                        .checked_mul(REWARD_PRECISION)
+                        .ok_or(GinvaError::ArithmeticOverflow)?;
+
+                    let reward_per_share_increment = reward_with_precision
+                        .checked_div(system_config.total_staked as u128)
+                        .unwrap_or(0);
+
+                    // Track undistributed dust
+                    let distributed = reward_per_share_increment
+                        .checked_mul(system_config.total_staked as u128)
+                        .unwrap_or(0);
+                    let dust = reward_with_precision.saturating_sub(distributed);
+                    system_config.reward_dust = system_config
+                        .reward_dust
+                        .checked_add(dust)
+                        .unwrap_or(system_config.reward_dust);
+
+                    system_config.acc_reward_per_share = system_config
+                        .acc_reward_per_share
+                        .checked_add(reward_per_share_increment)
+                        .ok_or(GinvaError::ArithmeticOverflow)?;
+
+                    msg!("💰 Staker reward: {} USDC (dust: {})", staker_share, dust);
+                } else {
+                    // If no stakers, accumulate dust for later
+                    system_config.reward_dust = system_config
+                        .reward_dust
+                        .checked_add(
+                            (staker_share as u128)
+                                .checked_mul(REWARD_PRECISION)
+                                .unwrap_or(0),
+                        )
+                        .unwrap_or(system_config.reward_dust);
+                }
             }
         }
 
-        // 2. Vault returns Collateral -> User (PDA Signer)
+        // 3. Vault returns Collateral -> User (PDA Signer)
         let bump = ctx.bumps.vault_authority;
         let seeds = &[b"vault_auth".as_ref(), &[bump]];
         let signer = &[&seeds[..]];
@@ -1809,8 +1900,8 @@ pub mod ginva {
             .saturating_add(interest_due);
 
         // 7️⃣ Distribute rewards to staking pool (from staker_share only)
-        // 🛡️ FIX: Use higher precision and track dust for accuracy
-        const REWARD_PRECISION: u128 = 1_000_000_000_000_000_000u128; // 1e18 precision
+        // 🛡️ FIX: Use 1e12 precision (same as claim_staking_rewards)
+        const REWARD_PRECISION: u128 = 1_000_000_000_000u128; // 1e12 precision
         let config = &mut ctx.accounts.system_config;
         if config.total_staked > 0 {
             let reward_with_precision = (staker_share as u128)
@@ -3221,6 +3312,9 @@ pub struct RepayLoan<'info> {
     pub user_usdc_account: Account<'info, TokenAccount>,
     #[account(mut)]
     pub capital_wallet: Account<'info, TokenAccount>,
+    // ✅ CRITICAL FIX: Add ops_wallet for revenue distribution
+    #[account(mut, address = system_config.ops_wallet)]
+    pub ops_wallet: Account<'info, TokenAccount>,
     #[account(mut)]
     pub revenue_wallet: Account<'info, TokenAccount>,
 
@@ -3233,14 +3327,14 @@ pub struct RepayLoan<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(loan_id: u32)] // ✅ Multi-Ticket: Receive loan_id parameter
+#[instruction(loan_id: u32)]
 pub struct ExtendLoan<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
 
     #[account(
         mut,
-        seeds = [b"loan", user.key().as_ref(), &loan_id.to_le_bytes()], // ✅ Multi-Ticket: Use loan_id in seeds
+        seeds = [b"loan", user.key().as_ref(), &loan_id.to_le_bytes()],
         bump,
         constraint = loan_account.borrower == user.key() @ GinvaError::Unauthorized,
         constraint = loan_account.loan_id == loan_id @ GinvaError::InvalidLoanId
@@ -3250,15 +3344,23 @@ pub struct ExtendLoan<'info> {
     #[account(mut)]
     pub user_usdc_account: Account<'info, TokenAccount>,
 
-    // Interest revenue wallet (for system profit)
-    #[account(
-        mut,
-        token::authority = system_config.revenue_wallet_authority
-    )]
+    /// CHECK: PDA derived from [b"capital_auth"]
+    #[account(seeds = [b"capital_auth"], bump)]
+    pub capital_wallet_authority: AccountInfo<'info>,
+    #[account(mut, token::authority = capital_wallet_authority)]
+    pub capital_wallet: Account<'info, TokenAccount>,
+
+    /// CHECK: PDA derived from [b"vault_auth"]
+    #[account(seeds = [b"vault_auth"], bump)]
+    pub vault_authority: AccountInfo<'info>,
+    #[account(mut, token::authority = vault_authority)]
+    pub ops_token_account: Account<'info, TokenAccount>,
+
+    #[account(mut, token::authority = vault_authority)]
     pub revenue_wallet: Account<'info, TokenAccount>,
 
     #[account(
-        seeds = [b"config"], 
+        seeds = [b"config"],
         bump,
         constraint = !system_config.is_paused @ GinvaError::ProtocolPaused
     )]
