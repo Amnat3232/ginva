@@ -68,7 +68,7 @@ You are the foundation of GINVA. Everything starts with you.
 │      └─► SOL, BTC, ETH → Vault        │
 │                                        │
 │  2️⃣  Borrow USDC                      │
-│      └─► Up to 50% LTV                │
+│      └─► Up to 60% LTV (3 options: 20%/40%/60%)                │
 │                                        │
 │  3️⃣  Repay / Extend                   │
 │      └─► Pay interest OR extend loan   │
@@ -110,7 +110,7 @@ BORROWER JOURNEY:
 | :------------------------------ | :------------ | :------------------------------- |
 | 📅 **Interest Payment**         | Every 30 days | Minimum 30 days between payments |
 | ⏳ **Liquidation Grace Period** | 72 hours      | Time to save collateral          |
-| 📉 **LTV**                      | ≤50%          | Maximum loan-to-value ratio      |
+| 📉 **LTV**                      | 20%/40%/60%   | 3 tiers: Safe/Standard/Max       |
 | 💸 **Interest Rate**            | Variable      | Based on asset risk              |
 
 ---
@@ -373,16 +373,17 @@ You keep the system running smoothly and earn fees for your service.
 
 ## 📊 Protocol Statistics
 
-| Metric                  | Value                  |
-| :---------------------- | :--------------------- |
-| **Borrower Protection** | 72-hour grace period   |
-| **Staker Share**        | 65.25% of all interest |
-| **Ops Share**           | 24.75% of all interest |
-| **Capital Pool**        | 10% of all interest    |
-| **Keeper A Reward**     | 0.6% of collateral     |
-| **Keeper C Reward**     | 1.0 USDC fixed         |
-| **Interest Interval**   | 30 days minimum        |
-| **Oracle Freshness**    | 15 seconds max         |
+| Metric                  | Value                           |
+| :---------------------- | :------------------------------ |
+| **Borrower Protection** | 72-hour grace period            |
+| **LTV Options**         | 20%/40%/60% (Safe/Standard/Max) |
+| **Staker Share**        | 65.25% of all interest          |
+| **Ops Share**           | 24.75% of all interest          |
+| **Capital Pool**        | 10% of all interest             |
+| **Keeper A Reward**     | 0.6% of collateral              |
+| **Keeper C Reward**     | 1.0 USDC fixed                  |
+| **Interest Interval**   | 30 days minimum                 |
+| **Oracle Freshness**    | 15 seconds max                  |
 
 ---
 
