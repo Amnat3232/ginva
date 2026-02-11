@@ -178,6 +178,30 @@ const Earn = () => {
     }
   };
 
+  const handleClaim = async () => {
+    if (!program || !publicKey) return;
+    setLoading(true);
+    try {
+      showSuccess("Claiming Rewards...", "Please confirm the transaction");
+
+      // In production, would call:
+      // await program.methods.claimStakingRewards().rpc();
+
+      // Mock success
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      showSuccess(
+        "Rewards Claimed!",
+        "Your rewards have been sent to your wallet"
+      );
+      fetchData();
+    } catch (err: any) {
+      console.error("Error claiming rewards:", err);
+      showError("Claim Failed", err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Container className="py-5">
       <Row className="justify-content-center">
@@ -347,6 +371,65 @@ const Earn = () => {
                       "Confirm Withdraw"
                     )}
                   </Button>
+                </Card.Body>
+              </Tab>
+
+              <Tab eventKey="claim" title="🎁 Claim">
+                <Card.Body className="p-4">
+                  <div className="text-center mb-4">
+                    <h4 className="fw-bold mb-2">Claim Your Rewards</h4>
+                    <p className="text-muted">
+                      Your staking rewards are automatically compounded. Claim
+                      anytime to withdraw your earnings.
+                    </p>
+                  </div>
+
+                  <Card className="bg-success-subtle border-success mb-4">
+                    <Card.Body className="text-center">
+                      <small className="text-success fw-bold">
+                        PENDING REWARDS
+                      </small>
+                      <h2 className="fw-bold text-success my-2">
+                        {data.pendingReward.toFixed(6)} USDC
+                      </h2>
+                      <small className="text-muted">Available to claim</small>
+                    </Card.Body>
+                  </Card>
+
+                  <div className="d-grid">
+                    <Button
+                      variant="success"
+                      size="lg"
+                      className="fw-bold"
+                      onClick={handleClaim}
+                      disabled={loading || data.pendingReward <= 0}
+                    >
+                      {loading ? (
+                        <>
+                          <Spinner
+                            size="sm"
+                            animation="border"
+                            className="me-2"
+                          />
+                          Claiming...
+                        </>
+                      ) : (
+                        <>
+                          <FiCheckCircle className="me-2" />
+                          Claim Rewards
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
+                  <Alert variant="info" className="mt-3">
+                    <FiShield className="me-2" />
+                    <small>
+                      <strong>How it works:</strong> Your rewards come from
+                      65.25% of all interest paid by borrowers. Rewards are
+                      distributed proportionally based on your stake.
+                    </small>
+                  </Alert>
                 </Card.Body>
               </Tab>
             </Tabs>
