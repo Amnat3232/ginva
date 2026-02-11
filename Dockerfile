@@ -33,10 +33,10 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
 
 # Setup Rust toolchain - use nightly for edition2024 support
 # Note: bpfel-unknown-unknown target comes with Solana platform tools
-RUN rustup install nightly-2025-02-01 && \
-    rustup default nightly-2025-02-01 && \
+RUN rustup install nightly-2025-02-15 && \
+    rustup default nightly-2025-02-15 && \
     rustup component add rustfmt && \
-    cargo +nightly-2025-02-01 --version && \
+    cargo +nightly-2025-02-15 --version && \
     rustc --print target-list | grep -E "(bpf|sbf)" || echo "Solana target will be provided by platform tools"
 
 # Set working directory
@@ -56,7 +56,7 @@ COPY . .
 
 # Regenerate Cargo.lock with correct flags for edition2024
 RUN rm -f Cargo.lock && \
-    RUSTFLAGS="-Znext-lockfile-bump" cargo +nightly-2025-02-01 generate-lockfile
+    RUSTFLAGS="-Znext-lockfile-bump" cargo +nightly-2025-02-15 generate-lockfile
 
 # Upgrade Anchor package in Docker
 RUN yarn upgrade @coral-xyz/anchor@0.32.1
