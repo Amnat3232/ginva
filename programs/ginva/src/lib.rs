@@ -24,7 +24,7 @@ pub const REENTRANCY_GUARD_ACTIVE: u8 = 1;
 pub const REENTRANCY_GUARD_INACTIVE: u8 = 0;
 
 // Program ID - matches Anchor.toml devnet deployment
-declare_id!("4nsKvwrqVuXkDEZ3WNefitrrzcGPAnUj5SfHUkeZf7fB");
+declare_id!("9pyBrVsbBr1sKqkK9HH6ZT4btAXJNdfuc1NwoUDvW1c5");
 
 // ═════════════════════════════════════════════════════════════
 // CONSTANTS
@@ -116,11 +116,37 @@ pub mod ginva {
         protocol_config.min_loan_size = 1_000_000; // 1 USDC (6 decimals)
         protocol_config.max_loan_size = 1_000_000_000_000; // 1M USDC (6 decimals)
 
+        let current_time = Clock::get()?.unix_timestamp;
+
+        // 💰 Initialize CONFIGURABLE INTEREST RATES
+        system_config.base_interest_rate_bps = 800; // Default 8% (800 bps)
+        system_config.max_interest_rate_bps = 2000; // Max 20% (2000 bps)
+        system_config.last_rate_update = current_time;
+        system_config.rate_update_cooldown = 86400; // 1 day cooldown (86400 seconds)
+
+        // 🏠 Initialize CONFIGURABLE LTV LEVELS
+        system_config.ltv_safe_percentage = 20; // 🟢 Safe: 20%
+        system_config.ltv_standard_percentage = 40; // 🟡 Standard: 40%
+        system_config.ltv_max_percentage = 60; // 🔴 Max: 60%
+        system_config.last_ltv_update = current_time;
+        system_config.ltv_update_cooldown = 86400; // 1 day cooldown (86400 seconds)
+
         // 🛡️ SAFETY NOTE: แจ้งเตือนสถานะ Test Mode เท่านั้น (ไม่สั่งตายระบบ)
         #[cfg(feature = "local-test")]
         msg!("⚠️ Note: Contract running in Local-Test Mode (Oracle checks disabled)");
 
         msg!("✅ System initialized with Auto-Swap Liquidation v3.0");
+        msg!(
+            "💰 Interest rate initialized: {}% (Max: {}%)",
+            system_config.base_interest_rate_bps as f64 / 100.0,
+            system_config.max_interest_rate_bps as f64 / 100.0
+        );
+        msg!(
+            "🏠 LTV levels initialized: Safe: {}%, Standard: {}%, Max: {}%",
+            system_config.ltv_safe_percentage,
+            system_config.ltv_standard_percentage,
+            system_config.ltv_max_percentage
+        );
         Ok(())
     }
 
@@ -220,6 +246,124 @@ pub mod ginva {
             protocol_config.max_loan_size = max_loan;
             msg!("✅ Max loan size updated to {} units", max_loan);
         }
+
+        Ok(())
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // 💰 CONFIGURABLE INTEREST RATE MANAGEMENT
+    // ═════════════════════════════════════════════════════════════
+
+    pub fn update_interest_rates(
+        ctx: Context<AdminOnly>,
+        new_base_rate_bps: u16,
+        new_max_rate_bps: u16,
+    ) -> Result<()> {
+        let system_config = &mut ctx.accounts.system_config;
+        let current_time = Clock::get()?.unix_timestamp;
+
+        // 🛡️ Security validations
+        require!(
+            new_base_rate_bps >= 50 && new_base_rate_bps <= 2000,
+            GinvaError::InvalidInterestRateRange
+        ); // 0.5% - 20% range
+        require!(
+            new_max_rate_bps >= new_base_rate_bps && new_max_rate_bps <= 5000,
+            GinvaError::InvalidInterestRateRange
+        ); // Base <= Max <= 50%
+        require!(
+            current_time >= system_config.last_rate_update + system_config.rate_update_cooldown,
+            GinvaError::RateUpdateCooldownNotMet
+        ); // Cooldown check
+
+        // Update rates
+        let old_rate = system_config.base_interest_rate_bps;
+        system_config.base_interest_rate_bps = new_base_rate_bps;
+        system_config.max_interest_rate_bps = new_max_rate_bps;
+        system_config.last_rate_update = current_time;
+
+        msg!(
+            "📈 Interest rate updated: {}% -> {}% (Max: {}%)",
+            old_rate as f64 / 100.0,
+            new_base_rate_bps as f64 / 100.0,
+            new_max_rate_bps as f64 / 100.0
+        );
+
+        // Emit event for monitoring
+        emit!(InterestRateUpdated {
+            admin: ctx.accounts.admin.key(),
+            old_rate_bps: old_rate,
+            new_rate_bps: new_base_rate_bps,
+            max_rate_bps: new_max_rate_bps,
+            timestamp: current_time,
+        });
+
+        Ok(())
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // 🏠 CONFIGURABLE LTV LEVEL MANAGEMENT
+    // ═════════════════════════════════════════════════════════════
+
+    pub fn update_ltv_levels(
+        ctx: Context<AdminOnly>,
+        new_ltv_safe: u64,
+        new_ltv_standard: u64,
+        new_ltv_max: u64,
+    ) -> Result<()> {
+        let system_config = &mut ctx.accounts.system_config;
+        let current_time = Clock::get()?.unix_timestamp;
+
+        // 🛡️ Security validations for LTV levels
+        require!(
+            new_ltv_safe > 0 && new_ltv_safe <= 30,
+            GinvaError::InvalidLTVRange
+        ); // 1% - 30% for safe
+        require!(
+            new_ltv_standard > new_ltv_safe && new_ltv_standard <= 50,
+            GinvaError::InvalidLTVRange
+        ); // Safe < Standard <= 50%
+        require!(
+            new_ltv_max > new_ltv_standard && new_ltv_max <= 90,
+            GinvaError::InvalidLTVRange
+        ); // Standard < Max <= 90%
+        require!(
+            current_time >= system_config.last_ltv_update + system_config.ltv_update_cooldown,
+            GinvaError::LTVUpdateCooldownNotMet
+        ); // Cooldown check
+
+        // Store old values for logging
+        let old_safe = system_config.ltv_safe_percentage;
+        let old_standard = system_config.ltv_standard_percentage;
+        let old_max = system_config.ltv_max_percentage;
+
+        // Update LTV levels
+        system_config.ltv_safe_percentage = new_ltv_safe;
+        system_config.ltv_standard_percentage = new_ltv_standard;
+        system_config.ltv_max_percentage = new_ltv_max;
+        system_config.last_ltv_update = current_time;
+
+        msg!(
+            "🏠 LTV levels updated: Safe: {}% -> {}%, Standard: {}% -> {}%, Max: {}% -> {}%",
+            old_safe,
+            new_ltv_safe,
+            old_standard,
+            new_ltv_standard,
+            old_max,
+            new_ltv_max
+        );
+
+        // Emit event for monitoring
+        emit!(LTVLevelsUpdated {
+            admin: ctx.accounts.admin.key(),
+            old_ltv_safe,
+            new_ltv_safe,
+            old_ltv_standard,
+            new_ltv_standard,
+            old_ltv_max,
+            new_ltv_max,
+            timestamp: current_time,
+        });
 
         Ok(())
     }
@@ -428,10 +572,11 @@ pub mod ginva {
             6,
         )?;
 
+        // 🏠 CONFIGURABLE LTV: Read from SystemConfig
         let ltv_percentage = match ltv_option {
-            1 => 20u64,
-            2 => 40u64,
-            3 => 60u64,
+            1 => system_config.ltv_safe_percentage,
+            2 => system_config.ltv_standard_percentage,
+            3 => system_config.ltv_max_percentage,
             _ => return Err(GinvaError::InvalidLTV.into()),
         };
 
@@ -492,17 +637,19 @@ pub mod ginva {
         } else {
             0
         };
-        let dynamic_rate =
-            calculate_dynamic_interest(system_config.total_borrowed, current_liquidity);
-        loan_account.interest_rate_bps = dynamic_rate;
+        let fixed_rate = calculate_dynamic_interest(
+            system_config.total_borrowed,
+            current_liquidity,
+            system_config,
+        );
+        loan_account.interest_rate_bps = fixed_rate;
 
         system_config.total_borrowed = system_config.total_borrowed.saturating_add(loan_amount);
 
         msg!(
-            "💰 Loan created: {} USDC at {}% APR (Utilization: {}%)",
+            "💰 Loan created: {} USDC at {}% APR (Fixed rate for all LTV levels)",
             loan_amount,
-            dynamic_rate as f64 / 100.0,
-            utilization_bps as f64 / 100.0
+            fixed_rate as f64 / 100.0
         );
 
         // Emit event for indexing
@@ -511,7 +658,7 @@ pub mod ginva {
             loan_id,
             collateral_amount: loan_account.collateral_amount,
             loan_amount,
-            interest_rate_bps: dynamic_rate,
+            interest_rate_bps: fixed_rate,
         });
 
         Ok(())
@@ -2235,46 +2382,22 @@ fn calculate_collateral_value(
     Ok(value as u64)
 }
 
-fn calculate_dynamic_interest(total_borrowed: u64, current_liquidity: u64) -> u16 {
-    let total_supply = match total_borrowed.checked_add(current_liquidity) {
-        Some(val) => val,
-        None => return 250,
+fn calculate_dynamic_interest(
+    total_borrowed: u64,
+    current_liquidity: u64,
+    system_config: &SystemConfig,
+) -> u16 {
+    // 🎯 CONFIGURABLE INTEREST RATE: Read from SystemConfig
+    // Admin can update rates dynamically through update_interest_rates instruction
+    // Default fallback to 8% if config is uninitialized
+    let configured_rate = if system_config.base_interest_rate_bps > 0 {
+        system_config.base_interest_rate_bps
+    } else {
+        800 // Fallback to 8% (800 bps) for safety
     };
 
-    if total_supply == 0 {
-        return 250;
-    }
-
-    let utilization_bps = (total_borrowed as u128)
-        .checked_mul(10000)
-        .unwrap()
-        .checked_div(total_supply as u128)
-        .unwrap_or(0) as u64;
-
-    let optimal_utilization = 8000;
-    let base_rate = 200;
-    let slope_1 = 400;
-    let slope_2 = 3000;
-
-    if utilization_bps <= optimal_utilization {
-        let rate_increase = utilization_bps
-            .checked_mul(slope_1)
-            .unwrap()
-            .checked_div(optimal_utilization)
-            .unwrap();
-        return (base_rate + rate_increase) as u16;
-    } else {
-        let rate_at_optimal = base_rate + slope_1;
-        let excess_utilization = utilization_bps - optimal_utilization;
-        let excess_range = 10000 - optimal_utilization;
-        let surge_increase = excess_utilization
-            .checked_mul(slope_2)
-            .unwrap()
-            .checked_div(excess_range)
-            .unwrap();
-        let final_rate = rate_at_optimal + surge_increase;
-        return std::cmp::min(final_rate, 5000) as u16;
-    }
+    // 🛡️ Safety cap: Never exceed maximum configured rate
+    std::cmp::min(configured_rate, system_config.max_interest_rate_bps)
 }
 
 // ═════════════════════════════════════════════════════════════
@@ -2360,6 +2483,27 @@ pub struct EmergencyResume {
     pub resume_at: i64,
 }
 
+#[event]
+pub struct InterestRateUpdated {
+    pub admin: Pubkey,
+    pub old_rate_bps: u16,
+    pub new_rate_bps: u16,
+    pub max_rate_bps: u16,
+    pub timestamp: i64,
+}
+
+#[event]
+pub struct LTVLevelsUpdated {
+    pub admin: Pubkey,
+    pub old_ltv_safe: u64,
+    pub new_ltv_safe: u64,
+    pub old_ltv_standard: u64,
+    pub new_ltv_standard: u64,
+    pub old_ltv_max: u64,
+    pub new_ltv_max: u64,
+    pub timestamp: i64,
+}
+
 // ═════════════════════════════════════════════════════════════
 // 📋 ACCOUNT STRUCTURES
 // ═════════════════════════════════════════════════════════════
@@ -2416,6 +2560,19 @@ pub struct SystemConfig {
 
     // 🛡️ REWARD DUST TRACKING (for precision)
     pub reward_dust: u128, // Undistributed reward dust
+
+    // 💰 CONFIGURABLE INTEREST RATES (Admin-controlled)
+    pub base_interest_rate_bps: u16, // Base interest rate for all LTV levels (e.g., 800 = 8%)
+    pub max_interest_rate_bps: u16,  // Maximum allowed interest rate (safety cap)
+    pub last_rate_update: i64,       // Timestamp of last rate update
+    pub rate_update_cooldown: i64,   // Minimum time between rate updates (e.g., 86400s = 1 day)
+
+    // 🏠 CONFIGURABLE LTV LEVELS (Admin-controlled)
+    pub ltv_safe_percentage: u64, // LTV 1: Safe level (e.g., 20 = 20%)
+    pub ltv_standard_percentage: u64, // LTV 2: Standard level (e.g., 40 = 40%)
+    pub ltv_max_percentage: u64,  // LTV 3: Max level (e.g., 60 = 60%)
+    pub last_ltv_update: i64,     // Timestamp of last LTV update
+    pub ltv_update_cooldown: i64, // Minimum time between LTV updates (e.g., 86400s = 1 day)
 }
 
 impl SystemConfig {
@@ -3346,4 +3503,20 @@ pub enum GinvaError {
     InvalidLiquidationThreshold = 1974,
     #[msg("Invalid loan limits - min must be <= max")]
     InvalidLoanLimits = 1975,
+
+    // 💰 Interest Rate Management Errors (1980-1989)
+    #[msg("Invalid interest rate range - must be 0.5% to 20%")]
+    InvalidInterestRateRange = 1980,
+    #[msg("Rate update cooldown not met - wait before updating again")]
+    RateUpdateCooldownNotMet = 1981,
+    #[msg("Interest rate update failed - validation error")]
+    InterestRateUpdateFailed = 1982,
+
+    // 🏠 LTV Management Errors (1990-1999)
+    #[msg("Invalid LTV range - must follow Safe < Standard < Max hierarchy")]
+    InvalidLTVRange = 1990,
+    #[msg("LTV update cooldown not met - wait before updating again")]
+    LTVUpdateCooldownNotMet = 1991,
+    #[msg("LTV update failed - validation error")]
+    LTVUpdateFailed = 1992,
 }
