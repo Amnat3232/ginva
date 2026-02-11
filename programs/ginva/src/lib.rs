@@ -5,9 +5,7 @@ use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 use pyth_solana_receiver_sdk::price_update::{get_feed_id_from_hex, PriceUpdateV2};
 use std::mem::size_of;
 
-// ═══════════════════════════════════════════════════════════
-// 🛡️ SECURITY CONSTANTS & VALIDATIONS
-// ═══════════════════════════════════════════════════════════════════
+// SECURITY CONSTANTS & VALIDATIONS
 
 // Rate limiting constants
 pub const MAX_OPERATIONS_PER_BLOCK: u64 = 5;
@@ -16,8 +14,8 @@ pub const MIN_TIME_BETWEEN_OPERATIONS: i64 = 1; // 1 second between user ops
 
 // Flash loan protection
 pub const MIN_HOLD_TIME: i64 = 2; // 2 seconds minimum hold (kept for backward compatibility)
-pub const MIN_HOLD_BLOCKS: u64 = 100; // 🛡️ SECURE: Block-based protection (~40 seconds on Solana)
-pub const MIN_HOLD_TIME_SECONDS: i64 = 300; // 🛡️ SECURE: Minimum 5 minutes time-based protection
+pub const MIN_HOLD_BLOCKS: u64 = 100; // Block-based protection (~40 seconds on Solana)
+pub const MIN_HOLD_TIME_SECONDS: i64 = 300; // Minimum 5 minutes time-based protection
 pub const MAX_RENT_OPS: u64 = 10; // Max rent operations per day
 
 // Reentrancy protection
@@ -27,7 +25,6 @@ pub const REENTRANCY_GUARD_INACTIVE: u8 = 0;
 // Program ID - matches Anchor.toml devnet deployment
 declare_id!("2SiGJi9VkD96oWLNizmMkGFwFpHq1tEETVqrLCezWKou");
 
-// ═════════════════════════════════════════════════════════════
 // CONSTANTS
 
 // Pyth SOL/USD Price Feed ID (from https://pyth.network/developers/price-feed-ids)
@@ -35,12 +32,12 @@ pub const SOL_USD_FEED_ID: &str =
     "0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d";
 pub const MAX_PRICE_AGE_SECONDS: u64 = 20; // Maximum age of price data in seconds (reduced from 60 for better freshness)
 pub const MAX_CONFIDENCE_RATIO: u128 = 100; // 1% max confidence ratio (100/10000 = 1%)
-                                            // ═════════════════════════════════════════════════════════════
-                                            // Note: LIQUIDATION_TIMEOUT, AUTO_SWAP_REWARD_BPS, DISTRIBUTE_REWARD_BPS
-                                            // are now stored in ProtocolConfig for dynamic updates
-                                            // Keeping LIQUIDATION_TIMEOUT constant for TriggerLiquidation to avoid stack overflow
-                                            // Liquidation timeout configuration
-                                            // Use feature flag to automatically switch between devnet (2s) and production (24h)
+
+// Note: LIQUIDATION_TIMEOUT, AUTO_SWAP_REWARD_BPS, DISTRIBUTE_REWARD_BPS
+// are now stored in ProtocolConfig for dynamic updates
+// Keeping LIQUIDATION_TIMEOUT constant for TriggerLiquidation to avoid stack overflow
+// Liquidation timeout configuration
+// Use feature flag to automatically switch between devnet (2s) and production (24h)
 #[cfg(feature = "devnet")]
 const LIQUIDATION_TIMEOUT: i64 = 2; // 2 seconds for fast testing
 
@@ -65,9 +62,7 @@ compile_error!("local-test feature must be used with devnet feature");
 pub mod ginva {
     use super::*;
 
-    // ═════════════════════════════════════════════════════════════
-    // 1️⃣ INITIALIZE SYSTEM
-    // ═════════════════════════════════════════════════════════════
+    // INITIALIZE SYSTEM
     pub fn initialize_system(ctx: Context<InitializeSystem>, deposit_fee_bps: u16) -> Result<()> {
         let system_config = &mut ctx.accounts.system_config;
 
@@ -132,7 +127,6 @@ pub mod ginva {
         system_config.last_ltv_update = current_time;
         system_config.ltv_update_cooldown = 86400; // 1 day cooldown (86400 seconds)
 
-        // 🛡️ SAFETY NOTE: แจ้งเตือนสถานะ Test Mode เท่านั้น (ไม่สั่งตายระบบ)
         #[cfg(feature = "local-test")]
         msg!("⚠️ Note: Contract running in Local-Test Mode (Oracle checks disabled)");
 
@@ -151,9 +145,7 @@ pub mod ginva {
         Ok(())
     }
 
-    // ═════════════════════════════════════════════════════════════════════
-    // 🛑 EMERGENCY CONTROLS
-    // ═════════════════════════════════════════════════════════════════════
+    // EMERGENCY CONTROLS
 
     pub fn emergency_pause(ctx: Context<AdminOnly>) -> Result<()> {
         let system_config = &mut ctx.accounts.system_config;
@@ -204,9 +196,7 @@ pub mod ginva {
         Ok(())
     }
 
-    // ═════════════════════════════════════════════════════════════
-    // ⚙️ ADMIN CONFIG UPDATES (Dynamic Parameters)
-    // ═════════════════════════════════════════════════════════════
+    // ADMIN CONFIG UPDATES (Dynamic Parameters)
     pub fn update_protocol_config(
         ctx: Context<UpdateProtocolConfig>,
         new_timeout: Option<i64>,
@@ -251,9 +241,7 @@ pub mod ginva {
         Ok(())
     }
 
-    // ═════════════════════════════════════════════════════════════
-    // 💰 CONFIGURABLE INTEREST RATE MANAGEMENT
-    // ═════════════════════════════════════════════════════════════
+    // CONFIGURABLE INTEREST RATE MANAGEMENT
 
     pub fn update_interest_rates(
         ctx: Context<AdminOnly>,
@@ -302,9 +290,7 @@ pub mod ginva {
         Ok(())
     }
 
-    // ═════════════════════════════════════════════════════════════
-    // 🏠 CONFIGURABLE LTV LEVEL MANAGEMENT
-    // ═════════════════════════════════════════════════════════════
+    // CONFIGURABLE LTV LEVEL MANAGEMENT
 
     pub fn update_ltv_levels(
         ctx: Context<AdminOnly>,
@@ -369,9 +355,7 @@ pub mod ginva {
         Ok(())
     }
 
-    // ═════════════════════════════════════════════════════════════
-    // 💎 FEATURE #6: MULTI-ASSET MANAGEMENT
-    // ═════════════════════════════════════════════════════════════
+    // FEATURE #6: MULTI-ASSET MANAGEMENT
 
     pub fn add_supported_asset(
         ctx: Context<AddSupportedAsset>,
@@ -422,9 +406,7 @@ pub mod ginva {
         Ok(())
     }
 
-    // ═════════════════════════════════════════════════════════════
-    // 1️⃣7️⃣ UPDATE OPS WALLET (สำหรับค่าใช้จ่ายทีม ค่าเซิร์ฟเวอร์)
-    // ═════════════════════════════════════════════════════════════
+    // UPDATE OPS WALLET
     pub fn update_ops_wallet(ctx: Context<UpdateOpsWallet>, new_ops_wallet: Pubkey) -> Result<()> {
         let system_config = &mut ctx.accounts.system_config;
 
@@ -447,9 +429,7 @@ pub mod ginva {
         Ok(())
     }
 
-    // ═════════════════════════════════════════════════════════════
-    // 2️⃣ DEPOSIT COLLATERAL
-    // ═════════════════════════════════════════════════════════════
+    // DEPOSIT COLLATERAL
     pub fn deposit_collateral(
         ctx: Context<DepositCollateral>,
         loan_id: u32,
@@ -519,9 +499,7 @@ pub mod ginva {
         Ok(())
     }
 
-    // ═════════════════════════════════════════════════════════════
-    // 3️⃣ BORROW USDC
-    // ═════════════════════════════════════════════════════════════
+    // BORROW USDC
     pub fn borrow_usdc(
         ctx: Context<BorrowUsdc>,
         loan_id: u32,
@@ -674,21 +652,16 @@ pub mod ginva {
         Ok(())
     }
 
-    // ═════════════════════════════════════════════════════════════
-    // 3.5 🔄 EXTEND LOAN ("ต่อดอก")
-    // ═════════════════════════════════════════════════════════════
+    // EXTEND LOAN
     pub fn extend_loan(ctx: Context<ExtendLoan>) -> Result<()> {
         let system_config = &ctx.accounts.system_config;
         let loan_account = &mut ctx.accounts.loan_account;
 
-        // 🛡️ SECURITY GUARD: ตรวจสอบสถานะระบบ
         require!(!system_config.is_paused, GinvaError::ProtocolPaused);
-        // ตรวจสอบว่าเป็นเจ้าของสัญญาตัวจริง
         require!(
             loan_account.borrower == ctx.accounts.user.key(),
             GinvaError::Unauthorized
         );
-        // ต้องเป็นสัญญาที่ยัง Active อยู่ (ยังไม่ถูกยึด)
         require!(
             loan_account.status == LoanStatus::Active as u8,
             GinvaError::LoanNotActive
@@ -696,12 +669,9 @@ pub mod ginva {
 
         let current_time = Clock::get()?.unix_timestamp;
 
-        // 1. คำนวณดอกเบี้ยที่ค้างจ่าย (Accrued Interest) ตั้งแต่จ่ายล่าสุด จนถึง ปัจจุบัน
-        // สูตร: (เงินต้น * ดอกเบี้ย% * ระยะเวลา) / (1 ปี * 10000 bps)
         let time_elapsed = current_time.saturating_sub(loan_account.last_payment_at);
         require!(time_elapsed > 0, GinvaError::NoInterestDue);
 
-        // 30 วัน = 2,592,000 วินาที
         let days_elapsed = time_elapsed / 86400;
         require!(days_elapsed >= 30, GinvaError::PaymentPeriodNotMet);
 
@@ -715,17 +685,15 @@ pub mod ginva {
 
         let interest_payment = interest_amount as u64;
 
-        // ถ้ามีดอกเบี้ยเล็กน้อย ให้ปัดเป็นอย่างน้อย 1 หน่วย เพื่อไม่ให้ transaction fail ฟรี
         let final_payment = if interest_payment == 0 && time_elapsed > 3600 {
-            1 // ขั้นต่ำ 1 unit ถ้าผ่านไปเกิน 1 ชม.
+            1
         } else {
             interest_payment
         };
 
         require!(final_payment > 0, GinvaError::NoInterestDue);
 
-        // 2. โอนเงินค่าดอกเบี้ย: User -> Revenue Wallet (รายได้เข้าระบบ)
-        // หมายเหตุ: เงินนี้คือ Real Yield ที่เอาไปแจกจ่ายได้เลย ไม่ต้องเก็บเข้า Vault
+        // Transfer interest payment: User -> Revenue Wallet
         let cpi_program = ctx.accounts.token_program.to_account_info();
         let cpi_accounts = Transfer {
             from: ctx.accounts.user_usdc_account.to_account_info(),
@@ -735,15 +703,12 @@ pub mod ginva {
         let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
         token::transfer(cpi_ctx, final_payment)?;
 
-        // 3. อัปเดตสัญญา (รีเซ็ตเวลา)
-        // เลื่อนวันครบกำหนด (Maturity) ไปข้างหน้า เท่ากับระยะเวลาสัญญาเดิม (Duration)
-        // เสมือนการ "ฉีกตั๋วเก่า ออกตั๋วใหม่" เริ่มนับหนึ่งใหม่ตั้งแต่วันนี้
+        // Update loan timing
         loan_account.last_payment_at = current_time;
         loan_account.maturity_at = current_time + (loan_account.duration_days as i64 * 86400);
 
-        // 🛡️ FIX: อัปเดต acc_reward_per_share สำหรับ stakers
-        // แจกจ่ายดอกเบี้ยที่จ่ายเข้าไปให้กับผู้ stake (ตามสัดส่วน revenue distribution)
-        const REVENUE_STAKER_SHARE_BPS: u64 = 6525; // 65.25% ตาม Capital Flow
+        // Update acc_reward_per_share for stakers
+        const REVENUE_STAKER_SHARE_BPS: u64 = 6525; // 65.25% per Capital Flow
         let staker_share = (final_payment as u128)
             .checked_mul(REVENUE_STAKER_SHARE_BPS as u128)
             .unwrap()
@@ -776,9 +741,9 @@ pub mod ginva {
                 .checked_add(reward_per_share_increment)
                 .ok_or(GinvaError::ArithmeticOverflow)?;
 
-            msg!("💰 แจกจ่าย reward ให้ stakers: {} USDC", staker_share);
+            msg!("💰 Reward distributed to stakers: {} USDC", staker_share);
         } else if staker_share > 0 {
-            // ถ้าไม่มี staker สะสม dust ไว้
+            // Accumulate dust if no stakers
             config.reward_dust = config
                 .reward_dust
                 .checked_add(
@@ -789,16 +754,14 @@ pub mod ginva {
                 .unwrap_or(config.reward_dust);
         }
 
-        msg!("✅ ต่อดอกสำเร็จ: จ่ายดอกเบี้ย {} USDC", final_payment);
-        msg!("📅 ครบกำหนดรอบใหม่: {}", loan_account.maturity_at);
+        msg!("✅ Loan extended: Interest paid {} USDC", final_payment);
+        msg!("📅 New maturity: {}", loan_account.maturity_at);
 
         Ok(())
     }
 
-    // ═════════════════════════════════════════════════════════════
-    // 4️⃣ STEP 1: TRIGGER LIQUIDATION (Keeper A - 0.6% Reward)
-    // OPTIMIZED: Split into two transactions to avoid stack overflow
-    // ═════════════════════════════════════════════════════════════
+    // STEP 1: TRIGGER LIQUIDATION (Keeper A - 0.6% Reward)
+    // Split into two transactions to avoid stack overflow
     pub fn trigger_liquidation(ctx: Context<TriggerLiquidation>) -> Result<()> {
         let loan_account = &mut ctx.accounts.loan_account;
         let system_config = &mut ctx.accounts.system_config;
@@ -942,10 +905,8 @@ pub mod ginva {
         Ok(())
     }
 
-    // ═════════════════════════════════════════════════════════════
-    // 4️⃣ STEP 1B: CLAIM TRIGGER REWARD (Keeper A)
-    // SEPARATE FUNCTION: Avoids stack overflow in trigger_liquidation
-    // ═════════════════════════════════════════════════════════════
+    // STEP 1B: CLAIM TRIGGER REWARD (Keeper A)
+    // Separate function to avoid stack overflow
     pub fn claim_trigger_reward(ctx: Context<ClaimTriggerReward>) -> Result<()> {
         let liquidation_process = &mut ctx.accounts.liquidation_process;
         let keeper_a = ctx.accounts.keeper_a.key();
@@ -993,9 +954,7 @@ pub mod ginva {
         Ok(())
     }
 
-    // ═════════════════════════════════════════════════════════════
-    // 🏪 GINVA PAWN SHOP (Time-Decay Pricing / Dutch Auction)
-    // ═════════════════════════════════════════════════════════════
+    // GINVA PAWN SHOP (Time-Decay Pricing / Dutch Auction)
     // Atomic swap: Caller pays USDC -> receives collateral
     // Pricing Rule:
     // 0-10  mins: 8% Discount (Golden Hour)
@@ -1044,22 +1003,18 @@ pub mod ginva {
             6, // USDC decimals
         )?;
 
-        // ═════════════════════════════════════════════════════════════
-        // 📉 TIME-DECAY PRICING ENGINE (THE GREED ENGINE)
-        // ═════════════════════════════════════════════════════════════
-
-        // คำนวณเวลาที่ผ่านไปตั้งแต่ Trigger (หน่วย: วินาที)
+        // Time-decay pricing engine
         let elapsed_time = current_time.saturating_sub(liquidation_process.triggered_at);
 
-        // กำหนดส่วนลดตามช่วงเวลา (Hardcoded as Law)
+        // Set discount based on elapsed time
         let current_discount_bps = if elapsed_time <= 600 {
-            800 // 0-10 นาที: ลด 8% (Golden Hour - รีบกด!)
+            800 // 0-10 min: 8% discount (Golden Hour)
         } else if elapsed_time <= 1800 {
-            600 // 10-30 นาที: ลด 6%
+            600 // 10-30 min: 6% discount
         } else if elapsed_time <= 3600 {
-            300 // 30-60 นาที: ลด 3%
+            300 // 30-60 min: 3% discount
         } else {
-            0 // เกิน 1 ชม.: ราคาตลาด (No Discount)
+            0 // > 60 min: Market price (No Discount)
         };
 
         // 3. Calculate Final Price
@@ -1118,9 +1073,7 @@ pub mod ginva {
         Ok(())
     }
 
-    // ═════════════════════════════════════════════════════════════
-    // 🦄 DEX FALLBACK via Jupiter CPI (ทำงานหลัง 24 ชม.)
-    // ═════════════════════════════════════════════════════════════
+    // DEX FALLBACK via Jupiter CPI
     // Fallback: Use Jupiter Aggregator for on-chain swap
     // Client must provide route_data and remaining_accounts from Jupiter API
     pub fn execute_dex_fallback(ctx: Context<ExecuteDexFallback>, data: Vec<u8>) -> Result<()> {
@@ -1272,9 +1225,7 @@ pub mod ginva {
         Ok(())
     }
 
-    // ═════════════════════════════════════════════════════════════
-    // 6️⃣ STEP 3: FINALIZE LIQUIDATION (Revised Allocation)
-    // ═════════════════════════════════════════════════════════════
+    // STEP 3: FINALIZE LIQUIDATION (Revised Allocation)
     // NEW LOGIC:
     // - Keeper C gets FIXED 1.0 USDC (or max 10% if dust amount)
     // - Priority: Keeper C gets paid FIRST, then principal return
@@ -1527,9 +1478,7 @@ pub mod ginva {
         Ok(())
     }
 
-    // ═════════════════════════════════════════════════════════════
-    // 7️⃣ TIMEOUT RECOVERY
-    // ═════════════════════════════════════════════════════════════
+    // TIMEOUT RECOVERY
     pub fn claim_expired_swap(ctx: Context<ClaimExpiredSwap>) -> Result<()> {
         let liquidation_process = &mut ctx.accounts.liquidation_process;
         let protocol_config = &ctx.accounts.protocol_config;
@@ -1574,9 +1523,7 @@ pub mod ginva {
         Ok(())
     }
 
-    // ═════════════════════════════════════════════════════════════
-    // 8️⃣ REPAY LOAN
-    // ═════════════════════════════════════════════════════════════
+    // REPAY LOAN
     pub fn repay_loan(ctx: Context<RepayLoan>) -> Result<()> {
         let loan_account = &mut ctx.accounts.loan_account;
         let system_config = &mut ctx.accounts.system_config;
@@ -1706,9 +1653,7 @@ pub mod ginva {
         Ok(())
     }
 
-    // ═════════════════════════════════════════════════════════════
-    // 9️⃣ PAY INTEREST (Monthly Payment)
-    // ═════════════════════════════════════════════════════════════
+    // PAY INTEREST (Monthly Payment)
     pub fn pay_interest(ctx: Context<PayInterest>) -> Result<()> {
         let loan_account = &mut ctx.accounts.loan_account;
         let user = ctx.accounts.user.key();
@@ -1883,9 +1828,7 @@ pub mod ginva {
         Ok(())
     }
 
-    // ═════════════════════════════════════════════════════════════
-    // 🔟 STAKING & REWARDS
-    // ═════════════════════════════════════════════════════════════
+    // STAKING & REWARDS
 
     // Stake LP tokens
     pub fn stake_lp(ctx: Context<StakeLP>, amount: u64) -> Result<()> {
@@ -2131,9 +2074,7 @@ pub mod ginva {
         Ok(())
     }
 
-    // ═════════════════════════════════════════════════════════════
-    // 1️⃣1️⃣ CHECK HEALTH FACTOR (Risk Monitoring)
-    // ═════════════════════════════════════════════════════════════
+    // CHECK HEALTH FACTOR (Risk Monitoring)
     pub fn check_health_factor(ctx: Context<CheckHealthFactor>) -> Result<()> {
         let loan_account = &ctx.accounts.loan_account;
         let system_config = &mut ctx.accounts.system_config;
@@ -2201,9 +2142,7 @@ pub mod ginva {
         Ok(())
     }
 
-    // ═════════════════════════════════════════════════════════════
-    // 1️⃣2️⃣ STATUS TRACKING (Loan Lifecycle)
-    // ═════════════════════════════════════════════════════════════
+    // STATUS TRACKING (Loan Lifecycle)
     pub fn check_overdue_loan(ctx: Context<CheckLoanStatus>) -> Result<()> {
         let loan = &mut ctx.accounts.loan_account;
         let current_time = Clock::get()?.unix_timestamp;
@@ -2235,9 +2174,7 @@ pub mod ginva {
     }
 }
 
-// ═════════════════════════════════════════════════════════════
-// 🛠️ HELPER FUNCTIONS
-// ═════════════════════════════════════════════════════════════
+// HELPER FUNCTIONS
 
 /// 🛡️ RATE LIMITING: Check and update user operation rate limits
 /// Uses slot-based tracking for more accurate rate limiting on Solana
@@ -2350,9 +2287,9 @@ fn get_pyth_price_with_exponent_and_validation(
 ) -> Result<(u64, i32)> {
     let clock = Clock::get()?;
 
-    // 🛡️ INTELLIGENT MOCK: ปรับแต่ง Logic ตามสภาพแวดล้อม
-    // ถ้าเป็น Local Test -> ให้ max_age เป็นอนันต์ (u64::MAX) เพื่อรับ Mock Data ได้ทุกแบบ
-    // ถ้าเป็น Production -> ต้องเป็น MAX_PRICE_AGE_SECONDS (60 วิ) เท่านั้น!
+    // Intelligent mock: adjust logic based on environment
+    // Local Test -> max_age is u64::MAX to accept any mock data
+    // Production -> must be MAX_PRICE_AGE_SECONDS (60 seconds)
     let max_age = if cfg!(feature = "local-test") {
         msg!("⚠️ WARNING: Local Test Mode - Oracle Time Check Disabled");
         u64::MAX
@@ -2379,7 +2316,7 @@ fn get_pyth_price_with_exponent_and_validation(
     let price_u64 = price.price.unsigned_abs();
     let exponent = price.exponent;
 
-    // 🛡️ PRICE DEVIATION CHECK: Validate price BEFORE updating state
+    // PRICE DEVIATION CHECK: Validate price BEFORE updating state
     // Critical: Must validate BEFORE any state changes to prevent partial updates
     let previous_price = system_config.last_oracle_price;
     if previous_price > 0 {
@@ -2400,9 +2337,9 @@ fn get_pyth_price_with_exponent(
 ) -> Result<(u64, i32)> {
     let clock = Clock::get()?;
 
-    // 🛡️ INTELLIGENT MOCK: ปรับแต่ง Logic ตามสภาพแวดล้อม
-    // ถ้าเป็น Local Test -> ให้ max_age เป็นอนันต์ (u64::MAX) เพื่อรับ Mock Data ได้ทุกแบบ
-    // ถ้าเป็น Production -> ต้องเป็น MAX_PRICE_AGE_SECONDS (60 วิ) เท่านั้น!
+    // Intelligent mock: adjust logic based on environment
+    // Local Test -> max_age is u64::MAX to accept any mock data
+    // Production -> must be MAX_PRICE_AGE_SECONDS (60 seconds)
     let max_age = if cfg!(feature = "local-test") {
         msg!("⚠️ WARNING: Local Test Mode - Oracle Time Check Disabled");
         u64::MAX
@@ -2496,9 +2433,7 @@ fn calculate_dynamic_interest(
     std::cmp::min(configured_rate, system_config.max_interest_rate_bps)
 }
 
-// ═════════════════════════════════════════════════════════════
-// 📋 ENUMS
-// ═════════════════════════════════════════════════════════════
+// ENUMS
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, PartialEq)]
 pub enum LoanStatus {
@@ -2518,9 +2453,7 @@ pub enum LiquidationStatus {
     Expired = 4,
 }
 
-// ═════════════════════════════════════════════════════════════
-// 📋 EVENTS (For indexing and monitoring)
-// ═════════════════════════════════════════════════════════════
+// EVENTS (For indexing and monitoring)
 
 #[event]
 pub struct LoanCreated {
@@ -2600,9 +2533,7 @@ pub struct LTVLevelsUpdated {
     pub timestamp: i64,
 }
 
-// ═════════════════════════════════════════════════════════════
-// 📋 ACCOUNT STRUCTURES
-// ═════════════════════════════════════════════════════════════
+// ACCOUNT STRUCTURES
 
 #[account]
 pub struct ProtocolConfig {
@@ -2754,7 +2685,7 @@ pub struct LiquidationProcess {
     pub triggered_at: i64,
     pub deadline_for_swap: i64,
     pub deadline_for_distribution: i64,
-    pub dex_activation_time: i64, // 🕒 เวลาที่จะอนุญาตให้ขายเข้า DEX (Trigger + 6h)
+    pub dex_activation_time: i64, // Time when DEX sales are allowed (Trigger + 6h)
     pub swapped: bool,            // NEW: Track if swap completed
     pub finalized_at: i64,
     // Distribution tracking
@@ -2767,9 +2698,7 @@ pub struct LiquidationProcess {
     pub keeper_reward_claimed: bool,
 }
 
-// ═════════════════════════════════════════════════════════════
-// 🧩 CONTEXT STRUCTURES
-// ═════════════════════════════════════════════════════════════
+// CONTEXT STRUCTURES
 
 #[derive(Accounts)]
 pub struct InitializeSystem<'info> {
@@ -3201,7 +3130,7 @@ pub struct FinalizeLiquidation<'info> {
     #[account(mut)]
     pub capital_wallet: Account<'info, TokenAccount>,
 
-    // ✅ เพิ่ม Ops Wallet เข้ามาเพื่อรับส่วนแบ่ง
+    // Added Ops Wallet to receive share
     #[account(mut, address = system_config.ops_wallet)]
     pub ops_wallet: Account<'info, TokenAccount>,
 
@@ -3286,7 +3215,7 @@ pub struct ExtendLoan<'info> {
     #[account(mut)]
     pub user_usdc_account: Account<'info, TokenAccount>,
 
-    // รับดอกเบี้ยเข้ากระเป๋า Revenue (เพื่อเอาไปเป็น Profit ของระบบ)
+    // Interest revenue wallet (for system profit)
     #[account(
         mut,
         token::authority = system_config.revenue_wallet_authority
@@ -3463,7 +3392,7 @@ pub struct CheckHealthFactor<'info> {
 #[derive(Accounts)]
 #[instruction(loan_id: u32)] // ✅ Multi-Ticket: Receive loan_id parameter
 pub struct CheckLoanStatus<'info> {
-    // ใครก็เรียกได้ (Permissionless) เพื่อช่วยอัปเดตสถานะระบบ
+    // Permissionless function to help update system status
     #[account(mut)]
     pub user: Signer<'info>,
 
@@ -3476,9 +3405,7 @@ pub struct CheckLoanStatus<'info> {
     pub loan_account: Account<'info, LoanAccount>,
 }
 
-// ═════════════════════════════════════════════════════════════
-// 🚨 ERROR CODES
-// ═════════════════════════════════════════════════════════════
+// ERROR CODES
 
 #[error_code]
 pub enum GinvaError {
