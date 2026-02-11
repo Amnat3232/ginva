@@ -33,7 +33,7 @@ declare_id!("2SiGJi9VkD96oWLNizmMkGFwFpHq1tEETVqrLCezWKou");
 // Pyth SOL/USD Price Feed ID (from https://pyth.network/developers/price-feed-ids)
 pub const SOL_USD_FEED_ID: &str =
     "0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d";
-pub const MAX_PRICE_AGE_SECONDS: u64 = 60; // Maximum age of price data in seconds
+pub const MAX_PRICE_AGE_SECONDS: u64 = 20; // Maximum age of price data in seconds (reduced from 60 for better freshness)
 pub const MAX_CONFIDENCE_RATIO: u128 = 100; // 1% max confidence ratio (100/10000 = 1%)
                                             // ═════════════════════════════════════════════════════════════
                                             // Note: LIQUIDATION_TIMEOUT, AUTO_SWAP_REWARD_BPS, DISTRIBUTE_REWARD_BPS
@@ -463,6 +463,12 @@ pub mod ginva {
 
         require!(amount > 0, GinvaError::InvalidAmount);
 
+        // ✅ Multi-Ticket: Validate loan_id matches expected ticket_counter to prevent ID collisions
+        require!(
+            loan_id as u64 == ctx.accounts.user_rate_limit.ticket_counter,
+            GinvaError::InvalidLoanId
+        );
+
         // 🛡️ SECURITY GUARD 2.0: Check pause status + timelock
         require!(!system_config.is_paused, GinvaError::ProtocolPaused);
         require!(
@@ -734,6 +740,54 @@ pub mod ginva {
         // เสมือนการ "ฉีกตั๋วเก่า ออกตั๋วใหม่" เริ่มนับหนึ่งใหม่ตั้งแต่วันนี้
         loan_account.last_payment_at = current_time;
         loan_account.maturity_at = current_time + (loan_account.duration_days as i64 * 86400);
+
+        // 🛡️ FIX: อัปเดต acc_reward_per_share สำหรับ stakers
+        // แจกจ่ายดอกเบี้ยที่จ่ายเข้าไปให้กับผู้ stake (ตามสัดส่วน revenue distribution)
+        const REVENUE_STAKER_SHARE_BPS: u64 = 6525; // 65.25% ตาม Capital Flow
+        let staker_share = (final_payment as u128)
+            .checked_mul(REVENUE_STAKER_SHARE_BPS as u128)
+            .unwrap()
+            .checked_div(10000)
+            .unwrap() as u64;
+
+        const REWARD_PRECISION: u128 = 1_000_000_000_000_000_000u128;
+        let config = &mut ctx.accounts.system_config;
+        if config.total_staked > 0 && staker_share > 0 {
+            let reward_with_precision = (staker_share as u128)
+                .checked_mul(REWARD_PRECISION)
+                .ok_or(GinvaError::ArithmeticOverflow)?;
+
+            let reward_per_share_increment = reward_with_precision
+                .checked_div(config.total_staked as u128)
+                .ok_or(GinvaError::ArithmeticUnderflow)?;
+
+            // Track undistributed dust
+            let distributed = reward_per_share_increment
+                .checked_mul(config.total_staked as u128)
+                .unwrap_or(0);
+            let dust = reward_with_precision.saturating_sub(distributed);
+            config.reward_dust = config
+                .reward_dust
+                .checked_add(dust)
+                .unwrap_or(config.reward_dust);
+
+            config.acc_reward_per_share = config
+                .acc_reward_per_share
+                .checked_add(reward_per_share_increment)
+                .ok_or(GinvaError::ArithmeticOverflow)?;
+
+            msg!("💰 แจกจ่าย reward ให้ stakers: {} USDC", staker_share);
+        } else if staker_share > 0 {
+            // ถ้าไม่มี staker สะสม dust ไว้
+            config.reward_dust = config
+                .reward_dust
+                .checked_add(
+                    (staker_share as u128)
+                        .checked_mul(REWARD_PRECISION)
+                        .unwrap_or(0),
+                )
+                .unwrap_or(config.reward_dust);
+        }
 
         msg!("✅ ต่อดอกสำเร็จ: จ่ายดอกเบี้ย {} USDC", final_payment);
         msg!("📅 ครบกำหนดรอบใหม่: {}", loan_account.maturity_at);
@@ -1645,6 +1699,9 @@ pub mod ginva {
             principal,
             interest,
         });
+
+        // 🛡️ FIX: RESET REENTRANCY GUARD - Critical fix to prevent permanent protocol lock
+        system_config.reentrancy_guard = REENTRANCY_GUARD_INACTIVE;
 
         Ok(())
     }
