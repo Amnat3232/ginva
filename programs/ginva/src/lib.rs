@@ -30,7 +30,7 @@ declare_id!("2SiGJi9VkD96oWLNizmMkGFwFpHq1tEETVqrLCezWKou");
 // Pyth SOL/USD Price Feed ID (from https://pyth.network/developers/price-feed-ids)
 pub const SOL_USD_FEED_ID: &str =
     "0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d";
-pub const MAX_PRICE_AGE_SECONDS: u64 = 20; // Maximum age of price data in seconds (reduced from 60 for better freshness)
+pub const MAX_PRICE_AGE_SECONDS: u64 = 15; // Maximum age of price data in seconds (reduced from 60 for better freshness)
 pub const MAX_CONFIDENCE_RATIO: u128 = 100; // 1% max confidence ratio (100/10000 = 1%)
 
 // Note: LIQUIDATION_TIMEOUT, AUTO_SWAP_REWARD_BPS, DISTRIBUTE_REWARD_BPS
@@ -430,11 +430,7 @@ pub mod ginva {
     }
 
     // DEPOSIT COLLATERAL
-    pub fn deposit_collateral(
-        ctx: Context<DepositCollateral>,
-        loan_id: u32,
-        amount: u64,
-    ) -> Result<()> {
+    pub fn deposit_collateral(ctx: Context<DepositCollateral>, amount: u64) -> Result<()> {
         let system_config = &mut ctx.accounts.system_config;
         let loan_account = &mut ctx.accounts.loan_account;
         let asset_config = &ctx.accounts.asset_config;
@@ -442,12 +438,6 @@ pub mod ginva {
         let clock = Clock::get()?;
 
         require!(amount > 0, GinvaError::InvalidAmount);
-
-        // ✅ Multi-Ticket: Validate loan_id matches expected ticket_counter to prevent ID collisions
-        require!(
-            loan_id as u64 == ctx.accounts.user_rate_limit.ticket_counter,
-            GinvaError::InvalidLoanId
-        );
 
         // 🛡️ SECURITY GUARD 2.0: Check pause status + timelock
         require!(!system_config.is_paused, GinvaError::ProtocolPaused);
@@ -461,7 +451,8 @@ pub mod ginva {
         let current_slot = clock.slot;
         check_rate_limit(&mut ctx.accounts.user_rate_limit, current_slot, user)?;
 
-        // ✅ Multi-Ticket: Initialize new loan account with loan_id
+        // ✅ Multi-Ticket: Auto-assign loan_id from ticket_counter to prevent ID collisions
+        let loan_id = ctx.accounts.user_rate_limit.ticket_counter as u32;
         loan_account.borrower = user;
         loan_account.loan_id = loan_id;
         loan_account.collateral_mint = asset_config.mint;
@@ -1598,6 +1589,50 @@ pub mod ginva {
             };
             let cpi_ctx_interest = CpiContext::new(cpi_program.clone(), cpi_accounts_interest);
             token::transfer(cpi_ctx_interest, interest)?;
+
+            // 🛡️ CRITICAL FIX: Distribute rewards to staking pool
+            // All interest in repay_loan goes to stakers (100%)
+            const REWARD_PRECISION: u128 = 1_000_000_000_000_000_000u128;
+            if system_config.total_staked > 0 {
+                let reward_with_precision = (interest as u128)
+                    .checked_mul(REWARD_PRECISION)
+                    .ok_or(GinvaError::ArithmeticOverflow)?;
+
+                let reward_per_share_increment = reward_with_precision
+                    .checked_div(system_config.total_staked as u128)
+                    .ok_or(GinvaError::ArithmeticUnderflow)?;
+
+                // Track undistributed dust
+                let distributed = reward_per_share_increment
+                    .checked_mul(system_config.total_staked as u128)
+                    .unwrap_or(0);
+                let dust = reward_with_precision.saturating_sub(distributed);
+                system_config.reward_dust = system_config
+                    .reward_dust
+                    .checked_add(dust)
+                    .unwrap_or(system_config.reward_dust);
+
+                system_config.acc_reward_per_share = system_config
+                    .acc_reward_per_share
+                    .checked_add(reward_per_share_increment)
+                    .ok_or(GinvaError::ArithmeticOverflow)?;
+
+                msg!(
+                    "💰 Reward distributed to stakers: {} USDC (dust: {})",
+                    interest,
+                    dust
+                );
+            } else {
+                // If no stakers, accumulate dust for later
+                system_config.reward_dust = system_config
+                    .reward_dust
+                    .checked_add(
+                        (interest as u128)
+                            .checked_mul(REWARD_PRECISION)
+                            .unwrap_or(0),
+                    )
+                    .unwrap_or(system_config.reward_dust);
+            }
         }
 
         // 2. Vault returns Collateral -> User (PDA Signer)
