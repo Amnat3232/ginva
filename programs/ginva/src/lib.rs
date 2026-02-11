@@ -729,7 +729,7 @@ pub mod ginva {
         if ops_share > 0 {
             let cpi_accounts = Transfer {
                 from: ctx.accounts.user_usdc_account.to_account_info(),
-                to: ctx.accounts.ops_token_account.to_account_info(),
+                to: ctx.accounts.ops_wallet.to_account_info(),
                 authority: ctx.accounts.user.to_account_info(),
             };
             token::transfer(
@@ -1870,7 +1870,7 @@ pub mod ginva {
                     cpi_program.clone(),
                     Transfer {
                         from: ctx.accounts.user_usdc_account.to_account_info(),
-                        to: ctx.accounts.ops_token_account.to_account_info(),
+                        to: ctx.accounts.ops_wallet.to_account_info(),
                         authority: ctx.accounts.user.to_account_info(),
                     },
                 ),
@@ -3353,8 +3353,11 @@ pub struct ExtendLoan<'info> {
     /// CHECK: PDA derived from [b"vault_auth"]
     #[account(seeds = [b"vault_auth"], bump)]
     pub vault_authority: AccountInfo<'info>,
-    #[account(mut, token::authority = vault_authority)]
-    pub ops_token_account: Account<'info, TokenAccount>,
+
+    // ✅ FIX: Use ops_wallet tied to system_config.ops_wallet (same as RepayLoan)
+    // This allows the team to withdraw using their private key
+    #[account(mut, address = system_config.ops_wallet)]
+    pub ops_wallet: Account<'info, TokenAccount>,
 
     #[account(mut, token::authority = vault_authority)]
     pub revenue_wallet: Account<'info, TokenAccount>,
@@ -3400,8 +3403,10 @@ pub struct PayInterest<'info> {
     #[account(seeds = [b"vault_auth"], bump)]
     pub vault_authority: AccountInfo<'info>,
 
-    #[account(mut, token::authority = vault_authority)]
-    pub ops_token_account: Account<'info, TokenAccount>,
+    // ✅ FIX: Use ops_wallet tied to system_config.ops_wallet (same as RepayLoan and ExtendLoan)
+    // This allows the team to withdraw using their private key
+    #[account(mut, address = system_config.ops_wallet)]
+    pub ops_wallet: Account<'info, TokenAccount>,
 
     #[account(mut, token::authority = vault_authority)]
     pub revenue_wallet: Account<'info, TokenAccount>,
