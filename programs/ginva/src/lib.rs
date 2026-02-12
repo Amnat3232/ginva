@@ -12,6 +12,17 @@ pub const MAX_OPERATIONS_PER_BLOCK: u64 = 5;
 pub const MAX_PRICE_CHANGE_BPS: u64 = 500; // 5% max price change
 pub const MIN_TIME_BETWEEN_OPERATIONS: i64 = 1; // 1 second between user ops
 
+// Jupiter CPI validation constants
+pub const MIN_JUPITER_DATA_LEN: usize = 16; // Minimum valid Jupiter instruction data
+pub const MAX_JUPITER_SLIPPAGE_BPS: u64 = 2000; // 20% max slippage for DEX fallback
+pub const MIN_JUPITER_ACCOUNTS: usize = 3; // Minimum accounts needed for swap
+
+// Staking limits
+pub const MAX_TOTAL_STAKED: u64 = 1_000_000_000_000_000; // 1B USDC max total staked
+
+// Interest calculation precision
+pub const INTEREST_PRECISION: u128 = 1_000_000; // 6 decimals precision for interest calculation
+
 // Flash loan protection
 pub const MIN_HOLD_TIME: i64 = 2; // 2 seconds minimum hold (kept for backward compatibility)
 pub const MIN_HOLD_BLOCKS: u64 = 100; // Block-based protection (~40 seconds on Solana)
@@ -82,6 +93,16 @@ pub mod ginva {
 
         // Initialize ops wallet
         system_config.ops_wallet = ctx.accounts.ops_wallet.key();
+
+        // 🛡️ VALIDATION: Ensure critical addresses are not zero
+        require!(
+            system_config.ops_wallet != Pubkey::default(),
+            GinvaError::InvalidWalletAddress
+        );
+        require!(
+            system_config.reserve_wallet != Pubkey::default(),
+            GinvaError::InvalidWalletAddress
+        );
 
         // Initialize staking fields
         system_config.total_staked = 0;
@@ -466,21 +487,52 @@ pub mod ginva {
             .ticket_counter
             .saturating_add(1);
 
-        // Transfer Collateral: User -> Vault
+        // 🛡️ DEPOSIT FEE: Calculate and collect fee
+        let deposit_fee = if system_config.deposit_fee_bps > 0 {
+            amount
+                .checked_mul(system_config.deposit_fee_bps as u64)
+                .ok_or(GinvaError::ArithmeticOverflow)?
+                .checked_div(10000)
+                .ok_or(GinvaError::ArithmeticUnderflow)?
+        } else {
+            0
+        };
+
+        let amount_after_fee = amount
+            .checked_sub(deposit_fee)
+            .ok_or(GinvaError::ArithmeticUnderflow)?;
+
+        // Transfer Collateral: User -> Vault (after fee deduction)
         let cpi_program = ctx.accounts.token_program.to_account_info();
         let cpi_accounts = Transfer {
             from: ctx.accounts.user_collateral_account.to_account_info(),
             to: ctx.accounts.vault_collateral_account.to_account_info(),
             authority: ctx.accounts.user.to_account_info(),
         };
-        let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
-        token::transfer(cpi_ctx, amount)?;
+        let cpi_ctx = CpiContext::new(cpi_program.clone(), cpi_accounts);
+        token::transfer(cpi_ctx, amount_after_fee)?;
+
+        // Transfer fee to ops_wallet if applicable
+        if deposit_fee > 0 {
+            let cpi_accounts_fee = Transfer {
+                from: ctx.accounts.user_collateral_account.to_account_info(),
+                to: ctx.accounts.ops_wallet.to_account_info(),
+                authority: ctx.accounts.user.to_account_info(),
+            };
+            let cpi_ctx_fee = CpiContext::new(cpi_program, cpi_accounts_fee);
+            token::transfer(cpi_ctx_fee, deposit_fee)?;
+        }
 
         // Update State
-        loan_account.collateral_amount = loan_account.collateral_amount.saturating_add(amount);
+        // 🛡️ FIX: Use amount_after_fee for state update (fee goes to ops_wallet, not vault)
+        loan_account.collateral_amount = loan_account
+            .collateral_amount
+            .saturating_add(amount_after_fee);
         loan_account.status = LoanStatus::Active as u8;
         loan_account.last_payment_at = clock.unix_timestamp;
-        system_config.total_collateral = system_config.total_collateral.saturating_add(amount);
+        system_config.total_collateral = system_config
+            .total_collateral
+            .saturating_add(amount_after_fee);
 
         msg!(
             "✅ Collateral deposited: {} of {:?}",
@@ -532,6 +584,12 @@ pub mod ginva {
         require!(
             loan_account.borrower == ctx.accounts.user.key(),
             GinvaError::Unauthorized
+        );
+
+        // 🛡️ ORACLE VALIDATION: Ensure price has been initialized
+        require!(
+            system_config.last_price_update > 0,
+            GinvaError::OraclePriceNotInitialized
         );
 
         let (current_price, price_exponent) = get_pyth_price_with_exponent_and_validation(
@@ -607,7 +665,7 @@ pub mod ginva {
         let utilization_bps = if total_supply > 0 {
             (system_config.total_borrowed as u128)
                 .checked_mul(10000)
-                .unwrap()
+                .ok_or(GinvaError::ArithmeticOverflow)?
                 .checked_div(total_supply as u128)
                 .unwrap_or(0) as u64
         } else {
@@ -666,15 +724,22 @@ pub mod ginva {
         let days_elapsed = time_elapsed / 86400;
         require!(days_elapsed >= 30, GinvaError::PaymentPeriodNotMet);
 
+        // 🛡️ PRECISION FIX: Calculate with higher precision to minimize rounding errors
         let interest_amount = (loan_account.loan_amount as u128)
             .checked_mul(loan_account.interest_rate_bps as u128)
-            .unwrap()
+            .ok_or(GinvaError::ArithmeticOverflow)?
             .checked_mul(time_elapsed as u128)
-            .unwrap()
+            .ok_or(GinvaError::ArithmeticOverflow)?
+            .checked_mul(INTEREST_PRECISION)
+            .ok_or(GinvaError::ArithmeticOverflow)?
             .checked_div(31_536_000 * 10000)
-            .unwrap();
+            .ok_or(GinvaError::ArithmeticUnderflow)?;
 
-        let interest_payment = interest_amount as u64;
+        // Round up to favor the protocol (ceiling division)
+        let interest_with_precision = interest_amount
+            .checked_add(INTEREST_PRECISION - 1)
+            .ok_or(GinvaError::ArithmeticOverflow)?;
+        let interest_payment = (interest_with_precision / INTEREST_PRECISION) as u64;
 
         let final_payment = if interest_payment == 0 && time_elapsed > 3600 {
             1
@@ -696,7 +761,9 @@ pub mod ginva {
                 .ok_or(GinvaError::ArithmeticUnderflow)?;
 
             // 2. Remaining 90%
-            let distributable = final_payment.checked_sub(capital_share).unwrap();
+            let distributable = final_payment
+                .checked_sub(capital_share)
+                .ok_or(GinvaError::ArithmeticUnderflow)?;
 
             // 3. Ops 27.5% of remaining (24.75% of total)
             ops_share = distributable
@@ -706,7 +773,9 @@ pub mod ginva {
                 .ok_or(GinvaError::ArithmeticUnderflow)?;
 
             // 4. Stakers get remainder (65.25% of total)
-            staker_share = distributable.checked_sub(ops_share).unwrap();
+            staker_share = distributable
+                .checked_sub(ops_share)
+                .ok_or(GinvaError::ArithmeticUnderflow)?;
         }
 
         // Phase 2: Transfer to all wallets
@@ -833,116 +902,124 @@ pub mod ginva {
         check_reentrancy_guard(system_config.reentrancy_guard)?;
         system_config.reentrancy_guard = REENTRANCY_GUARD_ACTIVE;
 
-        // 1. Check Health Factor
-        let asset_config = &ctx.accounts.asset_config;
-        let (current_price, price_exponent) = get_pyth_price_with_exponent_and_validation(
-            &ctx.accounts.pyth_price_feed,
-            &asset_config.feed_id,
-            system_config,
-        )?;
-        let collateral_value = calculate_collateral_value(
-            loan_account.collateral_amount,
-            current_price,
-            price_exponent,
-            asset_config.decimals,
-            6, // USDC decimals
-        )?;
+        // 🛡️ SCOPE GUARD: Ensure lock is always reset
+        let result = (|| -> Result<()> {
+            // 1. Check Health Factor
+            let asset_config = &ctx.accounts.asset_config;
+            let (current_price, price_exponent) = get_pyth_price_with_exponent_and_validation(
+                &ctx.accounts.pyth_price_feed,
+                &asset_config.feed_id,
+                system_config,
+            )?;
+            let collateral_value = calculate_collateral_value(
+                loan_account.collateral_amount,
+                current_price,
+                price_exponent,
+                asset_config.decimals,
+                6, // USDC decimals
+            )?;
 
-        let safety_threshold = collateral_value
-            .saturating_mul(85)
-            .checked_div(100)
-            .unwrap_or(0);
-        let health_factor = if loan_account.loan_amount > 0 {
-            safety_threshold
-                .saturating_mul(100)
-                .checked_div(loan_account.loan_amount)
-                .unwrap_or(0)
-        } else {
-            1000
-        };
+            let safety_threshold = collateral_value
+                .saturating_mul(85)
+                .checked_div(100)
+                .unwrap_or(0);
+            let health_factor = if loan_account.loan_amount > 0 {
+                safety_threshold
+                    .saturating_mul(100)
+                    .checked_div(loan_account.loan_amount)
+                    .unwrap_or(0)
+            } else {
+                1000
+            };
 
-        let days_overdue = (current_time - loan_account.last_payment_at) / 86400;
-        require!(
-            health_factor < 100 || days_overdue > 33,
-            GinvaError::NotYetLiquidatable
-        );
+            let days_overdue = (current_time - loan_account.last_payment_at) / 86400;
+            require!(
+                health_factor < 100 || days_overdue > 33,
+                GinvaError::NotYetLiquidatable
+            );
 
-        // 2. Calculate Split (0.6% reward + 99.4% for swap)
-        let trigger_reward = loan_account
-            .collateral_amount
-            .saturating_mul(60) // 0.6% reward
-            .checked_div(10000)
-            .unwrap_or(0);
-        let remaining_for_swap = loan_account
-            .collateral_amount
-            .saturating_sub(trigger_reward);
+            // 2. Calculate Split (0.6% reward + 99.4% for swap)
+            let trigger_reward = loan_account
+                .collateral_amount
+                .saturating_mul(60) // 0.6% reward
+                .checked_div(10000)
+                .unwrap_or(0);
+            let remaining_for_swap = loan_account
+                .collateral_amount
+                .saturating_sub(trigger_reward);
 
-        // 3. Transfer 99% to Seized Assets Vault (waiting for auto-swap)
-        let bump = ctx.bumps.vault_authority;
-        let seeds = &[b"vault_auth".as_ref(), &[bump]];
-        let signer = &[&seeds[..]];
+            // 3. Transfer 99% to Seized Assets Vault (waiting for auto-swap)
+            let bump = ctx.bumps.vault_authority;
+            let seeds = &[b"vault_auth".as_ref(), &[bump]];
+            let signer = &[&seeds[..]];
 
-        let cpi_accounts_seized = Transfer {
-            from: ctx.accounts.vault_collateral_account.to_account_info(),
-            to: ctx.accounts.seized_assets_vault.to_account_info(),
-            authority: ctx.accounts.vault_authority.to_account_info(),
-        };
-        let cpi_ctx_seized = CpiContext::new_with_signer(
-            ctx.accounts.token_program.to_account_info(),
-            cpi_accounts_seized,
-            signer,
-        );
-        token::transfer(cpi_ctx_seized, remaining_for_swap)?;
+            let cpi_accounts_seized = Transfer {
+                from: ctx.accounts.vault_collateral_account.to_account_info(),
+                to: ctx.accounts.seized_assets_vault.to_account_info(),
+                authority: ctx.accounts.vault_authority.to_account_info(),
+            };
+            let cpi_ctx_seized = CpiContext::new_with_signer(
+                ctx.accounts.token_program.to_account_info(),
+                cpi_accounts_seized,
+                signer,
+            );
+            token::transfer(cpi_ctx_seized, remaining_for_swap)?;
 
-        // 4. Initialize Liquidation Process
-        liquidation_process.loan_account = loan_account.key();
-        liquidation_process.status = LiquidationStatus::Triggered as u8;
-        liquidation_process.trigger_keeper = keeper_a;
-        liquidation_process.seized_collateral_amount = remaining_for_swap;
-        liquidation_process.triggered_at = current_time;
-        liquidation_process.deadline_for_swap = current_time; // Storefront opens immediately
-        liquidation_process.dex_activation_time = current_time + 21600; // DEX fallback after 6h
-        liquidation_process.swapped = false;
-        liquidation_process.keeper_reward_amount = trigger_reward;
-        liquidation_process.keeper_reward_claimed = false;
+            // 4. Initialize Liquidation Process
+            liquidation_process.loan_account = loan_account.key();
+            liquidation_process.status = LiquidationStatus::Triggered as u8;
+            liquidation_process.trigger_keeper = keeper_a;
+            liquidation_process.seized_collateral_amount = remaining_for_swap;
+            liquidation_process.triggered_at = current_time;
+            liquidation_process.deadline_for_swap = current_time; // Storefront opens immediately
+            liquidation_process.dex_activation_time = current_time + 21600; // DEX fallback after 6h
+            liquidation_process.swapped = false;
+            liquidation_process.keeper_reward_amount = trigger_reward;
+            liquidation_process.keeper_reward_claimed = false;
 
-        // Update Loan
-        // 🛡️ FIX: Use intermediate state, only mark as Liquidated after finalize succeeds
-        loan_account.status = LoanStatus::LiquidationInProgress as u8;
-        loan_account.liquidated_at = current_time;
-        loan_account.keeper_address = keeper_a;
-        let total_collateral_to_subtract = loan_account.collateral_amount;
-        loan_account.collateral_amount = 0;
+            // Update Loan
+            // 🛡️ FIX: Use intermediate state, only mark as Liquidated after finalize succeeds
+            loan_account.status = LoanStatus::LiquidationInProgress as u8;
+            loan_account.liquidated_at = current_time;
+            loan_account.keeper_address = keeper_a;
+            let total_collateral_to_subtract = loan_account.collateral_amount;
+            loan_account.collateral_amount = 0;
 
-        // Update System
-        system_config.total_collateral = system_config
-            .total_collateral
-            .saturating_sub(total_collateral_to_subtract);
+            // Update System
+            system_config.total_collateral = system_config
+                .total_collateral
+                .saturating_sub(total_collateral_to_subtract);
 
-        msg!(
-            "🔨 Step 1 Complete! Keeper A can claim: {} SOL (0.6%)",
-            trigger_reward
-        );
-        msg!(
-            "🏪 STOREFRONT OPEN! {} SOL available immediately with 6% discount",
-            remaining_for_swap
-        );
-        msg!(
-            "🦄 DEX fallback available in 6 hours (at timestamp: {})",
-            liquidation_process.dex_activation_time
-        );
+            msg!(
+                "🔨 Step 1 Complete! Keeper A can claim: {} SOL (0.6%)",
+                trigger_reward
+            );
+            msg!(
+                "🏪 STOREFRONT OPEN! {} SOL available immediately with 6% discount",
+                remaining_for_swap
+            );
+            msg!(
+                "🦄 DEX fallback available in 6 hours (at timestamp: {})",
+                liquidation_process.dex_activation_time
+            );
 
-        // Emit event for indexing
-        emit!(LiquidationTriggered {
-            loan_account: loan_account.key(),
-            keeper: keeper_a,
-            collateral_amount: remaining_for_swap,
-        });
+            // Emit event for indexing
+            emit!(LiquidationTriggered {
+                loan_account: loan_account.key(),
+                keeper: keeper_a,
+                collateral_amount: remaining_for_swap,
+            });
 
-        // 🛡️ RESET REENTRANCY GUARD: Allow next operation
-        system_config.reentrancy_guard = REENTRANCY_GUARD_INACTIVE;
+            // 🛡️ RESET REENTRANCY GUARD: Allow next operation
+            system_config.reentrancy_guard = REENTRANCY_GUARD_INACTIVE;
 
-        Ok(())
+            Ok(())
+        })(); // End of scope guard
+
+        // 🛡️ ALWAYS RESET LOCK: Even if the operation failed
+        loan_account.liquidation_lock = false;
+
+        result
     }
 
     // STEP 1B: CLAIM TRIGGER REWARD (Keeper A)
@@ -1014,6 +1091,10 @@ pub mod ginva {
             current_time >= system_config.ops_resume_at,
             GinvaError::SystemInCooldown
         );
+
+        // 🛡️ REENTRANCY GUARD: Prevent reentrancy attacks
+        check_reentrancy_guard(system_config.reentrancy_guard)?;
+        system_config.reentrancy_guard = REENTRANCY_GUARD_ACTIVE;
 
         // 1. Validation Checks
         require!(!liquidation_process.swapped, GinvaError::AlreadySwapped);
@@ -1110,6 +1191,18 @@ pub mod ginva {
             seized_amount
         );
 
+        // Emit event for indexing
+        emit!(StorefrontPurchase {
+            buyer: caller,
+            liquidation_process: liquidation_process.key(),
+            amount: seized_amount,
+            discount_bps: current_discount_bps,
+            usdc_paid: usdc_required_from_caller,
+        });
+
+        // 🛡️ RESET REENTRANCY GUARD: Allow next operation
+        system_config.reentrancy_guard = REENTRANCY_GUARD_INACTIVE;
+
         Ok(())
     }
 
@@ -1141,9 +1234,23 @@ pub mod ginva {
         let seized_amount = liquidation_process.seized_collateral_amount;
         require!(seized_amount > 0, GinvaError::InvalidAmount);
 
+        // 🛡️ REENTRANCY GUARD: Prevent reentrancy attacks
+        check_reentrancy_guard(system_config.reentrancy_guard)?;
+        system_config.reentrancy_guard = REENTRANCY_GUARD_ACTIVE;
+
         // 2️⃣ VALIDATE REMAINING ACCOUNTS
         require!(
             !ctx.remaining_accounts.is_empty(),
+            GinvaError::InvalidJupiterRoute
+        );
+        require!(
+            ctx.remaining_accounts.len() >= MIN_JUPITER_ACCOUNTS,
+            GinvaError::InvalidJupiterRoute
+        );
+
+        // 2.1 VALIDATE JUPITER DATA
+        require!(
+            data.len() >= MIN_JUPITER_DATA_LEN,
             GinvaError::InvalidJupiterRoute
         );
 
@@ -1261,6 +1368,17 @@ pub mod ginva {
         liquidation_process.status = LiquidationStatus::Swapped as u8;
         liquidation_process.deadline_for_distribution =
             current_time + ctx.accounts.protocol_config.liquidation_timeout;
+
+        // Emit event for indexing
+        emit!(DexFallbackCompleted {
+            executor: ctx.accounts.caller.key(),
+            liquidation_process: liquidation_process.key(),
+            collateral_spent,
+            usdc_received,
+        });
+
+        // 🛡️ RESET REENTRANCY GUARD: Allow next operation
+        system_config.reentrancy_guard = REENTRANCY_GUARD_INACTIVE;
 
         Ok(())
     }
@@ -1636,7 +1754,9 @@ pub mod ginva {
                 .checked_div(10)
                 .ok_or(GinvaError::ArithmeticUnderflow)?;
 
-            let distributable = interest.checked_sub(capital_share).unwrap();
+            let distributable = interest
+                .checked_sub(capital_share)
+                .ok_or(GinvaError::ArithmeticUnderflow)?;
 
             let ops_share = distributable
                 .checked_mul(2750)
@@ -1644,7 +1764,9 @@ pub mod ginva {
                 .checked_div(10000)
                 .ok_or(GinvaError::ArithmeticUnderflow)?;
 
-            let staker_share = distributable.checked_sub(ops_share).unwrap();
+            let staker_share = distributable
+                .checked_sub(ops_share)
+                .ok_or(GinvaError::ArithmeticUnderflow)?;
 
             // Transfer to Capital Wallet (10%)
             if capital_share > 0 {
@@ -1968,6 +2090,20 @@ pub mod ginva {
             GinvaError::SystemInCooldown
         );
 
+        // 🛡️ REENTRANCY GUARD: Prevent reentrancy attacks
+        check_reentrancy_guard(config.reentrancy_guard)?;
+        config.reentrancy_guard = REENTRANCY_GUARD_ACTIVE;
+
+        // 🛡️ MAX STAKE CAP: Prevent whale dominance
+        require!(
+            config
+                .total_staked
+                .checked_add(amount)
+                .ok_or(GinvaError::ArithmeticOverflow)?
+                <= MAX_TOTAL_STAKED,
+            GinvaError::MaxStakeCapReached
+        );
+
         // 1. Check pending rewards FIRST (V1: Prevent loss by requiring manual claim)
         if stake.staked_amount > 0 {
             let pending = (stake.staked_amount as u128)
@@ -2026,6 +2162,9 @@ pub mod ginva {
             amount,
         });
 
+        // 🛡️ RESET REENTRANCY GUARD: Allow next operation
+        config.reentrancy_guard = REENTRANCY_GUARD_INACTIVE;
+
         Ok(())
     }
 
@@ -2043,6 +2182,11 @@ pub mod ginva {
             GinvaError::SystemInCooldown
         );
 
+        // 🛡️ REENTRANCY GUARD: Prevent reentrancy attacks
+        check_reentrancy_guard(config.reentrancy_guard)?;
+        // Note: We don't set guard here because config is immutable (&)
+        // The transfer is the last operation, so it's safe
+
         // 1. Calculate Pending Reward
         let accumulated = (stake.staked_amount as u128)
             .checked_mul(config.acc_reward_per_share)
@@ -2050,11 +2194,10 @@ pub mod ginva {
             .checked_div(1_000_000_000_000)
             .ok_or(GinvaError::ArithmeticUnderflow)?;
 
-        let pending = accumulated
-            .checked_sub(stake.reward_debt)
-            .ok_or(GinvaError::ArithmeticUnderflow)?;
+        // 🛡️ FIX: Use saturating_sub to prevent underflow if reward calculation has issues
+        let pending = accumulated.saturating_sub(stake.reward_debt);
 
-        require!(pending > 0, GinvaError::InvalidAmount);
+        require!(pending > 0, GinvaError::NoPendingRewards);
 
         // 2. Transfer Reward: Revenue Wallet -> User
         let bump = ctx.bumps.revenue_wallet_authority;
@@ -2384,7 +2527,7 @@ fn check_reentrancy_guard(guard: u8) -> Result<()> {
 /// 🛡️ PRICE DEVIATION: Validate price doesn't deviate too much from reference
 fn validate_price_deviation(current_price: u64, reference_price: u64) -> Result<()> {
     if reference_price == 0 {
-        return Ok(()); // First price, no reference
+        return Ok(()); // First price, no reference - handled by last_price_update check
     }
 
     let price_diff = if current_price > reference_price {
@@ -2657,6 +2800,23 @@ pub struct LTVLevelsUpdated {
     pub old_ltv_max: u64,
     pub new_ltv_max: u64,
     pub timestamp: i64,
+}
+
+#[event]
+pub struct StorefrontPurchase {
+    pub buyer: Pubkey,
+    pub liquidation_process: Pubkey,
+    pub amount: u64,
+    pub discount_bps: u64,
+    pub usdc_paid: u64,
+}
+
+#[event]
+pub struct DexFallbackCompleted {
+    pub executor: Pubkey,
+    pub liquidation_process: Pubkey,
+    pub collateral_spent: u64,
+    pub usdc_received: u64,
 }
 
 // ACCOUNT STRUCTURES
@@ -2988,6 +3148,10 @@ pub struct DepositCollateral<'info> {
     #[account(mut, token::authority = system_config.vault_wallet_authority)]
     pub vault_collateral_account: Box<Account<'info, TokenAccount>>,
 
+    /// CHECK: Ops wallet for deposit fee collection
+    #[account(mut, address = system_config.ops_wallet)]
+    pub ops_wallet: Box<Account<'info, TokenAccount>>,
+
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
     pub rent: Sysvar<'info, Rent>,
@@ -3046,7 +3210,12 @@ pub struct BorrowUsdc<'info> {
 pub struct TriggerLiquidation<'info> {
     #[account(mut)]
     pub keeper_a: Signer<'info>,
-    #[account(mut)]
+    #[account(
+        mut,
+        constraint = loan_account.status == LoanStatus::Active as u8 @ GinvaError::LoanNotActive,
+        constraint = loan_account.collateral_amount > 0 @ GinvaError::InvalidAmount,
+        constraint = !loan_account.liquidation_lock @ GinvaError::AlreadyBeingLiquidated,
+    )]
     pub loan_account: Box<Account<'info, LoanAccount>>,
     #[account(mut, seeds = [b"config"], bump)]
     pub system_config: Box<Account<'info, SystemConfig>>,
@@ -3686,9 +3855,25 @@ pub enum GinvaError {
     #[msg("LTV update failed - validation error")]
     LTVUpdateFailed = 1992,
 
+    // 💼 Wallet Validation Errors (1993-1995)
+    #[msg("Invalid wallet address - cannot be zero address")]
+    InvalidWalletAddress = 1993,
+
     // 🛡️ Atomic Operation Errors (2000-2009)
     #[msg("Loan is already being liquidated - atomic lock active")]
     AlreadyBeingLiquidated = 2000,
     #[msg("Atomic operation failed - concurrent modification")]
     AtomicOperationFailed = 2001,
+
+    // 💰 Staking Errors (2010-2019)
+    #[msg("No pending rewards to claim")]
+    NoPendingRewards = 2010,
+    #[msg("Maximum total staked cap reached")]
+    MaxStakeCapReached = 2011,
+
+    // 🔮 Oracle Errors (2020-2029)
+    #[msg("First oracle price must be set by admin")]
+    FirstPriceMustBeSetByAdmin = 2020,
+    #[msg("Oracle price not initialized - wait for admin")]
+    OraclePriceNotInitialized = 2021,
 }
