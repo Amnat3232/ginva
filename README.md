@@ -8,6 +8,7 @@
 [![Network](https://img.shields.io/badge/network-Solana%20Devnet-blueviolet)](https://explorer.solana.com)
 [![Status](https://img.shields.io/badge/status-Active-success)](https://github.com/Dr-SoloDev/ginva)
 
+> 🌟 **เราสร้างระบบนิเวศที่กระจายโอกาส** — อ่าน [วิสัยทัศน์ของเรา](docs/VISION.md) เพื่อเข้าใจแนวคิดหลัก
 ---
 
 ## 🎯 Quick Overview
