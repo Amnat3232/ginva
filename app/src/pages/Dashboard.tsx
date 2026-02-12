@@ -7,10 +7,11 @@ const Dashboard = () => {
   return (
     <Container>
       <Stack direction="vertical" gap={3} className="mb-4">
-        <h1>Ginva Digital Pawn Shop</h1>
+        <h1>Your Dashboard</h1>
         <p className="text-muted">
-          The First Digital Pawn Shop on Solana - Turn your assets into instant
-          cash
+          Welcome to GINVA - Borrow USDC instantly using your crypto as
+          collateral.
+          <strong> 72-hour protection included.</strong>
         </p>
       </Stack>
 
@@ -39,11 +40,11 @@ const Dashboard = () => {
             <Card.Body>
               <Stack direction="vertical" gap={2}>
                 <div>
-                  <h5 className="text-muted">Total Pawned</h5>
+                  <h5 className="text-muted">Active Loans</h5>
                   <h3 className="mb-1" style={{ color: "#0d6efd" }}>
-                    $0
+                    0
                   </h3>
-                  <p className="text-muted small">0 Pawn Tickets</p>
+                  <p className="text-muted small">No Active Loans</p>
                 </div>
                 <div className="text-end">
                   <FiTrendingUp size={24} color="#0d6efd" />
@@ -79,11 +80,11 @@ const Dashboard = () => {
             <Card.Body>
               <Stack direction="vertical" gap={2}>
                 <div>
-                  <h5 className="text-muted">Asset Coverage</h5>
+                  <h5 className="text-muted">Protection Status</h5>
                   <h3 className="mb-1" style={{ color: "#fd7e14" }}>
-                    -
+                    Active
                   </h3>
-                  <p className="text-muted small">No Active Pawn Tickets</p>
+                  <p className="text-muted small">72-Hour Protection</p>
                 </div>
                 <div className="text-end">
                   <FiShield size={24} color="#fd7e14" />
@@ -132,23 +133,77 @@ const Dashboard = () => {
         <Col>
           <Card>
             <Card.Header>
-              <h4>Your Pawn Tickets</h4>
+              <h4>Your Loans</h4>
             </Card.Header>
             <Card.Body className="text-center py-5">
               <p className="text-muted">
-                No active pawn tickets. Start by pledging your assets and
-                receiving instant USDC.
+                No active loans. Start by depositing your assets as collateral
+                and receive instant USDC.
               </p>
             </Card.Body>
           </Card>
         </Col>
       </Row>
 
+      <Card className="mb-4 bg-light">
+        <Card.Body>
+          <h5 className="mb-3">🛡️ How Our Protection Works</h5>
+          <Stack gap={3}>
+            <div className="d-flex align-items-start gap-3">
+              <div
+                className="bg-success text-white rounded-circle d-flex align-items-center justify-content-center"
+                style={{ width: "32px", height: "32px", minWidth: "32px" }}
+              >
+                1
+              </div>
+              <div>
+                <strong>Early Warning</strong>
+                <p className="text-muted small mb-0">
+                  We alert you 72 hours in advance if your loan needs attention
+                </p>
+              </div>
+            </div>
+            <div className="d-flex align-items-start gap-3">
+              <div
+                className="bg-success text-white rounded-circle d-flex align-items-center justify-content-center"
+                style={{ width: "32px", height: "32px", minWidth: "32px" }}
+              >
+                2
+              </div>
+              <div>
+                <strong>Time to Act</strong>
+                <p className="text-muted small mb-0">
+                  Add more collateral, repay partially, or repay in full - the
+                  choice is yours
+                </p>
+              </div>
+            </div>
+            <div className="d-flex align-items-start gap-3">
+              <div
+                className="bg-success text-white rounded-circle d-flex align-items-center justify-content-center"
+                style={{ width: "32px", height: "32px", minWidth: "32px" }}
+              >
+                3
+              </div>
+              <div>
+                <strong>Always Fair</strong>
+                <p className="text-muted small mb-0">
+                  If you need assistance, helpers use fair time-based pricing.
+                  You always keep the surplus value.
+                </p>
+              </div>
+            </div>
+          </Stack>
+        </Card.Body>
+      </Card>
+
       <div className="text-center mt-4">
         <Badge bg="success" text="light" className="me-2">
           Devnet
         </Badge>
-        <span className="text-muted small">Ginva Digital Pawn Shop v2.0.0</span>
+        <span className="text-muted small">
+          GINVA v2.0.0 - Protected Lending
+        </span>
       </div>
     </Container>
   );

@@ -14,15 +14,12 @@ import {
   FiTrendingUp,
   FiClock,
   FiShield,
-  FiDollarSign,
   FiAlertTriangle,
 } from "react-icons/fi";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useGinvaProgram } from "../hooks/useGinvaProgram";
 import { showSuccess, showError } from "../utils/helpers";
 import { useConnection } from "@solana/wallet-adapter-react";
-import { PublicKey, SystemProgram } from "@solana/web3.js";
-import { getAssociatedTokenAddress } from "@solana/spl-token";
 
 // LTV Options from smart contract
 const LTV_OPTIONS = [
@@ -70,8 +67,8 @@ const Pawn = () => {
   const [loading, setLoading] = useState(false);
 
   // Derived state
-  const collateralLamports =
-    parseFloat(collateralAmount) * Math.pow(10, selectedAsset.decimals);
+  // const collateralLamports =
+  //   parseFloat(collateralAmount) * Math.pow(10, selectedAsset.decimals);
   const ltvPercent = ltvOption === 1 ? 20 : ltvOption === 2 ? 40 : 60;
 
   // Mock price (in production, fetch from Pyth oracle)
@@ -141,14 +138,14 @@ const Pawn = () => {
       // 2. Get ticket counter
       // 3. Call deposit_collateral with loan_id
 
-      showSuccess("Creating Pawn Ticket...", "Please confirm the transaction");
+      showSuccess("Creating Loan...", "Please confirm the transaction");
 
       // Mock success for development
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       showSuccess(
-        "Pawn Ticket Created!",
-        "Your ticket has been created successfully"
+        "Loan Created!",
+        "Your loan is active with 72-hour protection"
       );
       setCollateralAmount("");
     } catch (error: any) {
@@ -162,10 +159,10 @@ const Pawn = () => {
   return (
     <Container className="py-4">
       <Stack direction="vertical" gap={3} className="mb-4">
-        <h1>Pawn Your Assets</h1>
+        <h1>Borrow USDC</h1>
         <p className="text-muted">
-          Turn your digital assets into instant USDC. No credit checks, just
-          collateral.
+          Use your crypto as collateral to get instant USDC.
+          <strong> Protected with 72-hour safety net.</strong>
         </p>
       </Stack>
 
@@ -174,7 +171,7 @@ const Pawn = () => {
         <Col>
           <Card>
             <Card.Header>
-              <h4 className="mb-0">Create Pawn Ticket</h4>
+              <h4 className="mb-0">Create Loan</h4>
             </Card.Header>
             <Card.Body>
               <Stack gap={4}>
@@ -226,7 +223,7 @@ const Pawn = () => {
                 {/* LTV Selection */}
                 <div>
                   <Form.Label className="fw-bold">
-                    Loan-to-Value (LTV)
+                    How Much to Borrow (LTV)
                   </Form.Label>
                   <Stack gap={2}>
                     {LTV_OPTIONS.map((option) => (
@@ -299,19 +296,19 @@ const Pawn = () => {
                           size="sm"
                           className="me-2"
                         />
-                        Creating Ticket...
+                        Creating Loan...
                       </>
                     ) : (
                       <>
                         <FiTrendingUp className="me-2" />
-                        Create Pawn Ticket
+                        Borrow Now
                       </>
                     )}
                   </Button>
                   {!connected && (
                     <Alert variant="warning" className="mt-2">
                       <FiAlertTriangle className="me-2" />
-                      Please connect your wallet to create a pawn ticket
+                      Please connect your wallet to borrow USDC
                     </Alert>
                   )}
                 </div>
@@ -367,7 +364,9 @@ const Pawn = () => {
                 </div>
                 <Alert variant="info" className="mb-0">
                   <FiShield className="me-2" />
-                  You can extend your ticket by paying interest before maturity
+                  <strong>72-Hour Protection:</strong> If collateral value
+                  drops, you have 72 hours to add more collateral or repay. We
+                  alert you in advance.
                 </Alert>
               </Stack>
             </Card.Body>
@@ -388,9 +387,10 @@ const Pawn = () => {
                     1
                   </div>
                   <div>
-                    <strong>Pledge Your Asset</strong>
+                    <strong>Deposit Your Asset</strong>
                     <p className="text-muted small mb-0">
-                      Deposit your crypto as collateral
+                      Lock your SOL, BTC, or ETH as collateral. Your assets stay
+                      safe.
                     </p>
                   </div>
                 </div>
@@ -402,9 +402,10 @@ const Pawn = () => {
                     2
                   </div>
                   <div>
-                    <strong>Receive USDC</strong>
+                    <strong>Receive USDC Instantly</strong>
                     <p className="text-muted small mb-0">
-                      Get instant cash based on your LTV ratio
+                      Get cash based on your collateral value. No waiting, no
+                      paperwork.
                     </p>
                   </div>
                 </div>
@@ -416,9 +417,25 @@ const Pawn = () => {
                     3
                   </div>
                   <div>
-                    <strong>Redeem Anytime</strong>
+                    <strong>Protected Period</strong>
                     <p className="text-muted small mb-0">
-                      Pay back + interest to get your asset back
+                      If prices drop, you have 72 hours to protect your assets.
+                      We alert you early.
+                    </p>
+                  </div>
+                </div>
+                <div className="d-flex align-items-start gap-3">
+                  <div
+                    className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center"
+                    style={{ width: "32px", height: "32px", minWidth: "32px" }}
+                  >
+                    4
+                  </div>
+                  <div>
+                    <strong>Repay & Reclaim</strong>
+                    <p className="text-muted small mb-0">
+                      Pay back what you borrowed plus interest to get your
+                      crypto back.
                     </p>
                   </div>
                 </div>

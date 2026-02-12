@@ -59,9 +59,9 @@ const MyTickets = () => {
       case "active":
         return <Badge bg="success">Active</Badge>;
       case "redeemed":
-        return <Badge bg="info">Redeemed</Badge>;
+        return <Badge bg="info">Repaid</Badge>;
       case "forfeited":
-        return <Badge bg="danger">Forfeited</Badge>;
+        return <Badge bg="warning">Assisted</Badge>;
       default:
         return <Badge bg="secondary">Unknown</Badge>;
     }
@@ -70,10 +70,10 @@ const MyTickets = () => {
   return (
     <Container>
       <Stack direction="vertical" gap={3} className="mb-4">
-        <h1>My Pawn Tickets</h1>
+        <h1>My Loans</h1>
         <p className="text-muted">
-          View and manage all your pawn tickets. Each ticket represents a
-          separate pledged asset.
+          View and manage all your loans. Each loan is protected with our
+          72-hour protection system.
         </p>
       </Stack>
 

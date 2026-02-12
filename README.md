@@ -1,52 +1,56 @@
-# 🏛️ GINVA — On-Chain Distressed Asset Exchange
+# 🏛️ GINVA — DeFi Lending Platform with 72-Hour Protection
 
-> **"Don't just lend. Hunt."**
+> **"Get instant cash. Keep your crypto safe."**
 >
-> _A gamified, on-chain marketplace for distressed crypto assets on Solana._
+> _The fairest lending platform on Solana, designed with borrowers in mind._
 
 [![License](https://img.shields.io/badge/license-BUSL--1.1-red)](LICENSE)
 [![Network](https://img.shields.io/badge/network-Solana%20Devnet-blueviolet)](https://explorer.solana.com)
 [![Status](https://img.shields.io/badge/status-Active-success)](https://github.com/Dr-SoloDev/ginva)
 
-> 🌟 **เราสร้างระบบนิเวศที่กระจายโอกาส** — อ่าน [วิสัยทัศน์ของเรา](docs/VISION.md) เพื่อเข้าใจแนวคิดหลัก
+> 🌟 **เราสร้างแพลตฟอร์มที่ใส่ใจผู้ใช้** — อ่าน [วิสัยทัศน์ของเรา](docs/VISION.md) เพื่อเข้าใจว่าทำไมเราถึงแตกต่าง
+
 ---
 
-## 🎯 Quick Overview
+## 🎯 What is GINVA?
 
-GINVA is a **time-sensitive distressed asset exchange** that replaces hostile liquidations with a transparent, competitive marketplace.
+GINVA is a **crypto-backed lending platform** that lets you borrow USDC instantly using your digital assets as collateral.
+
+**What makes us different?** Unlike other platforms that liquidate your assets immediately when prices drop, **we give you 72 hours to protect your collateral**.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                        GINVA ECOSYSTEM                            │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│    👤 BORROWERS          💰 INVESTORS           🤖 KEEPERS     │
+│    👤 BORROWERS          💰 SUPPORTERS          🤖 HELPERS      │
 │    (Priority #1)          (Priority #2)           (Priority #3) │
 │         │                     │                      │            │
 │         ▼                     ▼                      ▼            │
 │    ┌─────────┐          ┌─────────┐           ┌─────────┐      │
-│    │  Deposit │          │  Stake  │           │ Monitor │      │
-│    │Collateral│          │   LP    │           │ Liquidate│      │
+│    │ Deposit │          │  Stake  │           │ Monitor │      │
+│    │Collateral│          │   LP    │           │ & Assist │      │
 │    └────┬────┘          └────┬────┘           └────┬────┘      │
 │         │                     │                      │            │
 │         ▼                     ▼                      ▼            │
 │    ┌─────────┐          ┌─────────┐           ┌─────────┐      │
-│    │  Borrow │          │ Earn    │           │ Trigger │      │
-│    │   USDC  │          │ Rewards │           │Liquidate│      │
+│    │  Borrow │          │ Earn    │           │ Support │      │
+│    │   USDC  │          │ Rewards │           │ System  │      │
 │    └────┬────┘          └────┬────┘           └────┬────┘      │
 │         │                     │                      │            │
 │         └──────────┬──────────┘                      │            │
 │                    │                                 │            │
 │                    ▼                                 │            │
 │            ┌──────────────┐                           │            │
-│            │  PAWN SHOP  │◄──────────────────────────┘            │
-│            │ (Liquidation)│                                          │
+│            │   SUPPORT    │◄──────────────────────────┘            │
+│            │   CENTER     │                                          │
+│            │(72hr Protection)│                                       │
 │            └──────┬───────┘                                          │
 │                   │                                                  │
 │                   ▼                                                  │
 │            ┌──────────────┐                                          │
-│            │ Time-Decay   │                                          │
-│            │ Pricing      │                                          │
+│            │ Time-Based   │                                          │
+│            │ Assistance   │                                          │
 │            └──────────────┘                                          │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
@@ -54,245 +58,180 @@ GINVA is a **time-sensitive distressed asset exchange** that replaces hostile li
 
 ---
 
-## 👤 BORROWERS (Priority #1) 🏆
+## 👤 FOR BORROWERS (Our Priority #1) 🏆
 
-You are the foundation of GINVA. Everything starts with you.
-
-### What You Do
+### Get Instant Cash Without Selling Your Crypto
 
 ```
 ┌────────────────────────────────────────┐
-│         BORROWER WORKFLOW              │
+│         HOW TO BORROW                  │
 ├────────────────────────────────────────┤
 │                                        │
-│  1️⃣  Deposit Collateral               │
-│      └─► SOL, BTC, ETH → Vault        │
+│  1️⃣  Deposit Your Assets              │
+│      └─► SOL, BTC, ETH as collateral  │
 │                                        │
-│  2️⃣  Borrow USDC                      │
-│      └─► Up to 60% LTV (3 options: 20%/40%/60%)                │
+│  2️⃣  Receive USDC Instantly           │
+│      └─► Up to 60% of asset value     │
 │                                        │
-│  3️⃣  Repay / Extend                   │
-│      └─► Pay interest OR extend loan   │
+│  3️⃣  Use Your Cash                    │
+│      └─► No restrictions on usage     │
 │                                        │
-│  4️⃣  Get Collateral Back             │
-│      └─► Full repayment → Get assets   │
+│  4️⃣  Get Assets Back                  │
+│      └─► Repay anytime, no penalty    │
 │                                        │
 └────────────────────────────────────────┘
 ```
 
-### Your Benefits
+### Why Borrowers Love GINVA
 
-| Feature                    | Description                        |
-| :------------------------- | :--------------------------------- |
-| 🛡️ **Fair Liquidations**   | No bots stealing your assets       |
-| 📊 **Transparent Pricing** | See exactly what buyers pay        |
-| ⏰ **Time to Act**         | 72 hours to save your collateral   |
-| 💰 **Keep More Value**     | Price decays gradually, not dumped |
-| 🔄 **Extend Option**       | Pay interest to delay liquidation  |
+| Feature                    | What It Means For You                                                                             |
+| :------------------------- | :------------------------------------------------------------------------------------------------ |
+| 🛡️ **72-Hour Protection**  | If collateral value drops, you have 72 hours to add more collateral or repay. No instant seizure! |
+| 💰 **Keep Your Assets**    | Your crypto stays locked, not sold. Benefit when prices go up.                                    |
+| ⚡ **Instant Approval**    | No credit checks, no paperwork. Get USDC in seconds.                                              |
+| 🔄 **Flexible Repayment**  | Repay early with no penalty. Extend anytime by paying interest.                                   |
+| 📊 **Transparent Pricing** | See exactly how much you'll pay. No hidden fees.                                                  |
 
-### How It Works
+### Your Protection System
 
 ```
-BORROWER JOURNEY:
+BORROWER PROTECTION JOURNEY:
 
 ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐
-│ Deposit  │───►│  Borrow │───►│ Repay   │───►│ Get     │
-│Collateral│    │  USDC   │    │/Extend  │    │Back     │
+│ Deposit  │───►│ Borrow  │───►│ Protect │───►│ Get     │
+│Collateral│    │  USDC   │    │ 72hrs   │    │Back     │
 └─────────┘    └─────────┘    └─────────┘    └─────────┘
-     │              │              │              │
-     ▼              ▼              ▼              ▼
-  Assets      USDC to      Interest to    Collateral
-  locked      use          protocol       returned
+      │              │              │              │
+      ▼              ▼              ▼              ▼
+   Assets      USDC to      Time to       Collateral
+   Safe        Use          Act            Returned
 ```
 
-### Key Terms
+### What Happens If Prices Drop?
 
-| Term                            | Value         | Description                      |
-| :------------------------------ | :------------ | :------------------------------- |
-| 📅 **Interest Payment**         | Every 30 days | Minimum 30 days between payments |
-| ⏳ **Liquidation Grace Period** | 72 hours      | Time to save collateral          |
-| 📉 **LTV**                      | 20%/40%/60%   | 3 tiers: Safe/Standard/Max       |
-| 💸 **Interest Rate**            | Variable      | Based on asset risk              |
+**Don't worry - we've got you covered!**
+
+| Stage                                | What Happens                | Your Options                                   |
+| :----------------------------------- | :-------------------------- | :--------------------------------------------- |
+| 📢 **Early Warning** (72 hrs before) | System alerts you           | Add collateral, repay partially, or do nothing |
+| ⏰ **Protection Period** (72 hours)  | Asset protected             | You have time to take action                   |
+| 🤝 **Assistance Phase**              | Liquidity partners step in  | They help maintain system health               |
+| 💎 **You Keep Value**                | Any surplus returned to you | You're never left with nothing                 |
+
+**Key Point:** Unlike other platforms that seize your assets instantly, we give you time to protect what's yours.
 
 ---
 
-## 💰 INVESTORS (Priority #2) 📈
+## 💰 FOR SUPPORTERS (Priority #2) 📈
 
-You provide the liquidity that makes GINVA work. You earn from EVERY transaction.
+Support the platform and earn from every transaction.
 
-### What You Do
+### How to Support
 
 ```
 ┌────────────────────────────────────────┐
-│        INVESTOR WORKFLOW               │
+│        SUPPORTER WORKFLOW              │
 ├────────────────────────────────────────┘
 │                                        │
-│  1️⃣  Stake LP Tokens                 │
+│  1️⃣  Stake USDC                      │
 │      └─► Provide liquidity             │
 │                                        │
 │  2️⃣  Earn Auto-Compounding           │
 │      └─► Rewards auto-accumulate       │
 │                                        │
-│  3️⃣  Claim Anytime                    │
+│  3️⃣  Withdraw Anytime                 │
 │      └─► No lock-up period            │
 │                                        │
 └────────────────────────────────────────┘
 ```
 
-### Your Revenue Share
+### Revenue Sharing
+
+We believe in fair distribution:
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│              REVENUE DISTRIBUTION WATERFALL            │
+│              REVENUE DISTRIBUTION                       │
 ├─────────────────────────────────────────────────────────┤
 │                                                         │
-│   ALL INTEREST PAYMENTS                                 │
+│   ALL INTEREST PAYMENTS FROM BORROWERS                  │
 │          │                                              │
-│          ├── 10% ──► 🏦 CAPITAL POOL (Reinvestment)   │
+│          ├── 65.25% ──► 👥 SUPPORTERS (YOU!)          │
 │          │                                              │
 │          ├── 24.75% ──► 🛠️ OPERATIONS TEAM            │
 │          │                                              │
-│          └── 65.25% ──► 👥 STAKERS (YOU!)             │
-│                       │                                  │
-│                       └── acc_reward_per_share          │
+│          └── 10% ──► 🏦 CAPITAL POOL (Protection)     │
 │                                                         │
 └─────────────────────────────────────────────────────────┘
 ```
 
-### Revenue Flow Diagram
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    INVESTOR REVENUE FLOW                     │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  BORROWER PAYS INTEREST                                      │
-│         │                                                    │
-│         ▼                                                    │
-│  ┌─────────────────────────────────────────┐               │
-│  │         REVENUE SPLIT (100%)             │               │
-│  └────────────────┬──────────────────────────┘               │
-│                   │                                            │
-│         ┌─────────┼─────────┐                                  │
-│         ▼         ▼         ▼                                │
-│    ┌────────┐ ┌────────┐ ┌─────────────┐                     │
-│    │Capital │ │  Ops   │ │   Stakers   │                     │
-│    │  10%   │ │ 24.75% │ │   65.25%    │                     │
-│    └────────┘ └────────┘ └──────┬──────┘                     │
-│                                │                              │
-│                                ▼                              │
-│                        ┌─────────────┐                        │
-│                        │   Reward    │                        │
-│                        │  Calculator │                        │
-│                        └──────┬──────┘                        │
-│                               │                               │
-│                               ▼                               │
-│                        ┌─────────────┐                        │
-│                        │ acc_reward_ │◄─────────────────────┐ │
-│                        │   per_share │                       │ │
-│                        └─────────────┘                       │ │
-│                                                             │ │
-│                        ┌─────────────┐                        │ │
-│                        │    User     │───────────────────────┘ │
-│                        │  Claims &   │                         │
-│                        │  Withdraws  │                         │
-│                        └─────────────┘                         │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
+**Supporters receive 65.25% of all protocol revenue** - the largest share!
 
 ### Your Benefits
 
-| Feature                          | Description                    |
-| :------------------------------- | :----------------------------- |
-| 📊 **65.25% of All Interest**    | Largest revenue share          |
-| 🔄 **Auto-Compounding**          | Rewards auto-add to your stake |
-| ⏰ **No Lock-up**                | Withdraw anytime               |
-| 🛡️ **Protected by Capital Pool** | 10% buffer for bad debt        |
-| 📈 **Sustainable Yield**         | Real yield from actual lending |
+| Feature                          | Description                        |
+| :------------------------------- | :--------------------------------- |
+| 📊 **65.25% Revenue Share**      | Largest portion goes to supporters |
+| 🔄 **Auto-Compounding**          | Rewards automatically reinvested   |
+| ⏰ **No Lock-up**                | Withdraw anytime                   |
+| 🛡️ **Protected by Capital Pool** | 10% buffer for system stability    |
+| 📈 **Sustainable Yield**         | Real yield from actual lending     |
 
 ---
 
-## 🤖 KEEPERS (Priority #3) 🔧
+## 🤖 FOR HELPERS (Priority #3) 🔧
 
-You keep the system running smoothly and earn fees for your service.
+Keep the system running and earn rewards for your service.
 
-### Your Roles
+### Helper Roles
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│              KEEPER RESPONSIBILITIES               │
+│              HELPER RESPONSIBILITIES               │
 ├─────────────────────────────────────────────────────┤
 │                                                     │
-│  🤖 KEEPER A: TRIGGER BOT                         │
-│  └── Identifies undercollateralized loans          │
-│  └── Calls trigger_liquidation()                    │
+│  🔍 HELPER A: MONITOR                               │
+│  └── Tracks account health                         │
+│  └── Initiates protection process                   │
 │  └── Earns: 0.6% of collateral value               │
 │                                                     │
-│  🏪 KEEPER B: HUNTER BOT                           │
-│  └── Monitors Pawn Shop for discounts               │
-│  └── Buys assets at time-decay prices              │
-│  └── Earns: Arbitrage profit (discount)            │
+│  🤝 HELPER B: SUPPORTER                            │
+│  └── Provides liquidity when needed                 │
+│  └── Purchases at fair time-based prices           │
+│  └── Earns: Arbitrage opportunities                │
 │                                                     │
-│  ✨ KEEPER C: FINALIZE BOT                         │
-│  └── Completes liquidation distribution            │
-│  └── Ensures protocol solvency                      │
-│  └── Earns: Fixed 1.0 USDC per finalize           │
+│  ✨ HELPER C: COMPLETION ASSISTANT                  │
+│  └── Finalizes transactions                         │
+│  └── Ensures system stability                       │
+│  └── Earns: Fixed 1.0 USDC per completion         │
 │                                                     │
 └─────────────────────────────────────────────────────┘
 ```
 
-### Keeper Workflow
+### Time-Based Support System
+
+When a borrower needs assistance, assets are available at fair prices based on timing:
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    KEEPER WORKFLOW                                │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  KEEPER A (Trigger)                                             │
-│  ┌─────────┐    ┌─────────┐    ┌─────────┐                    │
-│  │ Monitor │───►│  Check  │───►│Trigger  │                    │
-│  │  Loans  │    │ Health  │    │Liquidate│                    │
-│  └─────────┘    └─────────┘    └────┬────┘                    │
-│                                    │                            │
-│                                    ▼                            │
-│                           ┌─────────────────┐                   │
-│                           │  Loan → Pawn    │                   │
-│                           │     Shop       │                   │
-│                           └────────┬────────┘                   │
-│                                    │                            │
-│         ┌──────────────────────────┼──────────────────────────┐  │
-│         ▼                          ▼                          ▼  │
-│  KEEPER B (Hunter)          KEEPER B (Hunter)          KEEPER C (Finalize)  │
-│  ┌─────────┐              ┌─────────┐              ┌─────────┐ │
-│  │ Monitor │───► Discount──►│  Buy   │              │Complete │ │
-│  │  Shop   │    │  Timer  │  Asset  │              │Distribution│ │
-│  └─────────┘              └─────────┘              └────┬────┘ │
-│                                                        │       │
-│                                                        ▼       │
-│                                               ┌────────────────┐│
-│                                               │ Protocol       ││
-│                                               │ Solvency       ││
-│                                               └────────────────┘│
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────┐
+│        SUPPORT PRICING SCHEDULE              │
+├─────────────────────────────────────────────┤
+│  0-10 min │ ⚡ Golden Window │ -8% discount │
+│ 10-30 min │ 🥈 Silver Tier   │ -6% discount │
+│ 30-60 min │ 🥉 Bronze Tier   │ -3% discount │
+│  60+ min  │ 💎 Fair Market   │ Market rate  │
+└─────────────────────────────────────────────┘
 ```
 
-### Keeper Fees
-
-|  Keeper  | Action                | Reward             |
-| :------: | :-------------------- | :----------------- |
-| 🤖 **A** | Trigger Liquidation   | 0.6% of collateral |
-| 🏪 **B** | Buy from Pawn Shop    | Discount profit    |
-| ✨ **C** | Finalize Distribution | 1.0 USDC fixed     |
+**Helpers earn fair rewards while supporting the ecosystem.**
 
 ---
 
-## 🔄 Complete System Flow
+## 📊 Complete System Overview
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                         COMPLETE GINVA FLOW                                 │
+│                         HOW GINVA WORKS                                     │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │                                    ┌─────────────┐                          │
@@ -304,13 +243,13 @@ You keep the system running smoothly and earn fees for your service.
 │                   │                       │                       │         │
 │                   ▼                       ▼                       ▼         │
 │            ┌────────────┐         ┌────────────┐         ┌────────────┐    │
-│            │  💰 USDC  │         │ 🛡️Collateral│         │ 📅 Interest│    │
-│            │   Supply   │         │   Locked   │         │  Accrues  │    │
+│            │  💰 USDC  │         │ 🛡️ Assets   │         │ 📅 Interest│    │
+│            │   Supply   │         │   Locked   │         │  Paid     │    │
 │            └─────┬──────┘         └─────┬──────┘         └─────┬──────┘    │
 │                  │                      │                      │           │
 │                  ▼                      │                      ▼           │
 │            ┌────────────┐              │              ┌────────────┐     │
-│            │ 💰 INVESTOR │              │              │  📊 SYSTEM │     │
+│            │ 💰 SUPPORTER│              │              │  📊 SYSTEM │     │
 │            │  Priority 2 │              │              │  Calculates│     │
 │            │  (Stakers) │              │              │   Rewards  │     │
 │            └──────┬─────┘              │              └──────┬─────┘     │
@@ -324,45 +263,40 @@ You keep the system running smoothly and earn fees for your service.
 │                   │                     │         ┌──────────┼──────────┐ │
 │                   │                     │         ▼          ▼          ▼ │
 │                   │                     │    ┌────────┐ ┌────────┐ ┌───────┐│
-│                   │                     │    │Capital │ │  Ops   │ │Stakers││
-│                   │                     │    │  10%   │ │24.75%  │ │65.25% ││
+│                   │                     │    │Capital │ │  Ops   │ │Supporters│
+│                   │                     │    │  10%   │ │24.75%  │ │65.25% │
 │                   │                     │    └────────┘ └────────┘ └───┬───┘│
 │                   │                     │                            │     │
 │                   │                     │                            ▼     │
 │                   │                     │              ┌───────────────────┐ │
-│                   │                     │              │  🤖 KEEPER C     │ │
-│                   │                     │              │  Finalize        │ │
+│                   │                     │              │  🤖 HELPER C     │ │
+│                   │                     │              │  Completion      │ │
 │                   │                     │              └─────────┬────────┘ │
 │                   │                     │                        │          │
 │                   │                     │                        ▼          │
 │                   │                     │              ┌────────────────┐  │
-│                   │                     │              │ Protocol        │  │
-│                   │                     │              │ Solvency        │  │
+│                   │                     │              │ System         │  │
+│                   │                     │              │ Stability      │  │
 │                   │                     │              └────────────────┘  │
 │                   │                     │                                   │
 │                   │                     ▼                                   │
 │                   │              ┌─────────────┐                           │
-│                   │              │ ⚠️ HEALTH  │                           │
-│                   │              │   DROPS    │                           │
+│                   │              │ 📊 HEALTH  │                           │
+│                   │              │   CHECK    │                           │
 │                   │              └──────┬──────┘                           │
 │                   │                     │                                  │
 │                   │         ┌───────────┴───────────┐                      │
 │                   │         ▼                       ▼                      │
 │                   │  ┌─────────────┐        ┌─────────────┐                 │
-│                   │  │🤖 KEEPER A │        │🏪 KEEPER B │                 │
-│                   │  │  Trigger    │        │   Hunt     │                 │
-│                   │  │Liquidation │        │   Pawn     │                 │
-│                   │  └──────┬──────┘        │    Shop    │                 │
-│                   │         │               └──────┬──────┘                 │
+│                   │  │🔍 HELPER A │        │🤝 HELPER B │                 │
+│                   │  │  Monitor   │        │  Support   │                 │
+│                   │  │  & Alert   │        │  Center    │                 │
+│                   │  └──────┬──────┘        └──────┬──────┘                 │
 │                   │         │                      │                        │
 │                   │         ▼                      ▼                        │
 │                   │  ┌─────────────────────────────────────────────┐       │
-│                   │  │           🏪 PAWN SHOP TIMELINE              │       │
-│                   │  ├─────────────────────────────────────────────┤       │
-│                   │  │  0-10 min │ ⚡ Golden Hour │ -8% discount  │       │
-│                   │  │ 10-30 min │ 🥈 Silver     │ -6% discount  │       │
-│                   │  │ 30-60 min │ 🥉 Bronze     │ -3% discount  │       │
-│                   │  │  60+ min  │ 💀 Expired    │ DEX Fallback  │       │
+│                   │  │      72-HOUR PROTECTION PERIOD              │       │
+│                   │  │  (Borrower has time to protect assets)      │       │
 │                   │  └─────────────────────────────────────────────┘       │
 │                   │                                                    │
 │                   └────────────────────────────────────────────────────┘   │
@@ -372,29 +306,29 @@ You keep the system running smoothly and earn fees for your service.
 
 ---
 
-## 📊 Protocol Statistics
+## 📊 Protocol Parameters
 
-| Metric                  | Value                           |
-| :---------------------- | :------------------------------ |
-| **Borrower Protection** | 72-hour grace period            |
-| **LTV Options**         | 20%/40%/60% (Safe/Standard/Max) |
-| **Staker Share**        | 65.25% of all interest          |
-| **Ops Share**           | 24.75% of all interest          |
-| **Capital Pool**        | 10% of all interest             |
-| **Keeper A Reward**     | 0.6% of collateral              |
-| **Keeper C Reward**     | 1.0 USDC fixed                  |
-| **Interest Interval**   | 30 days minimum                 |
-| **Oracle Freshness**    | 15 seconds max                  |
+| Parameter               | Value                  | Description                         |
+| :---------------------- | :--------------------- | :---------------------------------- |
+| **Borrower Protection** | 72-hour grace period   | Time to protect your collateral     |
+| **LTV Options**         | 20% / 40% / 60%        | Safe / Standard / Maximum borrowing |
+| **Supporter Share**     | 65.25% of all interest | Largest revenue portion             |
+| **Operations Share**    | 24.75% of all interest | Team and development                |
+| **Capital Pool**        | 10% of all interest    | System stability buffer             |
+| **Helper A Reward**     | 0.6% of collateral     | For monitoring and alerting         |
+| **Helper C Reward**     | 1.0 USDC fixed         | Per completion assistance           |
+| **Interest Interval**   | 30 days minimum        | Between interest payments           |
+| **Oracle Freshness**    | 15 seconds max         | Price data accuracy                 |
 
 ---
 
-## 🎯 Why GINVA?
+## 🎯 Why Choose GINVA?
 
-| For              | Benefit                                |
-| :--------------- | :------------------------------------- |
-| **👤 Borrowers** | Fair liquidations, transparent pricing |
-| **💰 Investors** | Sustainable 65.25% yield share         |
-| **🤖 Keepers**   | Clear fee structure, passive income    |
+| For               | Benefit                                                      |
+| :---------------- | :----------------------------------------------------------- |
+| **👤 Borrowers**  | 72-hour protection, transparent pricing, no instant seizures |
+| **💰 Supporters** | Sustainable 65.25% yield share, no lock-up                   |
+| **🤖 Helpers**    | Clear rewards, multiple earning opportunities                |
 
 ```
 ┌─────────────────────────────────────────┐
@@ -403,18 +337,19 @@ You keep the system running smoothly and earn fees for your service.
 │                                         │
 │   👤 BORROWERS                          │
 │   ✅ No hidden liquidations              │
-│   ✅ 72 hours to save collateral        │
-│   ✅ Transparent time-decay pricing      │
+│   ✅ 72 hours to protect assets         │
+│   ✅ Transparent time-based pricing      │
+│   ✅ Keep your crypto benefits          │
 │                                         │
-│   💰 INVESTORS                          │
+│   💰 SUPPORTERS                         │
 │   ✅ 65.25% of ALL protocol revenue     │
 │   ✅ Auto-compounding rewards            │
 │   ✅ No lock-up required                │
 │                                         │
-│   🤖 KEEPERS                           │
-│   ✅ Clear fee structure                 │
-│   ✅ Multiple revenue streams            │
-│   ✅ Protocol-enforced incentives        │
+│   🤖 HELPERS                           │
+│   ✅ Clear reward structure              │
+│   ✅ Multiple earning streams            │
+│   ✅ Support ecosystem health            │
 │                                         │
 └─────────────────────────────────────────┘
 ```
@@ -425,10 +360,11 @@ You keep the system running smoothly and earn fees for your service.
 
 - 📘 **Documentation:** [`docs/`](docs/)
 - 🏗️ **Architecture:** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+- 💬 **Messaging:** [`docs/MESSAGING_GUIDELINES.md`](docs/MESSAGING_GUIDELINES.md)
 - 🔐 **Security:** [`docs/SECURITY.md`](docs/SECURITY.md)
 - 💻 **Development:** [`DEVELOPMENT.md`](DEVELOPMENT.md)
 
 ---
 
-> **GINVA is a marketplace, not a promise.**
-> Risk is explicit. Pricing is transparent.
+> **GINVA: Designed for borrowers. Powered by supporters. Maintained by helpers.**
+> Fair. Transparent. Protective.

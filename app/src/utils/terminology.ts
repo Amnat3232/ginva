@@ -1,171 +1,246 @@
 /**
- * Ginva Terminology Mapping
+ * GINVA Terminology Mapping
  *
- * แปลงคำศัพท์จาก DeFi Generic → Pawn Shop Identity
- * ใช้เป็น reference สำหรับการ rebranding ทั้งระบบ
+ * แปลงคำศัพท์จาก DeFi Generic → User-Friendly Language
+ * เน้นความเป็นมิตรและการปกป้องผู้ใช้
  */
 
 // ═══════════════════════════════════════════════════════════
-// 🏪 PAWN SHOP TERMINOLOGY
+// 🛡️ USER-FRIENDLY TERMINOLOGY
 // ═══════════════════════════════════════════════════════════
 
-export const PAWN_SHOP_TERMS = {
+export const USER_FRIENDLY_TERMS = {
   // หน้าที่/บทบาท
-  BORROWER: "Pawner", // ผู้จำนำ (แทน Borrower)
-  LENDER: "The Broker", // โรงรับจำนำ/หลงจู๊ (แทน Lender)
-  VAULT: "The Vault", // ห้องนิรภัยเก็บของ
+  BORROWER: "User", // ผู้ใช้ (แทน Borrower)
+  SUPPORTER: "Supporter", // ผู้สนับสนุน (แทน Lender/Staker)
+  HELPER: "Helper", // ผู้ช่วยเหลือ (แทน Keeper)
+
+  // ระบบปกป้อง
+  PROTECTION_SYSTEM: "Protection System", // ระบบปกป้อง (แทน Liquidation)
+  PROTECTION_PERIOD: "Protection Period", // ช่วงเวลาปกป้อง (แทน Liquidation Period)
+  ASSET_MANAGEMENT: "Asset Management", // การจัดการสินทรัพย์ (แทน Seizure)
 
   // เอกสาร/สัญญา
-  LOAN_ACCOUNT: "Pawn Ticket", // ตั๋วจำนำ (แทน Loan Account)
-  LOAN_AGREEMENT: "Pawn Agreement", // สัญญาจำนำ
+  LOAN_ACCOUNT: "Loan", // เงินกู้ (แทน Loan Account)
+  LOAN_TICKET: "Loan Ticket", // ตั๋วเงินกู้
+  COLLATERAL_TICKET: "Collateral Ticket", // ตั๋วค้ำประกัน
 
   // การดำเนินการ
-  BORROW: "Pawn", // จำนำ (แทน Borrow)
-  DEPOSIT_COLLATERAL: "Pledge", // นำของมาจำนำ (ฝากหลักประกัน)
-  REPAY: "Redeem", // ไถ่ถอน (แทน Repay)
-  EXTEND_LOAN: "Extend Ticket", // ต่อดอก/ต่อตั๋ว (แทน Extend Loan)
-  LIQUIDATE: "Forfeit", // ของหลุดจำนำ (แทน Liquidate)
-  LIQUIDATED: "Forfeited", // ของหลุดแล้ว (แทน Liquidated)
+  BORROW: "Borrow", // กู้เงิน
+  DEPOSIT_COLLATERAL: "Deposit", // ฝากหลักประกัน
+  REPAY: "Repay", // คืนเงิน
+  EXTEND_LOAN: "Extend", // ต่ออายุ
+  PROTECT_ASSET: "Protect Asset", // ปกป้องสินทรัพย์ (แทน Liquidation prevention)
+
+  // การช่วยเหลือ
+  ASSIST: "Assist", // ช่วยเหลือ (แทน Liquidate)
+  SUPPORT: "Support", // สนับสนุน
+  COMPLETE: "Complete", // จัดการให้เสร็จสิ้น
 
   // ทรัพย์สิน
-  COLLATERAL: "Pledged Asset", // ทรัพย์จำนำ (แทน Collateral)
-  SEIZED_ASSETS: "Forfeited Assets", // ของหลุดที่ยึดมา
+  COLLATERAL: "Collateral", // หลักประกัน
+  PROTECTED_ASSET: "Protected Asset", // สินทรัพย์ที่ได้รับการปกป้อง
+  SUPPORTED_ASSET: "Asset Under Support", // สินทรัพย์ที่กำลังได้รับการช่วยเหลือ
 
   // การเงิน
   PRINCIPAL: "Principal", // เงินต้น
   INTEREST: "Interest", // ดอกเบี้ย
-  OUTSTANDING_DEBT: "Amount Due", // จำนวนเงินที่ต้องจ่าย
+  AMOUNT_DUE: "Amount Due", // จำนวนเงินที่ต้องจ่าย
+  BORROW_AMOUNT: "Borrow Amount", // จำนวนเงินที่กู้
 
   // สถานะ
-  ACTIVE: "Active", // ตั๋วยังใช้ได้
-  REPAID: "Redeemed", // ไถ่ถอนแล้ว (แทน Repaid)
-  HEALTHY: "Good Standing", // สถานะดี (แทน Healthy)
+  ACTIVE: "Active", // ใช้งานอยู่
+  REPAID: "Repaid", // คืนเงินแล้ว
+  HEALTHY: "Healthy", // สถานะดี
+  PROTECTED: "Protected", // ได้รับการปกป้อง
+  COMPLETED: "Completed", // จัดการเสร็จสิ้น
 
   // สถานที่
-  STOREFRONT: "Storefront", // หน้าร้านขายของหลุด
-  BARGAIN_BIN: "Bargain Bin", // ที่ขายของหลุดลดราคา
+  DASHBOARD: "Dashboard", // แดชบอร์ด
+  SUPPORT_CENTER: "Support Center", // ศูนย์ช่วยเหลือ (แทน Pawn Shop/Storefront)
+  MARKET: "Market", // ตลาด
 } as const;
 
 // ═══════════════════════════════════════════════════════════
-// 🎯 UI LABELS
+// 🎯 UI LABELS (User-Friendly)
 // ═══════════════════════════════════════════════════════════
 
 export const UI_LABELS = {
   // Navigation
-  NAV_PAWN: "Pawn",
-  NAV_REDEEM: "Redeem",
-  NAV_TICKETS: "My Tickets",
-  NAV_STOREFRONT: "Storefront",
+  NAV_DASHBOARD: "Dashboard",
+  NAV_BORROW: "Borrow",
+  NAV_REPAY: "Repay",
+  NAV_MY_LOANS: "My Loans",
+  NAV_EARN: "Earn",
+  NAV_SUPPORT: "Support",
 
   // Page Titles
-  TITLE_PAWN: "Pawn Your Assets",
-  TITLE_REDEEM: "Redeem Your Pledged Assets",
-  TITLE_DASHBOARD: "Ginva Digital Pawn Shop",
+  TITLE_DASHBOARD: "Your Dashboard",
+  TITLE_BORROW: "Borrow USDC",
+  TITLE_REPAY: "Repay Your Loan",
+  TITLE_MY_LOANS: "My Loans",
+  TITLE_EARN: "Earn Rewards",
 
   // Descriptions
-  DESC_PAWN:
-    "Get instant cash by pawning your digital assets. No credit checks, just your collateral.",
-  DESC_REDEEM:
-    "Redeem your pledged assets by paying the amount due before the ticket expires.",
+  DESC_BORROW:
+    "Get instant USDC by using your crypto as collateral. No credit checks, just your assets.",
+  DESC_REPAY:
+    "Repay your loan to get your collateral back. Flexible repayment with no penalties.",
+  DESC_EARN:
+    "Support the platform and earn rewards. Stake USDC to help borrowers and earn yield.",
 
   // Buttons
-  BTN_PAWN_NOW: "Pawn Now",
-  BTN_REDEEM_NOW: "Redeem Now",
-  BTN_EXTEND_TICKET: "Extend Ticket (Pay Interest)",
-  BTN_VIEW_TICKETS: "View My Tickets",
+  BTN_BORROW_NOW: "Borrow Now",
+  BTN_REPAY_NOW: "Repay Now",
+  BTN_EXTEND_LOAN: "Extend Loan",
+  BTN_VIEW_LOANS: "View My Loans",
+  BTN_DEPOSIT: "Deposit Collateral",
+  BTN_STAKE: "Stake USDC",
 
   // Card Labels
-  LABEL_PLEDGED_ASSET: "Pledged Asset",
-  LABEL_TICKET_VALUE: "Ticket Value",
+  LABEL_COLLATERAL: "Collateral",
+  LABEL_LOAN_VALUE: "Loan Value",
   LABEL_AMOUNT_DUE: "Amount Due",
-  LABEL_EXPIRES_AT: "Ticket Expires",
+  LABEL_DUE_DATE: "Due Date",
   LABEL_INTEREST_RATE: "Interest Rate",
+  LABEL_HEALTH_STATUS: "Health Status",
 
   // Status Messages
-  STATUS_NO_TICKETS: "No active pawn tickets. Start by pledging your assets.",
-  STATUS_TICKET_ACTIVE: "Your pawn ticket is active and in good standing.",
-  STATUS_TICKET_EXPIRED:
-    "Your ticket has expired. You can still redeem within the grace period.",
-  STATUS_ASSET_FORFEITED:
-    "This asset has been forfeited and is now available in the storefront.",
+  STATUS_NO_LOANS:
+    "No active loans. Start by borrowing USDC with your crypto as collateral.",
+  STATUS_LOAN_ACTIVE: "Your loan is active and in good standing.",
+  STATUS_LOAN_HEALTHY: "Your loan is healthy. Keep it up!",
+  STATUS_PROTECTION_ACTIVE:
+    "Protection system active. You have 72 hours to act if needed.",
+  STATUS_ASSET_PROTECTED: "Your asset is protected and safe.",
 
   // Tooltips
-  TOOLTIP_HEALTH_FACTOR:
-    "The value of your pledged asset vs amount borrowed. Above 100% is safe.",
-  TOOLTIP_TICKET_EXPIRY:
-    "You must redeem or extend your ticket before this date.",
+  TOOLTIP_HEALTH_STATUS:
+    "Shows the health of your loan. Above 100% is safe. If it drops below, you have 72 hours to protect your asset.",
+  TOOLTIP_DUE_DATE: "The date by which you should repay or extend your loan.",
+  TOOLTIP_PROTECTION:
+    "If your collateral value drops, you have 72 hours to add more collateral or repay before any action is taken.",
 } as const;
 
 // ═══════════════════════════════════════════════════════════
-// 🎨 NARRATIVE COPY
+// 🎨 NARRATIVE COPY (Friendly & Protective)
 // ═══════════════════════════════════════════════════════════
 
 export const NARRATIVE = {
-  HERO_HEADLINE: "Ginva: The First Digital Pawn Shop on Solana",
+  HERO_HEADLINE: "Get Instant Cash. Keep Your Crypto Safe.",
   HERO_SUBHEADLINE:
-    "Turn your digital assets into instant cash with Smart Pawn Tickets. Transparent, fair, and always open.",
+    "Borrow USDC using your crypto as collateral. Unlike other platforms, we give you 72 hours to protect your assets if prices drop.",
 
-  VALUE_PROP_1: "No Credit Checks",
+  VALUE_PROP_1: "Instant Approval",
   VALUE_DESC_1:
-    "We don't care who you are. We care about the value of your pledged assets.",
+    "No credit checks, no paperwork. Get USDC in seconds using your crypto as collateral.",
 
-  VALUE_PROP_2: "Fixed Duration",
+  VALUE_PROP_2: "72-Hour Protection",
   VALUE_DESC_2:
-    "Your ticket has a clear 30-day term. No floating interest rates to worry about.",
+    "If collateral value drops, you have 72 hours to add more or repay. No instant seizures like other platforms.",
 
-  VALUE_PROP_3: "Redeem Anytime",
+  VALUE_PROP_3: "Flexible Repayment",
   VALUE_DESC_3:
-    "Get your assets back whenever you want before the ticket expires.",
+    "Repay anytime with no penalties. Extend your loan by paying interest. You're in control.",
 
-  VALUE_PROP_4: "Easy Forfeit",
+  VALUE_PROP_4: "Keep Your Benefits",
   VALUE_DESC_4:
-    "Don't want your asset back? Just let it forfeit. No debt collectors, no hassles.",
+    "Your crypto stays locked, not sold. When prices go up, you still benefit from the appreciation.",
 
-  HOW_IT_WORKS: "How Ginva Works",
-  STEP_1_TITLE: "1. Pledge Your Asset",
+  HOW_IT_WORKS: "How It Works",
+  STEP_1_TITLE: "1. Deposit Collateral",
   STEP_1_DESC:
-    "Deposit your SOL or supported tokens as collateral. Get instant USDC based on asset value.",
-  STEP_2_TITLE: "2. Receive Your Ticket",
+    "Lock your SOL, BTC, or ETH as collateral. Your assets stay safe in our secure vault.",
+  STEP_2_TITLE: "2. Receive USDC Instantly",
   STEP_2_DESC:
-    "Your Smart Pawn Ticket represents your right to redeem. It's transferable and tradeable.",
-  STEP_3_TITLE: "3. Redeem or Extend",
+    "Get USDC based on your collateral value. Use it for anything you need.",
+  STEP_3_TITLE: "3. Protected Period",
   STEP_3_DESC:
-    "Pay the amount due to get your asset back, or extend your ticket by paying interest.",
-  STEP_4_TITLE: "4. Forfeit (Optional)",
+    "If prices drop, you have 72 hours to protect your assets. We alert you early so you have time to act.",
+  STEP_4_TITLE: "4. Repay & Reclaim",
   STEP_4_DESC:
-    "Can't redeem? No problem. Your asset goes to the storefront. No debt, no stress.",
+    "Pay back what you borrowed plus interest to get your crypto back. Simple and fair.",
+
+  PROTECTION_EXPLANATION: "How Our Protection Works",
+  PROTECTION_STEP_1: "Early Warning",
+  PROTECTION_STEP_1_DESC:
+    "We alert you 72 hours in advance if your loan needs attention.",
+  PROTECTION_STEP_2: "Time to Act",
+  PROTECTION_STEP_2_DESC:
+    "You can add collateral, repay partially, or repay in full.",
+  PROTECTION_STEP_3: "Fair Process",
+  PROTECTION_STEP_3_DESC:
+    "If you can't act, helpers assist with fair time-based pricing.",
+  PROTECTION_STEP_4: "You Keep Value",
+  PROTECTION_STEP_4_DESC:
+    "Any surplus value is returned to you. You're never left with nothing.",
 } as const;
 
 // ═══════════════════════════════════════════════════════════
-// 🔗 LEGACY → NEW MAPPING (สำหรับการ migrate)
+// 🔗 SCARY → FRIENDLY MAPPING
 // ═══════════════════════════════════════════════════════════
 
-export const LEGACY_TO_PAWN_MAPPING: Record<string, string> = {
-  // Core terms
-  Borrow: "Pawn",
-  Borrower: "Pawner",
-  Lender: "Broker",
-  Loan: "Pawn Ticket",
-  Loans: "Pawn Tickets",
-  Repay: "Redeem",
-  Collateral: "Pledged Asset",
-  Liquidation: "Forfeit",
-  Liquidated: "Forfeited",
-  "Extend Loan": "Extend Ticket",
-  "Health Factor": "Asset Coverage",
+export const SCARY_TO_FRIENDLY_MAPPING: Record<string, string> = {
+  // Core terms - AVOID THESE
+  Liquidation: "Protection System",
+  Liquidate: "Assist",
+  Liquidated: "Assisted",
+  Liquidator: "Helper",
+  Hunter: "Helper",
+  Keeper: "Helper",
+  Seizure: "Asset Management",
+  Seized: "Managed",
+  "Forced Sale": "Support Process",
+  Forfeit: "Receive Support",
+  Forfeited: "Supported",
+  "Distressed Asset": "Asset Under Support",
+  "Pawn Shop": "Support Center",
+  Pawn: "Borrow",
+  Pawner: "User",
+  Broker: "Platform",
+
+  // Better alternatives
+  Borrow: "Borrow",
+  Borrower: "User",
+  Lender: "Supporter",
+  Staker: "Supporter",
+  Loan: "Loan",
+  Repay: "Repay",
+  Collateral: "Collateral",
+  "Health Factor": "Health Status",
   "Outstanding Debt": "Amount Due",
-  "Active Loan": "Active Ticket",
-  Repaid: "Redeemed",
+  "Active Loan": "Active Loan",
+  Repaid: "Repaid",
 };
 
 // ═══════════════════════════════════════════════════════════
-// 📊 STATUS MAPPING สำหรับ Smart Contract
+// 📊 STATUS LABELS (Friendly)
 // ═══════════════════════════════════════════════════════════
 
-export const PAWN_STATUS_LABELS: Record<number, string> = {
-  0: "Active", // ตั๋วใช้งานได้
-  1: "Redeemed", // ไถ่ถอนแล้ว
-  2: "Forfeited", // หลุดจำนำ
+export const FRIENDLY_STATUS_LABELS: Record<number, string> = {
+  0: "Active", // เงินกู้ใช้งานอยู่
+  1: "Repaid", // คืนเงินแล้ว
+  2: "Assisted", // ได้รับการช่วยเหลือ
 };
 
-export default PAWN_SHOP_TERMS;
+// ═══════════════════════════════════════════════════════════
+// 🚫 WORDS TO NEVER USE
+// ═══════════════════════════════════════════════════════════
+
+export const BANNED_WORDS = [
+  "Liquidation",
+  "Liquidate",
+  "Hunter",
+  "Seizure",
+  "Seize",
+  "Forced",
+  "Forfeit",
+  "Distressed",
+  "Pawn Shop",
+  "Vulture",
+  "Predatory",
+  "Hostile",
+  "Attack",
+] as const;
+
+export default USER_FRIENDLY_TERMS;
