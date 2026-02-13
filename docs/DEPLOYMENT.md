@@ -1,30 +1,32 @@
-# Ginva DeFi Protocol - Deployment Guide
+# GINVA - คู่มือการ Deploy
 
-## Overview
+> **"กระจายรายได้ ส่งมอบความสุข ให้ความปลอดภัย สร้างความไว้วางใจ"**
 
-Ginva is a decentralized lending protocol on Solana featuring **Task-Based Liquidation** with a unique 3-step keeper system:
+## ภาพรวม
 
-1. **Trigger Liquidation** (Keeper A) - Detects bad loans, seizes collateral, receives 1% reward
-2. **Auto-Swap** (Any Bot) - After 24h, swaps SOL→USDC via Jupiter, receives 0.6% reward
-3. **Finalize** (Keeper C) - Distributes USDC, returns principal, distributes profit, receives 0.6% reward
+GINVA เป็นโปรโตคอลสินเชื่อบน Solana ที่มี **ระบบช่วยเหลือสินทรัพย์แบบ 3 ขั้นตอน** ที่เป็นเอกลักษณ์:
 
-## Architecture
+1. **ขั้นตอนที่ 1: เริ่มกระบวนการ** (ผู้ช่วยเหลือ A) - ตรวจพบบัญชีที่ต้องการความช่วยเหลือ รับหลักประกัน ได้รับรางวัล 0.6%
+2. **ขั้นตอนที่ 2: แลกเปลี่ยน** (ใครก็ได้หลัง 24 ชม.) - หลังจาก 24 ชั่วโมง สามารถแลก SOL→USDC ผ่าน Jupiter ได้รับรางวัลจากการสร้างสภาพคล่อง
+3. **ขั้นตอนที่ 3: จบกระบวนการ** (ผู้ช่วยเหลือ C) - กระจาย USDC คืนเงินต้น แบ่งรายได้ ได้รับรางวัล 1.0 USDC
 
-### Core Components
+## 🏗️ สถาปัตยกรรม
 
-- **Capital Wallet**: Holds USDC for lending (PDA controlled by protocol)
-- **Vault Wallet**: Holds borrower collateral (PDA controlled by protocol)
-- **Revenue Wallet**: Receives protocol profits (PDA controlled by protocol)
-- **Seized Assets Vault**: Temporary holding for collateral during liquidation
-- **Processing Vault**: Holds USDC after swap before final distribution
+### 🌳 ส่วนประกอบหลัก
 
-### Key Features
+- **กระเป๋าทุน (Capital Wallet)**: เก็บ USDC สำหรับปล่อยกู้ (PDA ควบคุมโดยโปรโตคอล)
+- **กระเป๋าหลักประกัน (Vault Wallet)**: เก็บหลักประกันของผู้กู้ (PDA ควบคุมโดยโปรโตคอล)
+- **กระเป๋ารายได้ (Revenue Wallet)**: รับกำไรของโปรโตคอล (PDA ควบคุมโดยโปรโตคอล)
+- **กระเป๋าสินทรัพย์ที่ถูกช่วยเหลือ (Seized Assets Vault)**: ที่เก็บชั่วคราวสำหรับหลักประกันระหว่างกระบวนการช่วยเหลือ
+- **กระเป๋ากระบวนการ (Processing Vault)**: เก็บ USDC หลังการแลกเปลี่ยนก่อนการกระจายรายได้
 
-- ✅ **No-Capital Keepers**: Liquidators don't need capital to participate
-- ✅ **Atomic Transactions**: Risk-free operations via CPI
-- ✅ **Pyth Oracle Integration**: Real-time price feeds with confidence intervals
-- ✅ **24h Community Window**: Time for discount purchases before auto-swap
-- ✅ **MEV Resistant**: Multiple keepers, timeout mechanisms, different addresses required
+### ✨ ฟีเจอร์สำคัญ
+
+- ✅ **ผู้ช่วยเหลือไม่ต้องใช้ทุน**: ผู้ช่วยเหลือไม่จำเป็นต้องมีทุนในการเข้าร่วม
+- ✅ **ธุรกรรมแบบอะตอมิก**: การดำเนินการที่ปราศจากความเสี่ยงผ่าน CPI
+- ✅ **การเชื่อมต่อ Pyth Oracle**: ราคาแบบเรียลไทม์พร้อมช่วงความเชื่อมั่น
+- ✅ **หน้าต่างชุมชน 24 ชั่วโมง**: เวลาสำหรับการซื้อในราคาส่วนลดก่อนการแลกเปลี่ยนอัตโนมัติ
+- ✅ **ป้องกัน MEV**: ผู้ช่วยเหลือหลายราย กลไกหมดเวลา ต้องใช้ที่อยู่ต่างกัน
 
 ## Prerequisites
 
@@ -220,35 +222,35 @@ npm run demo:liquidation
 npm run demo:full
 ```
 
-## Keeper Operations
+## 🤖 การดำเนินการของผู้ช่วยเหลือ
 
-### Running the Auto-Swap Bot
+### การรัน Bot แลกเปลี่ยนอัตโนมัติ
 
 ```bash
-# Start monitoring bot
+# เริ่มการเฝ้าระวัง
 npm run bot:start
 
-# The bot will:
-# - Monitor for triggered liquidations
-# - Wait for 24h timeout
-# - Execute swaps via Jupiter
-# - Earn 0.6% reward
+# Bot จะ:
+# - เฝ้าระวังการเริ่มกระบวนการช่วยเหลือ
+# - รอหมดเวลา 24 ชั่วโมง
+# - ดำเนินการแลกเปลี่ยนผ่าน Jupiter
+# - ได้รับรางวัลจากการสร้างสภาพคล่อง
 ```
 
-### Manual Keeper Operations
+### การดำเนินการด้วยตนเองของผู้ช่วยเหลือ
 
 ```bash
-# Trigger liquidation (Step 1)
-# Requires detecting a bad loan (health factor < 1.0 or overdue > 33 days)
-# Reward: 1% of seized collateral
+# ขั้นตอนที่ 1: เริ่มกระบวนการช่วยเหลือ
+# ต้องตรวจพบบัญชีที่มีปัญหา (health factor < 1.0 หรือค้างชำระ > 33 วัน)
+# รางวัล: 0.6% ของมูลค่าหลักประกัน
 
-# Execute auto-swap (Step 2)
-# Can be called by anyone after 24h timeout
-# Reward: 0.6% of USDC output
+# ขั้นตอนที่ 2: ดำเนินการแลกเปลี่ยน
+# ใครก็ได้สามารถเรียกได้หลังจากหมดเวลา 24 ชั่วโมง
+# รางวัล: จากการสร้างสภาพคล่อง
 
-# Finalize liquidation (Step 3)
-# Must be called by different keeper than Step 1 & 2
-# Reward: 0.6% of total USDC
+# ขั้นตอนที่ 3: จบกระบวนการ
+# ต้องเรียกโดยผู้ช่วยเหลือคนอื่นที่ไม่ใช่ขั้นตอนที่ 1 & 2
+# รางวัล: 1.0 USDC ต่อการช่วยเหลือหนึ่งครั้ง
 ```
 
 ## Configuration
@@ -271,14 +273,14 @@ KEEPER_PRIVATE_KEY=[...]
 JUPITER_API_URL=https://quote-api.jup.ag/v6
 ```
 
-### Protocol Parameters
+### พารามิเตอร์ของโปรโตคอล
 
 ```typescript
-// Current settings in smart contract
-const LIQUIDATION_TIMEOUT = 86400; // 24 hours
-const AUTO_SWAP_REWARD_BPS = 60; // 0.6%
-const DISTRIBUTE_REWARD_BPS = 60; // 0.6%
-const SAFETY_THRESHOLD = 85; // 85% of collateral value
+// การตั้งค่าปัจจุบันในสมาร์ทคอนแทร็ก
+const LIQUIDATION_TIMEOUT = 86400; // 24 ชั่วโมง
+const HELPER_A_REWARD_BPS = 60; // 0.6% สำหรับผู้ช่วยเหลือ A
+const HELPER_C_REWARD_USDC = 1000000; // 1.0 USDC สำหรับผู้ช่วยเหลือ C
+const SAFETY_THRESHOLD = 85; // 85% ของมูลค่าหลักประกัน
 ```
 
 ## Known Limitations
@@ -324,77 +326,86 @@ Before deploying to mainnet:
 - [ ] Audit by security firm
 - [ ] Bug bounty program
 
-## Architecture Diagram
+## 🏗️ แผนภาพสถาปัตยกรรม
 
 ```
-User Flow:
+โฟลว์ผู้ใช้:
 ═══════════
 
-1. DEPOSIT COLLATERAL
-   User SOL → Vault Wallet (PDA)
+1. ฝากหลักประกัน
+   SOL ของผู้ใช้ → กระเป๋าหลักประกัน (PDA)
 
-2. BORROW USDC
-   Capital Wallet → User USDC
-   Loan Account created with LTV
+2. กู้ USDC
+   กระเป๋าทุน → USDC ของผู้ใช้
+   สร้างบัญชีเงินกู้พร้อม LTV
 
-3. REPAY (normal case)
-   User USDC → Capital Wallet
-   Vault Wallet → User SOL (returned)
+3. คืนเงิน (กรณีปกติ)
+   USDC ของผู้ใช้ → กระเป๋าทุน
+   กระเป๋าหลักประกัน → SOL ของผู้ใช้ (คืน)
 
-Liquidation Flow:
-══════════════════
+โฟลว์การช่วยเหลือสินทรัพย์:
+═══════════════════════════
 
-Step 1: TRIGGER (Keeper A)
-┌─────────────┐
-│  Bad Loan   │
-│ Detected    │
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐     ┌──────────────┐
-│  Seize 99%  │────▶│ Seized Vault │
-│  Collateral │     │ (24h wait)   │
-└─────────────┘     └──────────────┘
-       │
-       ▼
-┌─────────────┐
-│ Keeper A    │
-│ gets 1%     │
-│ instantly   │
-└─────────────┘
+🎬 ขั้นตอนที่ 1: เริ่มกระบวนการ (ผู้ช่วยเหลือ A)
+┌─────────────────┐
+│  ตรวจพบบัญชี    │
+│  ที่ต้องการ     │
+│  ความช่วยเหลือ  │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐     ┌──────────────────────┐
+│ รับ 99.4%       │────▶│ กระเป๋าสินทรัพย์    │
+│ หลักประกัน      │     │ ที่ถูกช่วยเหลือ      │
+└─────────────────┘     │ (รอ 24 ชั่วโมง)     │
+         │              └──────────────────────┘
+         ▼
+┌─────────────────┐
+│ ผู้ช่วยเหลือ A  │
+│ ได้รับ 0.6%     │
+│ ทันที           │
+└─────────────────┘
 
-Step 2: AUTO-SWAP (Anyone after 24h)
-┌──────────────┐
-│ Seized Vault │
-│ (SOL)        │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐     ┌───────────────┐
-│ Jupiter Swap │────▶│ Processing    │
-│ SOL → USDC   │     │ Vault (USDC)  │
-└──────────────┘     └───────────────┘
-       │
-       ▼
-┌──────────────┐
-│ Executor     │
-│ gets 0.6%    │
-└──────────────┘
+🎬 ขั้นตอนที่ 2: แลกเปลี่ยน (ใครก็ได้หลัง 24 ชม.)
+┌──────────────────────┐
+│ กระเป๋าสินทรัพย์    │
+│ ที่ถูกช่วยเหลือ     │
+│ (SOL)               │
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────┐     ┌───────────────────┐
+│ Jupiter Swap     │────▶│ กระเป๋ากระบวนการ │
+│ SOL → USDC       │     │ (USDC)            │
+└──────────────────┘     └───────────────────┘
+           │
+           ▼
+┌──────────────────┐
+│ ผู้ดำเนินการ    │
+│ ได้รับรางวัล    │
+│ สร้างสภาพคล่อง  │
+└──────────────────┘
 
-Step 3: FINALIZE (Keeper C)
-┌───────────────┐
-│ Processing    │
-│ Vault (USDC)  │
-└───────┬───────┘
-        │
-        ▼
-┌───────┴──────────────────┐
-│ Principal → Capital      │
-│ 5% Profit → Capital      │
-│ 95% Profit → Revenue     │
-│ Keeper C gets 0.6%       │
-└──────────────────────────┘
+🎬 ขั้นตอนที่ 3: จบกระบวนการ (ผู้ช่วยเหลือ C)
+┌───────────────────┐
+│ กระเป๋ากระบวนการ │
+│ (USDC)            │
+└─────────┬─────────┘
+          │
+          ▼
+┌─────────┴─────────────────────────┐
+│ เงินต้น → กระเป๋าทุน             │
+│ กำไร 10% → กระเป๋าทุน            │
+│ กำไร 90% → กระจายตามสัดส่วน      │
+│ ผู้ช่วยเหลือ C ได้รับ 1.0 USDC   │
+└───────────────────────────────────┘
 ```
+
+---
+
+> **"กระจายรายได้ ส่งมอบความสุข ให้ความปลอดภัย สร้างความไว้วางใจ"**
+>
+> _GINVA - แพลตฟอร์มการเงินที่ยุติธรรมที่สุดบน Solana_
 
 ## Support
 

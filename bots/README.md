@@ -1,29 +1,31 @@
-# 🤖 GINVA Keeper Bot Suite
+# 🤖 GINVA Helper Bot Suite
 
-Automated keeper bots for the GINVA Protocol - The On-Chain Distressed Asset Exchange.
+> **"กระจายรายได้ ส่งมอบความสุข ให้ความปลอดภัย สร้างความไว้วางใจ"**
 
-## 🎯 Features
+บอทอัตโนมัติสำหรับผู้ช่วยเหลือ GINVA Protocol - ผู้พิทักษ์เสถียรภาพของระบบ
 
-### 1. 🔨 Trigger Keeper Bot (Keeper A)
+## 🎯 ฟีเจอร์
 
-- Monitors all active loans for liquidatable positions
-- Automatically triggers liquidation when health factor drops
-- Earns 0.6% reward on successful triggers
-- Configurable minimum profit thresholds
+### 1. 🔨 บอทผู้ช่วยเหลือ A (Trigger Helper Bot)
 
-### 2. 🏪 Storefront Hunter Bot (Keeper B)
+- เฝ้าระวังเงินกู้ที่ใช้งานอยู่ทั้งหมดเพื่อหาตำแหน่งที่ต้องการความช่วยเหลือ
+- เริ่มกระบวนการช่วยเหลืออัตโนมัติเมื่อสุขภาพบัญชีต่ำ
+- ได้รับรางวัล 0.6% เมื่อช่วยเหลือสำเร็จ
+- กำหนดเกณฑ์กำไรขั้นต่ำได้
 
-- Watches the Pawn Shop for discounted assets
-- Time-decay pricing strategy (8% → 6% → 3% → 0%)
-- Competitive buying with priority fees
-- Real-time FOMO-based purchasing
+### 2. 🏪 บอทนักล่าร้านค้า (Storefront Hunter Bot)
 
-### 3. ✨ Finalize Keeper Bot (Keeper C)
+- เฝ้าระวังร้านค้าสำหรับสินทรัพย์ลดราคา
+- กลยุทธ์ราคาตามช่วงเวลา (8% → 6% → 3% → 0%)
+- การซื้อแข่งขันด้วยค่าธรรมเนียมความเร็ว
+- การซื้อแบบเรียลไทม์ตามโอกาส
 
-- Monitors swapped liquidations
-- Finalizes distribution to complete the cycle
-- Earns fixed 1.0 USDC reward per finalization
-- Ensures protocol solvency
+### 3. ✨ บอทผู้ช่วยเหลือ C (Finalize Helper Bot)
+
+- เฝ้าระวังการช่วยเหลือที่แลกเปลี่ยนแล้ว
+- จบกระบวนการกระจายรายได้
+- ได้รับรางวัลคงที่ 1.0 USDC ต่อการช่วยเหลือ
+- รักษาความมั่นคงของโปรโตคอล
 
 ## 🚀 Quick Start
 
@@ -69,51 +71,51 @@ npm start
 npm run start
 ```
 
-### Run Individual Bots
+### รันบอทแยกกัน
 
 ```bash
-# Trigger Bot only
+# บอทผู้ช่วยเหลือ A เท่านั้น
 npm run start:trigger
 
-# Hunter Bot only
+# บอทนักล่าร้านค้า เท่านั้น
 npm run start:hunter
 
-# Finalize Bot only
+# บอทผู้ช่วยเหลือ C เท่านั้น
 npm run start:finalize
 ```
 
-## ⚙️ Configuration Options
+## ⚙️ ตัวเลือกการตั้งค่า
 
-Edit the `CONFIG` object in `keeper-suite.ts`:
+แก้ไขออบเจกต์ `CONFIG` ใน `keeper-suite.ts`:
 
 ```typescript
 const CONFIG = {
-  // Trigger Bot Settings
+  // การตั้งค่าบอทผู้ช่วยเหลือ A
   trigger: {
     enabled: true,
-    minProfit: 0.5, // Minimum USDC profit to trigger
-    checkInterval: 5000, // Check every 5 seconds
-    maxConcurrent: 3, // Max simultaneous liquidations
+    minProfit: 0.5, // กำไร USDC ขั้นต่ำในการช่วยเหลือ
+    checkInterval: 5000, // ตรวจสอบทุก 5 วินาที
+    maxConcurrent: 3, // จำนวนสูงสุดที่ช่วยเหลือพร้อมกัน
   },
 
-  // Hunter Bot Settings
+  // การตั้งค่าบอทนักล่าร้านค้า
   hunter: {
     enabled: true,
-    minDiscount: 6, // Min discount % to buy
-    maxDiscount: 8, // Max discount % (safety)
-    checkInterval: 2000, // Check every 2 seconds
-    maxInvestment: 10000, // Max USDC per deal
+    minDiscount: 6, // ส่วนลดขั้นต่ำ % ในการซื้อ
+    maxDiscount: 8, // ส่วนลดสูงสุด % (ความปลอดภัย)
+    checkInterval: 2000, // ตรวจสอบทุก 2 วินาที
+    maxInvestment: 10000, // USDC สูงสุดต่อดีล
   },
 
-  // Finalize Bot Settings
+  // การตั้งค่าบอทผู้ช่วยเหลือ C
   finalize: {
     enabled: true,
-    checkInterval: 10000, // Check every 10 seconds
-    minProfit: 1.0, // Minimum 1.0 USDC reward
+    checkInterval: 10000, // ตรวจสอบทุก 10 วินาที
+    minProfit: 1.0, // รางวัลขั้นต่ำ 1.0 USDC
   },
 
-  // General
-  priorityFee: 10000, // Micro-lamports for priority
+  // ทั่วไป
+  priorityFee: 10000, // Micro-lamports สำหรับความเร็ว
   commitment: "confirmed",
 };
 ```
@@ -221,6 +223,10 @@ BUSL-1.1 (Business Source License)
 
 ---
 
-**Happy Hunting! 🦁**
+> **"กระจายรายได้ ส่งมอบความสุข ให้ความปลอดภัย สร้างความไว้วางใจ"**
+>
+> _GINVA - แพลตฟอร์มการเงินที่ยุติธรรมที่สุดบน Solana_
 
-_Remember: These bots compete with others. Speed and gas optimization are key!_
+**เป็นผู้พิทักษ์ระบบและสร้างรายได้ไปพร้อมกัน! 🛡️**
+
+_ระบบที่ดีต้องมีผู้ช่วยเหลือที่ดี — ความเร็วและประสิทธิภาพคือกุญแจสำคัญ!_

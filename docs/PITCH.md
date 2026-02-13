@@ -1,107 +1,115 @@
-# GINVA: The Marketing Pitch (War Zone Narrative)
+# GINVA: การนำเสนอทางการตลาด
 
-## Headline
+> **"กระจายรายได้ ส่งมอบความสุข ให้ความปลอดภัย สร้างความไว้วางใจ"**
 
-**Liquidations are a War Zone. Don't just lend. Hunt.**
+## พาดหัวหลัก
 
-## The Hook
+**DeFi ที่เป็นมิตรกับผู้กู้ สร้างรายได้ให้ทุกฝ่าย**
 
-For years, DeFi has been broken.
+## ข้อความดึงดูด (The Hook)
 
-Liquidations are a black box. Keepers exploit users. Bad debt destroys protocols.
-We built GINVA to **CHANGE** that.
+DeFi มานานน่ากลัวสำหรับผู้กู้
 
-## The Concept
+การยึดทรัพย์เป็นกล่องดำ ผู้ช่วยเหลือเอาเปรียบผู้ใช้ หนี้เสียทำลายโปรโตคอล
+เราสร้าง GINVA เพื่อ **เปลี่ยนแปลง** สิ่งนั้น
 
-A gamified, on-chain distressed asset exchange where:
+## แนวคิดหลัก
 
-- ✅ Liquidations are **FAIR** (Pawn Drops)
-- ✅ Prices are **HONEST** (Time-Decay)
-- ✅ Code is **LAW** (Automated Waterfall)
+แพลตฟอร์มสินเชื่อบน Solana ที่:
 
-## The Offer
+- ✅ **ให้ความปลอดภัย** — ระบบปกป้อง 72 ชั่วโมง
+- ✅ **กระจายรายได้** — ผู้สนับสนุนได้รับส่วนแบ่ง 65.25%
+- ✅ **สร้างความไว้วางใจ** — โปร่งใส ยุติธรรม ตรวจสอบได้
 
-Join the Hunt at [ginva.io](https://ginva.io).
-Capture up to 8% edge on distressed assets. No bots required.
+## ข้อเสนอ
 
----
-
-## Extended Marketing Copy
-
-### War Zone Narrative (For Landing Page)
-
-**THE OLD WAY:**
-Liquidations have been a war zone.
-
-- Keepers exploit users via gas wars
-- Bad debt destroys protocols
-- Borrowers lose everything in an instant fire sale
-
-**THE GINVA WAY:**
-We turned liquidations into a **Treasure Hunt**.
-
-When a borrower defaults, their asset isn't dumped—it's **DROPPED** in our Pawn Shop with a "Time-Decay" price mechanism designed to fuel FOMO and fairness.
-
-You don't need to be a bot to win. You just need to be **ready**.
-
-### Taglines
-
-- "Where Liquidation becomes Opportunity"
-- "The first lawful, transparent, and gamified Pawn Shop on Solana"
-- "Don't just lend. Hunt."
-- "Risk is explicit. Pricing is transparent."
-
-### Audience Messaging
-
-**For Hunters:**
-"Seize up to 8% edge on distressed assets. First come, first served."
-
-**For Borrowers:**
-"Dignity & Fairness. Your collateral is sold with transparency, not extracted in darkness."
-
-**For Lenders:**
-"Anti-Bank Run Protection. Your capital is shielded by a 5% exit fee that discourages mercenary capital."
+เข้าร่วมกับเราที่ [ginva.io](https://ginva.io)
+สร้างรายได้จากการเป็นผู้สนับสนุนสภาพคล่อง หรือผู้ช่วยเหลือในระบบที่ยุติธรรม
 
 ---
 
-## Content Calendar Ideas
+## เอกสารการตลาดฉบับเต็ม
 
-### Week 1: The Problem
+### เรื่องราวของ GINVA (สำหรับ Landing Page)
 
-- Tweet thread: "Why DeFi liquidations are broken"
-- Medium: "The Hidden War Zone of DeFi"
+**วิธีการแบบเดิม:**
+การช่วยเหลือสินทรัพย์เป็นเรื่องน่ากลัว
 
-### Week 2: The Solution
+- ผู้ช่วยเหลือเอาเปรียบผู้ใช้ผ่าน gas wars
+- หนี้เสียทำลายโปรโตคอล
+- ผู้กู้สูญเสียทุกสิ่งในพริบตา
 
-- Tweet thread: "Introducing Pawn Drops"
-- Infographic: Time-decay pricing tiers
+**วิธีการของ GINVA:**
+เราเปลี่ยนการช่วยเหลือสินทรัพย์ให้เป็น **ระบบที่ยุติธรรม**
 
-### Week 3: The Mechanics
+เมื่อผู้กู้ไม่สามารถดำเนินการได้ สินทรัพย์จะไม่ถูกขายทิ้งทันที—แต่จะเข้าสู่ **กระบวนการช่วยเหลือ 72 ชั่วโมง** ด้วยกลไกราคายุติธรรมตามช่วงเวลา ที่ออกแบบมาเพื่อความโปร่งใสและเป็นธรรม
 
-- Deep dive: "How GINVA's Greed Engine works"
-- Video: Walkthrough of a liquidation
+คุณไม่จำเป็นต้องเป็น bot ก็มีส่วนร่วมได้ คุณแค่ต้อง **พร้อมที่จะช่วยเหลือ**
 
-### Week 4: The Opportunity
+### คำขวัญ (Taglines)
 
-- Hunter guide: "How to capture 8% edge"
-- Case study: Real liquidation examples
+- "กระจายรายได้ ส่งมอบความสุข ให้ความปลอดภัย สร้างความไว้วางใจ"
+- "แพลตฟอร์มสินเชื่อที่ยุติธรรมที่สุดบน Solana"
+- "ผู้กู้ได้รับโอกาส ผู้สนับสนุนได้รับรายได้ ผู้ช่วยเหลือได้รับรางวัล"
+- "ความเสี่ยงชัดเจน ราคาโปร่งใส ระบบยุติธรรม"
+
+### ข้อความสำหรับกลุ่มเป้าหมาย
+
+**สำหรับผู้กู้:**
+"ศักดิ์ศรีและความยุติธรรม คุณมีเวลา 72 ชั่วโมงในการปกป้องสินทรัพย์ของคุณ"
+
+**สำหรับผู้สนับสนุน:**
+"ส่วนแบ่งรายได้ 65.25% จากทุกธุรกรรม ไม่มีการล็อก ถอนได้ทุกเมื่อ"
+
+**สำหรับผู้ช่วยเหลือ:**
+"เป็นฮีโร่ที่ได้รับรางวัล ช่วยรักษาความมั่นคงของระบบและรับส่วนแบ่ง"
 
 ---
 
-## Visual Identity Notes
+## ไอเดียปฏิทินเนื้อหา
 
-**Colors:**
+### สัปดาห์ที่ 1: ปัญหา
 
-- Golden Hour: #FFD700 (Gold)
-- Silver Tier: #C0C0C0 (Silver)
-- Bronze Tier: #CD7F32 (Bronze)
-- Expired: #8B0000 (Dark Red)
+- Tweet thread: "ทำไม DeFi ถึงน่ากลัวสำหรับผู้กู้"
+- Medium: "ความจริงที่ซ่อนอยู่ในโลก DeFi"
 
-**Tone:**
+### สัปดาห์ที่ 2: ทางออก
 
-- Aggressive but fair
-- Warrior-like but ethical
-- Competitive but transparent
+- Tweet thread: "แนะนำระบบปกป้อง 72 ชั่วโมง"
+- Infographic: ระดับราคาตามช่วงเวลา
 
-**Keywords:**
-Hunt, Treasure, Fair, Transparent, Edge, FOMO, Ready, Dignity, Shield
+### สัปดาห์ที่ 3: กลไก
+
+- Deep dive: "GINVA ทำงานอย่างไร"
+- Video: การเดินทางของผู้กู้ตั้งแต่ต้นจนจบ
+
+### สัปดาห์ที่ 4: โอกาส
+
+- คู่มือผู้สนับสนุน: "วิธีรับส่วนแบ่ง 65.25%"
+- กรณีศึกษา: เรื่องราวความสำเร็จจริง
+
+---
+
+## บันทึกอัตลักษณ์ภาพ
+
+**สี:**
+
+- ทองคำ: #FFD700 (Gold)
+- เงิน: #C0C0C0 (Silver)
+- ทองแดง: #CD7F32 (Bronze)
+- เขียวหวาน: #228B22 (Forest Green) - แทนความเติบโต
+
+**โทนเสียง:**
+
+- เป็นมิตรแต่มั่นคง
+- ดูแลแต่มืออาชีพ
+- แข่งขันได้แต่ยุติธรรม
+
+**คำสำคัญ:**
+ความปลอดภัย, ความยุติธรรม, โปร่งใส, การแบ่งปัน, ความไว้วางใจ, โอกาส, ความพร้อม, ศักดิ์ศรี, การปกป้อง
+
+---
+
+> **"กระจายรายได้ ส่งมอบความสุข ให้ความปลอดภัย สร้างความไว้วางใจ"**
+>
+> _GINVA - แพลตฟอร์มการเงินที่ยุติธรรมที่สุดบน Solana_

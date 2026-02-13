@@ -1,123 +1,142 @@
-# GINVA System Architecture
+# สถาปัตยกรรมระบบ GINVA
 
-## Overview
+> **"กระจายรายได้ ส่งมอบความสุข ให้ความปลอดภัย สร้างความไว้วางใจ"**
 
-GINVA is a crypto-backed lending platform built on Solana that prioritizes **borrower protection** through a unique 72-hour grace period system.
+## ภาพรวม
 
----
-
-## Core Components
-
-### 1. Borrower Interface
-
-**Priority: #1**
-
-The primary user-facing component where borrowers can:
-
-- Deposit collateral (SOL, BTC, ETH)
-- Borrow USDC instantly
-- Monitor account health
-- Extend loans or repay
-
-**Key Feature:** 72-hour protection system before any asset management occurs
-
-### 2. Supporter Pool
-
-**Priority: #2**
-
-Liquidity providers who:
-
-- Stake USDC to support the platform
-- Earn 65.25% of all protocol revenue
-- Help maintain system stability
-
-**Benefits:** Auto-compounding rewards, no lock-up period
-
-### 3. Helper Network
-
-**Priority: #3**
-
-Decentralized network of participants who:
-
-- Monitor system health
-- Facilitate protection processes
-- Ensure fair asset management
-
-**Roles:**
-
-- Helper A: Monitor & Alert (0.6% reward)
-- Helper B: Support & Provide (arbitrage opportunities)
-- Helper C: Complete & Finalize (1.0 USDC fixed)
+GINVA คือแพลตฟอร์มสินเชื่อที่ใช้สินทรัพย์ดิจิทัลเป็นหลักประกัน สร้างบน Solana โดยให้ความสำคัญกับ **การปกป้องผู้กู้** ผ่านระบบระยะปกป้อง 72 ชั่วโมงที่เป็นเอกลักษณ์
 
 ---
 
-## Protection System Flow
+## 🌳 3 เสาหลักของระบบนิเวศ
+
+### 1. ผู้กู้: หัวใจของโปรโตคอล 💚
+
+> **"ให้ความปลอดภัย"**
+
+**บทบาท:** ศูนย์กลางที่ทำให้ทุกอย่างขับเคลื่อน
+
+**สิ่งที่ผู้กู้ทำได้:**
+
+- ฝากหลักประกัน (SOL, BTC, ETH)
+- กู้ USDC ทันที
+- ตรวจสอบสุขภาพบัญชี
+- ต่อเวลาหรือคืนเงินกู้
+
+**ฟีเจอร์สำคัญ:** ระบบปกป้อง 72 ชั่วโมงก่อนมีการดำเนินการใดๆ กับสินทรัพย์
+
+---
+
+### 2. ผู้สนับสนุน: เส้นเลือดใหญ่ของระบบนิเวศ 🌿
+
+> **"กระจายรายได้"**
+
+**บทบาท:** ส่งเลือด (สภาพคล่อง) ไปเลี้ยงทุกส่วน ไม่มีคุณ ระบบจะเหี่ยวเฉา
+
+**สิ่งที่ผู้สนับสนุนทำ:**
+
+- Stake USDC เพื่อสนับสนุนแพลตฟอร์ม
+- ได้รับ 65.25% จากรายได้ทั้งหมดของโปรโตคอล
+- ช่วยรักษาความมั่นคงของระบบ
+
+**สิทธิประโยชน์:** รางวัลทบต้นอัตโนมัติ ไม่มีการล็อก
+
+---
+
+### 3. ผู้ช่วยเหลือ: ผู้พิทักษ์เสถียรภาพของระบบ 🛡️
+
+> **"สร้างความไว้วางใจ"**
+
+**บทบาท:** เฝ้าระวังและดูแลให้คำมั่นสัญญาเป็นจริง
+
+**เครือข่ายผู้ช่วยเหลือ:**
+
+- **ผู้ช่วยเหลือ A:** ผู้ตรวจสอบและแจ้งเตือน (รางวัล 0.6%)
+- **ผู้ช่วยเหลือ B:** ผู้สนับสนุนสภาพคล่อง (โอกาสซื้อในราคาพิเศษ)
+- **ผู้ช่วยเหลือ C:** ผู้ดำเนินการ (รางวัล 1.0 USDC)
+
+---
+
+## 🎬 โฟลว์ระบบปกป้อง 72 ชั่วโมง (3-Act Structure)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                 72-HOUR PROTECTION FLOW                      │
+│            🎬 ระบบปกป้อง 72 ชั่วโมง                           │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  STEP 1: COLLATERAL VALUE DROPS                             │
+│  🎭 ACT 1: การตื่นตัว (The Awakening)                       │
 │          │                                                  │
 │          ▼                                                  │
-│  STEP 2: EARLY WARNING (72 hours before)                   │
-│          • System alerts borrower                          │
-│          • Borrower can:                                   │
-│            - Add collateral                                │
-│            - Repay partially                               │
-│            - Do nothing                                    │
+│  มูลค่าหลักประกันลดลง                                       │
 │          │                                                  │
 │          ▼                                                  │
-│  STEP 3: PROTECTION PERIOD (72 hours)                      │
-│          • Assets remain safe                              │
-│          • Borrower has time to act                        │
-│          • Helper A monitors                               │
+│  🔔 เตือนล่วงหน้า (72 ชั่วโมงก่อน)                          │
+│          • ระบบแจ้งเตือนผู้กู้                              │
+│          • ผู้กู้มีตัวเลือก:                               │
+│            - เพิ่มหลักประกัน                                │
+│            - คืนเงินบางส่วน                                 │
+│            - รอดูสถานการณ์                                  │
 │          │                                                  │
 │          ▼                                                  │
-│  STEP 4: ASSISTANCE PHASE                                  │
-│          • Helper B provides liquidity support             │
-│          • Time-based fair pricing:                        │
-│            - 0-10 min: -8% discount                        │
-│            - 10-30 min: -6% discount                       │
-│            - 30-60 min: -3% discount                       │
-│            - 60+ min: Market rate                          │
+│  🎭 ACT 2: การรับมือ (The Response)                         │
 │          │                                                  │
 │          ▼                                                  │
-│  STEP 5: COMPLETION                                        │
-│          • Helper C finalizes                              │
-│          • Revenue distributed                             │
-│          • Borrower receives surplus                       │
+│  ⏰ ระยะปกป้อง (72 ชั่วโมง)                                 │
+│          • สินทรัพย์ยังปลอดภัย                              │
+│          • ผู้กู้มีเวลาดำเนินการ                           │
+│          • ผู้ช่วยเหลือ A ตรวจสอบ                          │
+│          │                                                  │
+│          ▼                                                  │
+│  🤝 ระยะช่วยเหลือ                                          │
+│          • ผู้ช่วยเหลือ B ให้สภาพคล่อง                     │
+│          • ราคายุติธรรมตามช่วงเวลา:                       │
+│            - 0-10 นาที: ส่วนลด 8%                          │
+│            - 10-30 นาที: ส่วนลด 6%                         │
+│            - 30-60 นาที: ส่วนลด 3%                         │
+│            - 60+ นาที: ราคาตลาด                            │
+│          │                                                  │
+│          ▼                                                  │
+│  🎭 ACT 3: การฟื้นฟู (The Resolution)                       │
+│          │                                                  │
+│          ▼                                                  │
+│  ✨ การจบกระบวนการ                                         │
+│          • ผู้ช่วยเหลือ C จัดการ                          │
+│          • กระจายรายได้                                    │
+│          • ส่วนเกินเข้ากองทุนสำรอง (ประกันความเสี่ยง)     │
+│                                                             │
+│  🎯 ผลลัพธ์: จากความตื่นตระหนก สู่ความสบายใจ             │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Revenue Distribution
+## 💰 การกระจายรายได้: ปรัชญา "กระจายรายได้"
 
 ```
-All Interest Payments
+ดอกเบี้ยทั้งหมด
          │
-         ├── 65.25% → Supporters (Stakers)
+         ├── 65.25% → ผู้สนับสนุน (เส้นเลือดใหญ่)
          │
-         ├── 24.75% → Operations Team
+         ├── 24.75% → ทีมดำเนินการ (ลำต้น)
          │
-         └── 10% → Capital Pool (System Protection)
+         └── 10% → กองทุนสภาพคล่อง (รากฐาน)
 ```
 
-**Fair distribution that rewards supporters while protecting the system.**
+**การแบ่งปันที่ยุติธรรม:** รางวัลผู้สนับสนุนขณะปกป้องระบบ
+
+**การจัดสรรส่วนเกิน:** 100% เข้ากองทุนสำรอง (ประกันความเสี่ยง)
 
 ---
 
-## Key Security Features
+## 🛡️ ฟีเจอร์ความปลอดภัยหลัก
 
-1. **Reentrancy Guards** - Prevent recursive attacks
-2. **Flash Loan Protection** - 5-minute minimum hold
-3. **Emergency Pause** - Timelock-protected
-4. **Rate Limiting** - Per-user transaction limits
-5. **Oracle Validation** - 15-second price freshness
-6. **Multi-Asset Support** - Individual LTV configs
+1. **การป้องกันการโจมตีซ้ำซ้อน** - Reentrancy Guards
+2. **การป้องกัน Flash Loan** - ระยะเวลาถือขั้นต่ำ 5 นาที
+3. **การหยุดฉุกเฉิน** - มี Timelock ป้องกัน
+4. **การจำกัดอัตราการทำธุรกรรม** - Rate Limiting ต่อผู้ใช้
+5. **การตรวจสอบ Oracle** - ข้อมูลราคาสดไม่เกิน 15 วินาที
+6. **การรองรับหลายสินทรัพย์** - LTV แยกต่อสินทรัพย์
 
 ---
 
@@ -145,27 +164,31 @@ All Interest Payments
 
 ---
 
-## Why This Architecture?
+## 🎯 ทำไมต้องใช้สถาปัตยกรรมนี้?
 
-**Traditional DeFi:** Instant liquidation → Borrower loses everything immediately
+### เปรียบเทียบแนวคิด
 
-**GINVA:** 72-hour protection → Borrower has time to save their assets
+**DeFi แบบดั้งเดิม:** การช่วยเหลือทันที → ผู้กู้สูญเสียทุกสิ่งในพริบตา
 
-This architecture prioritizes:
+**GINVA:** การปกป้อง 72 ชั่วโมง → ผู้กู้มีเวลาในการรักษาสินทรัพย์
 
-1. **Borrower protection** over speed
-2. **Fair opportunity** over efficiency
-3. **Ecosystem sustainability** over short-term profits
+### หลักการที่เรายึดถือ
+
+1. **การปกป้องผู้กู้** สำคัญกว่าความเร็ว
+2. **โอกาสที่ยุติธรรม** สำคัญกว่าประสิทธิภาพ
+3. **ความยั่งยืนของระบบนิเวศ** สำคัญกว่ากำไรระยะสั้น
 
 ---
 
-## Deployment
+## 🚀 การ Deploy
 
-- **Network:** Solana Devnet
+- **เครือข่าย:** Solana Devnet
 - **Program ID:** `2SiGJi9VkD96oWLNizmMkGFwFpHq1tEETVqrLCezWKou`
-- **Version:** 2.0.0
-- **Status:** Active Testing
+- **เวอร์ชัน:** 2.0.0
+- **สถานะ:** ทดสอบอย่างแข็งขัน
 
 ---
 
-_Architecture designed with borrowers in mind, maintained by supporters, powered by helpers._
+> **"กระจายรายได้ ส่งมอบความสุข ให้ความปลอดภัย สร้างความไว้วางใจ"**
+>
+> _สถาปัตยกรรมที่ออกแบบด้วยหัวใจผู้กู้ ขับเคลื่อนด้วยผู้สนับสนุน ดูแลโดยผู้ช่วยเหลือ_
