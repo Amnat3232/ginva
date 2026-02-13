@@ -869,8 +869,8 @@ pub mod ginva {
         Ok(())
     }
 
-    // STEP 1: TRIGGER LIQUIDATION (Keeper A - 0.6% Reward)
-    // Split into two transactions to avoid stack overflow
+    // ขั้นตอนที่ 1: เริ่มกระบวนการช่วยเหลือ (ผู้ช่วยเหลือ A - รางวัล 0.6%)
+    // แบ่งเป็นสองธุรกรรมเพื่อป้องกัน stack overflow
     pub fn trigger_liquidation(ctx: Context<TriggerLiquidation>) -> Result<()> {
         let loan_account = &mut ctx.accounts.loan_account;
         let system_config = &mut ctx.accounts.system_config;
@@ -991,15 +991,15 @@ pub mod ginva {
                 .saturating_sub(total_collateral_to_subtract);
 
             msg!(
-                "🔨 Step 1 Complete! Keeper A can claim: {} SOL (0.6%)",
+                "🔨 ขั้นตอนที่ 1 เสร็จสมบูรณ์! ผู้ช่วยเหลือ A สามารถรับรางวัล: {} SOL (0.6%)",
                 trigger_reward
             );
             msg!(
-                "🏪 STOREFRONT OPEN! {} SOL available immediately with 6% discount",
+                "🏪 เปิดร้านค้าช่วยเหลือ! {} SOL พร้อมจำหน่ายทันที ลด 6%",
                 remaining_for_swap
             );
             msg!(
-                "🦄 DEX fallback available in 6 hours (at timestamp: {})",
+                "🦄 ตลาดรองเปิดใช้งานในอีก 6 ชั่วโมง (เวลา: {})",
                 liquidation_process.dex_activation_time
             );
 
@@ -1383,12 +1383,13 @@ pub mod ginva {
         Ok(())
     }
 
-    // STEP 3: FINALIZE LIQUIDATION (Revised Allocation)
-    // NEW LOGIC:
-    // - Keeper C gets FIXED 1.0 USDC (or max 10% if dust amount)
-    // - Priority: Keeper C gets paid FIRST, then principal return
-    // - Profit split 3-way: Capital 10% / Ops 24.75% / Revenue 65.25%
-    // - Supports Bad Debt scenarios (no panic if insufficient funds)
+    // ขั้นตอนที่ 3: จบกระบวนการช่วยเหลือ (การจัดสรรรายได้ที่ปรับปรุง)
+    // ตรรกะใหม่:
+    // - ผู้ช่วยเหลือ C ได้รับ 1.0 USDC คงที่ (หรือสูงสุด 10% ถ้ายอดน้อย)
+    // - ลำดับความสำคัญ: ผู้ช่วยเหลือ C ได้รับก่อน แล้วคืนเงินต้น
+    // - กำไรแบ่ง 3 ทาง: สภาพคล่อง 10% / ทีม 24.75% / รายได้ 65.25%
+    // - ส่วนเกิน (ถ้ามี) ส่งเข้ากองทุนสำรองเป็นกองทุนประกัน
+    // - รองรับกรณีหนี้เสีย (ไม่ panic ถ้าเงินไม่พอคืน)
     pub fn finalize_liquidation(ctx: Context<FinalizeLiquidation>) -> Result<()> {
         let liquidation_process = &mut ctx.accounts.liquidation_process;
         let loan_account = &mut ctx.accounts.loan_account;
@@ -1442,6 +1443,7 @@ pub mod ginva {
         // Priority 1: Keeper C Reward (always paid first)
         // Priority 2: Return principal to Capital (as much as possible)
         // Priority 3: Protocol profit (remaining, if any)
+        // Priority 4: Surplus to Reserve Wallet (insurance fund)
 
         let bump = ctx.bumps.processing_vault_authority;
         let seeds = &[b"processing_auth".as_ref(), &[bump]];
@@ -1591,6 +1593,24 @@ pub mod ginva {
             );
         }
 
+        // Step D: Send Surplus to Reserve Wallet (Insurance Fund)
+        // Any remaining funds after all distributions go to reserve
+        let reserve_amount = remaining_funds;
+        if reserve_amount > 0 {
+            let cpi_accounts_reserve = Transfer {
+                from: ctx.accounts.processing_vault.to_account_info(),
+                to: ctx.accounts.reserve_wallet.to_account_info(),
+                authority: ctx.accounts.processing_vault_authority.to_account_info(),
+            };
+            let cpi_ctx_reserve =
+                CpiContext::new_with_signer(cpi_program.clone(), cpi_accounts_reserve, signer);
+            token::transfer(cpi_ctx_reserve, reserve_amount)?;
+            remaining_funds = remaining_funds.saturating_sub(reserve_amount);
+
+            msg!("📦 Surplus {} USDC sent to Reserve Wallet", reserve_amount);
+            msg!("   → Strengthens protocol insurance fund");
+        }
+
         // 4. Update Status
         liquidation_process.status = LiquidationStatus::Finalized as u8;
         liquidation_process.distribute_keeper = keeper_c;
@@ -1599,30 +1619,28 @@ pub mod ginva {
         liquidation_process.principal_returned = principal_return;
         liquidation_process.growth_fund = capital_share; // Record capital share
         liquidation_process.revenue_share = total_profit; // Record total profit handled
+        liquidation_process.reserve_amount = reserve_amount; // Record reserve amount
 
         // 🛡️ FIX: Now mark loan as fully Liquidated since finalize succeeded
         loan_account.status = LoanStatus::Liquidated as u8;
 
         system_config.total_borrowed = system_config.total_borrowed.saturating_sub(loan_principal);
 
-        // 5. Logging
-        msg!("✅ Step 3 Complete! Liquidation Finalized with 3-Way Profit Split!");
-        msg!("📊 Distribution Summary:");
-        msg!("   💰 Total USDC Available: {}", total_usdc);
-        msg!("   🎯 Keeper C Reward: {}", actual_keeper_reward);
-        msg!(
-            "   🏦 Principal Returned: {} / {}",
-            principal_return,
-            loan_principal
-        );
-        msg!("   📈 Total Profit: {}", total_profit);
-        msg!("   ├─ Capital (10%): {}", capital_share);
-        msg!("   ├─ Ops (~24.75%): {}", ops_share);
-        msg!("   └─ Revenue (~65.25%): {}", revenue_share);
+        // 5. บันทึกข้อมูล
+        msg!("✅ ขั้นตอนที่ 3 เสร็จสมบูรณ์! กระบวนการช่วยเหลือจบลงด้วยการแบ่งรายได้ 3 ทาง");
+        msg!("📊 สรุปการจัดสรร:");
+        msg!("   💰 USDC ที่มีทั้งหมด: {}", total_usdc);
+        msg!("   🎯 รางวัลผู้ช่วยเหลือ C: {}", actual_keeper_reward);
+        msg!("   🏦 คืนเงินต้น: {} / {}", principal_return, loan_principal);
+        msg!("   📈 กำไรทั้งหมด: {}", total_profit);
+        msg!("   ├─ สภาพคล่อง (10%): {}", capital_share);
+        msg!("   ├─ ทีม (~24.75%): {}", ops_share);
+        msg!("   ├─ รายได้ (~65.25%): {}", revenue_share);
+        msg!("   └─ กองทุนสำรอง (ส่วนเกิน): {}", reserve_amount);
 
         if principal_return < loan_principal {
             let bad_debt = loan_principal.saturating_sub(principal_return);
-            msg!("   ⚠️  BAD DEBT DETECTED: {} USDC", bad_debt);
+            msg!("   ⚠️  ตรวจพบหนี้เสีย: {} USDC", bad_debt);
         }
 
         // Emit event for indexing
@@ -2979,6 +2997,7 @@ pub struct LiquidationProcess {
     pub principal_returned: u64,
     pub growth_fund: u64,
     pub revenue_share: u64,
+    pub reserve_amount: u64, // Surplus sent to reserve wallet (insurance fund)
     // Keeper A reward tracking (for separate claim)
     pub keeper_reward_amount: u64,
     pub keeper_reward_claimed: bool,
@@ -3433,6 +3452,10 @@ pub struct FinalizeLiquidation<'info> {
     pub revenue_wallet: Account<'info, TokenAccount>,
     #[account(mut)]
     pub keeper_c_usdc_account: Account<'info, TokenAccount>,
+
+    /// CHECK: Reserve wallet for surplus funds (insurance fund)
+    #[account(mut, address = system_config.reserve_wallet)]
+    pub reserve_wallet: Account<'info, TokenAccount>,
 
     pub token_program: Program<'info, Token>,
 }

@@ -1,8 +1,14 @@
-# 🏛️ GINVA — DeFi Lending Platform with 72-Hour Protection
+# 🏛️ GINVA — แพลตฟอร์มกู้เงินด้วยสินทรัพย์ดิจิทัล พร้อมระบบปกป้อง 72 ชั่วโมง
 
-> **"Get instant cash. Keep your crypto safe."**
+> **"กระจายรายได้ ส่งมอบความสุข ให้ความปลอดภัย สร้างความไว้วางใจ"**
 >
-> _The fairest lending platform on Solana, designed with borrowers in mind._
+> _แพลตฟอร์มการเงินที่ยุติธรรมที่สุดบน Solana ออกแบบมาเพื่อดูแลผู้กู้เป็นหลัก_
+
+---
+
+## 🌟 คำมั่นสัญญาของเรา
+
+**กระจายรายได้ ส่งมอบความสุข ให้ความปลอดภัย สร้างความไว้วางใจ**
 
 [![License](https://img.shields.io/badge/license-BUSL--1.1-red)](LICENSE)
 [![Network](https://img.shields.io/badge/network-Solana%20Devnet-blueviolet)](https://explorer.solana.com)
@@ -12,19 +18,19 @@
 
 ---
 
-## 🎯 What is GINVA?
+## 🎯 GINVA คืออะไร?
 
-GINVA is a **crypto-backed lending platform** that lets you borrow USDC instantly using your digital assets as collateral.
+GINVA คือ **แพลตฟอร์มกู้เงินที่ใช้สินทรัพย์ดิจิทัลเป็นหลักประกัน** ช่วยให้คุณกู้ USDC ได้ทันทีโดยไม่ต้องขายสินทรัพย์ของคุณ
 
-**What makes us different?** Unlike other platforms that liquidate your assets immediately when prices drop, **we give you 72 hours to protect your collateral**.
+**อะไรที่ทำให้เราแตกต่าง?** แตกต่างจากแพลตฟอร์มอื่นที่ยึดทรัพย์สินทันทีเมื่อราคาตก **เราให้เวลาคุณ 72 ชั่วโมงเพื่อปกป้องหลักประกันของคุณ**
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                        GINVA ECOSYSTEM                            │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│    👤 BORROWERS          💰 SUPPORTERS          🤖 HELPERS      │
-│    (Priority #1)          (Priority #2)           (Priority #3) │
+│    👤 ผู้กู้              💰 ผู้สนับสนุน          🤖 ผู้ช่วยเหลือ      │
+│    (ลำดับที่ 1)          (ลำดับที่ 2)           (ลำดับที่ 3) │
 │         │                     │                      │            │
 │         ▼                     ▼                      ▼            │
 │    ┌─────────┐          ┌─────────┐           ┌─────────┐      │
@@ -58,73 +64,73 @@ GINVA is a **crypto-backed lending platform** that lets you borrow USDC instantl
 
 ---
 
-## 👤 FOR BORROWERS (Our Priority #1) 🏆
+## 👤 สำหรับผู้กู้ (ลำดับความสำคัญที่ 1) 🏆
 
-### Get Instant Cash Without Selling Your Crypto
+### รับเงินสดทันที โดยไม่ต้องขายสินทรัพย์
 
 ```
 ┌────────────────────────────────────────┐
-│         HOW TO BORROW                  │
+│         วิธีการกู้เงิน                 │
 ├────────────────────────────────────────┤
 │                                        │
-│  1️⃣  Deposit Your Assets              │
-│      └─► SOL, BTC, ETH as collateral  │
+│  1️⃣  ฝากหลักประกัน                    │
+│      └─► SOL, BTC, ETH เป็นหลักประกัน │
 │                                        │
-│  2️⃣  Receive USDC Instantly           │
-│      └─► Up to 60% of asset value     │
+│  2️⃣  รับ USDC ทันที                   │
+│      └─► สูงสุด 60% ของมูลค่าสินทรัพย์ │
 │                                        │
-│  3️⃣  Use Your Cash                    │
-│      └─► No restrictions on usage     │
+│  3️⃣  ใช้เงินตามต้องการ                 │
+│      └─► ไม่มีข้อจำกัดการใช้งาน       │
 │                                        │
-│  4️⃣  Get Assets Back                  │
-│      └─► Repay anytime, no penalty    │
+│  4️⃣  รับสินทรัพย์คืน                  │
+│      └─► คืนได้ทุกเมื่อ ไม่มีค่าปรับ   │
 │                                        │
 └────────────────────────────────────────┘
 ```
 
-### Why Borrowers Love GINVA
+### ทำไมผู้กู้ถึงรัก GINVA
 
-| Feature                    | What It Means For You                                                                             |
-| :------------------------- | :------------------------------------------------------------------------------------------------ |
-| 🛡️ **72-Hour Protection**  | If collateral value drops, you have 72 hours to add more collateral or repay. No instant seizure! |
-| 💰 **Keep Your Assets**    | Your crypto stays locked, not sold. Benefit when prices go up.                                    |
-| ⚡ **Instant Approval**    | No credit checks, no paperwork. Get USDC in seconds.                                              |
-| 🔄 **Flexible Repayment**  | Repay early with no penalty. Extend anytime by paying interest.                                   |
-| 📊 **Transparent Pricing** | See exactly how much you'll pay. No hidden fees.                                                  |
+| ฟีเจอร์                      | สิ่งที่มอบให้คุณ                                                                            |
+| :--------------------------- | :------------------------------------------------------------------------------------------ |
+| 🛡️ **ระบบปกป้อง 72 ชม.**     | ถ้ามูลค่าหลักประกันลด คุณมีเวลา 72 ชั่วโมงเพื่อเพิ่มหลักประกันหรือคืนเงิน ไม่มีการยึดทันที! |
+| 💰 **เก็บสินทรัพย์ไว้**      | คริปโตของคุณถูกล็อก ไม่ถูกขาย ได้ประโยชน์เมื่อราคาขึ้น                                      |
+| ⚡ **อนุมัติทันที**          | ไม่ตรวจเครดิต ไม่มีเอกสาร รับ USDC ในไม่กี่วินาที                                           |
+| 🔄 **การคืนเงินที่ยืดหยุ่น** | คืนก่อนกำหนดไม่มีค่าปรับ ต่อเวลาได้ตลอดโดยจ่ายดอกเบี้ย                                      |
+| 📊 **ราคาโปร่งใส**           | เห็นต้นทุนที่ชัดเจน ไม่มีค่าธรรมเนียมแอบแฝง                                                 |
 
-### Your Protection System
+### ระบบปกป้องของคุณ
 
 ```
-BORROWER PROTECTION JOURNEY:
+การเดินทางของผู้กู้ภายใต้การปกป้อง:
 
 ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐
-│ Deposit  │───►│ Borrow  │───►│ Protect │───►│ Get     │
-│Collateral│    │  USDC   │    │ 72hrs   │    │Back     │
+│ ฝาก      │───►│ กู้     │───►│ ปกป้อง  │───►│ รับ     │
+│หลักประกัน│    │  USDC   │    │ 72 ชม.  │    │คืน      │
 └─────────┘    └─────────┘    └─────────┘    └─────────┘
       │              │              │              │
       ▼              ▼              ▼              ▼
-   Assets      USDC to      Time to       Collateral
-   Safe        Use          Act            Returned
+   สินทรัพย์    USDC สำหรับ   เวลาในการ    หลักประกัน
+   ปลอดภัย      ใช้งาน       ดำเนินการ     คืนสู่คุณ
 ```
 
-### What Happens If Prices Drop?
+### จะเกิดอะไรขึ้นถ้าราคาตก?
 
-**Don't worry - we've got you covered!**
+**ไม่ต้องกังวล - เราดูแลคุณ!**
 
-| Stage                                | What Happens                | Your Options                                   |
-| :----------------------------------- | :-------------------------- | :--------------------------------------------- |
-| 📢 **Early Warning** (72 hrs before) | System alerts you           | Add collateral, repay partially, or do nothing |
-| ⏰ **Protection Period** (72 hours)  | Asset protected             | You have time to take action                   |
-| 🤝 **Assistance Phase**              | Liquidity partners step in  | They help maintain system health               |
-| 💎 **You Keep Value**                | Any surplus returned to you | You're never left with nothing                 |
+| ระยะ                               | สิ่งที่เกิดขึ้น          | ตัวเลือกของคุณ                           |
+| :--------------------------------- | :----------------------- | :--------------------------------------- |
+| 📢 **เตือนล่วงหน้า** (72 ชม. ก่อน) | ระบบแจ้งเตือนคุณ         | เพิ่มหลักประกัน คืนบางส่วน หรือไม่ทำอะไร |
+| ⏰ **ระยะปกป้อง** (72 ชั่วโมง)     | สินทรัพย์ได้รับการปกป้อง | คุณมีเวลาในการดำเนินการ                  |
+| 🤝 **ระยะช่วยเหลือ**               | ผู้ช่วยเหลือเข้ามาช่วย   | พวกเขาช่วยรักษาความมั่นคงของระบบ         |
+| 💎 **การปกป้องระบบ**               | ส่วนเกินเข้ากองทุนสำรอง  | เสริมความแข็งแกร่งของโปรโตคอล            |
 
-**Key Point:** Unlike other platforms that seize your assets instantly, we give you time to protect what's yours.
+**จุดสำคัญ:** แตกต่างจากแพลตฟอร์มอื่นที่ยึดสินทรัพย์ทันที เราให้เวลาคุณเพื่อปกป้องสิ่งที่เป็นของคุณ
 
 ---
 
-## 💰 FOR SUPPORTERS (Priority #2) 📈
+## 💰 สำหรับผู้สนับสนุน (ลำดับความสำคัญที่ 2) 📈
 
-Support the platform and earn from every transaction.
+สนับสนุนแพลตฟอร์มและรับส่วนแบ่งจากทุกธุรกรรม
 
 ### How to Support
 
@@ -145,37 +151,65 @@ Support the platform and earn from every transaction.
 └────────────────────────────────────────┘
 ```
 
-### Revenue Sharing
+### การกระจายรายได้
 
-We believe in fair distribution:
+เราเชื่อในความยุติธรรมในการแบ่งปัน:
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│              REVENUE DISTRIBUTION                       │
+│              การกระจายรายได้                           │
 ├─────────────────────────────────────────────────────────┤
 │                                                         │
-│   ALL INTEREST PAYMENTS FROM BORROWERS                  │
+│   ดอกเบี้ยทั้งหมดจากผู้กู้                              │
 │          │                                              │
-│          ├── 65.25% ──► 👥 SUPPORTERS (YOU!)          │
+│          ├── 65.25% ──► 👥 ผู้สนับสนุน (คุณ!)         │
 │          │                                              │
-│          ├── 24.75% ──► 🛠️ OPERATIONS TEAM            │
+│          ├── 24.75% ──► 🛠️ ทีมดำเนินการ               │
 │          │                                              │
-│          └── 10% ──► 🏦 CAPITAL POOL (Protection)     │
+│          └── 10% ──► 🏦 กองทุนสภาพคล่อง (การปกป้อง)   │
 │                                                         │
 └─────────────────────────────────────────────────────────┘
 ```
 
-**Supporters receive 65.25% of all protocol revenue** - the largest share!
+**ผู้สนับสนุนได้รับ 65.25% ของรายได้ทั้งหมดของโปรโตคอล** - ส่วนแบ่งที่มากที่สุด!
 
-### Your Benefits
+### การจัดสรรส่วนเกินจากการช่วยเหลือสินทรัพย์
 
-| Feature                          | Description                        |
-| :------------------------------- | :--------------------------------- |
-| 📊 **65.25% Revenue Share**      | Largest portion goes to supporters |
-| 🔄 **Auto-Compounding**          | Rewards automatically reinvested   |
-| ⏰ **No Lock-up**                | Withdraw anytime                   |
-| 🛡️ **Protected by Capital Pool** | 10% buffer for system stability    |
-| 📈 **Sustainable Yield**         | Real yield from actual lending     |
+เมื่อเกิดการช่วยเหลือสินทรัพย์และมีเงินส่วนเกิน:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│         การจัดสรรส่วนเกินจากการช่วยเหลือ              │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│   ส่วนเกินหลังจากการกระจายทั้งหมด                      │
+│          │                                              │
+│          └── 100% ──► 🛡️ กองทุนสำรอง (ประกันความเสี่ยง)│
+│                                                         │
+│   วัตถุประสงค์: เสริมความแข็งแกร่งของโปรโตคอล         │
+│                 ต่อหนี้เสีย และสภาพคล่องฉุกเฉิน       │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+**ส่วนเกินทั้งหมดเข้ากองทุนสำรอง** - เพื่อปกป้องความมั่นคงของระบบในระยะยาว
+
+### สิทธิประโยชน์ของคุณ
+
+| ฟีเจอร์                          | รายละเอียด                                |
+| :------------------------------- | :---------------------------------------- |
+| 📊 **ส่วนแบ่งรายได้ 65.25%**     | ส่วนแบ่งที่มากที่สุดสำหรับผู้สนับสนุน     |
+| 🔄 **การทบต้นอัตโนมัติ**         | รางวัลลงทุนซ้ำโดยอัตโนมัติ                |
+| ⏰ **ไม่มีการล็อก**              | ถอนได้ทุกเมื่อ                            |
+| 🛡️ **ป้องกันโดยกองทุนสภาพคล่อง** | บัฟเฟอร์ 10% สำหรับความมั่นคงของระบบ      |
+| 🏦 **การปกป้องโดยกองทุนสำรอง**   | ส่วนเกินจากการช่วยเหลือเสริมความแข็งแกร่ง |
+| 📈 **ผลตอบแทนที่ยั่งยืน**        | ผลตอบแทนจริงจากการปล่อยกู้จริง            |
+
+---
+
+## 🤖 สำหรับผู้ช่วยเหลือ (ลำดับความสำคัญที่ 3) 🔧
+
+รักษาระบบให้ทำงานและรับรางวัลสำหรับบริการของคุณ
 
 ---
 
@@ -183,120 +217,120 @@ We believe in fair distribution:
 
 Keep the system running and earn rewards for your service.
 
-### Helper Roles
+### บทบาทผู้ช่วยเหลือ
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│              HELPER RESPONSIBILITIES               │
+│              ความรับผิดชอบของผู้ช่วยเหลือ         │
 ├─────────────────────────────────────────────────────┤
 │                                                     │
-│  🔍 HELPER A: MONITOR                               │
-│  └── Tracks account health                         │
-│  └── Initiates protection process                   │
-│  └── Earns: 0.6% of collateral value               │
+│  🔍 ผู้ช่วยเหลือ A: ผู้ตรวจสอบ                     │
+│  └── ติดตามสุขภาพบัญชี                             │
+│  └── เริ่มกระบวนการปกป้อง                          │
+│  └── ได้รับ: 0.6% ของมูลค่าหลักประกัน              │
 │                                                     │
-│  🤝 HELPER B: SUPPORTER                            │
-│  └── Provides liquidity when needed                 │
-│  └── Purchases at fair time-based prices           │
-│  └── Earns: Arbitrage opportunities                │
+│  🤝 ผู้ช่วยเหลือ B: ผู้สนับสนุนสภาพคล่อง          │
+│  └── ให้สภาพคล่องเมื่อจำเป็น                       │
+│  └── ซื้อในราคายุติธรรมตามช่วงเวลา                │
+│  └── ได้รับ: โอกาสในการซื้อในราคาพิเศษ            │
 │                                                     │
-│  ✨ HELPER C: COMPLETION ASSISTANT                  │
-│  └── Finalizes transactions                         │
-│  └── Ensures system stability                       │
-│  └── Earns: Fixed 1.0 USDC per completion         │
+│  ✨ ผู้ช่วยเหลือ C: ผู้ดำเนินการ                   │
+│  └── จัดการธุรกรรมให้เสร็จสิ้น                     │
+│  └── รักษาความมั่นคงของระบบ                        │
+│  └── ได้รับ: 1.0 USDC ต่อการช่วยเหลือหนึ่งครั้ง   │
 │                                                     │
 └─────────────────────────────────────────────────────┘
 ```
 
-### Time-Based Support System
+### ระบบการช่วยเหลือตามช่วงเวลา
 
-When a borrower needs assistance, assets are available at fair prices based on timing:
+เมื่อผู้กู้ต้องการความช่วยเหลือ สินทรัพย์จะพร้อมจำหน่ายในราคายุติธรรมตามช่วงเวลา:
 
 ```
 ┌─────────────────────────────────────────────┐
-│        SUPPORT PRICING SCHEDULE              │
+│        ตารางราคาการช่วยเหลือ                │
 ├─────────────────────────────────────────────┤
-│  0-10 min │ ⚡ Golden Window │ -8% discount │
-│ 10-30 min │ 🥈 Silver Tier   │ -6% discount │
-│ 30-60 min │ 🥉 Bronze Tier   │ -3% discount │
-│  60+ min  │ 💎 Fair Market   │ Market rate  │
+│  0-10 นาที │ ⚡ ช่วงทอง    │ ส่วนลด 8%    │
+│ 10-30 นาที │ 🥈 ระดับเงิน  │ ส่วนลด 6%    │
+│ 30-60 นาที │ 🥉 ระดับทองแดง│ ส่วนลด 3%    │
+│  60+ นาที  │ 💎 ราคาตลาด   │ ราคาตลาด     │
 └─────────────────────────────────────────────┘
 ```
 
-**Helpers earn fair rewards while supporting the ecosystem.**
+**ผู้ช่วยเหลือได้รับรางวัลที่ยุติธรรมขณะสนับสนุนระบบนิเวศ**
 
 ---
 
-## 📊 Complete System Overview
+## 📊 ภาพรวมระบบทั้งหมด
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                         HOW GINVA WORKS                                     │
+│                         GINVA ทำงานอย่างไร                                  │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │                                    ┌─────────────┐                          │
-│                                    │  👤 BORROWER │                          │
-│                                    │  Priority 1  │                          │
+│                                    │  👤 ผู้กู้  │                          │
+│                                    │ ลำดับที่ 1  │                          │
 │                                    └──────┬──────┘                          │
 │                                           │                                 │
 │                   ┌───────────────────────┼───────────────────────┐         │
 │                   │                       │                       │         │
 │                   ▼                       ▼                       ▼         │
 │            ┌────────────┐         ┌────────────┐         ┌────────────┐    │
-│            │  💰 USDC  │         │ 🛡️ Assets   │         │ 📅 Interest│    │
-│            │   Supply   │         │   Locked   │         │  Paid     │    │
+│            │  💰 USDC  │         │ 🛡️ สินทรัพย์│         │ 📅 ดอกเบี้ย│    │
+│            │  จ่ายให้  │         │  ถูกล็อก   │         │  ที่จ่าย   │    │
 │            └─────┬──────┘         └─────┬──────┘         └─────┬──────┘    │
 │                  │                      │                      │           │
 │                  ▼                      │                      ▼           │
 │            ┌────────────┐              │              ┌────────────┐     │
-│            │ 💰 SUPPORTER│              │              │  📊 SYSTEM │     │
-│            │  Priority 2 │              │              │  Calculates│     │
-│            │  (Stakers) │              │              │   Rewards  │     │
+│            │ 💰 ผู้สนับสนุน│              │              │  📊 ระบบ  │     │
+│            │ ลำดับที่ 2 │              │              │  คำนวณ   │     │
+│            │ (ผู้ลงทุน)│              │              │  รางวัล   │     │
 │            └──────┬─────┘              │              └──────┬─────┘     │
 │                   │                     │                     │            │
 │                   │                     │                     ▼            │
 │                   │                     │              ┌────────────┐     │
-│                   │                     │              │  Revenue   │     │
-│                   │                     │              │  Split     │     │
+│                   │                     │              │  การแบ่ง  │     │
+│                   │                     │              │  รายได้   │     │
 │                   │                     │              └──────┬─────┘     │
 │                   │                     │                     │            │
 │                   │                     │         ┌──────────┼──────────┐ │
 │                   │                     │         ▼          ▼          ▼ │
 │                   │                     │    ┌────────┐ ┌────────┐ ┌───────┐│
-│                   │                     │    │Capital │ │  Ops   │ │Supporters│
+│                   │                     │    │สภาพคล่อง│ │ ทีม    │ │ผู้สนับสนุน│
 │                   │                     │    │  10%   │ │24.75%  │ │65.25% │
 │                   │                     │    └────────┘ └────────┘ └───┬───┘│
 │                   │                     │                            │     │
 │                   │                     │                            ▼     │
 │                   │                     │              ┌───────────────────┐ │
-│                   │                     │              │  🤖 HELPER C     │ │
-│                   │                     │              │  Completion      │ │
+│                   │                     │              │  🤖 ผู้ช่วยเหลือ C│ │
+│                   │                     │              │   ผู้ดำเนินการ   │ │
 │                   │                     │              └─────────┬────────┘ │
 │                   │                     │                        │          │
 │                   │                     │                        ▼          │
 │                   │                     │              ┌────────────────┐  │
-│                   │                     │              │ System         │  │
-│                   │                     │              │ Stability      │  │
+│                   │                     │              │ ความมั่นคง    │  │
+│                   │                     │              │ ของระบบ       │  │
 │                   │                     │              └────────────────┘  │
 │                   │                     │                                   │
 │                   │                     ▼                                   │
 │                   │              ┌─────────────┐                           │
-│                   │              │ 📊 HEALTH  │                           │
-│                   │              │   CHECK    │                           │
+│                   │              │ 📊 ตรวจสอบ │                           │
+│                   │              │   สุขภาพ   │                           │
 │                   │              └──────┬──────┘                           │
 │                   │                     │                                  │
 │                   │         ┌───────────┴───────────┐                      │
 │                   │         ▼                       ▼                      │
 │                   │  ┌─────────────┐        ┌─────────────┐                 │
-│                   │  │🔍 HELPER A │        │🤝 HELPER B │                 │
-│                   │  │  Monitor   │        │  Support   │                 │
-│                   │  │  & Alert   │        │  Center    │                 │
+│                   │  │🔍 ผู้ช่วยเหลือ A│        │🤝 ผู้ช่วยเหลือ B│                 │
+│                   │  │  ผู้ตรวจสอบ  │        │ ผู้สนับสนุน │                 │
+│                   │  │  และเตือน   │        │ สภาพคล่อง  │                 │
 │                   │  └──────┬──────┘        └──────┬──────┘                 │
 │                   │         │                      │                        │
 │                   │         ▼                      ▼                        │
 │                   │  ┌─────────────────────────────────────────────┐       │
-│                   │  │      72-HOUR PROTECTION PERIOD              │       │
-│                   │  │  (Borrower has time to protect assets)      │       │
+│                   │  │      ระยะปกป้อง 72 ชั่วโมง                 │       │
+│                   │  │  (ผู้กู้มีเวลาปกป้องสินทรัพย์)              │       │
 │                   │  └─────────────────────────────────────────────┘       │
 │                   │                                                    │
 │                   └────────────────────────────────────────────────────┘   │
@@ -306,65 +340,78 @@ When a borrower needs assistance, assets are available at fair prices based on t
 
 ---
 
-## 📊 Protocol Parameters
+## 📊 พารามิเตอร์ของโปรโตคอล
 
-| Parameter               | Value                  | Description                         |
-| :---------------------- | :--------------------- | :---------------------------------- |
-| **Borrower Protection** | 72-hour grace period   | Time to protect your collateral     |
-| **LTV Options**         | 20% / 40% / 60%        | Safe / Standard / Maximum borrowing |
-| **Supporter Share**     | 65.25% of all interest | Largest revenue portion             |
-| **Operations Share**    | 24.75% of all interest | Team and development                |
-| **Capital Pool**        | 10% of all interest    | System stability buffer             |
-| **Helper A Reward**     | 0.6% of collateral     | For monitoring and alerting         |
-| **Helper C Reward**     | 1.0 USDC fixed         | Per completion assistance           |
-| **Interest Interval**   | 30 days minimum        | Between interest payments           |
-| **Oracle Freshness**    | 15 seconds max         | Price data accuracy                 |
+| พารามิเตอร์              | ค่า                       | รายละเอียด                         |
+| :----------------------- | :------------------------ | :--------------------------------- |
+| **การปกป้องผู้กู้**      | ระยะปกป้อง 72 ชั่วโมง     | เวลาในการปกป้องหลักประกันของคุณ    |
+| **ตัวเลือก LTV**         | 20% / 40% / 60%           | กู้ระดับปลอดภัย / มาตรฐาน / สูงสุด |
+| **ส่วนแบ่งผู้สนับสนุน**  | 65.25% ของดอกเบี้ยทั้งหมด | ส่วนแบ่งรายได้ที่มากที่สุด         |
+| **ส่วนแบ่งทีมงาน**       | 24.75% ของดอกเบี้ยทั้งหมด | ทีมและการพัฒนา                     |
+| **กองทุนสภาพคล่อง**      | 10% ของดอกเบี้ยทั้งหมด    | บัฟเฟอร์ความมั่นคงของระบบ          |
+| **กองทุนสำรอง**          | 100% ของส่วนเกิน          | ประกันความเสี่ยงจากหนี้เสีย        |
+| **รางวัลผู้ช่วยเหลือ A** | 0.6% ของหลักประกัน        | สำหรับการตรวจสอบและเตือน           |
+| **รางวัลผู้ช่วยเหลือ C** | 1.0 USDC คงที่            | ต่อการช่วยเหลือหนึ่งครั้ง          |
+| **ช่วงดอกเบี้ย**         | ขั้นต่ำ 30 วัน            | ระหว่างการจ่ายดอกเบี้ย             |
+| **ความสดของ Oracle**     | สูงสุด 15 วินาที          | ความถูกต้องของข้อมูลราคา           |
 
 ---
 
-## 🎯 Why Choose GINVA?
+## 🎯 ทำไมต้องเลือก GINVA?
 
-| For               | Benefit                                                      |
-| :---------------- | :----------------------------------------------------------- |
-| **👤 Borrowers**  | 72-hour protection, transparent pricing, no instant seizures |
-| **💰 Supporters** | Sustainable 65.25% yield share, no lock-up                   |
-| **🤖 Helpers**    | Clear rewards, multiple earning opportunities                |
+| สำหรับ              | ประโยชน์                                                   |
+| :------------------ | :--------------------------------------------------------- |
+| **👤 ผู้กู้**       | ระบบปกป้อง 72 ชั่วโมง ราคาโปร่งใส ไม่มีการยึดทันที         |
+| **💰 ผู้สนับสนุน**  | ส่วนแบ่งผลตอบแทน 65.25% ยั่งยืน ไม่มีการล็อก มีกองทุนสำรอง |
+| **🤖 ผู้ช่วยเหลือ** | โครงสร้างรางวัลชัดเจน โอกาสสร้างรายได้หลายช่องทาง          |
 
 ```
 ┌─────────────────────────────────────────┐
-│           GINVA VALUE PROPOSITION       │
+│           ข้อเสนอคุณค่า GINVA          │
 ├─────────────────────────────────────────┤
 │                                         │
-│   👤 BORROWERS                          │
-│   ✅ No hidden liquidations              │
-│   ✅ 72 hours to protect assets         │
-│   ✅ Transparent time-based pricing      │
-│   ✅ Keep your crypto benefits          │
+│   👤 ผู้กู้                             │
+│   ✅ ไม่มีการช่วยเหลือแอบแฝง           │
+│   ✅ 72 ชั่วโมงในการปกป้องสินทรัพย์    │
+│   ✅ ราคาโปร่งใสตามช่วงเวลา            │
+│   ✅ เก็บผลประโยชน์จากคริปโต           │
 │                                         │
-│   💰 SUPPORTERS                         │
-│   ✅ 65.25% of ALL protocol revenue     │
-│   ✅ Auto-compounding rewards            │
-│   ✅ No lock-up required                │
+│   💰 ผู้สนับสนุน                        │
+│   ✅ 65.25% ของรายได้โปรโตคอลทั้งหมด  │
+│   ✅ รางวัลทบต้นอัตโนมัติ              │
+│   ✅ ไม่ต้องล็อกเงิน                   │
+│   ✅ ป้องกันโดยกองทุนสำรอง             │
 │                                         │
-│   🤖 HELPERS                           │
-│   ✅ Clear reward structure              │
-│   ✅ Multiple earning streams            │
-│   ✅ Support ecosystem health            │
+│   🤖 ผู้ช่วยเหลือ                      │
+│   ✅ โครงสร้างรางวัลชัดเจน              │
+│   ✅ หลายช่องทางสร้างรายได้            │
+│   ✅ สนับสนุนความมั่นคงของระบบนิเวศ    │
 │                                         │
 └─────────────────────────────────────────┘
 ```
 
 ---
 
-## 🔗 Resources
+## 🌟 คำขวัญประจำระบบ
 
-- 📘 **Documentation:** [`docs/`](docs/)
-- 🏗️ **Architecture:** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
-- 💬 **Messaging:** [`docs/MESSAGING_GUIDELINES.md`](docs/MESSAGING_GUIDELINES.md)
-- 🔐 **Security:** [`docs/SECURITY.md`](docs/SECURITY.md)
-- 💻 **Development:** [`DEVELOPMENT.md`](DEVELOPMENT.md)
+> **"กระจายรายได้ ส่งมอบความสุข ให้ความปลอดภัย สร้างความไว้วางใจ"**
+>
+> _GINVA - แพลตฟอร์มการเงินที่ยุติธรรมที่สุดบน Solana_
 
 ---
 
-> **GINVA: Designed for borrowers. Powered by supporters. Maintained by helpers.**
-> Fair. Transparent. Protective.
+## 🔗 แหล่งข้อมูล
+
+- 📘 **เอกสารประกอบ:** [`docs/`](docs/)
+- 🏗️ **สถาปัตยกรรม:** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+- 💬 **แนวทางการสื่อสาร:** [`docs/MESSAGING_GUIDELINES.md`](docs/MESSAGING_GUIDELINES.md)
+- 🔐 **ความปลอดภัย:** [`docs/SECURITY.md`](docs/SECURITY.md)
+- 💻 **การพัฒนา:** [`DEVELOPMENT.md`](DEVELOPMENT.md)
+
+---
+
+> **GINVA: ออกแบบมาเพื่อผู้กู้ ขับเคลื่อนโดยผู้สนับสนุน ดูแลโดยผู้ช่วยเหลือ**
+>
+> ยุติธรรม โปร่งใส ปกป้อง
+>
+> \*\*"กระจายรายได้ ส่งมอบความสุข ให้ความปลอดภัย สร้างความไว้วางใจ"
