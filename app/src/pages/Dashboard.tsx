@@ -1,9 +1,79 @@
-import { Card, Container, Row, Col, Badge, Stack } from "react-bootstrap";
+import {
+  Card,
+  Container,
+  Row,
+  Col,
+  Badge,
+  Stack,
+  Button,
+} from "react-bootstrap";
 import { FiDollarSign, FiTrendingUp, FiUsers, FiShield } from "react-icons/fi";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { useState, useEffect } from "react";
+import { useGinvaProgram } from "../hooks/useGinvaProgram";
+import { PublicKey } from "@solana/web3.js";
 
 const Dashboard = () => {
   const { connected, publicKey } = useWallet();
+  const { program } = useGinvaProgram();
+  const [data, setData] = useState({
+    tvl: 0,
+    activeLoans: 0,
+    userActiveLoans: 0,
+  });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!program) return;
+
+      try {
+        const systemConfigPda = PublicKey.findProgramAddressSync(
+          [Buffer.from("config")],
+          program.programId
+        )[0];
+        const systemConfig = await program.account.systemConfig.fetch(
+          systemConfigPda
+        );
+
+        const tvl =
+          systemConfig.totalBorrowed.toNumber() / 1e6 +
+          (systemConfig.totalCollateral.toNumber() / 1e9) * 100; // Approximate TVL
+
+        let activeLoans = 0;
+        let userActiveLoans = 0;
+
+        if (publicKey) {
+          const userLoans = await program.account.loanAccount.all([
+            {
+              memcmp: {
+                offset: 8,
+                bytes: publicKey.toBase58(),
+              },
+            },
+          ]);
+          userActiveLoans = userLoans.filter(
+            (loan: { account: any }) => loan.account.status === 1
+          ).length;
+
+          // For global active loans
+          const allLoans = await program.account.loanAccount.all();
+          activeLoans = allLoans.filter(
+            (loan: { account: any }) => loan.account.status === 1
+          ).length;
+        }
+
+        setData({
+          tvl,
+          activeLoans,
+          userActiveLoans,
+        });
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      }
+    };
+
+    fetchData();
+  }, [program, publicKey]);
   return (
     <Container>
       <Stack direction="vertical" gap={3} className="mb-4">
@@ -23,7 +93,7 @@ const Dashboard = () => {
                 <div>
                   <h5 className="text-muted">Total Value Locked</h5>
                   <h3 className="mb-1" style={{ color: "#16a34a" }}>
-                    $0
+                    ${data.tvl.toFixed(2)}
                   </h3>
                   <p className="text-muted small">0 USDC</p>
                 </div>
@@ -42,9 +112,13 @@ const Dashboard = () => {
                 <div>
                   <h5 className="text-muted">Active Loans</h5>
                   <h3 className="mb-1" style={{ color: "#0d6efd" }}>
-                    0
+                    {data.userActiveLoans}
                   </h3>
-                  <p className="text-muted small">No Active Loans</p>
+                  <p className="text-muted small">
+                    {data.userActiveLoans > 0
+                      ? `${data.userActiveLoans} Active Loans`
+                      : "No Active Loans"}
+                  </p>
                 </div>
                 <div className="text-end">
                   <FiTrendingUp size={24} color="#0d6efd" />
@@ -137,9 +211,15 @@ const Dashboard = () => {
             </Card.Header>
             <Card.Body className="text-center py-5">
               <p className="text-muted">
-                No active loans. Start by depositing your assets as collateral
-                and receive instant USDC.
+                {data.userActiveLoans > 0
+                  ? `You have ${data.userActiveLoans} active loan(s). Manage them in My Tickets.`
+                  : "No active loans. Start by depositing your assets as collateral and receive instant USDC."}
               </p>
+              {data.userActiveLoans === 0 && (
+                <Button variant="primary" href="/pawn">
+                  Create Loan
+                </Button>
+              )}
             </Card.Body>
           </Card>
         </Col>

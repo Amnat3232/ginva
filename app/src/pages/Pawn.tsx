@@ -20,6 +20,9 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useGinvaProgram } from "../hooks/useGinvaProgram";
 import { showSuccess, showError } from "../utils/helpers";
 import { useConnection } from "@solana/wallet-adapter-react";
+import * as anchor from "@coral-xyz/anchor";
+import { PublicKey } from "@solana/web3.js";
+import { getAssociatedTokenAddress } from "@solana/spl-token";
 
 // LTV Options from smart contract
 const LTV_OPTIONS = [
@@ -49,9 +52,20 @@ const DURATION_OPTIONS = [
 
 // Mock supported assets (in production, fetch from config)
 const SUPPORTED_ASSETS = [
-  { symbol: "SOL", name: "Solana", decimals: 9, feedId: "native" },
-  { symbol: "USDC", name: "USD Coin", decimals: 6, feedId: "usdc" },
-  { symbol: "BTC", name: "Bitcoin", decimals: 8, feedId: "btc" },
+  {
+    symbol: "SOL",
+    name: "Solana",
+    decimals: 9,
+    mint: new PublicKey("So11111111111111111111111111111111111111112"),
+    feedId: "native",
+  },
+  {
+    symbol: "USDC",
+    name: "USD Coin",
+    decimals: 6,
+    mint: new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"),
+    feedId: "usdc",
+  },
 ];
 
 const Pawn = () => {
@@ -132,19 +146,105 @@ const Pawn = () => {
 
     setLoading(true);
     try {
-      // Step 1: Deposit Collateral
-      // In production, would need to:
-      // 1. Create or get user rate limit account
-      // 2. Get ticket counter
-      // 3. Call deposit_collateral with loan_id
+      // Get system config
+      const systemConfigPda = PublicKey.findProgramAddressSync(
+        [Buffer.from("config")],
+        program.programId
+      )[0];
+      const systemConfig = await program.account.systemConfig.fetch(
+        systemConfigPda
+      );
+      const loanId = systemConfig.ticketCounter.toNumber();
 
-      showSuccess("Creating Loan...", "Please confirm the transaction");
+      // Compute loan PDA
+      const loanPda = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("loan"),
+          publicKey.toBuffer(),
+          new anchor.BN(loanId).toArrayLike(Buffer, "le", 8),
+        ],
+        program.programId
+      )[0];
 
-      // Mock success for development
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // For SOL, wsol ATA
+      const collateralLamports = new anchor.BN(
+        parseFloat(collateralAmount) * Math.pow(10, selectedAsset.decimals)
+      );
+      const wsolAta = await getAssociatedTokenAddress(
+        selectedAsset.mint,
+        publicKey
+      );
+      const rateLimitPda = PublicKey.findProgramAddressSync(
+        [Buffer.from("rate_limit"), publicKey.toBuffer()],
+        program.programId
+      )[0];
+
+      // Deposit collateral
+      showSuccess("Depositing Collateral...", "Please confirm the transaction");
+      await program.methods
+        .depositCollateral(collateralLamports, new anchor.BN(loanId))
+        .accounts({
+          borrower: publicKey,
+          systemConfig: systemConfigPda,
+          loanAccount: loanPda,
+          wsolAta: wsolAta,
+          wsolMint: selectedAsset.mint,
+          borrowerRateLimit: rateLimitPda,
+          tokenProgram: anchor.utils.token.TOKEN_PROGRAM_ID,
+          associatedTokenProgram:
+            anchor.utils.token.ASSOCIATED_TOKEN_PROGRAM_ID,
+          systemProgram: anchor.web3.SystemProgram.programId,
+        })
+        .rpc();
+
+      // Borrow USDC
+      const borrowLamports = new anchor.BN(
+        Math.floor(parseFloat(borrowAmount) * 1e6)
+      );
+      const capitalWalletPda = PublicKey.findProgramAddressSync(
+        [Buffer.from("capital_wallet")],
+        program.programId
+      )[0];
+      const capitalAuthPda = PublicKey.findProgramAddressSync(
+        [Buffer.from("capital_auth")],
+        program.programId
+      )[0];
+      const userUsdcAta = await getAssociatedTokenAddress(
+        new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"),
+        publicKey
+      );
+      const assetConfigPda = PublicKey.findProgramAddressSync(
+        [Buffer.from("asset_config"), selectedAsset.mint.toBuffer()],
+        program.programId
+      )[0];
+      const protocolConfigPda = PublicKey.findProgramAddressSync(
+        [Buffer.from("protocol_config")],
+        program.programId
+      )[0];
+      const pythPriceFeed = new PublicKey(
+        "H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG"
+      ); // SOL/USD devnet
+
+      showSuccess("Borrowing USDC...", "Please confirm the transaction");
+      await program.methods
+        .borrowUsdc(borrowLamports, loanId, ltvOption, durationDays)
+        .accounts({
+          user: publicKey,
+          systemConfig: systemConfigPda,
+          loanAccount: loanPda,
+          capitalWallet: capitalWalletPda,
+          userUsdcAccount: userUsdcAta,
+          capitalWalletAuthority: capitalAuthPda,
+          pythPriceFeed: pythPriceFeed,
+          assetConfig: assetConfigPda,
+          protocolConfig: protocolConfigPda,
+          borrowerRateLimit: rateLimitPda,
+          tokenProgram: anchor.utils.token.TOKEN_PROGRAM_ID,
+        })
+        .rpc();
 
       showSuccess(
-        "Loan Created!",
+        "Loan Created Successfully!",
         "Your loan is active with 72-hour protection"
       );
       setCollateralAmount("");

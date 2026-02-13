@@ -14,7 +14,9 @@ import {
   FiCalendar,
   FiShield,
 } from "react-icons/fi";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { useGinvaProgram } from "../hooks/useGinvaProgram";
 
 interface Ticket {
   id: number;
@@ -22,37 +24,76 @@ interface Ticket {
   collateralAmount: string;
   loanAmount: string;
   interestRate: string;
-  status: "active" | "redeemed" | "forfeited";
+  status: string;
   maturityDate: string;
   assetCoverage: string;
 }
 
 const MyTickets = () => {
+  const { publicKey } = useWallet();
+  const { program } = useGinvaProgram();
   const [selectedTicket, setSelectedTicket] = useState<number | null>(null);
+  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data - ในอนาคตจะดึงจาก Smart Contract
-  const tickets: Ticket[] = [
-    {
-      id: 0,
-      asset: "SOL",
-      collateralAmount: "10.5 SOL",
-      loanAmount: "150.00 USDC",
-      interestRate: "8.5%",
-      status: "active",
-      maturityDate: "2025-03-15",
-      assetCoverage: "145%",
-    },
-    {
-      id: 1,
-      asset: "USDC",
-      collateralAmount: "500 USDC",
-      loanAmount: "350.00 USDC",
-      interestRate: "7.2%",
-      status: "active",
-      maturityDate: "2025-03-20",
-      assetCoverage: "142%",
-    },
-  ];
+  useEffect(() => {
+    const fetchTickets = async () => {
+      if (!program || !publicKey) return;
+      setLoading(true);
+      try {
+        const allLoans = await program.account.loanAccount.all([
+          {
+            memcmp: {
+              offset: 8, // borrower starts at offset 8
+              bytes: publicKey.toBase58(),
+            },
+          },
+        ]);
+
+        const ticketData = allLoans.map(
+          (loan: { publicKey: any; account: any }) => ({
+            id: loan.account.loanId,
+            asset: loan.account.collateralMint
+              .toString()
+              .endsWith("So11111111111111111111111111111112")
+              ? "SOL"
+              : "USDC", // Mock, adjust as needed
+            collateralAmount: `${(
+              loan.account.collateralAmount.toNumber() / 1e9
+            ).toFixed(4)} ${
+              loan.account.collateralMint
+                .toString()
+                .endsWith("So11111111111111111111111111111112")
+                ? "SOL"
+                : "USDC"
+            }`,
+            loanAmount: `${(loan.account.loanAmount.toNumber() / 1e6).toFixed(
+              2
+            )} USDC`,
+            interestRate: `${(loan.account.interestRateBps / 100).toFixed(1)}%`,
+            status:
+              loan.account.status === 1
+                ? "active"
+                : loan.account.status === 2
+                ? "overdue"
+                : "liquidated",
+            maturityDate: new Date(
+              loan.account.maturityAt.toNumber() * 1000
+            ).toLocaleDateString(),
+            assetCoverage: "145%", // Mock, calculate from oracle
+          })
+        );
+
+        setTickets(ticketData);
+      } catch (error) {
+        console.error("Error fetching tickets:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTickets();
+  }, [program, publicKey]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -136,7 +177,13 @@ const MyTickets = () => {
           <h4>All Pawn Tickets</h4>
         </Card.Header>
         <Card.Body>
-          {tickets.length === 0 ? (
+          {loading ? (
+            <div className="text-center py-5">
+              <div className="spinner-border" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          ) : tickets.length === 0 ? (
             <div className="text-center py-5">
               <p className="text-muted">No pawn tickets yet.</p>
               <Button variant="primary" href="/pawn">

@@ -24,11 +24,24 @@ import { getAssociatedTokenAddress } from "@solana/spl-token";
 import { useGinvaProgram } from "../hooks/useGinvaProgram";
 import { showSuccess, showError } from "../utils/helpers";
 import { useConnection } from "@solana/wallet-adapter-react";
+import * as anchor from "@coral-xyz/anchor";
 
 const Earn = () => {
   const { publicKey } = useWallet();
   const { connection } = useConnection();
   const { program } = useGinvaProgram();
+
+  const programId =
+    program?.programId ||
+    new PublicKey("2SiGJi9VkD96oWLNizmMkGFwFpHq1tEETVqrLCezWKou");
+  const [systemConfigPda] = PublicKey.findProgramAddressSync(
+    [Buffer.from("config")],
+    programId
+  );
+  const [capitalAuthPda] = PublicKey.findProgramAddressSync(
+    [Buffer.from("capital_auth")],
+    programId
+  );
 
   const [activeTab, setActiveTab] = useState("deposit");
   const [amount, setAmount] = useState("");
@@ -41,6 +54,8 @@ const Earn = () => {
     pendingReward: 0,
     walletBalance: 0,
   });
+
+  const [loanMint, setLoanMint] = useState<PublicKey | null>(null);
 
   const [shieldStatus, setShieldStatus] = useState({
     isSystemSafe: false,
@@ -134,6 +149,8 @@ const Earn = () => {
               isUserSafe,
               exitFee: isUserSafe ? 0 : 5,
             });
+
+            setLoanMint(configAccount.loanMint);
           });
         } catch (err) {
           console.error("Error fetching data:", err);
@@ -151,13 +168,41 @@ const Earn = () => {
   }, [program, publicKey]);
 
   const handleDeposit = async () => {
-    if (!amount) return;
+    if (!amount || !program || !publicKey || !loanMint) return;
     setLoading(true);
     try {
-      showSuccess("Deposit Successful", `You staked ${amount} USDC`);
+      const amountLamports = Math.floor(parseFloat(amount) * 1e6); // USDC 6 decimals
+
+      const capitalWalletAddr = await getAssociatedTokenAddress(
+        loanMint,
+        capitalAuthPda,
+        true
+      );
+      const userUsdcAddr = await getAssociatedTokenAddress(
+        loanMint,
+        publicKey,
+        false
+      );
+
+      const tx = await program.methods
+        .stakeLp(new anchor.BN(amountLamports))
+        .accounts({
+          user: publicKey,
+          systemConfig: systemConfigPda,
+          capitalWalletAuthority: capitalAuthPda,
+          capitalWallet: capitalWalletAddr,
+          userUsdcAccount: userUsdcAddr,
+        })
+        .rpc();
+
+      showSuccess(
+        "Deposit Successful",
+        `Staked ${amount} USDC. Tx: ${tx.substring(0, 10)}...`
+      );
       setAmount("");
       fetchData();
     } catch (err: any) {
+      console.error("Error depositing:", err);
       showError("Deposit Failed", err.message);
     } finally {
       setLoading(false);
@@ -165,13 +210,52 @@ const Earn = () => {
   };
 
   const handleWithdraw = async () => {
-    if (!amount) return;
+    if (!amount || !program || !publicKey || !loanMint) return;
     setLoading(true);
     try {
-      showSuccess("Withdrawal Successful", `Received ${amount} USDC`);
+      const amountLamports = Math.floor(parseFloat(amount) * 1e6); // USDC 6 decimals
+
+      const capitalWalletAddr = await getAssociatedTokenAddress(
+        loanMint,
+        capitalAuthPda,
+        true
+      );
+      const userUsdcAddr = await getAssociatedTokenAddress(
+        loanMint,
+        publicKey,
+        false
+      );
+      const [reserveAuthPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from("reserve_auth")],
+        programId
+      );
+      const reserveWalletAddr = await getAssociatedTokenAddress(
+        loanMint,
+        reserveAuthPda,
+        true
+      );
+
+      const tx = await program.methods
+        .unstakeLp(new anchor.BN(amountLamports))
+        .accounts({
+          user: publicKey,
+          systemConfig: systemConfigPda,
+          capitalWalletAuthority: capitalAuthPda,
+          capitalWallet: capitalWalletAddr,
+          reserveWalletAuthority: reserveAuthPda,
+          reserveWallet: reserveWalletAddr,
+          userUsdcAccount: userUsdcAddr,
+        })
+        .rpc();
+
+      showSuccess(
+        "Withdrawal Successful",
+        `Received ${amount} USDC. Tx: ${tx.substring(0, 10)}...`
+      );
       setAmount("");
       fetchData();
     } catch (err: any) {
+      console.error("Error withdrawing:", err);
       showError("Withdrawal Failed", err.message);
     } finally {
       setLoading(false);
@@ -179,19 +263,46 @@ const Earn = () => {
   };
 
   const handleClaim = async () => {
-    if (!program || !publicKey) return;
+    if (!program || !publicKey || !loanMint) return;
     setLoading(true);
     try {
-      showSuccess("Claiming Rewards...", "Please confirm the transaction");
+      const userUsdcAddr = await getAssociatedTokenAddress(
+        loanMint,
+        publicKey,
+        false
+      );
+      const [revenueAuthPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from("revenue_auth")],
+        programId
+      );
+      const revenueWalletAddr = await getAssociatedTokenAddress(
+        loanMint,
+        revenueAuthPda,
+        true
+      );
+      const [userStakePda] = PublicKey.findProgramAddressSync(
+        [Buffer.from("stake"), publicKey.toBuffer()],
+        programId
+      );
 
-      // In production, would call:
-      // await program.methods.claimStakingRewards().rpc();
+      const tx = await program.methods
+        .claimStakingRewards()
+        .accounts({
+          user: publicKey,
+          userStake: userStakePda,
+          systemConfig: systemConfigPda,
+          revenueWalletAuthority: revenueAuthPda,
+          revenueWallet: revenueWalletAddr,
+          userUsdcAccount: userUsdcAddr,
+        })
+        .rpc();
 
-      // Mock success
-      await new Promise((resolve) => setTimeout(resolve, 1500));
       showSuccess(
         "Rewards Claimed!",
-        "Your rewards have been sent to your wallet"
+        `Your rewards have been sent to your wallet. Tx: ${tx.substring(
+          0,
+          10
+        )}...`
       );
       fetchData();
     } catch (err: any) {

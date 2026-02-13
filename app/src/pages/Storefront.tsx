@@ -24,6 +24,12 @@ import {
   FiExternalLink,
 } from "react-icons/fi";
 import { useState, useEffect } from "react";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { useGinvaProgram } from "../hooks/useGinvaProgram";
+import { showSuccess, showError } from "../utils/helpers";
+import * as anchor from "@coral-xyz/anchor";
+import { PublicKey } from "@solana/web3.js";
+import { getAssociatedTokenAddress } from "@solana/spl-token";
 
 // Types for our Pawn Shop
 interface PawnItem {
@@ -51,12 +57,15 @@ interface SecurityStatus {
 }
 
 const Storefront = () => {
+  const { publicKey, connected } = useWallet();
+  const { program } = useGinvaProgram();
   const [filter, setFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("newest");
   const [now, setNow] = useState<Date>(new Date());
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [selectedAsset, setSelectedAsset] = useState<PawnItem | null>(null);
   const [showSecurityModal, setShowSecurityModal] = useState<boolean>(false);
+  const [pawnItems, setPawnItems] = useState<PawnItem[]>([]);
 
   // Mock security status from backend
   const securityStatus: SecurityStatus = {
@@ -74,62 +83,6 @@ const Storefront = () => {
     const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
-
-  // Mock data - จำลองว่าเพิ่ง Drop เมื่อไม่กี่นาที่ที่ผ่านมา
-  const pawnItems: PawnItem[] = [
-    {
-      id: "drop-001",
-      ticketId: 1042,
-      assetType: "SOL",
-      assetName: "Solana",
-      collateralAmount: "25.5 SOL",
-      marketValueUSD: 5100.0,
-      forfeitedAt: new Date(Date.now() - 1000 * 60 * 5), // 5 mins ago (Golden Hour!)
-      image: "🔷",
-      securityVerified: true,
-      flashLoanProtected: true,
-      lastSecurityCheck: new Date(),
-    },
-    {
-      id: "drop-002",
-      ticketId: 1038,
-      assetType: "USDC",
-      assetName: "USD Coin",
-      collateralAmount: "1,000 USDC",
-      marketValueUSD: 1000.0,
-      forfeitedAt: new Date(Date.now() - 1000 * 60 * 15), // 15 mins ago (Silver Tier)
-      image: "💵",
-      securityVerified: true,
-      flashLoanProtected: true,
-      lastSecurityCheck: new Date(),
-    },
-    {
-      id: "drop-003",
-      ticketId: 995,
-      assetType: "BONK",
-      assetName: "Bonk",
-      collateralAmount: "5M BONK",
-      marketValueUSD: 850.0,
-      forfeitedAt: new Date(Date.now() - 1000 * 60 * 45), // 45 mins ago (Bronze Tier)
-      image: "🐕",
-      securityVerified: true,
-      flashLoanProtected: true,
-      lastSecurityCheck: new Date(),
-    },
-    {
-      id: "drop-004",
-      ticketId: 1102,
-      assetType: "SOL",
-      assetName: "Solana",
-      collateralAmount: "100 SOL",
-      marketValueUSD: 20000.0,
-      forfeitedAt: new Date(Date.now() - 1000 * 60 * 2), // 2 mins ago (FRESH DROP!)
-      image: "🔥",
-      securityVerified: true,
-      flashLoanProtected: true,
-      lastSecurityCheck: new Date(),
-    },
-  ];
 
   // 📉 The Greed Engine: Calculate dynamic price based on time elapsed
   const calculatePricing = (forfeitedAt: Date) => {
@@ -195,20 +148,117 @@ const Storefront = () => {
     }, 2000);
   };
 
-  const handlePurchase = (item: PawnItem) => {
-    if (!item.securityVerified || !item.flashLoanProtected) {
-      alert("⚠️ Security check failed. This asset cannot be purchased yet.");
+  const handlePurchase = async (item: PawnItem) => {
+    if (!connected || !program || !publicKey) {
+      showError("Wallet Not Connected");
       return;
     }
 
     setSelectedAsset(item);
     setIsLoading(true);
-    // Simulate blockchain transaction
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const liquidationProcessPda = new PublicKey(item.id);
+      const liquidationProcess = await program.account.liquidationProcess.fetch(
+        liquidationProcessPda
+      );
+      const loanAccount = await program.account.loanAccount.fetch(
+        liquidationProcess.loanAccount
+      );
+      const assetConfigPda = PublicKey.findProgramAddressSync(
+        [Buffer.from("asset_config"), loanAccount.collateralMint.toBuffer()],
+        program.programId
+      )[0];
+      const systemConfigPda = PublicKey.findProgramAddressSync(
+        [Buffer.from("config")],
+        program.programId
+      )[0];
+      const processingVaultPda = PublicKey.findProgramAddressSync(
+        [Buffer.from("processing_vault")],
+        program.programId
+      )[0];
+      const seizedAssetsVaultPda = PublicKey.findProgramAddressSync(
+        [Buffer.from("seized_assets_vault")],
+        program.programId
+      )[0];
+      const seizedAssetsAuthPda = PublicKey.findProgramAddressSync(
+        [Buffer.from("seized_auth")],
+        program.programId
+      )[0];
+      const callerUsdcAta = await getAssociatedTokenAddress(
+        new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"),
+        publicKey
+      );
+      const callerCollateralAta = await getAssociatedTokenAddress(
+        loanAccount.collateralMint,
+        publicKey
+      );
+      const pythPriceFeed = new PublicKey(
+        "H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG"
+      ); // SOL/USD
+
+      await program.methods
+        .buyFromStorefront()
+        .accounts({
+          caller: publicKey,
+          liquidationProcess: liquidationProcessPda,
+          callerUsdcAccount: callerUsdcAta,
+          callerCollateralAccount: callerCollateralAta,
+          processingVault: processingVaultPda,
+          seizedAssetsVault: seizedAssetsVaultPda,
+          seizedAssetsAuthority: seizedAssetsAuthPda,
+          pythPriceFeed: pythPriceFeed,
+          assetConfig: assetConfigPda,
+          systemConfig: systemConfigPda,
+          tokenProgram: anchor.utils.token.TOKEN_PROGRAM_ID,
+        })
+        .rpc();
+
+      showSuccess("Purchase successful!");
+      // refresh
+      const liquidationProcesses =
+        await program.account.liquidationProcess.all();
+      const triggered = liquidationProcesses.filter(
+        (lp) => lp.account.status === 1
+      );
+      const items: PawnItem[] = await Promise.all(
+        triggered.map(async (lp) => {
+          const loanAccount = await program.account.loanAccount.fetch(
+            lp.account.loanAccount
+          );
+          const assetType = loanAccount.collateralMint.equals(
+            new PublicKey("So11111111111111111111111111111111111111112")
+          )
+            ? "SOL"
+            : "USDC";
+          const decimals = assetType === "SOL" ? 9 : 6;
+          const collateralAmount =
+            lp.account.seizedCollateralAmount.toNumber() /
+            Math.pow(10, decimals);
+          const marketValueUSD =
+            collateralAmount * (assetType === "SOL" ? 100 : 1);
+          return {
+            id: lp.publicKey.toString(),
+            ticketId: loanAccount.loanId,
+            assetType,
+            assetName: assetType,
+            collateralAmount: `${collateralAmount.toFixed(2)} ${assetType}`,
+            marketValueUSD,
+            forfeitedAt: new Date(lp.account.triggeredAt.toNumber() * 1000),
+            image: assetType === "SOL" ? "🔷" : "💵",
+            securityVerified: true,
+            flashLoanProtected: true,
+            lastSecurityCheck: new Date(),
+          };
+        })
+      );
+      setPawnItems(items);
       setSelectedAsset(null);
-      alert("✅ Purchase successful! Asset secured to your wallet.");
-    }, 3000);
+    } catch (e: any) {
+      showError("Purchase failed", e.message);
+      setSelectedAsset(null);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Filter & Sort Logic
@@ -231,6 +281,56 @@ const Storefront = () => {
         return b.forfeitedAt.getTime() - a.forfeitedAt.getTime();
     }
   });
+
+  useEffect(() => {
+    const fetchPawnItems = async () => {
+      if (!program) return;
+      try {
+        const liquidationProcesses =
+          await program.account.liquidationProcess.all();
+        const triggered = liquidationProcesses.filter(
+          (lp) => lp.account.status === 1
+        ); // Triggered
+        const items: PawnItem[] = await Promise.all(
+          triggered.map(async (lp) => {
+            // Get loan account for asset type
+            const loanAccount = await program.account.loanAccount.fetch(
+              lp.account.loanAccount
+            );
+            const assetType = loanAccount.collateralMint.equals(
+              new PublicKey("So11111111111111111111111111111111111111112")
+            )
+              ? "SOL"
+              : "USDC";
+            const decimals = assetType === "SOL" ? 9 : 6;
+            const collateralAmount =
+              lp.account.seizedCollateralAmount.toNumber() /
+              Math.pow(10, decimals);
+            // Mock market value for now
+            const marketValueUSD =
+              collateralAmount * (assetType === "SOL" ? 100 : 1);
+            return {
+              id: lp.publicKey.toString(),
+              ticketId: loanAccount.loanId,
+              assetType,
+              assetName: assetType,
+              collateralAmount: `${collateralAmount.toFixed(2)} ${assetType}`,
+              marketValueUSD,
+              forfeitedAt: new Date(lp.account.triggeredAt.toNumber() * 1000),
+              image: assetType === "SOL" ? "🔷" : "💵",
+              securityVerified: true,
+              flashLoanProtected: true,
+              lastSecurityCheck: new Date(),
+            };
+          })
+        );
+        setPawnItems(items);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    fetchPawnItems();
+  }, [program]);
 
   return (
     <Container className="py-4">
