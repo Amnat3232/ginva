@@ -137,6 +137,38 @@ solana airdrop 2
 anchor upgrade target/deploy/ginva.so --program-id <PROGRAM_ID>
 ```
 
+## 🔧 Dependency Fixes & Build Configuration
+
+### Rust Toolchain
+
+**File:** `rust-toolchain.toml`
+
+- Updated to `nightly-2025-02-01`
+- Added `rustfmt` and `clippy` components
+- Supports `edition2024` required by newer dependencies
+
+### Workspace Dependencies
+
+**File:** `Cargo.toml`
+
+- Locked transitive dependencies:
+  - `cc = "=1.0.83"`
+  - `jobserver = "=0.1.26"`
+  - `getrandom = "=0.2.10"`
+  - `blake3 = "=1.5.0"`
+
+### Dockerfile
+
+- Updated to `rust:1.87-slim-bookworm`
+- Removed Cargo.lock downgrade hack
+- Native lockfile generation
+
+### Build Notes
+
+- Docker build takes 15-30 minutes first time
+- Anchor 0.29.0 contract with CLI 0.32.1 is expected (no issues)
+- Delete `Cargo.lock` and regenerate if conflicts occur
+
 ## 🤝 Contributing
 
 1. Fork the repository
