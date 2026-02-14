@@ -118,7 +118,7 @@ pub mod ginva {
         system_config.last_oracle_price = 0;
         system_config.last_price_update = 0;
 
-        // 🛡️ SHIELD FEE: Initialize bootstrapping protection parameters
+        // 🛡️ ระบบสะสมนิรภัย: Initialize Safety Accumulation System parameters
         system_config.target_reserves = 500_000_000_000; // 500,000 USDC (6 decimals)
         system_config.protection_period = 15 * 24 * 60 * 60; // 15 days in seconds
         system_config.exit_fee_bps = 500; // 5% exit fee (500 basis points)
@@ -2288,7 +2288,7 @@ pub mod ginva {
             .checked_add(amount)
             .ok_or(GinvaError::ArithmeticOverflow)?;
 
-        // 🛡️ SHIELD FEE: Record deposit time for bootstrapping protection
+        // 🛡️ ระบบสะสมนิรภัย: Record deposit time for safety accumulation period
         stake.last_deposit_time = Clock::get()?.unix_timestamp;
 
         // 4. Update Reward Debt
@@ -2371,7 +2371,7 @@ pub mod ginva {
         Ok(())
     }
 
-    // Unstake LP tokens with Shield Fee Mechanism
+    // Unstake LP tokens with Safety Accumulation System (ระบบสะสมนิรภัย)
     pub fn unstake_lp(ctx: Context<UnstakeLP>, amount: u64) -> Result<()> {
         let config = &mut ctx.accounts.system_config;
         let stake = &mut ctx.accounts.user_stake;
@@ -2385,7 +2385,7 @@ pub mod ginva {
             GinvaError::SystemInCooldown
         );
 
-        // 🛡️ SHIELD FEE MECHANISM (Bootstrapping Protection)
+        // 🛡️ ระบบสะสมนิรภัย (Safety Accumulation System)
         let current_reserves = ctx.accounts.capital_wallet.amount;
         let is_system_safe = current_reserves >= config.target_reserves;
         let now = Clock::get()?.unix_timestamp;
@@ -2405,9 +2405,9 @@ pub mod ginva {
                     .ok_or(GinvaError::ArithmeticUnderflow)?;
 
                 msg!(
-                    "🛡️ Shield Fee Applied: {} USDC ({} bps) - Bootstrapping Protection",
+                    "🛡️ ระบบสะสมนิรภัย: ค่าธรรมเนียมช่วงสะสม {} USDC ({}%) - ระบบกำลังสร้างความมั่นคง",
                     exit_fee_amount,
-                    config.exit_fee_bps
+                    config.exit_fee_bps / 100
                 );
             }
         }
@@ -2452,7 +2452,7 @@ pub mod ginva {
             token::transfer(fee_cpi_ctx, exit_fee_amount)?;
 
             msg!(
-                "🛡️ Shield Fee transferred to Reserve Pool: {} USDC",
+                "🛡️ ระบบสะสมนิรภัย: ค่าธรรมเนียมเข้ากองทุนสำรอง {} USDC",
                 exit_fee_amount
             );
         }
