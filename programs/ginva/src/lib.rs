@@ -869,9 +869,12 @@ pub mod ginva {
         Ok(())
     }
 
-    // ขั้นตอนที่ 1: เริ่มกระบวนการช่วยเหลือ (ผู้ช่วยเหลือ A - รางวัล 0.6%)
-    // แบ่งเป็นสองธุรกรรมเพื่อป้องกัน stack overflow
-    pub fn trigger_liquidation(ctx: Context<TriggerLiquidation>) -> Result<()> {
+    // ═══════════════════════════════════════════════════════════════════════════
+    // LIQUIDATION SYSTEM A: Health Factor Based (Price Protection)
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Triggered when collateral value drops below loan value
+    // IMMEDIATE liquidation - no protection period (protects investor funds)
+    pub fn liquidate_by_health_factor(ctx: Context<LiquidateByHealthFactor>) -> Result<()> {
         let loan_account = &mut ctx.accounts.loan_account;
         let system_config = &mut ctx.accounts.system_config;
         let liquidation_process = &mut ctx.accounts.liquidation_process;
@@ -887,7 +890,7 @@ pub mod ginva {
 
         // 🛡️ REENTRANCY GUARD: Prevent reentrancy attacks
         require!(
-            liquidation_process.status == 0, // Only allow if not initialized
+            liquidation_process.status == 0,
             GinvaError::ReentrancyDetected
         );
 
@@ -904,7 +907,7 @@ pub mod ginva {
 
         // 🛡️ SCOPE GUARD: Ensure lock is always reset
         let result = (|| -> Result<()> {
-            // 1. Check Health Factor
+            // 1. Check Health Factor ONLY
             let asset_config = &ctx.accounts.asset_config;
             let (current_price, price_exponent) = get_pyth_price_with_exponent_and_validation(
                 &ctx.accounts.pyth_price_feed,
@@ -916,7 +919,7 @@ pub mod ginva {
                 current_price,
                 price_exponent,
                 asset_config.decimals,
-                6, // USDC decimals
+                6,
             )?;
 
             let safety_threshold = collateral_value
@@ -932,94 +935,221 @@ pub mod ginva {
                 1000
             };
 
-            let days_overdue = (current_time - loan_account.last_payment_at) / 86400;
-            require!(
-                health_factor < 100 || days_overdue > 33,
-                GinvaError::NotYetLiquidatable
+            // 🔴 SYSTEM A: Health factor must be < 100 (undercollateralized)
+            require!(health_factor < 100, GinvaError::HealthFactorNotCritical);
+
+            msg!(
+                "🔴 HEALTH FACTOR LIQUIDATION: HF={} (< 100), Price={}, Collateral Value={}",
+                health_factor,
+                current_price,
+                collateral_value
             );
 
-            // 2. Calculate Split (0.6% reward + 99.4% for swap)
-            let trigger_reward = loan_account
-                .collateral_amount
-                .saturating_mul(60) // 0.6% reward
-                .checked_div(10000)
-                .unwrap_or(0);
-            let remaining_for_swap = loan_account
-                .collateral_amount
-                .saturating_sub(trigger_reward);
-
-            // 3. Transfer 99% to Seized Assets Vault (waiting for auto-swap)
-            let bump = ctx.bumps.vault_authority;
-            let seeds = &[b"vault_auth".as_ref(), &[bump]];
-            let signer = &[&seeds[..]];
-
-            let cpi_accounts_seized = Transfer {
-                from: ctx.accounts.vault_collateral_account.to_account_info(),
-                to: ctx.accounts.seized_assets_vault.to_account_info(),
-                authority: ctx.accounts.vault_authority.to_account_info(),
-            };
-            let cpi_ctx_seized = CpiContext::new_with_signer(
+            // Execute liquidation with type marker
+            Self::execute_liquidation_start(
+                loan_account,
+                system_config,
+                liquidation_process,
+                keeper_a,
+                current_time,
+                ctx.accounts.vault_collateral_account.to_account_info(),
+                ctx.accounts.seized_assets_vault.to_account_info(),
+                ctx.accounts.vault_authority.to_account_info(),
                 ctx.accounts.token_program.to_account_info(),
-                cpi_accounts_seized,
-                signer,
-            );
-            token::transfer(cpi_ctx_seized, remaining_for_swap)?;
+                ctx.bumps.vault_authority,
+                LiquidationType::HealthFactor,
+            )?;
 
-            // 4. Initialize Liquidation Process
-            liquidation_process.loan_account = loan_account.key();
-            liquidation_process.status = LiquidationStatus::Triggered as u8;
-            liquidation_process.trigger_keeper = keeper_a;
-            liquidation_process.seized_collateral_amount = remaining_for_swap;
-            liquidation_process.triggered_at = current_time;
-            liquidation_process.deadline_for_swap = current_time; // Storefront opens immediately
-            liquidation_process.dex_activation_time = current_time + 21600; // DEX fallback after 6h
-            liquidation_process.swapped = false;
-            liquidation_process.keeper_reward_amount = trigger_reward;
-            liquidation_process.keeper_reward_claimed = false;
-
-            // Update Loan
-            // 🛡️ FIX: Use intermediate state, only mark as Liquidated after finalize succeeds
-            loan_account.status = LoanStatus::LiquidationInProgress as u8;
-            loan_account.liquidated_at = current_time;
-            loan_account.keeper_address = keeper_a;
-            let total_collateral_to_subtract = loan_account.collateral_amount;
-            loan_account.collateral_amount = 0;
-
-            // Update System
-            system_config.total_collateral = system_config
-                .total_collateral
-                .saturating_sub(total_collateral_to_subtract);
-
-            msg!(
-                "🔨 ขั้นตอนที่ 1 เสร็จสมบูรณ์! ผู้ช่วยเหลือ A สามารถรับรางวัล: {} SOL (0.6%)",
-                trigger_reward
-            );
-            msg!(
-                "🏪 เปิดร้านค้าช่วยเหลือ! {} SOL พร้อมจำหน่ายทันที ลด 6%",
-                remaining_for_swap
-            );
-            msg!(
-                "🦄 ตลาดรองเปิดใช้งานในอีก 6 ชั่วโมง (เวลา: {})",
-                liquidation_process.dex_activation_time
-            );
-
-            // Emit event for indexing
-            emit!(LiquidationTriggered {
-                loan_account: loan_account.key(),
-                keeper: keeper_a,
-                collateral_amount: remaining_for_swap,
-            });
-
-            // 🛡️ RESET REENTRANCY GUARD: Allow next operation
+            // 🛡️ RESET REENTRANCY GUARD
             system_config.reentrancy_guard = REENTRANCY_GUARD_INACTIVE;
 
             Ok(())
-        })(); // End of scope guard
+        })();
 
-        // 🛡️ ALWAYS RESET LOCK: Even if the operation failed
+        // 🛡️ ALWAYS RESET LOCK
         loan_account.liquidation_lock = false;
-
         result
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // LIQUIDATION SYSTEM B: Maturity Based (Borrower Protection)
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Triggered when loan maturity expires without repayment/extension
+    // 72-HOUR PROTECTION PERIOD before liquidation (gives borrower time to act)
+    pub fn liquidate_by_maturity(ctx: Context<LiquidateByMaturity>) -> Result<()> {
+        let loan_account = &mut ctx.accounts.loan_account;
+        let system_config = &mut ctx.accounts.system_config;
+        let liquidation_process = &mut ctx.accounts.liquidation_process;
+        let keeper_a = ctx.accounts.keeper_a.key();
+        let current_time = Clock::get()?.unix_timestamp;
+
+        // 🛡️ SECURITY GUARD 2.0: Check pause status + timelock
+        require!(!system_config.is_paused, GinvaError::ProtocolPaused);
+        require!(
+            current_time >= system_config.ops_resume_at,
+            GinvaError::SystemInCooldown
+        );
+
+        // 🛡️ REENTRANCY GUARD: Prevent reentrancy attacks
+        require!(
+            liquidation_process.status == 0,
+            GinvaError::ReentrancyDetected
+        );
+
+        // 🛡️ ATOMIC LIQUIDATION LOCK: Prevent double liquidation
+        require!(
+            !loan_account.liquidation_lock,
+            GinvaError::AlreadyBeingLiquidated
+        );
+        loan_account.liquidation_lock = true;
+
+        // 🛡️ REENTRANCY GUARD: Prevent recursive calls
+        check_reentrancy_guard(system_config.reentrancy_guard)?;
+        system_config.reentrancy_guard = REENTRANCY_GUARD_ACTIVE;
+
+        // 🛡️ SCOPE GUARD: Ensure lock is always reset
+        let result = (|| -> Result<()> {
+            // 🟡 SYSTEM B: Check maturity + 72h protection period
+            require!(
+                current_time > loan_account.maturity_at,
+                GinvaError::LoanNotYetMatured
+            );
+
+            let protection_end_time = loan_account.maturity_at + (72 * 3600); // 72 hours
+            require!(
+                current_time > protection_end_time,
+                GinvaError::InProtectionPeriod
+            );
+
+            msg!(
+                "🟡 MATURITY LIQUIDATION: Maturity={}, Protection ends={}, Now={}",
+                loan_account.maturity_at,
+                protection_end_time,
+                current_time
+            );
+
+            // Execute liquidation with type marker
+            Self::execute_liquidation_start(
+                loan_account,
+                system_config,
+                liquidation_process,
+                keeper_a,
+                current_time,
+                ctx.accounts.vault_collateral_account.to_account_info(),
+                ctx.accounts.seized_assets_vault.to_account_info(),
+                ctx.accounts.vault_authority.to_account_info(),
+                ctx.accounts.token_program.to_account_info(),
+                ctx.bumps.vault_authority,
+                LiquidationType::Maturity,
+            )?;
+
+            // 🛡️ RESET REENTRANCY GUARD
+            system_config.reentrancy_guard = REENTRANCY_GUARD_INACTIVE;
+
+            Ok(())
+        })();
+
+        // 🛡️ ALWAYS RESET LOCK
+        loan_account.liquidation_lock = false;
+        result
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // INTERNAL: Shared Liquidation Logic
+    // ═══════════════════════════════════════════════════════════════════════════
+    fn execute_liquidation_start(
+        loan_account: &mut Account<LoanAccount>,
+        system_config: &mut Account<SystemConfig>,
+        liquidation_process: &mut Account<LiquidationProcess>,
+        keeper_a: Pubkey,
+        current_time: i64,
+        vault_collateral_account: AccountInfo,
+        seized_assets_vault: AccountInfo,
+        vault_authority: AccountInfo,
+        token_program: AccountInfo,
+        vault_authority_bump: u8,
+        liquidation_type: LiquidationType,
+    ) -> Result<()> {
+        // 1. Calculate Split (0.6% reward + 99.4% for swap)
+        let trigger_reward = loan_account
+            .collateral_amount
+            .saturating_mul(60) // 0.6% reward
+            .checked_div(10000)
+            .unwrap_or(0);
+        let remaining_for_swap = loan_account
+            .collateral_amount
+            .saturating_sub(trigger_reward);
+
+        // 2. Transfer 99.4% to Seized Assets Vault
+        let seeds = &[b"vault_auth".as_ref(), &[vault_authority_bump]];
+        let signer = &[&seeds[..]];
+
+        let cpi_accounts_seized = Transfer {
+            from: vault_collateral_account.clone(),
+            to: seized_assets_vault,
+            authority: vault_authority.clone(),
+        };
+        let cpi_ctx_seized =
+            CpiContext::new_with_signer(token_program, cpi_accounts_seized, signer);
+        token::transfer(cpi_ctx_seized, remaining_for_swap)?;
+
+        // 3. Initialize Liquidation Process
+        liquidation_process.loan_account = loan_account.key();
+        liquidation_process.status = LiquidationStatus::Triggered as u8;
+        liquidation_process.trigger_keeper = keeper_a;
+        liquidation_process.seized_collateral_amount = remaining_for_swap;
+        liquidation_process.triggered_at = current_time;
+        liquidation_process.deadline_for_swap = current_time;
+        liquidation_process.dex_activation_time = current_time + 21600; // 6h
+        liquidation_process.swapped = false;
+        liquidation_process.keeper_reward_amount = trigger_reward;
+        liquidation_process.keeper_reward_claimed = false;
+        liquidation_process.liquidation_type = liquidation_type as u8;
+
+        // Update Loan
+        loan_account.status = LoanStatus::LiquidationInProgress as u8;
+        loan_account.liquidated_at = current_time;
+        loan_account.keeper_address = keeper_a;
+        let total_collateral_to_subtract = loan_account.collateral_amount;
+        loan_account.collateral_amount = 0;
+
+        // Update System
+        system_config.total_collateral = system_config
+            .total_collateral
+            .saturating_sub(total_collateral_to_subtract);
+
+        // Log based on liquidation type
+        match liquidation_type {
+            LiquidationType::HealthFactor => {
+                msg!("🔴 HEALTH FACTOR LIQUIDATION TRIGGERED - Immediate action");
+            }
+            LiquidationType::Maturity => {
+                msg!("🟡 MATURITY LIQUIDATION TRIGGERED - 72h protection expired");
+            }
+        }
+
+        msg!(
+            "🔨 Liquidation Step 1 Complete! Keeper A reward: {} (0.6%)",
+            trigger_reward
+        );
+        msg!(
+            "🏪 Storefront opened! {} ready for sale at 6% discount",
+            remaining_for_swap
+        );
+        msg!(
+            "🦄 DEX fallback activates in 6 hours (at: {})",
+            liquidation_process.dex_activation_time
+        );
+
+        // Emit event
+        emit!(LiquidationTriggered {
+            loan_account: loan_account.key(),
+            keeper: keeper_a,
+            collateral_amount: remaining_for_swap,
+            liquidation_type: liquidation_type as u8,
+        });
+
+        Ok(())
     }
 
     // STEP 1B: CLAIM TRIGGER REWARD (Keeper A)
@@ -2740,6 +2870,12 @@ pub enum LiquidationStatus {
     Expired = 4,
 }
 
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, PartialEq)]
+pub enum LiquidationType {
+    HealthFactor = 1, // Immediate liquidation (price-based)
+    Maturity = 2,     // After 72h protection period (time-based)
+}
+
 // EVENTS (For indexing and monitoring)
 
 #[event]
@@ -2764,6 +2900,7 @@ pub struct LiquidationTriggered {
     pub loan_account: Pubkey,
     pub keeper: Pubkey,
     pub collateral_amount: u64,
+    pub liquidation_type: u8, // 1 = HealthFactor, 2 = Maturity
 }
 
 #[event]
@@ -2980,6 +3117,7 @@ pub struct LoanAccount {
 pub struct LiquidationProcess {
     pub loan_account: Pubkey,
     pub status: u8,
+    pub liquidation_type: u8, // 1 = HealthFactor, 2 = Maturity
     pub trigger_keeper: Pubkey,
     pub swap_executor: Pubkey, // NEW: Who executed the auto-swap
     pub distribute_keeper: Pubkey,
@@ -3227,6 +3365,110 @@ pub struct BorrowUsdc<'info> {
 
 #[derive(Accounts)]
 pub struct TriggerLiquidation<'info> {
+    #[account(mut)]
+    pub keeper_a: Signer<'info>,
+    #[account(
+        mut,
+        constraint = loan_account.status == LoanStatus::Active as u8 @ GinvaError::LoanNotActive,
+        constraint = loan_account.collateral_amount > 0 @ GinvaError::InvalidAmount,
+        constraint = !loan_account.liquidation_lock @ GinvaError::AlreadyBeingLiquidated,
+    )]
+    pub loan_account: Box<Account<'info, LoanAccount>>,
+    #[account(mut, seeds = [b"config"], bump)]
+    pub system_config: Box<Account<'info, SystemConfig>>,
+
+    #[account(
+        init,
+        payer = keeper_a,
+        space = 8 + size_of::<LiquidationProcess>(),
+        seeds = [b"liquidation", loan_account.key().as_ref()],
+        bump
+    )]
+    pub liquidation_process: Box<Account<'info, LiquidationProcess>>,
+
+    /// CHECK: PDA derived from [b"vault_auth"]
+    #[account(seeds = [b"vault_auth"], bump)]
+    pub vault_authority: AccountInfo<'info>,
+
+    #[account(mut, token::authority = vault_authority)]
+    pub vault_collateral_account: Box<Account<'info, TokenAccount>>,
+
+    #[account(
+        mut,
+        seeds = [b"seized_vault", loan_account.key().as_ref()],
+        bump
+    )]
+    pub seized_assets_vault: Box<Account<'info, TokenAccount>>,
+
+    /// Get feed_id dynamically based on collateral type
+    #[account(
+        seeds = [b"asset_config", loan_account.collateral_mint.as_ref()],
+        bump
+    )]
+    pub asset_config: Box<Account<'info, AssetConfig>>,
+
+    pub pyth_price_feed: Box<Account<'info, PriceUpdateV2>>,
+    pub token_program: Program<'info, Token>,
+    pub system_program: Program<'info, System>,
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SYSTEM A: Health Factor Based Liquidation Accounts
+// ═══════════════════════════════════════════════════════════════════════════
+#[derive(Accounts)]
+pub struct LiquidateByHealthFactor<'info> {
+    #[account(mut)]
+    pub keeper_a: Signer<'info>,
+    #[account(
+        mut,
+        constraint = loan_account.status == LoanStatus::Active as u8 @ GinvaError::LoanNotActive,
+        constraint = loan_account.collateral_amount > 0 @ GinvaError::InvalidAmount,
+        constraint = !loan_account.liquidation_lock @ GinvaError::AlreadyBeingLiquidated,
+    )]
+    pub loan_account: Box<Account<'info, LoanAccount>>,
+    #[account(mut, seeds = [b"config"], bump)]
+    pub system_config: Box<Account<'info, SystemConfig>>,
+
+    #[account(
+        init,
+        payer = keeper_a,
+        space = 8 + size_of::<LiquidationProcess>(),
+        seeds = [b"liquidation", loan_account.key().as_ref()],
+        bump
+    )]
+    pub liquidation_process: Box<Account<'info, LiquidationProcess>>,
+
+    /// CHECK: PDA derived from [b"vault_auth"]
+    #[account(seeds = [b"vault_auth"], bump)]
+    pub vault_authority: AccountInfo<'info>,
+
+    #[account(mut, token::authority = vault_authority)]
+    pub vault_collateral_account: Box<Account<'info, TokenAccount>>,
+
+    #[account(
+        mut,
+        seeds = [b"seized_vault", loan_account.key().as_ref()],
+        bump
+    )]
+    pub seized_assets_vault: Box<Account<'info, TokenAccount>>,
+
+    /// Get feed_id dynamically based on collateral type
+    #[account(
+        seeds = [b"asset_config", loan_account.collateral_mint.as_ref()],
+        bump
+    )]
+    pub asset_config: Box<Account<'info, AssetConfig>>,
+
+    pub pyth_price_feed: Box<Account<'info, PriceUpdateV2>>,
+    pub token_program: Program<'info, Token>,
+    pub system_program: Program<'info, System>,
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SYSTEM B: Maturity Based Liquidation Accounts
+// ═══════════════════════════════════════════════════════════════════════════
+#[derive(Accounts)]
+pub struct LiquidateByMaturity<'info> {
     #[account(mut)]
     pub keeper_a: Signer<'info>,
     #[account(
@@ -3755,6 +3997,12 @@ pub enum GinvaError {
     LoanNotActive = 1400,
     #[msg("Conditions not met for liquidation")]
     NotYetLiquidatable = 1603,
+    #[msg("Health factor not critical - collateral value sufficient")]
+    HealthFactorNotCritical = 1604,
+    #[msg("Loan not yet matured - cannot liquidate by maturity")]
+    LoanNotYetMatured = 1605,
+    #[msg("In 72-hour protection period - cannot liquidate yet")]
+    InProtectionPeriod = 1606,
     #[msg("Pyth Oracle Error")]
     PythError = 1203,
     #[msg("Price unavailable")]
