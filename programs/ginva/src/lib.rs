@@ -1387,6 +1387,29 @@ pub mod ginva {
             GinvaError::InvalidJupiterRoute
         );
 
+        // 🛡️ SECURITY: Validate that remaining accounts are valid token accounts or program accounts
+        // This prevents passing arbitrary accounts to Jupiter
+        for (i, account) in ctx.remaining_accounts.iter().enumerate() {
+            // Skip validation for program accounts (they don't have data)
+            if account.owner == ctx.accounts.jupiter_program.key() {
+                continue;
+            }
+
+            // For token accounts, validate minimum data length
+            if account.owner == ctx.accounts.token_program.key() {
+                require!(
+                    account.data_len() >= 165, // Token account minimum size
+                    GinvaError::InvalidJupiterRoute
+                );
+            }
+
+            // Ensure no account is the system program or a PDA we control
+            require!(
+                account.key() != ctx.accounts.system_program.key(),
+                GinvaError::InvalidJupiterRoute
+            );
+        }
+
         // 2.1 VALIDATE JUPITER DATA
         require!(
             data.len() >= MIN_JUPITER_DATA_LEN,

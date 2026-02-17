@@ -19,17 +19,31 @@ export const useGinvaProgram = () => {
       return null;
     }
 
-    const provider = new AnchorProvider(connection, wallet as any, {
-      commitment: "confirmed",
-      preflightCommitment: "confirmed",
-    });
+    // Create provider with type-safe wallet
+    const provider = new AnchorProvider(
+      connection,
+      wallet as unknown as Parameters<typeof AnchorProvider>[1],
+      {
+        commitment: "confirmed",
+        preflightCommitment: "confirmed",
+      }
+    );
 
     // Try to load IDL, fallback to mock if not available
     try {
       const idl = require("../idl/ginva.json");
-      return new Program(idl as any, PROGRAM_ID, provider);
+      if (!idl || !idl.metadata || !idl.metadata.name) {
+        throw new Error("Invalid IDL format");
+      }
+      console.log("✅ Using REAL IDL from ../idl/ginva.json");
+      return new Program(idl, PROGRAM_ID, provider);
     } catch (e) {
       // Mock program object for development
+      console.warn(
+        "⚠️ WARNING: Using MOCK program data for development. This should NOT be used in production!"
+      );
+      console.warn("Please ensure the IDL file exists at ../idl/ginva.json");
+
       return {
         account: {
           loanAccount: {
@@ -76,8 +90,26 @@ export const useGinvaProgram = () => {
   return { program };
 };
 
-export const useSystemConfig = () => {
-  const systemConfig = {
+// Type for system config
+interface SystemConfig {
+  pubkey: string;
+  account: {
+    admin: string;
+    capitalWallet: string;
+    opsWallet: string;
+    revenueWallet: string;
+    isPaused: boolean;
+    totalBorrowed: number;
+    totalCollateral: number;
+  };
+}
+
+export const useSystemConfig = (): SystemConfig => {
+  console.warn(
+    "⚠️ WARNING: Using MOCK system config. This should NOT be used in production!"
+  );
+
+  const systemConfig: SystemConfig = {
     pubkey: "11111111111111111111111111111112",
     account: {
       admin: "11111111111111111111111111111112",
