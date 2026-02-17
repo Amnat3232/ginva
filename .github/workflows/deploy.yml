@@ -13,6 +13,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
@@ -22,17 +27,22 @@ jobs:
         run: |
           sh -c "$(curl -sSfL "https://release.solana.com/v1.18.26/install")"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+          export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
+          solana --version
 
       - name: Setup Wallet
         run: |
+          export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
           echo "${{ secrets.SOLANA_PRIVATE_KEY }}" > wallet.json
-          solana config set --keypair wallet.json
+          solana config set --keypair wallet.json --url devnet
 
       - name: Install Anchor
         run: npm install -g @coral-xyz/anchor
 
       - name: Build Program
         run: anchor build
+        env:
+          ANCHOR_PROVIDER_URL: https://api.devnet.solana.com
 
       - name: Deploy to Devnet
         run: anchor deploy
