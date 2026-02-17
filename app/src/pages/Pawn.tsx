@@ -125,6 +125,34 @@ const Pawn = () => {
     fetchBalance();
   }, [publicKey, connected, selectedAsset, connection]);
 
+  // Fetch system config for deposit fee
+  const [depositFeeBps, setDepositFeeBps] = useState(0);
+  useEffect(() => {
+    const fetchSystemConfig = async () => {
+      if (!program) return;
+      try {
+        const systemConfigPda = PublicKey.findProgramAddressSync(
+          [Buffer.from("config")],
+          program.programId
+        )[0];
+        const systemConfig = await program.account.systemConfig.fetch(
+          systemConfigPda
+        );
+        setDepositFeeBps(systemConfig.depositFeeBps);
+      } catch (e) {
+        console.error("Error fetching system config:", e);
+      }
+    };
+
+    fetchSystemConfig();
+  }, [program]);
+
+  // Calculate deposit fee and net collateral
+  const depositFeePercent = depositFeeBps / 100;
+  const depositFeeAmount =
+    parseFloat(collateralAmount || "0") * (depositFeeBps / 10000);
+  const netCollateral = parseFloat(collateralAmount || "0") - depositFeeAmount;
+
   const handleCreateTicket = async () => {
     if (!connected || !program || !publicKey) {
       showError("Wallet Not Connected", "Please connect your wallet first");
@@ -191,8 +219,7 @@ const Pawn = () => {
           wsolMint: selectedAsset.mint,
           borrowerRateLimit: rateLimitPda,
           tokenProgram: anchor.utils.token.TOKEN_PROGRAM_ID,
-          associatedTokenProgram:
-            anchor.utils.token.ASSOCIATED_TOKEN_PROGRAM_ID,
+          associatedTokenProgram: anchor.utils.token.ASSOCIATED_PROGRAM_ID,
           systemProgram: anchor.web3.SystemProgram.programId,
         })
         .rpc();
@@ -438,6 +465,25 @@ const Pawn = () => {
                     ${collateralValueUSD.toFixed(2)}
                   </span>
                 </div>
+                <div className="d-flex justify-content-between text-muted">
+                  <span>Deposit Fee ({depositFeePercent}%)</span>
+                  <span>
+                    -
+                    {depositFeeAmount.toFixed(
+                      selectedAsset.decimals === 9 ? 4 : 2
+                    )}{" "}
+                    {selectedAsset.symbol}
+                  </span>
+                </div>
+                <div className="d-flex justify-content-between text-success">
+                  <span>Net Collateral (after fee)</span>
+                  <span className="fw-bold">
+                    {netCollateral.toFixed(
+                      selectedAsset.decimals === 9 ? 4 : 2
+                    )}{" "}
+                    {selectedAsset.symbol}
+                  </span>
+                </div>
                 <hr />
                 <div className="d-flex justify-content-between">
                   <span>LTV Ratio</span>
@@ -464,9 +510,10 @@ const Pawn = () => {
                 </div>
                 <Alert variant="info" className="mb-0">
                   <FiShield className="me-2" />
-                  <strong>72-Hour Protection:</strong> If collateral value
-                  drops, you have 72 hours to add more collateral or repay. We
-                  alert you in advance.
+                  <strong>72-Hour Protection:</strong> Applies only when loan
+                  maturity expires. You have 72 hours to repay or extend.
+                  Immediate liquidation may occur if collateral value drops
+                  below loan value.
                 </Alert>
               </Stack>
             </Card.Body>
@@ -489,8 +536,8 @@ const Pawn = () => {
                   <div>
                     <strong>Deposit Your Asset</strong>
                     <p className="text-muted small mb-0">
-                      Lock your SOL, BTC, or ETH as collateral. Your assets stay
-                      safe.
+                      Lock your SOL, BTC, or ETH as collateral. A small deposit
+                      fee ({depositFeePercent}%) applies. Your assets stay safe.
                     </p>
                   </div>
                 </div>
@@ -519,8 +566,9 @@ const Pawn = () => {
                   <div>
                     <strong>Protected Period</strong>
                     <p className="text-muted small mb-0">
-                      If prices drop, you have 72 hours to protect your assets.
-                      We alert you early.
+                      When loan matures, you have 72 hours to repay or extend.
+                      Note: Immediate liquidation if collateral value drops
+                      below loan amount.
                     </p>
                   </div>
                 </div>

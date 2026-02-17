@@ -10,9 +10,10 @@ import {
 } from "react-bootstrap";
 import {
   FiClipboard,
-  FiDollarSign,
   FiCalendar,
   FiShield,
+  FiAlertTriangle,
+  FiClock,
 } from "react-icons/fi";
 import { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
@@ -26,6 +27,7 @@ interface Ticket {
   interestRate: string;
   status: string;
   maturityDate: string;
+  maturityAt: number;
   assetCoverage: string;
 }
 
@@ -35,6 +37,15 @@ const MyTickets = () => {
   const [selectedTicket, setSelectedTicket] = useState<number | null>(null);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentTime, setCurrentTime] = useState(Date.now());
+
+  // Update countdown every second
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const fetchTickets = async () => {
@@ -80,6 +91,7 @@ const MyTickets = () => {
             maturityDate: new Date(
               loan.account.maturityAt.toNumber() * 1000
             ).toLocaleDateString(),
+            maturityAt: loan.account.maturityAt.toNumber(),
             assetCoverage: "145%", // Mock, calculate from oracle
           })
         );
@@ -95,10 +107,50 @@ const MyTickets = () => {
     fetchTickets();
   }, [program, publicKey]);
 
-  const getStatusBadge = (status: string) => {
+  // Calculate remaining time for 72-hour protection
+  const getProtectionCountdown = (maturityAt: number) => {
+    const protectionEnd = (maturityAt + 72 * 60 * 60) * 1000; // 72 hours in ms
+    const remaining = protectionEnd - currentTime;
+
+    if (remaining <= 0) return null;
+
+    const hours = Math.floor(remaining / (1000 * 60 * 60));
+    const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+
+    return { hours, minutes, seconds, remaining };
+  };
+
+  const getStatusBadge = (status: string, maturityAt?: number) => {
     switch (status) {
       case "active":
         return <Badge bg="success">Active</Badge>;
+      case "overdue":
+        const countdown = maturityAt
+          ? getProtectionCountdown(maturityAt)
+          : null;
+        if (countdown && countdown.remaining > 0) {
+          return (
+            <div>
+              <Badge bg="danger">
+                <FiAlertTriangle className="me-1" />
+                Overdue
+              </Badge>
+              <div className="mt-1 text-danger small fw-bold">
+                <FiClock className="me-1" />
+                {countdown.hours}h {countdown.minutes}m {countdown.seconds}s
+              </div>
+            </div>
+          );
+        }
+        return (
+          <Badge bg="danger">
+            <FiAlertTriangle className="me-1" />
+            Critical
+          </Badge>
+        );
+      case "liquidated":
+        return <Badge bg="dark">Liquidated</Badge>;
       case "redeemed":
         return <Badge bg="info">Repaid</Badge>;
       case "forfeited":
@@ -113,9 +165,20 @@ const MyTickets = () => {
       <Stack direction="vertical" gap={3} className="mb-4">
         <h1>My Loans</h1>
         <p className="text-muted">
-          View and manage all your loans. Each loan is protected with our
-          72-hour protection system.
+          View and manage all your loans. Loans entering overdue status receive
+          a 72-hour protection period to repay or extend before liquidation.
         </p>
+        {tickets.filter((t) => t.status === "overdue").length > 0 && (
+          <div className="alert alert-danger d-flex align-items-center">
+            <FiAlertTriangle className="me-2 flex-shrink-0" size={20} />
+            <div>
+              <strong>Action Required!</strong> You have{" "}
+              {tickets.filter((t) => t.status === "overdue").length} overdue
+              loan(s). Please repay or extend within the 72-hour protection
+              period to avoid liquidation.
+            </div>
+          </div>
+        )}
       </Stack>
 
       <Row className="mb-4">
@@ -154,17 +217,23 @@ const MyTickets = () => {
           </Card>
         </Col>
         <Col md={4}>
-          <Card className="h-100">
+          <Card className="h-100 border-danger">
             <Card.Body>
               <Stack direction="vertical" gap={2}>
                 <div>
-                  <h5 className="text-muted">Total Pawned Value</h5>
-                  <h3 className="mb-1" style={{ color: "#6f42c1" }}>
-                    500.00 USDC
+                  <h5 className="text-danger">Overdue Tickets</h5>
+                  <h3 className="mb-1 text-danger">
+                    {tickets.filter((t) => t.status === "overdue").length}
                   </h3>
+                  {tickets.filter((t) => t.status === "overdue").length > 0 && (
+                    <small className="text-danger">
+                      <FiAlertTriangle className="me-1" />
+                      Action required!
+                    </small>
+                  )}
                 </div>
                 <div className="text-end">
-                  <FiDollarSign size={24} color="#6f42c1" />
+                  <FiAlertTriangle size={24} color="#dc3545" />
                 </div>
               </Stack>
             </Card.Body>
@@ -229,23 +298,36 @@ const MyTickets = () => {
                       <FiCalendar className="me-1" />
                       {ticket.maturityDate}
                     </td>
-                    <td>{getStatusBadge(ticket.status)}</td>
+                    <td>{getStatusBadge(ticket.status, ticket.maturityAt)}</td>
                     <td>
-                      {ticket.status === "active" && (
+                      {(ticket.status === "active" ||
+                        ticket.status === "overdue") && (
                         <Stack direction="horizontal" gap={2}>
                           <Button
-                            variant="outline-primary"
+                            variant={
+                              ticket.status === "overdue"
+                                ? "danger"
+                                : "outline-primary"
+                            }
                             size="sm"
                             href={`/redeem?ticket=${ticket.id}`}
                           >
-                            Redeem
+                            {ticket.status === "overdue"
+                              ? "Repay Now"
+                              : "Redeem"}
                           </Button>
                           <Button
-                            variant="outline-secondary"
+                            variant={
+                              ticket.status === "overdue"
+                                ? "warning"
+                                : "outline-secondary"
+                            }
                             size="sm"
                             href={`/extend?ticket=${ticket.id}`}
                           >
-                            Extend
+                            {ticket.status === "overdue"
+                              ? "Extend Now"
+                              : "Extend"}
                           </Button>
                         </Stack>
                       )}
