@@ -23,6 +23,11 @@ jobs:
           sh -c "$(curl -sSfL "https://release.solana.com/v1.18.26/install")"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
 
+      - name: Setup Wallet
+        run: |
+          echo "${{ secrets.SOLANA_PRIVATE_KEY }}" > wallet.json
+          solana config set --keypair wallet.json
+
       - name: Install Anchor
         run: npm install -g @coral-xyz/anchor
 
