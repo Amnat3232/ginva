@@ -38,15 +38,26 @@ export const sleep = (ms: number): Promise<void> => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
+// XSS Sanitization helper
+const sanitizeHtml = (str: string): string => {
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+};
+
 // Toast notification helpers
 export const showSuccess = (title: string, message?: string) => {
   console.log(`[SUCCESS] ${title}: ${message}`);
   // In production, integrate with your toast library (e.g., react-toastify, chakra-ui toast)
-  alert(`${title}${message ? `: ${message}` : ""}`);
+  const safeTitle = sanitizeHtml(title);
+  const safeMessage = message ? sanitizeHtml(message) : "";
+  alert(`${safeTitle}${safeMessage ? `: ${safeMessage}` : ""}`);
 };
 
 export const showError = (title: string, message?: string) => {
   console.error(`[ERROR] ${title}: ${message}`);
   // In production, integrate with your toast library
-  alert(`Error - ${title}${message ? `: ${message}` : ""}`);
+  const safeTitle = sanitizeHtml(title);
+  const safeMessage = message ? sanitizeHtml(message) : "";
+  alert(`Error - ${safeTitle}${safeMessage ? `: ${safeMessage}` : ""}`);
 };

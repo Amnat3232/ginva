@@ -244,13 +244,17 @@ const Pawn = () => {
         [Buffer.from("asset_config"), selectedAsset.mint.toBuffer()],
         program.programId
       )[0];
+      const assetConfig = await program.account.assetConfig.fetch(
+        assetConfigPda
+      );
       const protocolConfigPda = PublicKey.findProgramAddressSync(
         [Buffer.from("protocol_config")],
         program.programId
       )[0];
-      const pythPriceFeed = new PublicKey(
-        "H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG"
-      ); // SOL/USD devnet
+
+      // Fetch Pyth price feed from asset config instead of hardcoding
+      // This ensures correct price feed for each asset (mainnet/devnet compatible)
+      const pythPriceFeed = assetConfig.priceFeed; // Use priceFeed from config
 
       showSuccess("Borrowing USDC...", "Please confirm the transaction");
       await program.methods

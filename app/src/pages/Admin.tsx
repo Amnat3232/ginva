@@ -255,10 +255,28 @@ const Admin = () => {
     }
   };
 
+  // Validate Solana address format
+  const isValidSolanaAddress = (address: string): boolean => {
+    try {
+      new PublicKey(address);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   // Update Ops Wallet
   const handleUpdateOpsWallet = async () => {
     if (!connected || !program || !publicKey) {
       showError("Wallet Not Connected");
+      return;
+    }
+
+    if (!opsWallet || !isValidSolanaAddress(opsWallet)) {
+      showError(
+        "Invalid Address",
+        "Please enter a valid Solana wallet address"
+      );
       return;
     }
 
