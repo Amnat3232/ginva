@@ -572,8 +572,13 @@ pub mod ginva {
             ctx.accounts.user.key(),
         )?;
 
-        // 🛡️ FLASH LOAN PROTECTION: Ensure collateral has been held for minimum blocks
-        check_flash_loan_protection(loan_account.deposit_slot, clock.slot)?;
+        // 🛡️ FLASH LOAN PROTECTION: Ensure collateral has been held for minimum blocks and time
+        check_flash_loan_protection(
+            loan_account.deposit_slot,
+            clock.slot,
+            loan_account.created_at,
+            clock.unix_timestamp,
+        )?;
 
         require!(asset_config.is_active, GinvaError::AssetNotActive);
         require!(
@@ -1226,114 +1231,118 @@ pub mod ginva {
         check_reentrancy_guard(system_config.reentrancy_guard)?;
         system_config.reentrancy_guard = REENTRANCY_GUARD_ACTIVE;
 
-        // 1. Validation Checks
-        require!(!liquidation_process.swapped, GinvaError::AlreadySwapped);
-        require!(
-            liquidation_process.status == LiquidationStatus::Triggered as u8,
-            GinvaError::InvalidLiquidationStatus
-        );
+        // 🛡️ SCOPE GUARD: Ensure reentrancy guard is always reset
+        let result = (|| -> Result<()> {
+            // 1. Validation Checks
+            require!(!liquidation_process.swapped, GinvaError::AlreadySwapped);
+            require!(
+                liquidation_process.status == LiquidationStatus::Triggered as u8,
+                GinvaError::InvalidLiquidationStatus
+            );
 
-        let seized_amount = liquidation_process.seized_collateral_amount;
-        require!(seized_amount > 0, GinvaError::InvalidAmount);
+            let seized_amount = liquidation_process.seized_collateral_amount;
+            require!(seized_amount > 0, GinvaError::InvalidAmount);
 
-        // 2. Calculate Fair Value via Pyth
-        let asset_config = &ctx.accounts.asset_config;
-        require!(asset_config.is_active, GinvaError::AssetNotActive);
+            // 2. Calculate Fair Value via Pyth
+            let asset_config = &ctx.accounts.asset_config;
+            require!(asset_config.is_active, GinvaError::AssetNotActive);
 
-        let (current_price, price_exponent) = get_pyth_price_with_exponent_and_validation(
-            &ctx.accounts.pyth_price_feed,
-            &asset_config.feed_id,
-            system_config,
-        )?;
+            let (current_price, price_exponent) = get_pyth_price_with_exponent_and_validation(
+                &ctx.accounts.pyth_price_feed,
+                &asset_config.feed_id,
+                system_config,
+            )?;
 
-        let gross_usdc_value = calculate_collateral_value(
-            seized_amount,
-            current_price,
-            price_exponent,
-            asset_config.decimals,
-            6, // USDC decimals
-        )?;
+            let gross_usdc_value = calculate_collateral_value(
+                seized_amount,
+                current_price,
+                price_exponent,
+                asset_config.decimals,
+                6, // USDC decimals
+            )?;
 
-        // Time-decay pricing engine
-        let elapsed_time = current_time.saturating_sub(liquidation_process.triggered_at);
+            // Time-decay pricing engine
+            let elapsed_time = current_time.saturating_sub(liquidation_process.triggered_at);
 
-        // Set discount based on elapsed time
-        let current_discount_bps = if elapsed_time <= 600 {
-            800 // 0-10 min: 8% discount (Golden Hour)
-        } else if elapsed_time <= 1800 {
-            600 // 10-30 min: 6% discount
-        } else if elapsed_time <= 3600 {
-            300 // 30-60 min: 3% discount
-        } else {
-            0 // > 60 min: Market price (No Discount)
-        };
+            // Set discount based on elapsed time
+            let current_discount_bps = if elapsed_time <= 600 {
+                800 // 0-10 min: 8% discount (Golden Hour)
+            } else if elapsed_time <= 1800 {
+                600 // 10-30 min: 6% discount
+            } else if elapsed_time <= 3600 {
+                300 // 30-60 min: 3% discount
+            } else {
+                0 // > 60 min: Market price (No Discount)
+            };
 
-        // 3. Calculate Final Price
-        let caller_discount = gross_usdc_value
-            .saturating_mul(current_discount_bps)
-            .checked_div(10000)
-            .unwrap_or(0);
+            // 3. Calculate Final Price
+            let caller_discount = gross_usdc_value
+                .saturating_mul(current_discount_bps)
+                .checked_div(10000)
+                .unwrap_or(0);
 
-        let usdc_required_from_caller = gross_usdc_value.saturating_sub(caller_discount);
-        require!(usdc_required_from_caller > 0, GinvaError::InvalidAmount);
+            let usdc_required_from_caller = gross_usdc_value.saturating_sub(caller_discount);
+            require!(usdc_required_from_caller > 0, GinvaError::InvalidAmount);
 
-        // 4. ACTION A: Pull USDC from Caller -> Processing Vault
-        msg!(
-            "🔄 Pawn Shop Deal: {} USDC (Discount: {} bps | Time: {}s)",
-            usdc_required_from_caller,
-            current_discount_bps,
-            elapsed_time
-        );
+            // 4. ACTION A: Pull USDC from Caller -> Processing Vault
+            msg!(
+                "🔄 Pawn Shop Deal: {} USDC (Discount: {} bps | Time: {}s)",
+                usdc_required_from_caller,
+                current_discount_bps,
+                elapsed_time
+            );
 
-        let cpi_program = ctx.accounts.token_program.to_account_info();
-        let cpi_accounts_pay = Transfer {
-            from: ctx.accounts.caller_usdc_account.to_account_info(),
-            to: ctx.accounts.processing_vault.to_account_info(),
-            authority: ctx.accounts.caller.to_account_info(),
-        };
-        let cpi_ctx_pay = CpiContext::new(cpi_program.clone(), cpi_accounts_pay);
-        token::transfer(cpi_ctx_pay, usdc_required_from_caller)?;
+            let cpi_program = ctx.accounts.token_program.to_account_info();
+            let cpi_accounts_pay = Transfer {
+                from: ctx.accounts.caller_usdc_account.to_account_info(),
+                to: ctx.accounts.processing_vault.to_account_info(),
+                authority: ctx.accounts.caller.to_account_info(),
+            };
+            let cpi_ctx_pay = CpiContext::new(cpi_program.clone(), cpi_accounts_pay);
+            token::transfer(cpi_ctx_pay, usdc_required_from_caller)?;
 
-        // 5. ACTION B: Push Seized Collateral -> Caller
-        let bump = ctx.bumps.seized_assets_authority;
-        let seeds = &[b"seized_auth".as_ref(), &[bump]];
-        let signer = &[&seeds[..]];
+            // 5. ACTION B: Push Seized Collateral -> Caller
+            let bump = ctx.bumps.seized_assets_authority;
+            let seeds = &[b"seized_auth".as_ref(), &[bump]];
+            let signer = &[&seeds[..]];
 
-        let cpi_accounts_send = Transfer {
-            from: ctx.accounts.seized_assets_vault.to_account_info(),
-            to: ctx.accounts.caller_collateral_account.to_account_info(),
-            authority: ctx.accounts.seized_assets_authority.to_account_info(),
-        };
-        let cpi_ctx_send = CpiContext::new_with_signer(cpi_program, cpi_accounts_send, signer);
-        token::transfer(cpi_ctx_send, seized_amount)?;
+            let cpi_accounts_send = Transfer {
+                from: ctx.accounts.seized_assets_vault.to_account_info(),
+                to: ctx.accounts.caller_collateral_account.to_account_info(),
+                authority: ctx.accounts.seized_assets_authority.to_account_info(),
+            };
+            let cpi_ctx_send = CpiContext::new_with_signer(cpi_program, cpi_accounts_send, signer);
+            token::transfer(cpi_ctx_send, seized_amount)?;
 
-        // 6. Update State
-        liquidation_process.swapped = true;
-        liquidation_process.usdc_received = usdc_required_from_caller;
-        liquidation_process.swap_executor = caller;
-        liquidation_process.swap_reward = caller_discount;
-        liquidation_process.status = LiquidationStatus::Swapped as u8;
-        liquidation_process.deadline_for_distribution =
-            current_time + ctx.accounts.protocol_config.liquidation_timeout;
+            // 6. Update State
+            liquidation_process.swapped = true;
+            liquidation_process.usdc_received = usdc_required_from_caller;
+            liquidation_process.swap_executor = caller;
+            liquidation_process.swap_reward = caller_discount;
+            liquidation_process.status = LiquidationStatus::Swapped as u8;
+            liquidation_process.deadline_for_distribution =
+                current_time + ctx.accounts.protocol_config.liquidation_timeout;
 
-        msg!(
-            "✅ Pawn Shop Sale Complete! Sold {} units via Time-Decay Pricing",
-            seized_amount
-        );
+            msg!(
+                "✅ Pawn Shop Sale Complete! Sold {} units via Time-Decay Pricing",
+                seized_amount
+            );
 
-        // Emit event for indexing
-        emit!(StorefrontPurchase {
-            buyer: caller,
-            liquidation_process: liquidation_process.key(),
-            amount: seized_amount,
-            discount_bps: current_discount_bps,
-            usdc_paid: usdc_required_from_caller,
-        });
+            // Emit event for indexing
+            emit!(StorefrontPurchase {
+                buyer: caller,
+                liquidation_process: liquidation_process.key(),
+                amount: seized_amount,
+                discount_bps: current_discount_bps,
+                usdc_paid: usdc_required_from_caller,
+            });
 
-        // 🛡️ RESET REENTRANCY GUARD: Allow next operation
+            Ok(())
+        })();
+
+        // 🛡️ ALWAYS RESET REENTRANCY GUARD
         system_config.reentrancy_guard = REENTRANCY_GUARD_INACTIVE;
-
-        Ok(())
+        result
     }
 
     // DEX FALLBACK via Jupiter CPI
@@ -1833,6 +1842,7 @@ pub mod ginva {
     pub fn repay_loan(ctx: Context<RepayLoan>) -> Result<()> {
         let loan_account = &mut ctx.accounts.loan_account;
         let system_config = &mut ctx.accounts.system_config;
+        let clock = Clock::get()?;
 
         // 🛡️ SECURITY GUARD 2.0: Check pause status + timelock
         require!(!system_config.is_paused, GinvaError::ProtocolPaused);

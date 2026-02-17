@@ -189,7 +189,7 @@ const Pawn = () => {
         [
           Buffer.from("loan"),
           publicKey.toBuffer(),
-          new anchor.BN(loanId).toArrayLike(Buffer, "le", 8),
+          new anchor.BN(loanId).toArrayLike(Buffer, "le", 4),
         ],
         program.programId
       )[0];
