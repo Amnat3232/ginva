@@ -17,7 +17,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import App from "./App";
 
 // ---------------------------------------------------------
-// 🔧 Fix Polyfills for Vite (แก้จอขาวเพราะ Buffer/Global)
+// 🔧 Fix Polyfills for Vite (fixes white screen due to Buffer/Global)
 // ---------------------------------------------------------
 import { Buffer } from "buffer";
 if (!window.Buffer) {
@@ -29,11 +29,11 @@ window.global = window.global ?? window;
 // 🚀 Main Component with Providers
 // ---------------------------------------------------------
 const Main = () => {
-  // ตั้งค่า Network (Devnet)
+  // Set Network (Devnet)
   const network = WalletAdapterNetwork.Devnet;
   const endpoint = useMemo(() => clusterApiUrl(network), [network]);
 
-  // เลือกกระเป๋าที่จะรองรับ (Phantom, Solflare)
+  // Select supported wallets (Phantom, Solflare)
   const wallets = useMemo(
     () => [new PhantomWalletAdapter(), new SolflareWalletAdapter()],
     [network]

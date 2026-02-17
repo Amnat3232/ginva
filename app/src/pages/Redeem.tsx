@@ -28,22 +28,22 @@ const Redeem = () => {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
 
-  // 1️⃣ ดึงข้อมูลตั๋วจำนำของ User
+  // 1️⃣ Fetch user pawn tickets
   const fetchTickets = useCallback(async () => {
     if (!program || !publicKey) return;
     setFetching(true);
     try {
-      // ดึง LoanAccount ทั้งหมดแล้วกรองเฉพาะที่เป็นของ User
+      // Fetch all LoanAccounts and filter for user
       const allLoans = await program.account.loanAccount.all([
         {
           memcmp: {
-            offset: 8, // ข้าม discriminator
-            bytes: publicKey.toBase58(), // หา borrower = user
+            offset: 8, // Skip discriminator
+            bytes: publicKey.toBase58(), // Find borrower = user
           },
         },
       ]);
 
-      // แปลงข้อมูลและกรองเฉพาะสถานะ Active (1) หรือ Overdue (2)
+      // Transform data and filter status Active (1) or Overdue (2)
       const activeTickets = allLoans
         .map((loan: { publicKey: any; account: any }) => ({
           pubkey: loan.publicKey,
@@ -53,7 +53,7 @@ const Redeem = () => {
 
       setTickets(activeTickets);
 
-      // ถ้ามีตั๋วใบเดียว เลือกให้อัตโนมัติ
+      // Auto-select if only one ticket
       if (activeTickets.length === 1 && !selectedTicket) {
         setSelectedTicket(activeTickets[0]);
       }
@@ -62,16 +62,16 @@ const Redeem = () => {
     } finally {
       setFetching(false);
     }
-  }, [program, publicKey]); // dependency ที่ถูกต้อง
+  }, [program, publicKey]); // Correct dependencies
 
   useEffect(() => {
     fetchTickets();
-    // ตั้งเวลา Refresh ดอกเบี้ยทุก 60 วินาที
+    // Auto-refresh interest every 60 seconds
     const interval = setInterval(fetchTickets, 60000);
     return () => clearInterval(interval);
-  }, [fetchTickets]); // dependency เปลี่ยนเป็น fetchTickets
+  }, [fetchTickets]); // Dependencies changed to fetchTickets
 
-  // 2️⃣ คำนวณดอกเบี้ยแบบ Real-time (สูตรเดียวกับ Smart Contract)
+  // 2️⃣ Calculate real-time interest (Same formula as Smart Contract)
   const calculateDebt = (ticket: any) => {
     if (!ticket) return { principal: 0, interest: 0, total: 0 };
 
@@ -80,11 +80,11 @@ const Redeem = () => {
     const lastPayment = ticket.account.lastPaymentAt.toNumber();
     const now = Math.floor(Date.now() / 1000);
 
-    // ระยะเวลา (วินาที)
+    // Duration (seconds)
     const timeElapsed = Math.max(0, now - lastPayment);
     const secondsPerYear = 31_536_000;
 
-    // สูตร: Interest = Principal * Rate * Time / (Year * 10000)
+    // Formula: Interest = Principal * Rate * Time / (Year * 10000)
     const interest =
       (principal * rateBps * timeElapsed) / (secondsPerYear * 10000);
 
@@ -100,12 +100,12 @@ const Redeem = () => {
     [selectedTicket]
   );
 
-  // 3️⃣ ฟังก์ชันไถ่ถอน (Redeem)
+  // 3️⃣ Redeem function
   const handleRedeem = async () => {
     if (!program || !selectedTicket) return;
     setLoading(true);
     try {
-      // เรียก Smart Contract: repay_loan
+      // Call Smart Contract: repay_loan
       const tx = await program.methods
         .repayLoan(selectedTicket.account.loanId)
         .accounts({
@@ -124,7 +124,7 @@ const Redeem = () => {
     }
   };
 
-  // 4️⃣ ฟังก์ชันต่อดอก (Extend)
+  // 4️⃣ Extend function
   const handleExtend = async () => {
     if (!program || !selectedTicket) return;
     setLoading(true);
@@ -161,7 +161,7 @@ const Redeem = () => {
         </p>
       </Stack>
 
-      {/* --- ส่วนรายการตั๋ว (List of Tickets) --- */}
+      {/* --- Ticket List Section --- */}
       <Card className="mb-4 shadow-sm">
         <Card.Header className="bg-white">
           <h5 className="mb-0">🎫 Your Active Pawn Tickets</h5>
@@ -223,7 +223,7 @@ const Redeem = () => {
         </Card.Body>
       </Card>
 
-      {/* --- ส่วนไถ่ถอน (Redeem Section) - แสดงเมื่อเลือกตั๋ว --- */}
+      {/* --- Redeem Section - shown when ticket selected --- */}
       {selectedTicket && (
         <Card className="shadow border-primary">
           <Card.Header className="bg-primary text-white d-flex justify-content-between align-items-center">
@@ -234,7 +234,7 @@ const Redeem = () => {
           </Card.Header>
           <Card.Body>
             <div className="row g-4">
-              {/* ฝั่งซ้าย: ข้อมูลหนี้ */}
+              {/* Left: Debt Info */}
               <div className="col-md-6">
                 <h6 className="text-muted mb-3">Debt Summary</h6>
                 <Stack gap={3}>
@@ -258,12 +258,12 @@ const Redeem = () => {
                 </Stack>
               </div>
 
-              {/* ฝั่งขวา: ปุ่มกด */}
+              {/* Right: Action Buttons */}
               <div className="col-md-6 border-start ps-md-4">
                 <h6 className="text-muted mb-3">Choose Action</h6>
 
                 <div className="d-grid gap-3">
-                  {/* ปุ่ม Redeem */}
+                  {/* Redeem Button */}
                   <Button
                     variant="success"
                     size="lg"
@@ -287,7 +287,7 @@ const Redeem = () => {
 
                   <hr className="my-2" />
 
-                  {/* ปุ่ม Extend */}
+                  {/* Extend Button */}
                   <Button
                     variant="outline-primary"
                     onClick={handleExtend}
@@ -311,7 +311,7 @@ const Redeem = () => {
         </Card>
       )}
 
-      {/* --- ส่วนแจ้งเตือน (Warning) --- */}
+      {/* --- Warning Section --- */}
       {selectedTicket?.account.status === 2 && (
         <Alert variant="danger" className="mt-4">
           <FiAlertTriangle className="me-2" />

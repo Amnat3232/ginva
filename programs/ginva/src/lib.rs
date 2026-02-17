@@ -118,7 +118,7 @@ pub mod ginva {
         system_config.last_oracle_price = 0;
         system_config.last_price_update = 0;
 
-        // 🛡️ ระบบสะสมนิรภัย: Initialize Safety Accumulation System parameters
+        // 🛡️ Safety Accumulation System: Initialize Safety Accumulation System parameters
         system_config.target_reserves = 500_000_000_000; // 500,000 USDC (6 decimals)
         system_config.protection_period = 15 * 24 * 60 * 60; // 15 days in seconds
         system_config.exit_fee_bps = 500; // 5% exit fee (500 basis points)
@@ -436,10 +436,10 @@ pub mod ginva {
             GinvaError::Unauthorized
         );
 
-        // บันทึก ops wallet เก่า
+        // Record ops wallet old
         let old_wallet = system_config.ops_wallet;
 
-        // อัปเดตเป็น wallet ใหม่
+        // Update to wallet new
         system_config.ops_wallet = new_ops_wallet;
 
         msg!("✅ Ops Wallet updated:");
@@ -1545,13 +1545,13 @@ pub mod ginva {
         Ok(())
     }
 
-    // ขั้นตอนที่ 3: จบกระบวนการช่วยเหลือ (การจัดสรรรายได้ที่ปรับปรุง)
-    // ตรรกะใหม่:
-    // - ผู้ช่วยเหลือ C ได้รับ 1.0 USDC คงที่ (หรือสูงสุด 10% ถ้ายอดน้อย)
-    // - ลำดับความสำคัญ: ผู้ช่วยเหลือ C ได้รับก่อน แล้วคืนเงินต้น
-    // - กำไรแบ่ง 3 ทาง: สภาพคล่อง 10% / ทีม 24.75% / รายได้ 65.25%
-    // - ส่วนเกิน (ถ้ามี) ส่งเข้ากองทุนสำรองเป็นกองทุนประกัน
-    // - รองรับกรณีหนี้เสีย (ไม่ panic ถ้าเงินไม่พอคืน)
+    // Step 3: Finalize liquidation process (Revenue distribution)
+    // New logic:
+    // - Keeper C Receives 1.0 USDC fixed (or maximum 10% if amount is small)
+    // - Priority: Keeper C Receivesbefore then return principal
+    // - Profit split 3-way: Liquidity 10% / Team 24.75% / Revenue 65.25%
+    // - Excess (if any) send to Reserve fund as Insurance fund
+    // - Supports bad debt cases (No panic if insufficient funds)
     pub fn finalize_liquidation(ctx: Context<FinalizeLiquidation>) -> Result<()> {
         let liquidation_process = &mut ctx.accounts.liquidation_process;
         let loan_account = &mut ctx.accounts.loan_account;
@@ -1788,21 +1788,25 @@ pub mod ginva {
 
         system_config.total_borrowed = system_config.total_borrowed.saturating_sub(loan_principal);
 
-        // 5. บันทึกข้อมูล
-        msg!("✅ ขั้นตอนที่ 3 เสร็จสมบูรณ์! กระบวนการช่วยเหลือจบลงด้วยการแบ่งรายได้ 3 ทาง");
-        msg!("📊 สรุปการจัดสรร:");
-        msg!("   💰 USDC ที่มีทั้งหมด: {}", total_usdc);
-        msg!("   🎯 รางวัลผู้ช่วยเหลือ C: {}", actual_keeper_reward);
-        msg!("   🏦 คืนเงินต้น: {} / {}", principal_return, loan_principal);
-        msg!("   📈 กำไรทั้งหมด: {}", total_profit);
-        msg!("   ├─ สภาพคล่อง (10%): {}", capital_share);
-        msg!("   ├─ ทีม (~24.75%): {}", ops_share);
-        msg!("   ├─ รายได้ (~65.25%): {}", revenue_share);
-        msg!("   └─ กองทุนสำรอง (ส่วนเกิน): {}", reserve_amount);
+        // 5. Record data
+        msg!("✅ Step 3 complete! Liquidation finalized with 3-way Revenue split");
+        msg!("📊 Distribution summary:");
+        msg!("   💰 USDC Total available: {}", total_usdc);
+        msg!("   🎯 Keeper C reward: {}", actual_keeper_reward);
+        msg!(
+            "   🏦 Principal return: {} / {}",
+            principal_return,
+            loan_principal
+        );
+        msg!("   📈 Total profit: {}", total_profit);
+        msg!("   ├─ Liquidity (10%): {}", capital_share);
+        msg!("   ├─ Team (~24.75%): {}", ops_share);
+        msg!("   ├─ Revenue (~65.25%): {}", revenue_share);
+        msg!("   └─ Reserve fund (Excess): {}", reserve_amount);
 
         if principal_return < loan_principal {
             let bad_debt = loan_principal.saturating_sub(principal_return);
-            msg!("   ⚠️  ตรวจพบหนี้เสีย: {} USDC", bad_debt);
+            msg!("   ⚠️  Detected bad debt: {} USDC", bad_debt);
         }
 
         // Emit event for indexing
@@ -2321,7 +2325,7 @@ pub mod ginva {
             .checked_add(amount)
             .ok_or(GinvaError::ArithmeticOverflow)?;
 
-        // 🛡️ ระบบสะสมนิรภัย: Record deposit time for safety accumulation period
+        // 🛡️ Safety Accumulation System: Record deposit time for safety accumulation period
         stake.last_deposit_time = Clock::get()?.unix_timestamp;
 
         // 4. Update Reward Debt
@@ -2404,7 +2408,7 @@ pub mod ginva {
         Ok(())
     }
 
-    // Unstake LP tokens with Safety Accumulation System (ระบบสะสมนิรภัย)
+    // Unstake LP tokens with Safety Accumulation System (Safety Accumulation System)
     pub fn unstake_lp(ctx: Context<UnstakeLP>, amount: u64) -> Result<()> {
         let config = &mut ctx.accounts.system_config;
         let stake = &mut ctx.accounts.user_stake;
@@ -2418,7 +2422,7 @@ pub mod ginva {
             GinvaError::SystemInCooldown
         );
 
-        // 🛡️ ระบบสะสมนิรภัย (Safety Accumulation System)
+        // 🛡️ Safety Accumulation System (Safety Accumulation System)
         let current_reserves = ctx.accounts.capital_wallet.amount;
         let is_system_safe = current_reserves >= config.target_reserves;
         let now = Clock::get()?.unix_timestamp;
@@ -2438,7 +2442,7 @@ pub mod ginva {
                     .ok_or(GinvaError::ArithmeticUnderflow)?;
 
                 msg!(
-                    "🛡️ ระบบสะสมนิรภัย: ค่าธรรมเนียมช่วงสะสม {} USDC ({}%) - ระบบกำลังสร้างความมั่นคง",
+                    "🛡️ Safety Accumulation System: Accumulation period fee {} USDC ({}%) - System is building stability",
                     exit_fee_amount,
                     config.exit_fee_bps / 100
                 );
@@ -2485,7 +2489,7 @@ pub mod ginva {
             token::transfer(fee_cpi_ctx, exit_fee_amount)?;
 
             msg!(
-                "🛡️ ระบบสะสมนิรภัย: ค่าธรรมเนียมเข้ากองทุนสำรอง {} USDC",
+                "🛡️ Safety Accumulation System: Fee toReserve fund {} USDC",
                 exit_fee_amount
             );
         }
@@ -2597,7 +2601,7 @@ pub mod ginva {
         let loan = &mut ctx.accounts.loan_account;
         let current_time = Clock::get()?.unix_timestamp;
 
-        // เช็คเฉพาะสถานะที่ยังไม่จบ (Active หรือ Overdue)
+        // Check only non-finalized status (Active or Overdue)
         require!(
             loan.status == LoanStatus::Active as u8 || loan.status == LoanStatus::Overdue as u8,
             GinvaError::LoanNotActive
@@ -2606,11 +2610,11 @@ pub mod ginva {
         let days_since_payment = (current_time - loan.last_payment_at) / 86400;
 
         if days_since_payment >= 34 {
-            // เกิน 33 วัน = Default (ผิดนัดชำระหนี้ - รอโดนยึด)
+            // More than 33 days = Default (Default - Pending seizure)
             loan.status = LoanStatus::Default as u8;
             msg!("🚨 LOAN DEFAULTED! Days overdue: {}", days_since_payment);
         } else if days_since_payment >= 31 {
-            // 31-33 วัน = Overdue (ค้างชำระ - เริ่มเตือน)
+            // 31-33 days = Overdue (Overdue - Start warning)
             loan.status = LoanStatus::Overdue as u8;
             msg!("⚠️ LOAN OVERDUE! Days overdue: {}", days_since_payment);
         } else {
