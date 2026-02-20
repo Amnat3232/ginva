@@ -11,12 +11,21 @@ import {
   Tab,
   Alert,
   Spinner,
+  Badge,
+  Accordion,
 } from "react-bootstrap";
 import {
   FiShield,
   FiAlertTriangle,
   FiCheckCircle,
   FiLock,
+  FiEye,
+  FiShoppingCart,
+  FiInfo,
+  FiDollarSign,
+  FiClock,
+  FiUsers,
+  FiTrendingUp,
 } from "react-icons/fi";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
@@ -314,48 +323,198 @@ const Earn = () => {
   };
 
   return (
-    <Container className="py-5">
+    <Container className="py-4">
       <Row className="justify-content-center">
-        <Col md={8} lg={6}>
+        <Col md={12} lg={12}>
+          {/* Header */}
           <div className="text-center mb-4">
             <h1 className="fw-bold">
-              <FiShield className="text-success me-2" /> Liquidity Vault
+              <FiShield className="text-success me-2" /> GINVA Ecosystem
             </h1>
             <p className="text-muted">
-              Stake USDC to earn yield from real-world loans.
+              ร่วมสนับสนุนระบบ หลายหลายวิธี - เลือกแบบที่เหมาะกับคุณ
             </p>
           </div>
 
+          {/* Overview Cards */}
           <Row className="g-3 mb-4">
-            <Col xs={6}>
-              <Card className="text-center h-100 border-0 shadow-sm bg-light">
+            <Col xs={6} md={3}>
+              <Card className="text-center h-100 border-0 shadow-sm bg-primary-subtle">
                 <Card.Body>
-                  <small className="text-muted fw-bold">APY</small>
-                  <h3 className="text-success fw-bold mb-0">{data.apy}%</h3>
+                  <FiDollarSign size={32} className="text-primary mb-2" />
+                  <h5 className="fw-bold">8%</h5>
+                  <small className="text-muted">ดอกเบี้ยผู้กู้</small>
                 </Card.Body>
               </Card>
             </Col>
-            <Col xs={6}>
-              <Card className="text-center h-100 border-0 shadow-sm bg-light">
+            <Col xs={6} md={3}>
+              <Card className="text-center h-100 border-0 shadow-sm bg-success-subtle">
                 <Card.Body>
-                  <small className="text-muted fw-bold">TVL</small>
-                  <h3 className="text-primary fw-bold mb-0">
-                    ${data.tvl.toLocaleString()}
-                  </h3>
+                  <FiTrendingUp size={32} className="text-success mb-2" />
+                  <h5 className="fw-bold">65.25%</h5>
+                  <small className="text-muted">รางวัลผู้สนับสนุน</small>
+                </Card.Body>
+              </Card>
+            </Col>
+            <Col xs={6} md={3}>
+              <Card className="text-center h-100 border-0 shadow-sm bg-warning-subtle">
+                <Card.Body>
+                  <FiClock size={32} className="text-warning mb-2" />
+                  <h5 className="fw-bold">72 ชม.</h5>
+                  <small className="text-muted">Maturity Grace</small>
+                </Card.Body>
+              </Card>
+            </Col>
+            <Col xs={6} md={3}>
+              <Card className="text-center h-100 border-0 shadow-sm bg-info-subtle">
+                <Card.Body>
+                  <FiUsers size={32} className="text-info mb-2" />
+                  <h5 className="fw-bold">3</h5>
+                  <small className="text-muted">บทบาทผู้ช่วย</small>
                 </Card.Body>
               </Card>
             </Col>
           </Row>
 
+          {/* Main Tabs */}
           <Card className="shadow-lg border-0 rounded-4 overflow-hidden">
             <Tabs
               activeKey={activeTab}
-              onSelect={(k) => setActiveTab(k || "deposit")}
+              onSelect={(k) => setActiveTab(k || "overview")}
               className="nav-justified border-bottom"
               variant="pills"
             >
-              <Tab eventKey="deposit" title="⬇️ Deposit">
+              {/* Tab 1: Overview */}
+              <Tab eventKey="overview" title="📊 ภาพรวม">
                 <Card.Body className="p-4">
+                  <h4 className="fw-bold mb-4">3 บทบาทในระบบนิเวศ GINVA</h4>
+
+                  <Row className="g-4">
+                    <Col md={4}>
+                      <Card className="h-100 border-primary">
+                        <Card.Header className="bg-primary text-white">
+                          <h5 className="mb-0">🌿 ผู้สนับสนุน</h5>
+                        </Card.Header>
+                        <Card.Body>
+                          <p>ฝาก USDC เพื่อให้ผู้กู้มีเงินทุนหมุนเวียน</p>
+                          <hr />
+                          <h6 className="fw-bold">รายได้:</h6>
+                          <ul>
+                            <li>65.25% จากดอกเบี้ยทั้งหมด</li>
+                            <li>APY ~8.5%</li>
+                          </ul>
+                          <h6 className="fw-bold">ความเสี่ยง:</h6>
+                          <ul>
+                            <li>Shield Fee 5% (ถอนก่อน 15 วัน)</li>
+                          </ul>
+                        </Card.Body>
+                      </Card>
+                    </Col>
+                    <Col md={4}>
+                      <Card className="h-100 border-warning">
+                        <Card.Header className="bg-warning text-dark">
+                          <h5 className="mb-0">🛡️ ผู้ช่วยเหลือ</h5>
+                        </Card.Header>
+                        <Card.Body>
+                          <p>ดูแลระบบ 3 ขั้นตอน ช่วยเหลือผู้กู้และระบบ</p>
+                          <hr />
+                          <h6 className="fw-bold">รายได้:</h6>
+                          <ul>
+                            <li>Helper A: 0.6% จากหลักประกัน</li>
+                            <li>Helper B: ซื้อสินทรัพย์ในราคาพิเศษ</li>
+                            <li>Helper C: 1.0 USDC ต่อครั้ง</li>
+                          </ul>
+                        </Card.Body>
+                      </Card>
+                    </Col>
+                    <Col md={4}>
+                      <Card className="h-100 border-success">
+                        <Card.Header className="bg-success text-white">
+                          <h5 className="mb-0">🏪 ร้านค้า</h5>
+                        </Card.Header>
+                        <Card.Body>
+                          <p>ซื้อสินทรัพย์หลุดจำนำในราคายุติธรรม</p>
+                          <hr />
+                          <h6 className="fw-bold">ราคาพิเศษ:</h6>
+                          <ul>
+                            <li>0-10 นาที: ส่วนลด 8%</li>
+                            <li>10-30 นาที: ส่วนลด 6%</li>
+                            <li>30-60 นาที: ส่วนลด 3%</li>
+                            <li>60+ นาที: ราคาตลาด</li>
+                          </ul>
+                        </Card.Body>
+                      </Card>
+                    </Col>
+                  </Row>
+
+                  <Alert variant="info" className="mt-4">
+                    <FiInfo className="me-2" />
+                    <strong>ทุกคนสามารถเป็นได้ทุกบทบาท!</strong>{" "}
+                    ไม่ว่าจะเป็นมนุษย์, AI Agent, หรือ Bot -
+                    ทุกคนมีสิทธิ์เท่าเทียมกันในการช่วยระบบและรับรางวัล
+                  </Alert>
+                </Card.Body>
+              </Tab>
+
+              {/* Tab 2: Deposit/Stake */}
+              <Tab eventKey="deposit" title="🌿 ผู้สนับสนุน">
+                <Card.Body className="p-4">
+                  <h4 className="fw-bold mb-3">
+                    🌿 ผู้สนับสนุนสภาพคล่อง (Liquidity Provider)
+                  </h4>
+                  <p className="text-muted">
+                    ฝาก USDC เพื่อเป็นแหล่งเงินทุนให้ผู้กู้
+                    รับดอกเบี้ยเป็นรางวัล
+                  </p>
+
+                  <Alert variant="success" className="mb-4">
+                    <h5 className="fw-bold">💰 รายได้</h5>
+                    <Row>
+                      <Col md={6}>
+                        <ul>
+                          <li>
+                            ได้รับ <strong>65.25%</strong>{" "}
+                            จากดอกเบี้ยทั้งหมดที่ผู้กู้จ่าย
+                          </li>
+                          <li>
+                            APY ประมาณ <strong>8.5%</strong>
+                          </li>
+                          <li>รางวัลทบต้นอัตโนมัติ</li>
+                        </ul>
+                      </Col>
+                      <Col md={6}>
+                        <ul>
+                          <li>ไม่มีการล็อกเงิน</li>
+                          <li>ถอนได้ทุกเมื่อ</li>
+                          <li>Shield Fee 5% (ถอนก่อน 15 วัน)</li>
+                        </ul>
+                      </Col>
+                    </Row>
+                  </Alert>
+
+                  <Row className="g-3 mb-4">
+                    <Col xs={6}>
+                      <Card className="text-center h-100 border-0 shadow-sm bg-light">
+                        <Card.Body>
+                          <small className="text-muted fw-bold">APY</small>
+                          <h3 className="text-success fw-bold mb-0">
+                            {data.apy}%
+                          </h3>
+                        </Card.Body>
+                      </Card>
+                    </Col>
+                    <Col xs={6}>
+                      <Card className="text-center h-100 border-0 shadow-sm bg-light">
+                        <Card.Body>
+                          <small className="text-muted fw-bold">TVL</small>
+                          <h3 className="text-primary fw-bold mb-0">
+                            ${data.tvl.toLocaleString()}
+                          </h3>
+                        </Card.Body>
+                      </Card>
+                    </Col>
+                  </Row>
+
                   <Form.Group className="mb-3">
                     <Form.Label>Amount to Deposit</Form.Label>
                     <InputGroup size="lg">
@@ -397,8 +556,11 @@ const Earn = () => {
                 </Card.Body>
               </Tab>
 
-              <Tab eventKey="withdraw" title="⬆️ Withdraw">
+              {/* Tab 3: Withdraw */}
+              <Tab eventKey="withdraw" title="⬆️ ถอนเงิน">
                 <Card.Body className="p-4">
+                  <h4 className="fw-bold mb-3">ถอนเงินสนับสนุน</h4>
+
                   {!shieldStatus.isUserSafe && (
                     <Alert
                       variant="warning"
@@ -485,7 +647,8 @@ const Earn = () => {
                 </Card.Body>
               </Tab>
 
-              <Tab eventKey="claim" title="🎁 Claim">
+              {/* Tab 4: Claim */}
+              <Tab eventKey="claim" title="🎁 รางวัล">
                 <Card.Body className="p-4">
                   <div className="text-center mb-4">
                     <h4 className="fw-bold mb-2">Claim Your Rewards</h4>
@@ -543,8 +706,296 @@ const Earn = () => {
                   </Alert>
                 </Card.Body>
               </Tab>
+
+              {/* Tab 5: Helper A - Keeper */}
+              <Tab eventKey="helper-a" title="🛡️ Helper A">
+                <Card.Body className="p-4">
+                  <h4 className="fw-bold mb-3">
+                    🛡️ Helper A: ผู้ตรวจสอบและแจ้งเตือน
+                  </h4>
+                  <p className="text-muted">
+                    ตรวจสอบสถานะเงินกู้และแจ้งเตือนเมื่อต้องการความช่วยเหลือ
+                  </p>
+
+                  <Alert variant="warning" className="mb-4">
+                    <h5 className="fw-bold">🎁 รางวัล</h5>
+                    <Row>
+                      <Col md={6}>
+                        <h3 className="text-success">0.6%</h3>
+                        <p>ของมูลค่าหลักประกัน</p>
+                      </Col>
+                      <Col md={6}>
+                        <ul>
+                          <li>Trigger Health Factor → 0.6%</li>
+                          <li>Trigger Maturity → 0.6%</li>
+                          <li>ทำงานได้ทั้ง 2 ระบบ</li>
+                        </ul>
+                      </Col>
+                    </Row>
+                  </Alert>
+
+                  <Accordion defaultActiveKey="0">
+                    <Accordion.Item eventKey="0">
+                      <Accordion.Header>📋 หน้าที่</Accordion.Header>
+                      <Accordion.Body>
+                        <ul>
+                          <li>ตรวจสอบสุขภาพบัญชีผู้กู้ (Health Factor)</li>
+                          <li>แจ้งเตือนล่วงหน้า 72 ชม. (เมื่อครบกำหนด)</li>
+                          <li>สั่งเริ่มกระบวนการช่วยเหลือ (Trigger)</li>
+                          <li>Monitor เงินกู้ที่มีปัญหา</li>
+                        </ul>
+                      </Accordion.Body>
+                    </Accordion.Item>
+                    <Accordion.Item eventKey="1">
+                      <Accordion.Header>⚡ วิธีทำงาน</Accordion.Header>
+                      <Accordion.Body>
+                        <ol>
+                          <li>Scan หาเงินกู้ที่มี Health Factor &lt; 100%</li>
+                          <li>หรือ Scan หาเงินกู้ที่หมดอายุ + เกิน 72 ชม.</li>
+                          <li>
+                            เรียก function <code>trigger_liquidation</code>
+                          </li>
+                          <li>รับ 0.6% จากมูลค่าหลักประกัน</li>
+                        </ol>
+                      </Accordion.Body>
+                    </Accordion.Item>
+                    <Accordion.Item eventKey="2">
+                      <Accordion.Header>🎯 เงื่อนไขการทำงาน</Accordion.Header>
+                      <Accordion.Body>
+                        <ul>
+                          <li>
+                            <strong>Health Factor:</strong> HF &lt; 100% →
+                            Liquidate ทันที
+                          </li>
+                          <li>
+                            <strong>Maturity:</strong> หมดอายุ + 72 ชม. แล้ว →
+                            Liquidate ได้
+                          </li>
+                          <li>ต้องมี USDC ในกระเป๋า足够的สำหรับค่า gas</li>
+                        </ul>
+                      </Accordion.Body>
+                    </Accordion.Item>
+                  </Accordion>
+
+                  <div className="text-center mt-4">
+                    <Button variant="warning" size="lg" href="/keeper">
+                      <FiEye className="me-2" /> ไปหน้า Keeper
+                    </Button>
+                  </div>
+                </Card.Body>
+              </Tab>
+
+              {/* Tab 6: Helper B - Storefront */}
+              <Tab eventKey="helper-b" title="🏪 Helper B">
+                <Card.Body className="p-4">
+                  <h4 className="fw-bold mb-3">
+                    🏪 Helper B: ผู้สนับสนุนสภาพคล่อง (ซื้อสินทรัพย์)
+                  </h4>
+                  <p className="text-muted">
+                    เข้าซื้อสินทรัพย์หลุดจำนำในราคาพิเศษ ช่วยระบบมีสภาพคล่อง
+                  </p>
+
+                  <Alert variant="success" className="mb-4">
+                    <h5 className="fw-bold">
+                      💰 ราคาพิเศษ (Time-Based Discount)
+                    </h5>
+                    <Row className="text-center">
+                      <Col xs={6} md={3}>
+                        <Badge bg="success" className="mb-2">
+                          0-10 นาที
+                        </Badge>
+                        <h4 className="text-success">-8%</h4>
+                        <small>ราคาต่ำสุด</small>
+                      </Col>
+                      <Col xs={6} md={3}>
+                        <Badge bg="info" className="mb-2">
+                          10-30 นาที
+                        </Badge>
+                        <h4 className="text-info">-6%</h4>
+                      </Col>
+                      <Col xs={6} md={3}>
+                        <Badge bg="warning" className="mb-2">
+                          30-60 นาที
+                        </Badge>
+                        <h4 className="text-warning">-3%</h4>
+                      </Col>
+                      <Col xs={6} md={3}>
+                        <Badge bg="secondary" className="mb-2">
+                          60+ นาที
+                        </Badge>
+                        <h4 className="text-secondary">ตลาด</h4>
+                        <small>ราคาปกติ</small>
+                      </Col>
+                    </Row>
+                  </Alert>
+
+                  <Accordion>
+                    <Accordion.Item eventKey="0">
+                      <Accordion.Header>📋 หน้าที่</Accordion.Header>
+                      <Accordion.Body>
+                        <ul>
+                          <li>เข้าซื้อสินทรัพย์หลุดจำนำจากร้านค้า</li>
+                          <li>ให้สภาพคล่องแก่ระบบ</li>
+                          <li>รับส่วนลดตามเวลาที่เข้าซื้อ</li>
+                          <li>ช่วยให้ผู้กู้ได้ราคาดีที่สุด</li>
+                        </ul>
+                      </Accordion.Body>
+                    </Accordion.Item>
+                    <Accordion.Item eventKey="1">
+                      <Accordion.Header>🛒 วิธีซื้อ</Accordion.Header>
+                      <Accordion.Body>
+                        <ol>
+                          <li>ไปที่หน้า Storefront</li>
+                          <li>เลือกสินทรัพย์ที่ต้องการ</li>
+                          <li>จ่าย USDC ในราคาพิเศษ</li>
+                          <li>รับสินทรัพย์ไปทันที</li>
+                        </ol>
+                      </Accordion.Body>
+                    </Accordion.Item>
+                  </Accordion>
+
+                  <div className="text-center mt-4">
+                    <Button variant="success" size="lg" href="/storefront">
+                      <FiShoppingCart className="me-2" /> ไปหน้าร้านค้า
+                    </Button>
+                  </div>
+                </Card.Body>
+              </Tab>
+
+              {/* Tab 7: Helper C */}
+              <Tab eventKey="helper-c" title="✅ Helper C">
+                <Card.Body className="p-4">
+                  <h4 className="fw-bold mb-3">
+                    ✅ Helper C: ผู้ดำเนินการจัดการ
+                  </h4>
+                  <p className="text-muted">
+                    จัดการส่งต่อรายได้และปิดกระบวนการให้สมบูรณ์
+                  </p>
+
+                  <Alert variant="info" className="mb-4">
+                    <h5 className="fw-bold">🎁 รางวัล</h5>
+                    <h3 className="text-primary">1.0 USDC</h3>
+                    <p>ต่อการดำเนินการ 1 ครั้ง</p>
+                  </Alert>
+
+                  <Accordion>
+                    <Accordion.Item eventKey="0">
+                      <Accordion.Header>📋 หน้าที่</Accordion.Header>
+                      <Accordion.Body>
+                        <ul>
+                          <li>สรุปผลธุรกรรมของระบบ</li>
+                          <li>สั่งงานระบบกระจายรายได้</li>
+                          <li>จัดการส่งต่อเงินให้ผู้เกี่ยวข้อง</li>
+                          <li>ปิดกระบวนการให้สมบูรณ์</li>
+                        </ul>
+                      </Accordion.Body>
+                    </Accordion.Item>
+                    <Accordion.Item eventKey="1">
+                      <Accordion.Header>💵 ลำดับการจ่ายเงิน</Accordion.Header>
+                      <Accordion.Body>
+                        <ol>
+                          <li>
+                            <strong>Priority 1:</strong> จ่ายรางวัล Helper C
+                            (1.0 USDC)
+                          </li>
+                          <li>
+                            <strong>Priority 2:</strong> คืนเงินต้นเข้า Capital
+                            Wallet
+                          </li>
+                          <li>
+                            <strong>Priority 3:</strong> ส่วนเกินเป็นกำไร
+                          </li>
+                          <ul>
+                            <li>10% → Capital Wallet (กองทุน)</li>
+                            <li>24.75% → ทีมงาน</li>
+                            <li>65.25% → ผู้สนับสนุน (Stakers)</li>
+                          </ul>
+                        </ol>
+                      </Accordion.Body>
+                    </Accordion.Item>
+                  </Accordion>
+                </Card.Body>
+              </Tab>
+
+              {/* Tab 8: Risk Warning */}
+              <Tab eventKey="risks" title="⚠️ ความเสี่ยง">
+                <Card.Body className="p-4">
+                  <h4 className="fw-bold mb-3">⚠️ ความเสี่ยงและข้อควรรู้</h4>
+
+                  <Alert variant="danger" className="mb-4">
+                    <h5 className="fw-bold">🔴 ความเสี่ยงหลัก</h5>
+                    <ul>
+                      <li>
+                        <strong>Dual Protection System:</strong>
+                        <ul>
+                          <li>Maturity Grace Period: 72 ชม. (หลังครบกำหนด)</li>
+                          <li>
+                            Immediate Price Protection: ทันที เมื่อ HF &lt; 100%
+                          </li>
+                        </ul>
+                      </li>
+                      <li>
+                        <strong>Shield Fee:</strong> 5% หากถอนก่อน 15 วัน
+                      </li>
+                      <li>
+                        <strong>Smart Contract Risk:</strong> อาจมี bug
+                      </li>
+                      <li>
+                        <strong>Price Risk:</strong> ราคาคริปโตผันผวน
+                      </li>
+                    </ul>
+                  </Alert>
+
+                  <Row>
+                    <Col md={6}>
+                      <Card className="bg-light">
+                        <Card.Header>
+                          <h6 className="mb-0">🌿 ผู้สนับสนุน</h6>
+                        </Card.Header>
+                        <Card.Body>
+                          <ul>
+                            <li>Shield Fee 5% (ถอนก่อน 15 วัน)</li>
+                            <li>Impermanent Loss (ถ้าราคา USDC ขึ้น)</li>
+                            <li>Smart Contract Risk</li>
+                          </ul>
+                        </Card.Body>
+                      </Card>
+                    </Col>
+                    <Col md={6}>
+                      <Card className="bg-light">
+                        <Card.Header>
+                          <h6 className="mb-0">🛡️ ผู้ช่วยเหลือ</h6>
+                        </Card.Header>
+                        <Card.Body>
+                          <ul>
+                            <li>Gas Fee (ต้องจ่ายเพื่อทำธุรกรรม)</li>
+                            <li>Competition (คนอื่นอาจมาก่อน)</li>
+                            <li>Oracle Risk (ราคาอาจไม่แม่นยำ)</li>
+                          </ul>
+                        </Card.Body>
+                      </Card>
+                    </Col>
+                  </Row>
+
+                  <Alert variant="warning" className="mt-4">
+                    <FiAlertTriangle className="me-2" />
+                    <strong>สำคัญ:</strong> ทุกการลงทุนมีความเสี่ยง
+                    ศึกษาข้อมูลให้ดีก่อนตัดสินใจ
+                  </Alert>
+                </Card.Body>
+              </Tab>
             </Tabs>
           </Card>
+
+          {/* Footer Info */}
+          <div className="text-center mt-4">
+            <Badge bg="success" className="me-2">
+              Devnet
+            </Badge>
+            <span className="text-muted small">
+              GINVA v2.0.0 - Dual Protection System | 8% Fixed APR
+            </span>
+          </div>
         </Col>
       </Row>
     </Container>
