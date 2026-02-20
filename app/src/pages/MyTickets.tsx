@@ -165,8 +165,10 @@ const MyTickets = () => {
       <Stack direction="vertical" gap={3} className="mb-4">
         <h1>My Loans</h1>
         <p className="text-muted">
-          View and manage all your loans. Loans entering overdue status receive
-          a 72-hour protection period to repay or extend before liquidation.
+          View and manage all your loans.
+          <strong>Note:</strong> Loans have Maturity Grace Period (72h after
+          expiry). However, if Health Factor drops below 100%, immediate
+          liquidation may occur.
         </p>
         {tickets.filter((t) => t.status === "overdue").length > 0 && (
           <div className="alert alert-danger d-flex align-items-center">
@@ -174,8 +176,9 @@ const MyTickets = () => {
             <div>
               <strong>Action Required!</strong> You have{" "}
               {tickets.filter((t) => t.status === "overdue").length} overdue
-              loan(s). Please repay or extend within the 72-hour protection
-              period to avoid liquidation.
+              loan(s). Please repay or extend within the Maturity Grace Period
+              (72h) to avoid liquidation.{" "}
+              <strong>Monitor your Health Factor!</strong>
             </div>
           </div>
         )}

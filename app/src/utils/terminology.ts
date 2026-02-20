@@ -110,16 +110,22 @@ export const UI_LABELS = {
     "No active loans. Start by borrowing USDC with your crypto as collateral.",
   STATUS_LOAN_ACTIVE: "Your loan is active and in good standing.",
   STATUS_LOAN_HEALTHY: "Your loan is healthy. Keep it up!",
-  STATUS_PROTECTION_ACTIVE:
-    "Protection system active. You have 72 hours to act if needed.",
+  STATUS_PROTECTION_MATURITY:
+    "Maturity Grace Period: You have 72 hours to act if your loan expires.",
+  STATUS_PROTECTION_PRICE:
+    "⚠️ Monitor your Health Factor. If it drops below 100%, immediate liquidation may occur.",
   STATUS_ASSET_PROTECTED: "Your asset is protected and safe.",
 
   // Tooltips
   TOOLTIP_HEALTH_STATUS:
-    "Shows the health of your loan. Above 100% is safe. If it drops below, you have 72 hours to protect your asset.",
+    "Shows the health of your loan. Above 100% is safe. Below 100% triggers Immediate Price Protection - no grace period.",
   TOOLTIP_DUE_DATE: "The date by which you should repay or extend your loan.",
   TOOLTIP_PROTECTION:
-    "If your collateral value drops, you have 72 hours to add more collateral or repay before any action is taken.",
+    "Two protection layers: (1) Maturity Grace Period - 72 hours after loan expires, (2) Immediate Price Protection - if Health Factor drops below 100%.",
+  TOOLTIP_LTV_SAFE: "Low risk: Borrow up to 20% of collateral value",
+  TOOLTIP_LTV_STANDARD: "Balanced: Borrow up to 40% of collateral value",
+  TOOLTIP_LTV_MAX:
+    "High risk: Borrow up to 60% of collateral value - monitor closely!",
 } as const;
 
 // ═══════════════════════════════════════════════════════════
@@ -129,15 +135,15 @@ export const UI_LABELS = {
 export const NARRATIVE = {
   HERO_HEADLINE: "Get Instant Cash. Keep Your Crypto Safe.",
   HERO_SUBHEADLINE:
-    "Borrow USDC using your crypto as collateral. Unlike other platforms, we give you 72 hours to protect your assets if prices drop.",
+    "Borrow USDC using your crypto as collateral. Our Dual Protection System gives you both time-based and price-based protection.",
 
   VALUE_PROP_1: "Instant Approval",
   VALUE_DESC_1:
     "No credit checks, no paperwork. Get USDC in seconds using your crypto as collateral.",
 
-  VALUE_PROP_2: "72-Hour Protection",
+  VALUE_PROP_2: "Dual Protection System",
   VALUE_DESC_2:
-    "If collateral value drops, you have 72 hours to add more or repay. No instant seizures like other platforms.",
+    "Two layers of protection: (1) 72 hours after loan expires, (2) Active price monitoring to protect your assets.",
 
   VALUE_PROP_3: "Flexible Repayment",
   VALUE_DESC_3:
@@ -154,26 +160,45 @@ export const NARRATIVE = {
   STEP_2_TITLE: "2. Receive USDC Instantly",
   STEP_2_DESC:
     "Get USDC based on your collateral value. Use it for anything you need.",
-  STEP_3_TITLE: "3. Protected Period",
+  STEP_3_TITLE: "3. Dual Protection",
   STEP_3_DESC:
-    "If prices drop, you have 72 hours to protect your assets. We alert you early so you have time to act.",
+    "Layer 1: 72 hours after expiry. Layer 2: Immediate protection if Health Factor drops below 100%.",
   STEP_4_TITLE: "4. Repay & Reclaim",
   STEP_4_DESC:
     "Pay back what you borrowed plus interest to get your crypto back. Simple and fair.",
 
   PROTECTION_EXPLANATION: "How Our Protection Works",
-  PROTECTION_STEP_1: "Early Warning",
+  PROTECTION_TITLE: "Dual Protection System",
+  PROTECTION_SUBTITLE: "Two layers of security for your assets",
+  PROTECTION_LAYER_1_TITLE: "Layer 1: Maturity Grace Period",
+  PROTECTION_LAYER_1_DESC:
+    "If your loan expires, you have 72 hours to repay or extend. No immediate action taken.",
+  PROTECTION_LAYER_2_TITLE: "Layer 2: Immediate Price Protection",
+  PROTECTION_LAYER_2_DESC:
+    "If your Health Factor drops below 100%, the system acts immediately to protect investor funds.",
+  PROTECTION_STEP_1: "Monitor Your Health",
   PROTECTION_STEP_1_DESC:
-    "We alert you 72 hours in advance if your loan needs attention.",
-  PROTECTION_STEP_2: "Time to Act",
+    "Keep your Health Factor above 100% by monitoring your collateral value regularly.",
+  PROTECTION_STEP_2: "Time to Act (Maturity)",
   PROTECTION_STEP_2_DESC:
-    "You can add collateral, repay partially, or repay in full.",
-  PROTECTION_STEP_3: "Fair Process",
+    "After loan expires, you have 72 hours to add collateral, repay partially, or repay in full.",
+  PROTECTION_STEP_3: "Immediate Action (Price)",
   PROTECTION_STEP_3_DESC:
-    "If you can't act, helpers assist with fair time-based pricing.",
-  PROTECTION_STEP_4: "You Keep Value",
+    "If Health Factor hits 100%, immediate liquidation occurs - no grace period.",
+  PROTECTION_STEP_4: "Fair Process",
   PROTECTION_STEP_4_DESC:
-    "Any surplus value is returned to you. You're never left with nothing.",
+    "If assisted, helpers use fair time-based pricing. Surplus value is returned to you.",
+
+  // Risk warnings
+  RISK_WARNING: "⚠️ Important Risk Notice",
+  RISK_DESC:
+    "Monitor your Health Factor closely. If it drops below 100%, your collateral may be liquidated immediately with no grace period.",
+
+  // Health factor colors
+  HEALTH_SAFE: "Safe",
+  HEALTH_MEDIUM: "Medium Risk",
+  HEALTH_HIGH: "High Risk",
+  HEALTH_CRITICAL: "Critical - At Risk of Immediate Liquidation",
 } as const;
 
 // ═══════════════════════════════════════════════════════════

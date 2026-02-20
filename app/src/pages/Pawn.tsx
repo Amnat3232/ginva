@@ -276,7 +276,7 @@ const Pawn = () => {
 
       showSuccess(
         "Loan Created Successfully!",
-        "Your loan is active with 72-hour protection"
+        "Your loan is active with Maturity Grace Period protection"
       );
       setCollateralAmount("");
     } catch (error: any) {
@@ -293,8 +293,17 @@ const Pawn = () => {
         <h1>Borrow USDC</h1>
         <p className="text-muted">
           Use your crypto as collateral to get instant USDC.
-          <strong> Protected with 72-hour safety net.</strong>
+          <strong>
+            {" "}
+            Dual Protection System: Maturity Grace Period (72h) + Price
+            Protection
+          </strong>
         </p>
+        <Alert variant="warning">
+          <strong>⚠️ Important:</strong> Monitor your Health Factor! If it drops
+          below 100%, immediate liquidation may occur without the 72-hour grace
+          period.
+        </Alert>
       </Stack>
 
       <Row xs={1} lg={2} gap={4}>
@@ -514,10 +523,9 @@ const Pawn = () => {
                 </div>
                 <Alert variant="info" className="mb-0">
                   <FiShield className="me-2" />
-                  <strong>72-Hour Protection:</strong> Applies only when loan
-                  maturity expires. You have 72 hours to repay or extend.
-                  Immediate liquidation may occur if collateral value drops
-                  below loan value.
+                  <strong>Dual Protection:</strong> (1) Maturity Grace Period:
+                  72h after expiry. (2) Immediate Price Protection: if Health
+                  Factor &lt; 100%.
                 </Alert>
               </Stack>
             </Card.Body>
@@ -568,11 +576,10 @@ const Pawn = () => {
                     3
                   </div>
                   <div>
-                    <strong>Protected Period</strong>
+                    <strong>Dual Protection System</strong>
                     <p className="text-muted small mb-0">
-                      When loan matures, you have 72 hours to repay or extend.
-                      Note: Immediate liquidation if collateral value drops
-                      below loan amount.
+                      Layer 1: 72 hours after maturity. Layer 2: Immediate if
+                      Health Factor &lt; 100%.
                     </p>
                   </div>
                 </div>

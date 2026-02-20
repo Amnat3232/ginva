@@ -6,6 +6,7 @@ import {
   Badge,
   Stack,
   Button,
+  Alert,
 } from "react-bootstrap";
 import { FiDollarSign, FiTrendingUp, FiUsers, FiShield } from "react-icons/fi";
 import { useWallet } from "@solana/wallet-adapter-react";
@@ -81,7 +82,7 @@ const Dashboard = () => {
         <p className="text-muted">
           Welcome to GINVA - Borrow USDC instantly using your crypto as
           collateral.
-          <strong> 72-hour protection included.</strong>
+          <strong> Dual Protection System included.</strong>
         </p>
       </Stack>
 
@@ -156,9 +157,11 @@ const Dashboard = () => {
                 <div>
                   <h5 className="text-muted">Protection Status</h5>
                   <h3 className="mb-1" style={{ color: "#fd7e14" }}>
-                    Active
+                    Dual Layer
                   </h3>
-                  <p className="text-muted small">72-Hour Protection</p>
+                  <p className="text-muted small">
+                    Maturity: 72h | Price: Immediate
+                  </p>
                 </div>
                 <div className="text-end">
                   <FiShield size={24} color="#fd7e14" />
@@ -227,7 +230,12 @@ const Dashboard = () => {
 
       <Card className="mb-4 bg-light">
         <Card.Body>
-          <h5 className="mb-3">🛡️ How Our Protection Works</h5>
+          <h5 className="mb-3">🛡️ Dual Protection System</h5>
+          <Alert variant="warning" className="mb-3">
+            <strong>⚠️ Important:</strong> If your Health Factor drops below
+            100%, immediate liquidation may occur without the 72-hour grace
+            period.
+          </Alert>
           <Stack gap={3}>
             <div className="d-flex align-items-start gap-3">
               <div
@@ -237,39 +245,40 @@ const Dashboard = () => {
                 1
               </div>
               <div>
-                <strong>Early Warning</strong>
+                <strong>Layer 1: Maturity Grace Period (72 hours)</strong>
                 <p className="text-muted small mb-0">
-                  We alert you 72 hours in advance if your loan needs attention
+                  After your loan expires, you have 72 hours to repay, extend,
+                  or add collateral
                 </p>
               </div>
             </div>
             <div className="d-flex align-items-start gap-3">
               <div
-                className="bg-success text-white rounded-circle d-flex align-items-center justify-content-center"
+                className="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center"
                 style={{ width: "32px", height: "32px", minWidth: "32px" }}
               >
                 2
               </div>
               <div>
-                <strong>Time to Act</strong>
+                <strong>Layer 2: Immediate Price Protection</strong>
                 <p className="text-muted small mb-0">
-                  Add more collateral, repay partially, or repay in full - the
-                  choice is yours
+                  If Health Factor &lt; 100%, immediate liquidation occurs to
+                  protect investor funds - no grace period
                 </p>
               </div>
             </div>
             <div className="d-flex align-items-start gap-3">
               <div
-                className="bg-success text-white rounded-circle d-flex align-items-center justify-content-center"
+                className="bg-info text-white rounded-circle d-flex align-items-center justify-content-center"
                 style={{ width: "32px", height: "32px", minWidth: "32px" }}
               >
                 3
               </div>
               <div>
-                <strong>Always Fair</strong>
+                <strong>Monitor Your Health Factor</strong>
                 <p className="text-muted small mb-0">
-                  If you need assistance, helpers use fair time-based pricing.
-                  You always keep the surplus value.
+                  Keep your Health Factor above 100% by adding collateral or
+                  repaying loan
                 </p>
               </div>
             </div>

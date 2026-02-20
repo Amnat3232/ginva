@@ -432,14 +432,14 @@ const Keeper = () => {
               <strong>Health Factor Liquidation:</strong> Trigger when
               collateral value drops below loan value (Health Factor &lt; 100%).
               This is an immediate liquidation to protect investor funds. No
-              72-hour protection period applies.
+              Maturity Grace Period applies.
             </Alert>
           ) : (
             <Alert variant="warning" className="mb-3">
               <FiClock className="me-2" />
               <strong>Maturity Liquidation:</strong> Trigger when loan is
-              overdue AND past the 72-hour protection period. The borrower has
-              already had 72 hours to repay or extend.
+              overdue AND past the Maturity Grace Period (72 hours). The
+              borrower has already had 72 hours to repay or extend.
             </Alert>
           )}
 
@@ -458,7 +458,7 @@ const Keeper = () => {
               <option value="eligible">
                 {activeTab === "health-factor"
                   ? "Eligible (HF < 100%)"
-                  : "Eligible (Past 72h)"}
+                  : "Eligible (Past Maturity Grace Period)"}
               </option>
               <option value="all">All Active Loans</option>
               {activeTab === "maturity" && (
@@ -480,7 +480,7 @@ const Keeper = () => {
                 {filter === "eligible"
                   ? activeTab === "health-factor"
                     ? "No undercollateralized loans found. All loans are healthy!"
-                    : "No overdue loans past 72-hour protection period."
+                    : "No overdue loans past Maturity Grace Period."
                   : "No active loans found."}
               </p>
             </div>
@@ -640,14 +640,14 @@ const Keeper = () => {
                 System B: Maturity
               </h6>
               <ol className="text-muted">
-                <li>Monitor overdue loans past 72-hour protection</li>
+                <li>Monitor overdue loans past Maturity Grace Period</li>
                 <li>Click "Trigger" to start liquidation</li>
                 <li>Receive 0.6% of collateral as reward</li>
                 <li>Asset moves to Storefront for sale</li>
               </ol>
               <Alert variant="warning" className="small">
-                <strong>After Protection:</strong> Borrower has 72 hours to
-                repay/extend before you can trigger.
+                <strong>After Protection:</strong> Borrower has 72 hours
+                (Maturity Grace Period) to repay/extend before you can trigger.
               </Alert>
             </Col>
           </Row>
