@@ -1,0 +1,121 @@
+name: 🚀 Auto Deploy to Devnet
+
+on:
+  push:
+    branches: [develop]
+    paths:
+      - "programs/**"
+      - "Anchor.toml"
+      - "package.json"
+  workflow_dispatch:
+    inputs:
+      skip_tests:
+        description: "Skip tests before deploy"
+        type: boolean
+        default: false
+
+env:
+  SOLANA_VERSION: 1.18.26
+  ANCHOR_VERSION: 0.29.0
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy to Devnet
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: programs/ginva
+
+      - name: Install Solana CLI
+        run: |
+          sh -c "$(curl -sSfL https://release.solana.com/v${SOLANA_VERSION}/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+
+      - name: Install Anchor CLI
+        run: npm install -g @coral-xyz/anchor-cli@${ANCHOR_VERSION}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Program
+        run: anchor build
+
+      - name: Run Tests
+        if: ${{ !inputs.skip_tests }}
+        run: anchor test --skip-build
+        env:
+          ANCHOR_PROVIDER_CLUSTER: devnet
+          ANCHOR_PROVIDER_URL: https://api.devnet.solana.com
+
+      - name: Deploy to Devnet
+        if: success()
+        run: anchor deploy --provider.cluster devnet
+        env:
+          ANCHOR_PROVIDER_CLUSTER: devnet
+          ANCHOR_PROVIDER_URL: https://api.devnet.solana.com
+
+      - name: Export IDL
+        if: success()
+        run: |
+          cp target/idl/ginva.json ./ginva.json
+          echo "✅ IDL exported"
+
+      - name: Get Program ID
+        if: success()
+        id: program-info
+        run: |
+          PROGRAM_ID=$(anchor keys sync 2>/dev/null | grep "Program ID:" | awk '{print $3}' || cat program-keypair.json | jq -r '.pubkey')
+          echo "Program ID: $PROGRAM_ID"
+          echo "program_id=$PROGRAM_ID" >> $GITHUB_OUTPUT
+
+      - name: Create Deployment Commit
+        if: success()
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add -A
+          git commit -m "deploy: deploy to devnet $(date '+%Y-%m-%d %H:%M')" || true
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: deployment-artifacts
+          path: |
+            target/idl/ginva.json
+            program-keypair.json
+
+  notify:
+    name: Notify Deployment
+    needs: build-and-deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Discord Notification
+        if: always()
+        run: |
+          STATUS="${{ needs.build-and-deploy.result }}"
+          if [ "$STATUS" == "success" ]; then
+            MSG="✅ GINVA deployed to Devnet successfully!"
+          else
+            MSG="❌ GINVA deployment failed: $STATUS"
+          fi
+          curl -X POST "${{ secrets.DISCORD_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"content\": \"$MSG\n\nCommit: ${{ github.sha }}\nWorkflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}"
+        continue-on-error: true

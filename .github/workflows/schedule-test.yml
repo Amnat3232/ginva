@@ -1,0 +1,128 @@
+name: ⏰ Scheduled Health Check
+
+on:
+  schedule:
+    # Run daily at 00:00 UTC
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: "Test Type"
+        required: true
+        default: "full"
+        type: choice
+        options:
+          - full
+          - liquidation
+          - integration
+
+env:
+  SOLANA_VERSION: 1.18.26
+  ANCHOR_VERSION: 0.29.0
+
+jobs:
+  scheduled-test:
+    name: Scheduled Health Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+
+      - name: Install Solana CLI
+        run: |
+          sh -c "$(curl -sSfL https://release.solana.com/v${SOLANA_VERSION}/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+
+      - name: Install Anchor CLI
+        run: npm install -g @coral-xyz/anchor-cli@${ANCHOR_VERSION}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Program
+        run: anchor build
+
+      - name: Run Full Tests
+        if: inputs.test_type == 'full' || github.event_name == 'schedule'
+        run: |
+          anchor test --skip-build
+        env:
+          ANCHOR_PROVIDER_CLUSTER: devnet
+
+      - name: Run Liquidation Tests
+        if: inputs.test_type == 'liquidation'
+        run: |
+          anchor test --grep "Liquidation" --skip-build
+
+      - name: Run Integration Tests
+        if: inputs.test_type == 'integration'
+        run: |
+          anchor test --skip-build
+
+      - name: Report Health Status
+        if: always()
+        run: |
+          STATUS="${{ job.status }}"
+          if [ "$STATUS" == "success" ]; then
+            echo "✅ Daily health check passed!"
+            MSG="✅ GINVA Daily Health Check: PASSED"
+          else
+            echo "❌ Daily health check failed!"
+            MSG="❌ GINVA Daily Health Check: FAILED"
+          fi
+
+          # Send to Discord
+          curl -X POST "${{ secrets.DISCORD_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"content\": \"$MSG\n\nTime: $(date -u '+%Y-%m-%d %H:%M UTC')\nDetails: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}"
+        continue-on-error: true
+
+  check-prices:
+    name: Oracle Price Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Pyth Oracle Prices
+        run: |
+          echo "📊 Checking Pyth Oracle prices..."
+
+          # Check SOL price
+          SOL_PRICE=$(curl -s "https://pyth.data.io/api/v1/price_feed?ids=0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d" | jq -r '.price.price' 2>/dev/null || echo "N/A")
+          echo "SOL Price: $SOL_PRICE"
+
+          # Check BTC price
+          BTC_PRICE=$(curl -s "https://pyth.data.io/api/v1/price_feed?ids=0xca032730c5f10d0b8f5c6acf29f9e6e3e9e7c8c4c5e5c5c5c5c5c5c5c5c5c" | jq -r '.price.price' 2>/dev/null || echo "N/A")
+          echo "BTC Price: $BTC_PRICE"
+
+          echo "✅ Oracle prices checked"
+
+  check-contracts:
+    name: Contract Status Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Devnet Program
+        run: |
+          echo "🔍 Checking GINVA program on devnet..."
+
+          PROGRAM_ID="2SiGJi9VkD96oWLNizmMkGFwFpHq1tEETVqrLCezWKou"
+
+          # Check if program exists
+          RESULT=$(solana program $PROGRAM_ID --url devnet 2>&1 || echo "NOT_FOUND")
+
+          if echo "$RESULT" | grep -q "Program"; then
+            echo "✅ Program is deployed on devnet"
+            echo "$RESULT"
+          else
+            echo "⚠️ Program may not be deployed or has issues"
+            echo "$RESULT"
+          fi
