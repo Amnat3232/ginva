@@ -18,6 +18,7 @@ import {
 } from "react-icons/fi";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useGinvaProgram } from "../hooks/useGinvaProgram";
+import { usePythPrice } from "../hooks/usePythPrice";
 import { showSuccess, showError } from "../utils/helpers";
 import { useConnection } from "@solana/wallet-adapter-react";
 import * as anchor from "@coral-xyz/anchor";
@@ -80,19 +81,36 @@ const Pawn = () => {
   const [durationDays, setDurationDays] = useState(60);
   const [loading, setLoading] = useState(false);
 
+  // Get price from Pyth Oracle
+  const assetSymbol = selectedAsset.symbol.toLowerCase() as
+    | "sol"
+    | "btc"
+    | "eth"
+    | "usdc";
+  const {
+    price: currentPrice,
+    loading: priceLoading,
+    error: priceError,
+  } = usePythPrice(assetSymbol, connection, true);
+
   // Derived state
   // const collateralLamports =
   //   parseFloat(collateralAmount) * Math.pow(10, selectedAsset.decimals);
   const ltvPercent = ltvOption === 1 ? 20 : ltvOption === 2 ? 40 : 60;
 
-  // Mock price (in production, fetch from Pyth oracle)
-  const mockPriceUSD =
-    selectedAsset.symbol === "SOL"
+  // Use Pyth price (fallback to mock if not available)
+  const collateralPriceUSD =
+    currentPrice ||
+    (selectedAsset.symbol === "SOL"
       ? 100
       : selectedAsset.symbol === "USDC"
       ? 1
-      : 45000;
-  const collateralValueUSD = parseFloat(collateralAmount || "0") * mockPriceUSD;
+      : selectedAsset.symbol === "BTC"
+      ? 45000
+      : 2500);
+
+  const collateralValueUSD =
+    parseFloat(collateralAmount || "0") * collateralPriceUSD;
   const borrowAmountUSD = collateralValueUSD * (ltvPercent / 100);
   const borrowAmount = borrowAmountUSD.toFixed(2);
 
@@ -474,9 +492,18 @@ const Pawn = () => {
                 </div>
                 <div className="d-flex justify-content-between">
                   <span>Collateral Value (USD)</span>
-                  <span className="fw-bold">
-                    ${collateralValueUSD.toFixed(2)}
-                  </span>
+                  <div className="text-end">
+                    {priceLoading ? (
+                      <small className="text-muted">Loading...</small>
+                    ) : priceError ? (
+                      <small className="text-warning">Using fallback</small>
+                    ) : currentPrice ? (
+                      <small className="text-success me-2">Live</small>
+                    ) : null}
+                    <span className="fw-bold">
+                      ${collateralValueUSD.toFixed(2)}
+                    </span>
+                  </div>
                 </div>
                 <div className="d-flex justify-content-between text-muted">
                   <span>Deposit Fee ({depositFeePercent}%)</span>
