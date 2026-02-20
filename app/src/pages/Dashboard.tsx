@@ -12,16 +12,36 @@ import { FiDollarSign, FiTrendingUp, FiUsers, FiShield } from "react-icons/fi";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useState, useEffect } from "react";
 import { useGinvaProgram } from "../hooks/useGinvaProgram";
+import { usePythPrice, formatPrice } from "../hooks/usePythPrice";
+import { useConnection } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
 
 const Dashboard = () => {
   const { connected, publicKey } = useWallet();
   const { program } = useGinvaProgram();
+  const { connection } = useConnection();
   const [data, setData] = useState({
     tvl: 0,
     activeLoans: 0,
     userActiveLoans: 0,
   });
+
+  // Get prices from Pyth
+  const {
+    price: solPrice,
+    loading: solLoading,
+    lastUpdate: solUpdate,
+  } = usePythPrice("sol", connection, true);
+  const { price: btcPrice, loading: btcLoading } = usePythPrice(
+    "btc",
+    connection,
+    true
+  );
+  const { price: ethPrice, loading: ethLoading } = usePythPrice(
+    "eth",
+    connection,
+    true
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -85,6 +105,48 @@ const Dashboard = () => {
           <strong> Dual Protection System included.</strong>
         </p>
       </Stack>
+
+      {/* Live Prices */}
+      <Row className="mb-4">
+        <Col>
+          <Card className="bg-dark text-white">
+            <Card.Body>
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <h6 className="mb-0">📊 Live Market Prices</h6>
+                <small className="text-light">
+                  {solUpdate && `Updated: ${solUpdate.toLocaleTimeString()}`}
+                </small>
+              </div>
+              <Row className="text-center">
+                <Col>
+                  <div className="py-2">
+                    <small className="text-light">SOL</small>
+                    <h5 className={solPrice ? "text-success" : "text-warning"}>
+                      {solLoading ? "..." : `$${formatPrice(solPrice)}`}
+                    </h5>
+                  </div>
+                </Col>
+                <Col>
+                  <div className="py-2 border-start border-secondary">
+                    <small className="text-light">BTC</small>
+                    <h5 className={btcPrice ? "text-warning" : "text-warning"}>
+                      {btcLoading ? "..." : `$${formatPrice(btcPrice, 0)}`}
+                    </h5>
+                  </div>
+                </Col>
+                <Col>
+                  <div className="py-2 border-start border-secondary">
+                    <small className="text-light">ETH</small>
+                    <h5 className={ethPrice ? "text-info" : "text-warning"}>
+                      {ethLoading ? "..." : `$${formatPrice(ethPrice, 0)}`}
+                    </h5>
+                  </div>
+                </Col>
+              </Row>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
 
       <Row xs={1} md={2} lg={4} className="g-4">
         <Col className="mb-3">
