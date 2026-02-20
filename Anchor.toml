@@ -1,12 +1,12 @@
 [toolchain]
-anchor_version = "0.29.0"
+anchor_version = "0.32.1"
 
 [features]
 resolution = true
 skip-lint = false
 
 [programs.devnet]
-ginva = "2SiGJi9VkD96oWLNizmMkGFwFpHq1tEETVqrLCezWKou"
+ginva = "9BRKxrDaC6D7XLVqwZSMeqkNPhYHdpogwxC5Dph4F9Hf"
 
 [registry]
 url = "https://api.apr.dev"

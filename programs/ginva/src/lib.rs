@@ -1,6 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::instruction::{AccountMeta, Instruction};
 use anchor_lang::solana_program::program::invoke_signed;
+use anchor_lang::solana_program::pubkey;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 use pyth_solana_receiver_sdk::price_update::{get_feed_id_from_hex, PriceUpdateV2};
 use std::mem::size_of;
@@ -34,7 +35,7 @@ pub const REENTRANCY_GUARD_ACTIVE: u8 = 1;
 pub const REENTRANCY_GUARD_INACTIVE: u8 = 0;
 
 // Program ID - matches Anchor.toml devnet deployment
-declare_id!("2SiGJi9VkD96oWLNizmMkGFwFpHq1tEETVqrLCezWKou");
+declare_id!("9BRKxrDaC6D7XLVqwZSMeqkNPhYHdpogwxC5Dph4F9Hf");
 
 // CONSTANTS
 
@@ -68,6 +69,98 @@ const JUPITER_PROGRAM_ID: Pubkey = pubkey!("JUP4Fb2cqiRUcaTHdrPC8h2gNsA2ETXiPDD3
 // 🛡️ SECURITY: Compile-time check to prevent local-test on mainnet
 #[cfg(all(feature = "local-test", not(feature = "devnet")))]
 compile_error!("local-test feature must be used with devnet feature");
+
+mod liquidation_helper {
+    use super::*;
+
+    pub fn execute_liquidation_start_internal<'a>(
+        loan_account: &mut Account<LoanAccount>,
+        system_config: &mut Account<SystemConfig>,
+        liquidation_process: &mut Account<LiquidationProcess>,
+        keeper_a: Pubkey,
+        current_time: i64,
+        vault_collateral_account: AccountInfo<'a>,
+        seized_assets_vault: AccountInfo<'a>,
+        vault_authority: AccountInfo<'a>,
+        token_program: AccountInfo<'a>,
+        vault_authority_bump: u8,
+        liquidation_type: LiquidationType,
+    ) -> Result<()> {
+        let trigger_reward = loan_account
+            .collateral_amount
+            .saturating_mul(60)
+            .checked_div(10000)
+            .unwrap_or(0);
+        let remaining_for_swap = loan_account
+            .collateral_amount
+            .saturating_sub(trigger_reward);
+
+        let seeds = &[b"vault_auth".as_ref(), &[vault_authority_bump]];
+        let signer = &[&seeds[..]];
+
+        let cpi_accounts_seized = Transfer {
+            from: vault_collateral_account,
+            to: seized_assets_vault,
+            authority: vault_authority.clone(),
+        };
+        let cpi_ctx_seized =
+            CpiContext::new_with_signer(token_program, cpi_accounts_seized, signer);
+        token::transfer(cpi_ctx_seized, remaining_for_swap)?;
+
+        liquidation_process.loan_account = loan_account.key();
+        liquidation_process.status = LiquidationStatus::Triggered as u8;
+        liquidation_process.trigger_keeper = keeper_a;
+        liquidation_process.seized_collateral_amount = remaining_for_swap;
+        liquidation_process.triggered_at = current_time;
+        liquidation_process.deadline_for_swap = current_time;
+        liquidation_process.dex_activation_time = current_time + 21600;
+        liquidation_process.swapped = false;
+        liquidation_process.keeper_reward_amount = trigger_reward;
+        liquidation_process.keeper_reward_claimed = false;
+        liquidation_process.liquidation_type = liquidation_type as u8;
+
+        loan_account.status = LoanStatus::LiquidationInProgress as u8;
+        loan_account.liquidated_at = current_time;
+        loan_account.keeper_address = keeper_a;
+        let total_collateral_to_subtract = loan_account.collateral_amount;
+        loan_account.collateral_amount = 0;
+
+        system_config.total_collateral = system_config
+            .total_collateral
+            .saturating_sub(total_collateral_to_subtract);
+
+        match liquidation_type {
+            LiquidationType::HealthFactor => {
+                msg!("🔴 HEALTH FACTOR LIQUIDATION TRIGGERED - Immediate action");
+            }
+            LiquidationType::Maturity => {
+                msg!("🟡 MATATION TRIGGERED - 72hURITY LIQUID protection expired");
+            }
+        }
+
+        msg!(
+            "🔨 Liquidation Step 1 Complete! Keeper A reward: {} (0.6%)",
+            trigger_reward
+        );
+        msg!(
+            "🏪 Storefront opened! {} ready for sale at 6% discount",
+            remaining_for_swap
+        );
+        msg!(
+            "🦄 DEX fallback activates in 6 hours (at: {})",
+            liquidation_process.dex_activation_time
+        );
+
+        emit!(LiquidationTriggered {
+            loan_account: loan_account.key(),
+            keeper: keeper_a,
+            collateral_amount: remaining_for_swap,
+            liquidation_type: liquidation_type as u8,
+        });
+
+        Ok(())
+    }
+}
 
 #[program]
 pub mod ginva {
@@ -364,11 +457,11 @@ pub mod ginva {
         // Emit event for monitoring
         emit!(LTVLevelsUpdated {
             admin: ctx.accounts.admin.key(),
-            old_ltv_safe,
+            old_ltv_safe: old_safe,
             new_ltv_safe,
-            old_ltv_standard,
+            old_ltv_standard: old_standard,
             new_ltv_standard,
-            old_ltv_max,
+            old_ltv_max: old_max,
             new_ltv_max,
             timestamp: current_time,
         });
@@ -708,7 +801,7 @@ pub mod ginva {
 
     // EXTEND LOAN
     pub fn extend_loan(ctx: Context<ExtendLoan>) -> Result<()> {
-        let system_config = &ctx.accounts.system_config;
+        let system_config = &mut ctx.accounts.system_config;
         let loan_account = &mut ctx.accounts.loan_account;
 
         require!(!system_config.is_paused, GinvaError::ProtocolPaused);
@@ -951,7 +1044,7 @@ pub mod ginva {
             );
 
             // Execute liquidation with type marker
-            Self::execute_liquidation_start(
+            liquidation_helper::execute_liquidation_start_internal(
                 loan_account,
                 system_config,
                 liquidation_process,
@@ -1034,7 +1127,7 @@ pub mod ginva {
             );
 
             // Execute liquidation with type marker
-            Self::execute_liquidation_start(
+            liquidation_helper::execute_liquidation_start_internal(
                 loan_account,
                 system_config,
                 liquidation_process,
@@ -1057,104 +1150,6 @@ pub mod ginva {
         // 🛡️ ALWAYS RESET LOCK
         loan_account.liquidation_lock = false;
         result
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // INTERNAL: Shared Liquidation Logic
-    // ═══════════════════════════════════════════════════════════════════════════
-    fn execute_liquidation_start(
-        loan_account: &mut Account<LoanAccount>,
-        system_config: &mut Account<SystemConfig>,
-        liquidation_process: &mut Account<LiquidationProcess>,
-        keeper_a: Pubkey,
-        current_time: i64,
-        vault_collateral_account: AccountInfo,
-        seized_assets_vault: AccountInfo,
-        vault_authority: AccountInfo,
-        token_program: AccountInfo,
-        vault_authority_bump: u8,
-        liquidation_type: LiquidationType,
-    ) -> Result<()> {
-        // 1. Calculate Split (0.6% reward + 99.4% for swap)
-        let trigger_reward = loan_account
-            .collateral_amount
-            .saturating_mul(60) // 0.6% reward
-            .checked_div(10000)
-            .unwrap_or(0);
-        let remaining_for_swap = loan_account
-            .collateral_amount
-            .saturating_sub(trigger_reward);
-
-        // 2. Transfer 99.4% to Seized Assets Vault
-        let seeds = &[b"vault_auth".as_ref(), &[vault_authority_bump]];
-        let signer = &[&seeds[..]];
-
-        let cpi_accounts_seized = Transfer {
-            from: vault_collateral_account.clone(),
-            to: seized_assets_vault,
-            authority: vault_authority.clone(),
-        };
-        let cpi_ctx_seized =
-            CpiContext::new_with_signer(token_program, cpi_accounts_seized, signer);
-        token::transfer(cpi_ctx_seized, remaining_for_swap)?;
-
-        // 3. Initialize Liquidation Process
-        liquidation_process.loan_account = loan_account.key();
-        liquidation_process.status = LiquidationStatus::Triggered as u8;
-        liquidation_process.trigger_keeper = keeper_a;
-        liquidation_process.seized_collateral_amount = remaining_for_swap;
-        liquidation_process.triggered_at = current_time;
-        liquidation_process.deadline_for_swap = current_time;
-        liquidation_process.dex_activation_time = current_time + 21600; // 6h
-        liquidation_process.swapped = false;
-        liquidation_process.keeper_reward_amount = trigger_reward;
-        liquidation_process.keeper_reward_claimed = false;
-        liquidation_process.liquidation_type = liquidation_type as u8;
-
-        // Update Loan
-        loan_account.status = LoanStatus::LiquidationInProgress as u8;
-        loan_account.liquidated_at = current_time;
-        loan_account.keeper_address = keeper_a;
-        let total_collateral_to_subtract = loan_account.collateral_amount;
-        loan_account.collateral_amount = 0;
-
-        // Update System
-        system_config.total_collateral = system_config
-            .total_collateral
-            .saturating_sub(total_collateral_to_subtract);
-
-        // Log based on liquidation type
-        match liquidation_type {
-            LiquidationType::HealthFactor => {
-                msg!("🔴 HEALTH FACTOR LIQUIDATION TRIGGERED - Immediate action");
-            }
-            LiquidationType::Maturity => {
-                msg!("🟡 MATURITY LIQUIDATION TRIGGERED - 72h protection expired");
-            }
-        }
-
-        msg!(
-            "🔨 Liquidation Step 1 Complete! Keeper A reward: {} (0.6%)",
-            trigger_reward
-        );
-        msg!(
-            "🏪 Storefront opened! {} ready for sale at 6% discount",
-            remaining_for_swap
-        );
-        msg!(
-            "🦄 DEX fallback activates in 6 hours (at: {})",
-            liquidation_process.dex_activation_time
-        );
-
-        // Emit event
-        emit!(LiquidationTriggered {
-            loan_account: loan_account.key(),
-            keeper: keeper_a,
-            collateral_amount: remaining_for_swap,
-            liquidation_type: liquidation_type as u8,
-        });
-
-        Ok(())
     }
 
     // STEP 1B: CLAIM TRIGGER REWARD (Keeper A)
@@ -1391,12 +1386,12 @@ pub mod ginva {
         // This prevents passing arbitrary accounts to Jupiter
         for (i, account) in ctx.remaining_accounts.iter().enumerate() {
             // Skip validation for program accounts (they don't have data)
-            if account.owner == ctx.accounts.jupiter_program.key() {
+            if *account.owner == ctx.accounts.jupiter_program.key() {
                 continue;
             }
 
             // For token accounts, validate minimum data length
-            if account.owner == ctx.accounts.token_program.key() {
+            if *account.owner == ctx.accounts.token_program.key() {
                 require!(
                     account.data_len() >= 165, // Token account minimum size
                     GinvaError::InvalidJupiterRoute
@@ -4184,4 +4179,8 @@ pub enum GinvaError {
     FirstPriceMustBeSetByAdmin = 2020,
     #[msg("Oracle price not initialized - wait for admin")]
     OraclePriceNotInitialized = 2021,
+
+    // 🔄 Payment Errors (2030-2039)
+    #[msg("Payment period not met - need at least 30 days since last payment")]
+    PaymentPeriodNotMet = 2030,
 }

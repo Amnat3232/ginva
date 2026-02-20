@@ -1,18 +1,19 @@
 [workspace]
-resolver = "2"
 members = ["programs/ginva"]
 exclude = ["programs/ginva_flash_bot"]
 
 [workspace.dependencies]
-anchor-lang = "0.29.0"
-anchor-spl = "0.29.0"
-blake3 = "=1.5.0"
-constant_time_eq = "=0.3.1"
+anchor-lang = "0.32.1"
+anchor-spl = "0.32.1"
+blake3 = "1.5.0"
+constant_time_eq = "0.3.1"
+base64ct = "1.6.0"
 
 # Lock transitive dependencies to avoid edition2024 requirements
-cc = "=1.0.83"
-jobserver = "=0.1.26"
-getrandom = "=0.2.10"
+cc = "1.0.83"
+jobserver = "0.1.26"
+getrandom = "0.2.10"
+hashbrown = "0.14.0"
 
 [profile.dev]
 overflow-checks = true
@@ -27,3 +28,6 @@ incremental = false
 codegen-units = 1
 
 
+
+[resolver]
+version = "2"

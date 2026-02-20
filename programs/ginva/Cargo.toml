@@ -4,8 +4,8 @@ version = "2.0.0"
 edition = "2021"
 
 [features]
-default = []        # 👈 Safe default (production mode)
-devnet = []         # Enable for devnet deployment (2s timeout)
+default = ["anchor-lang/init-if-needed"]        
+devnet = ["anchor-lang/init-if-needed"]         
 no-entrypoint = []
 cpi = ["no-entrypoint"]
 custom-heap = []
@@ -13,14 +13,16 @@ custom-panic = []
 no-idl = []
 anchor-debug = []
 no-log-ix-name = []
-local-test = []     # ⚠️ God Mode for testing only - disables oracle time checks
+local-test = []     
 
 [lib]
 crate-type = ["cdylib", "lib"]
 
 [dependencies]
-anchor-lang = "0.29.0"
-anchor-spl = "0.29.0"
+anchor-lang = { version = "0.32.1", features = ["init-if-needed"] }
+anchor-spl = "0.32.1"
 blake3 = "1.5.0"
 constant_time_eq = "0.3.1"
-pyth_solana_receiver_sdk = { package = "pyth-solana-receiver-sdk", version = "0.3.0" }
+base64ct = "1.6.0"
+hashbrown = "0.14.0"
+pyth_solana_receiver_sdk = { package = "pyth-solana-receiver-sdk", version = "1.1.0" }
