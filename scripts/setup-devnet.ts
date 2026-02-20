@@ -70,7 +70,7 @@ const main = async () => {
 
   // Load program
   const programId = new PublicKey(
-    "qhuM4YAAwGYmTnK7rcXminqaMR72412CcHMu99QxeZS"
+    "2SiGJi9VkD96oWLNizmMkGFwFpHq1tEETVqrLCezWKou"
   );
   const idl = JSON.parse(fs.readFileSync("./target/idl/ginva.json", "utf-8"));
   const program = new anchor.Program(
