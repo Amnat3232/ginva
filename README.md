@@ -68,6 +68,24 @@
 
 ## 🚀 เริ่มต้นใช้งาน
 
+### 📱 ติดตั้งบนมือถือ (PWA)
+
+**iOS (Safari):**
+
+1. เปิด https://ginva.vercel.app
+2. กดปุ่ม **Share** (□↗)
+3. เลื่อนลง → **Add to Home Screen**
+4. กด **Add**
+
+**Android (Chrome):**
+
+1. เปิด https://ginva.vercel.app
+2. กดปุ่ม **Menu** (จุด 3 ข้างบน)
+3. เลือก **Install App** หรือ **Add to Home Screen**
+4. กด **Install**
+
+---
+
 ### 3 ขั้นตอนง่ายๆ
 
 ```
