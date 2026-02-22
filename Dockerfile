@@ -58,8 +58,8 @@ COPY . .
 RUN rm -f Cargo.lock && \
     RUSTFLAGS="-Znext-lockfile-bump" cargo +nightly-2025-02-15 generate-lockfile
 
-# Upgrade Anchor package in Docker
-RUN yarn upgrade @coral-xyz/anchor@0.32.1
+# Upgrade Anchor package in Docker (using npm instead of yarn)
+RUN npm install @coral-xyz/anchor@0.32.1
 
 # Default command
 CMD ["anchor", "build"]
