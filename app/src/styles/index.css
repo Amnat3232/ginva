@@ -145,6 +145,9 @@ body {
   .navbar-nav .nav-link {
     font-size: 0.875rem;
   }
+  body {
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 @media (max-width: 576px) {
@@ -156,6 +159,28 @@ body {
   }
   .stats-card h3 {
     font-size: 1.1rem;
+  }
+  .container {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .btn {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+  .card {
+    margin-bottom: 12px;
+  }
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+  .btn {
+    min-height: 44px;
+  }
+  input,
+  select {
+    min-height: 44px;
   }
 }
 
