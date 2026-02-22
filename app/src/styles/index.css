@@ -178,6 +178,57 @@ body {
   .btn {
     min-height: 44px;
   }
+  input, select {
+    min-height: 44px;
+  }
+}
+
+/* Page balance improvements */
+.page-content {
+  padding: 16px;
+}
+
+.card-body {
+  padding: 16px;
+}
+
+/* Balance grid on mobile */
+@media (max-width: 576px) {
+  .container {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  
+  .row.g-4 {
+    --bs-gutter-x: 12px;
+    --bs-gutter-y: 12px;
+  }
+  
+  .col, .col-1, .col-2, .col-3, .col-4, .col-6, .col-12 {
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+  
+  h1 {
+    font-size: 1.5rem;
+  }
+  
+  h2 {
+    font-size: 1.25rem;
+  }
+  
+  h3, h4, h5 {
+    font-size: 1rem;
+  }
+  
+  .card {
+    margin-bottom: 8px;
+  }
+  
+  .stack, .stack-horizontal {
+    gap: 8px !important;
+  }
+}
   input,
   select {
     min-height: 44px;
