@@ -1,261 +1,261 @@
-# GINVA Protocol - คำแนะนำสิ่งที่ควรทำต่อไป
+# GINVA Protocol - Next Steps Roadmap
 
 ## Next Steps & Roadmap (Post-Security-Fix)
 
-**วันที่สร้าง:** 2026-02-12  
-**สถานะปัจจุบัน:** ✅ แก้ไขช่องโหว่เสร็จสิ้น, Push ไปยัง develop branch  
-**เป้าหมายถัดไป:** 🎯 พร้อมสำหรับ Devnet Testing
+**Created Date:** 2026-02-12
+**Current Status:** ✅ Security fixes complete, Pushed to develop branch
+**Next Goal:** 🎯 Ready for Devnet Testing
 
 ---
 
-## 📊 สถานะปัจจุบัน (Current Status)
+## 📊 Current Status
 
-### ✅ เสร็จสิ้นแล้ว (Completed)
+### ✅ Completed
 
-- [x] แก้ไขช่องโหว่ CRITICAL ทั้ง 4 รายการ
-- [x] แก้ไขช่องโหว่ HIGH ทั้ง 2 รายการ
-- [x] แก้ไขช่องโหว่ MEDIUM ทั้ง 3 รายการ
-- [x] แก้ไขช่องโหว่ LOW ทั้ง 1 รายการ
-- [x] Commit & Push ไปยัง develop branch
-- [x] สร้าง Documentation ครบถ้วน (QA, Security Audit, Fixes Summary, Changelog)
-- [x] Frontend UI พร้อมใช้งาน (6 pages)
-- [x] Bot แก้ไข Program ID แล้ว
+- [x] Fixed all 4 CRITICAL vulnerabilities
+- [x] Fixed all 2 HIGH vulnerabilities
+- [x] Fixed all 3 MEDIUM vulnerabilities
+- [x] Fixed 1 LOW vulnerability
+- [x] Committed & Pushed to develop branch
+- [x] Complete Documentation (QA, Security Audit, Fixes Summary, Changelog)
+- [x] Frontend UI Ready (6 pages)
+- [x] Bot Program ID fixed
 
-### ⚠️ ต้องทำต่อไป (Next Steps)
+### ⚠️ Next Steps
 
-- [ ] Build และ Test ใหม่
-- [ ] Deploy ไปยัง Devnet
-- [ ] ทดสอบ End-to-End
-- [ ] Security Audit ซ้ำ
+- [ ] Build and Test again
+- [ ] Deploy to Devnet
+- [ ] End-to-End Testing
+- [ ] Repeat Security Audit
 - [ ] Mainnet Preparation
 
 ---
 
-## 🎯 คำแนะนำสิ่งที่ควรทำต่อไป (แบ่งตาม Priority)
+## 🎯 Next Steps Recommendations (Prioritized)
 
-### 🔴 PRIORITY 1: ด่วนมาก (ทำภายใน 1-2 วัน)
+### 🔴 PRIORITY 1: Urgent (Within 1-2 days)
 
-#### 1.1 Build และ Test ใหม่ ⭐⭐⭐⭐⭐
+#### 1.1 Build and Test Again ⭐⭐⭐⭐⭐
 
-**เหตุผล:** ต้องตรวจสอบว่าการแก้ไขไม่ทำให้โค้ดเดิมพัง
+**Reason:** Must verify fixes don't break existing code
 
 ```bash
-# ทำตามลำดับนี้
+# Follow this sequence
 anchor build
 npm run export:idl
 anchor test
 ```
 
-**ถ้า Test Fail:**
+**If Test Fails:**
 
-- ตรวจสอบว่า IDL อัพเดตแล้ว
-- ตรวจสอบว่า DepositCollateral struct มี ops_wallet แล้ว
-- แก้ไข test cases ที่ใช้งานฟังก์ชันที่เปลี่ยนแปลง
+- Verify IDL is updated
+- Verify DepositCollateral struct has ops_wallet
+- Fix test cases that use modified functions
 
-#### 1.2 Deploy ไปยัง Devnet ⭐⭐⭐⭐⭐
+#### 1.2 Deploy to Devnet ⭐⭐⭐⭐⭐
 
-**เหตุผล:** ต้องทดสอบบน blockchain จริง
+**Reason:** Must test on real blockchain
 
 ```bash
 anchor deploy --provider.cluster devnet
 npm run setup:devnet
 ```
 
-**สิ่งที่ต้องเตรียม:**
+**Prerequisites:**
 
 - [ ] Devnet SOL (airdrop)
 - [ ] USDC on Devnet (faucet)
-- [ ] Test wallets พร้อมใช้งาน
+- [ ] Test wallets ready
 
-#### 1.3 ทดสอบฟังก์ชันหลักบน Devnet ⭐⭐⭐⭐⭐
+#### 1.3 Test Core Functions on Devnet ⭐⭐⭐⭐⭐
 
 **Test Scenarios:**
 
 - [ ] Deposit Collateral + Borrow USDC
-- [ ] Extend Loan (ตรวจสอบ interest ใหม่)
-- [ ] Stake LP (ตรวจสอบ max cap)
-- [ ] Trigger Liquidation (ตรวจสอบ lock reset)
-- [ ] Buy from Storefront (ตรวจสอบ reentrancy)
-- [ ] Claim Rewards (ตรวจสอบ underflow)
+- [ ] Extend Loan (verify new interest)
+- [ ] Stake LP (verify max cap)
+- [ ] Trigger Liquidation (verify lock reset)
+- [ ] Buy from Storefront (verify reentrancy)
+- [ ] Claim Rewards (verify underflow)
 
 ---
 
-### 🟠 PRIORITY 2: สำคัญ (ทำภายใน 1 สัปดาห์)
+### 🟠 PRIORITY 2: Important (Within 1 week)
 
-#### 2.1 เพิ่ม Integration Tests ⭐⭐⭐⭐
+#### 2.1 Add Integration Tests ⭐⭐⭐⭐
 
-**เหตุผล:** ต้องมี test สำหรับช่องโหว่ที่แก้ไข
+**Reason:** Must have tests for fixed vulnerabilities
 
-**Tests ที่ต้องเพิ่ม:**
+**Tests to Add:**
 
 ```typescript
 // test/reentrancy-protection.test.ts
-- ทดสอบ reentrancy บน buy_from_storefront
-- ทดสอบ reentrancy บน stake_lp
+- Test reentrancy on buy_from_storefront
+- Test reentrancy on stake_lp
 
 // test/liquidation-lock.test.ts
-- ทดสอบว่า lock รีเซ็ตเสมอ (even on failure)
-- ทดสอบ double liquidation attempt
+- Test that lock always resets (even on failure)
+- Test double liquidation attempt
 
 // test/interest-precision.test.ts
-- ทดสอบว่า interest คำนวณถูกต้อง (ไม่มี precision loss)
-- เปรียบเทียบกับค่าที่คาดหวัง
+- Test that interest calculates correctly (no precision loss)
+- Compare with expected values
 
 // test/staking-cap.test.ts
-- ทดสอบว่า stake เกิน 1B USDC ไม่ได้
-- ทดสอบว่า can stake จนถึง limit พอดี
+- Test that cannot stake over 1B USDC
+- Test that can stake up to limit exactly
 
 // test/deposit-fee.test.ts
-- ทดสอบว่า deposit fee ถูกหักและส่งไป ops_wallet
-- ทดสอบว่า collateral_amount อัพเดตถูกต้อง (หลังหัก fee)
+- Test that deposit fee is deducted and sent to ops_wallet
+- Test that collateral_amount updates correctly (after fee deduction)
 ```
 
 #### 2.2 Frontend Integration ⭐⭐⭐⭐
 
-**เหตุผล:** Frontend ต้องเชื่อมต่อกับ Smart Contract ที่แก้ไขแล้ว
+**Reason:** Frontend must connect to fixed Smart Contract
 
-**สิ่งที่ต้องทำ:**
+**What to Do:**
 
-- [ ] อัพเดต IDL ใน Frontend (`app/src/idl/ginva.json`)
-- [ ] ตรวจสอบว่า DepositCollateral ส่ง ops_wallet
-- [ ] เพิ่ม Error Handling สำหรับ error codes ใหม่
-- [ ] เพิ่ม Loading states สำหรับ transactions
-- [ ] เพิ่ม Transaction status modal
+- [ ] Update IDL in Frontend (`app/src/idl/ginva.json`)
+- [ ] Verify DepositCollateral sends ops_wallet
+- [ ] Add Error Handling for new error codes
+- [ ] Add Loading states for transactions
+- [ ] Add Transaction status modal
 
-#### 2.3 Security Audit ซ้ำ ⭐⭐⭐⭐
+#### 2.3 Repeat Security Audit ⭐⭐⭐⭐
 
-**เหตุผล:** ต้องตรวจสอบว่าการแก้ไขถูกต้อง
+**Reason:** Must verify fixes are correct
 
 **Checklist:**
 
-- [ ] ตรวจสอบว่า reentrancy guard ครอบคลุมทุกฟังก์ชัน
-- [ ] ตรวจสอบว่า liquidation_lock รีเซ็ตในทุกกรณี
-- [ ] ตรวจสอบว่า interest calculation ไม่มี precision loss
-- [ ] ตรวจสอบว่า constraints ใน TriggerLiquidation ทำงาน
-- [ ] ตรวจสอบว่า Jupiter CPI validation ทำงาน
+- [ ] Verify reentrancy guard covers all functions
+- [ ] Verify liquidation_lock resets in all cases
+- [ ] Verify interest calculation has no precision loss
+- [ ] Verify constraints in TriggerLiquidation work
+- [ ] Verify Jupiter CPI validation works
 
-#### 2.4 Run Keeper Bots ทดสอบ ⭐⭐⭐
+#### 2.4 Run Keeper Bots Test ⭐⭐⭐
 
-**เหตุผล:** Bots ต้องทำงานได้จริงบน Devnet
+**Reason:** Bots must work on Devnet
 
 **Tests:**
 
-- [ ] รัน auto-swap-bot.ts บน Devnet
-- [ ] ทดสอบว่า Bot ใช้ Program ID ถูกต้อง
-- [ ] ทดสอบว่า Bot หา opportunity เจอ
-- [ ] สร้าง Keeper A Bot (Trigger Liquidation)
-- [ ] สร้าง Keeper C Bot (Finalize Distribution)
+- [ ] Run auto-swap-bot.ts on Devnet
+- [ ] Verify Bot uses correct Program ID
+- [ ] Verify Bot finds opportunities
+- [ ] Create Keeper A Bot (Trigger Liquidation)
+- [ ] Create Keeper C Bot (Finalize Distribution)
 
 ---
 
-### 🟡 PRIORITY 3: ควรทำ (ทำภายใน 2-4 สัปดาห์)
+### 🟡 PRIORITY 3: Should Do (Within 2-4 weeks)
 
 #### 3.1 Fuzz Testing ⭐⭐⭐
 
-**เหตุผล:** หา edge cases ที่ไม่คาดคิด
+**Reason:** Find unexpected edge cases
 
 ```rust
-// ใช้ cargo fuzz หรือความรู้เดิม
-- Fuzz ค่า amount ที่เป็น 0, MAX_U64, คี่/คู่
-- Fuzz interest_rate_bps ที่เป็น 0, 2000, ค่าที่ไม่ถูกต้อง
-- Fuzz time_elapsed ที่เป็น 0, ขนาดใหญ่, ค่าติดลบ
+// Use cargo fuzz or existing knowledge
+- Fuzz amount values: 0, MAX_U64, odd/even
+- Fuzz interest_rate_bps: 0, 2000, invalid values
+- Fuzz time_elapsed: 0, large, negative values
 ```
 
 #### 3.2 Stress Testing ⭐⭐⭐
 
-**เหตุผล:** ทดสอบความสามารถรองรับโหลดสูง
+**Reason:** Test high load capacity
 
 ```typescript
-- สร้าง 1000 loans พร้อมกัน
-- เรียก trigger_liquidation หลายครั้งพร้อมกัน
-- เรียก stake_lp/unstake_lp หลายครั้งพร้อมกัน
-- ทดสอบ rate limiting
+- Create 1000 loans simultaneously
+- Call trigger_liquidation multiple times simultaneously
+- Call stake_lp/unstake_lp multiple times simultaneously
+- Test rate limiting
 ```
 
 #### 3.3 Documentation Update ⭐⭐⭐
 
-**เหตุผล:** ให้ผู้ใช้และนักพัฒนาเข้าใจระบบ
+**Reason:** Help users and developers understand system
 
-**สิ่งที่ต้องอัพเดต:**
+**What to Update:**
 
-- [ ] README.md - เพิ่มส่วน "Recent Security Fixes"
-- [ ] API Documentation - เอกสารฟังก์ชันทั้งหมด
-- [ ] Frontend README - วิธี setup และ run
-- [ ] Bot Documentation - วิธีรันและ configure bots
-- [ ] Deployment Guide - ขั้นตอน deploy ขึ้น Mainnet
+- [ ] README.md - Add "Recent Security Fixes" section
+- [ ] API Documentation - Document all functions
+- [ ] Frontend README - Setup and run instructions
+- [ ] Bot Documentation - How to run and configure bots
+- [ ] Deployment Guide - Steps to deploy to Mainnet
 
 #### 3.4 Monitoring Setup ⭐⭐⭐
 
-**เหตุผล:** ต้องรู้ว่าระบบทำงานอย่างไรบน Production
+**Reason:** Must know how system operates in Production
 
-**สิ่งที่ต้อง setup:**
+**What to Setup:**
 
-- [ ] Grafana dashboard สำหรับ TVL, Loans, Staking
-- [ ] Alert ถ้า Health Factor ต่ำกว่า threshold
-- [ ] Alert ถ้ามี Liquidation เกิดขึ้น
-- [ ] Alert ถ้า Price deviation สูง
+- [ ] Grafana dashboard for TVL, Loans, Staking
+- [ ] Alert if Health Factor below threshold
+- [ ] Alert if Liquidation occurs
+- [ ] Alert if Price deviation is high
 - [ ] Log aggregation (Splunk, ELK)
 
 #### 3.5 Bug Bounty Program Prep ⭐⭐
 
-**เหตุผล:** ให้ community ช่วยหาบั๊กก่อน Mainnet
+**Reason:** Let community find bugs before Mainnet
 
-**สิ่งที่ต้องเตรียม:**
+**What to Prepare:**
 
-- [ ] เขียน Bug Bounty Policy (scope, rewards, rules)
-- [ ] สร้างฟอร์มสำหรับ submit bugs
-- [ ] กำหนดระดับรางวัล (Critical: $X, High: $Y, etc.)
-- [ ] ตั้งเวลา (เช่น 2-4 สัปดาห์ก่อน Mainnet)
-- [ ] ประชาสัมพันธ์ใน community
+- [ ] Write Bug Bounty Policy (scope, rewards, rules)
+- [ ] Create form for submitting bugs
+- [ ] Define reward levels (Critical: $X, High: $Y, etc.)
+- [ ] Set timeline (e.g., 2-4 weeks before Mainnet)
+- [ ] Promote in community
 
 ---
 
-### 🟢 PRIORITY 4: Mainnet Preparation (ทำภายใน 1-2 เดือน)
+### 🟢 PRIORITY 4: Mainnet Preparation (Within 1-2 months)
 
 #### 4.1 Third-Party Security Audit ⭐⭐⭐⭐⭐
 
-**เหตุผล:** ต้องมีบุคคลที่สามตรวจสอบ (ไม่ใช่แค่ AI)
+**Reason:** Must have external review (not just AI)
 
-**Audit Firms ที่แนะนำ:**
+**Recommended Audit Firms:**
 
 - OtterSec (Solana specialist)
 - Neodyme (Solana specialist)
 - CertiK
 - Trail of Bits
 
-**สิ่งที่ต้องเตรียม:**
+**What to Prepare:**
 
 - [ ] Scope of work
-- [ ] ส่ง code ที่เป็น final version
-- [ ] ส่ง documentation
-- [ ] รอผล audit (2-4 สัปดาห์)
-- [ ] แก้ไขปัญหาที่พบ
+- [ ] Submit final version code
+- [ ] Submit documentation
+- [ ] Wait for audit results (2-4 weeks)
+- [ ] Fix issues found
 
 #### 4.2 Insurance / Coverage ⭐⭐⭐
 
-**เหตุผล:** ป้องกันความเสี่ยงถ้าเกิดเหตุ
+**Reason:** Protect against risks
 
 **Options:**
 
 - [ ] Sherlock (smart contract insurance)
 - [ ] InsurAce
 - [ ] Nexus Mutual
-- [ ] สร้าง Protocol-owned Insurance Fund
+- [ ] Create Protocol-owned Insurance Fund
 
 #### 4.3 Gradual Rollout Plan ⭐⭐⭐⭐
 
-**เหตุผล:** ไม่ควรเปิด Mainnet แบบเต็มรูปแบบทันที
+**Reason:** Should not open Mainnet fully immediately
 
 **Phased Launch:**
 
 ```
-Phase 1: Alpha (1 สัปดาห์)
+Phase 1: Alpha (1 week)
 - Limit: $100K TVL
 - Limit: $10K max loan
 - Whitelist users only
 - 24/7 monitoring
 
-Phase 2: Beta (2-4 สัปดาห์)
+Phase 2: Beta (2-4 weeks)
 - Limit: $1M TVL
 - Limit: $50K max loan
 - Public access
@@ -269,65 +269,65 @@ Phase 3: Full Launch
 
 #### 4.4 Emergency Response Plan ⭐⭐⭐⭐
 
-**เหตุผล:** ต้องรู้ว่าทำอย่างไรถ้าเกิดเหตุ
+**Reason:** Must know what to do if something happens
 
-**สิ่งที่ต้องมี:**
+**What to Have:**
 
 - [ ] Emergency contact list (team, auditors, security firms)
-- [ ] Runbook สำหรับ:
-  - กรณี Smart contract bug
-  - กรณี Oracle failure
-  - กรณี Price manipulation
-  - กรณี Large liquidation
-- [ ] Multisig wallet สำหรับ emergency actions
+- [ ] Runbook for:
+  - Smart contract bug
+  - Oracle failure
+  - Price manipulation
+  - Large liquidation
+- [ ] Multisig wallet for emergency actions
 - [ ] Insurance contacts
 
 #### 4.5 Governance Setup ⭐⭐
 
-**เหตุผล:** ถ้าเป็น DAO ต้องมี governance
+**Reason:** If DAO, must have governance
 
-**สิ่งที่ต้อง setup:**
+**What to Setup:**
 
 - [ ] DAO structure (Snapshot, Realms, etc.)
-- [ ] Governance token (ถ้ามี)
+- [ ] Governance token (if any)
 - [ ] Voting mechanism
 - [ ] Treasury management
 
 ---
 
-## 📅 ไทม์ไลน์ที่แนะนำ (Recommended Timeline)
+## 📅 Recommended Timeline
 
 ### Week 1-2: Devnet Testing & Fixes
 
-**เป้าหมาย:** มั่นใจว่าระบบทำงานได้จริงบน Devnet
+**Goal:** Ensure system works on Devnet
 
 - [ ] Build & Test (Day 1-2)
 - [ ] Deploy to Devnet (Day 2-3)
 - [ ] End-to-end testing (Day 3-7)
-- [ ] Fix bugs ที่พบ (Day 5-10)
+- [ ] Fix bugs found (Day 5-10)
 - [ ] Frontend integration (Day 8-14)
 
 ### Week 3-4: Security & Documentation
 
-**เป้าหมาย:** พร้อมสำหรับ Third-party audit
+**Goal:** Ready for Third-party audit
 
 - [ ] Add integration tests (Day 15-18)
-- [ ] Security audit ซ้ำ (Day 19-21)
+- [ ] Repeat security audit (Day 19-21)
 - [ ] Update documentation (Day 22-28)
 - [ ] Fuzz testing (Day 25-28)
 
 ### Week 5-6: Bug Bounty & Monitoring
 
-**เป้าหมาย:** ให้ community ช่วยหาบั๊ก
+**Goal:** Let community help find bugs
 
 - [ ] Launch bug bounty (Day 29)
 - [ ] Setup monitoring (Day 29-32)
-- [ ] ตอบสนอง bugs ที่พบ (Day 29-42)
+- [ ] Respond to bugs found (Day 29-42)
 - [ ] Stress testing (Day 35-42)
 
 ### Week 7-10: Third-Party Audit
 
-**เป้าหมาย:** ผ่านการตรวจสอบจากผู้เชี่ยวชาญ
+**Goal:** Pass expert verification
 
 - [ ] Submit to audit firm (Day 43)
 - [ ] Wait for audit results (Day 44-65)
@@ -335,7 +335,7 @@ Phase 3: Full Launch
 
 ### Week 11-12: Mainnet Preparation
 
-**เป้าหมาย:** พร้อมสำหรับ Mainnet
+**Goal:** Ready for Mainnet
 
 - [ ] Final testing (Day 71-75)
 - [ ] Gradual rollout plan (Day 76-78)
@@ -344,7 +344,7 @@ Phase 3: Full Launch
 
 ### Week 13+: Mainnet Launch
 
-**เป้าหมาย:** Launch บน Mainnet!
+**Goal:** Launch on Mainnet!
 
 - [ ] Phase 1: Alpha (Week 13)
 - [ ] Phase 2: Beta (Week 14-17)
@@ -352,80 +352,80 @@ Phase 3: Full Launch
 
 ---
 
-## 💡 คำแนะนำเฉพาะทาง (Specific Recommendations)
+## 💡 Specific Recommendations
 
-### สำหรับ Smart Contract Developer
+### For Smart Contract Developer
 
-1. **อย่าเพิ่งเปลี่ยนโค้ดอีก** จนกว่าจะผ่าน Devnet testing
-2. **Freeze code** ก่อนส่ง audit (หยุดแก้ไขชั่วคราว)
-3. **Document ทุกการเปลี่ยนแปลง** ที่เกิดขึ้นหลัง audit
-4. **Test บน mainnet-fork** ก่อน deploy จริง
+1. **Don't change code again** until Devnet testing passes
+2. **Freeze code** before sending to audit (stop modifications temporarily)
+3. **Document every change** that happens after audit
+4. **Test on mainnet-fork** before real deploy
 
-### สำหรับ Frontend Developer
+### For Frontend Developer
 
-1. **อัพเดต IDL ทันที** หลัง anchor build
-2. **เพิ่ม Error Handling** สำหรับ error codes ใหม่ทั้งหมด
-3. **เพิ่ม Loading States** ทุกจุดที่มี transaction
-4. **Test บน Devnet จริง** ไม่ใช่แค่ localnet
+1. **Update IDL immediately** after anchor build
+2. **Add Error Handling** for all new error codes
+3. **Add Loading States** at every transaction point
+4. **Test on real Devnet** not just localnet
 
-### สำหรับ DevOps
+### For DevOps
 
-1. **Setup CI/CD** สำหรับ auto-deploy ไปยัง Devnet
-2. **Setup monitoring** ตั้งแต่ตอนนี้
-3. **Backup wallets** และ private keys อย่างปลอดภัย
-4. **Document deployment process** ให้ละเอียด
+1. **Setup CI/CD** for auto-deploy to Devnet
+2. **Setup monitoring** from now
+3. **Backup wallets** and private keys securely
+4. **Document deployment process** in detail
 
-### สำหรับ Project Manager
+### For Project Manager
 
-1. **สร้าง checklist** สำหรับทุก phase
-2. **กำหนดผู้รับผิดชอบ** แต่ละงานชัดเจน
-3. **Schedule regular sync** กับทีม
-4. **เตรียมงบประมาณ** สำหรับ audit และ insurance
-
----
-
-## ⚠️ สิ่งที่ต้องระวัง (Red Flags)
-
-**ห้ามทำตอนนี้:**
-
-- ❌ Deploy ขึ้น Mainnet ทันที
-- ❌ เปิดรับ user จำนวนมากบน Devnet
-- ❌ แก้ไขโค้ดอีกโดยไม่มีเหตุผล
-- ❌ แชร์ private keys
-- ❌ ประกาศ Mainnet launch date ก่อนพร้อม
-
-**สัญญาณอันตราย:**
-
-- 🚨 Test fail แต่ ignore
-- 🚀 Deploy ขึ้น Mainnet โดยไม่มี audit
-- 💰 รับเงินจาก user โดยไม่มี insurance
-- 🔓 ใช้ admin key แบบ single key
+1. **Create checklist** for each phase
+2. **Assign clear responsibilities** for each task
+3. **Schedule regular sync** with team
+4. **Prepare budget** for audit and insurance
 
 ---
 
-## 🎯 เป้าหมายสุดท้าย (End Goal)
+## ⚠️ Things to Watch Out For
 
-**ภายใน 3 เดือน:**
+**Don't do now:**
 
-- ✅ Smart Contract ผ่าน Third-party audit
-- ✅ ระบบทำงานบน Mainnet ได้อย่างปลอดภัย
-- ✅ มี User ใช้งานจริง
-- ✅ มีระบบ monitoring และ insurance
-- ✅ Community ไว้วางใจ
+- ❌ Deploy to Mainnet immediately
+- ❌ Accept many users on Devnet
+- ❌ Change code again without reason
+- ❌ Share private keys
+- ❌ Announce Mainnet launch date before ready
 
-**สำเร็จเมื่อ:**
+**Danger signs:**
 
-- ไม่มี Critical bug บน Mainnet
-- TVL เติบโตอย่างต่อเนื่อง
-- User แจ้งปัญหาน้อย
-- ทีมมั่นใจในระบบ
-
----
-
-**คำแนะนำสุดท้าย:** ใจเย็นๆ ครับ อย่ารีบ 🧘‍♂️  
-**"Better safe than sorry"** - ใช้เวลาให้มากพอเพื่อให้มั่นใจว่าระบบปลอดภัยจริงๆ
+- 🚨 Test fails but ignore
+- 🚀 Deploy to Mainnet without audit
+- 💰 Accept user funds without insurance
+- 🔓 Use admin key as single key
 
 ---
 
-Last updated: 2026-02-12  
+## 🎯 End Goal
+
+**Within 3 months:**
+
+- ✅ Smart Contract passes Third-party audit
+- ✅ System works safely on Mainnet
+- ✅ Real users using it
+- ✅ Monitoring and insurance systems in place
+- ✅ Community trusts us
+
+**Success when:**
+
+- No Critical bugs on Mainnet
+- TVL grows continuously
+- Few user complaints
+- Team confident in system
+
+---
+
+**Final recommendation:** Take it slow, don't rush 🧘‍♂️
+**"Better safe than sorry"** - Take enough time to ensure system is truly secure
+
+---
+
+Last updated: 2026-02-12
 Next review: After Devnet testing complete
