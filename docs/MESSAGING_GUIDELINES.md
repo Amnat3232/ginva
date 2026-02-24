@@ -1,31 +1,31 @@
 # GINVA Messaging Guidelines
 
-## แนวทางการสื่อสารที่เป็นมิตรและเน้นผู้ใช้เป็นหลัก
+## User-Friendly, User-Centric Communication Guidelines
 
 ---
 
-## หลักการสำคัญ
+## Core Principle
 
-**ผู้กู้คือลูกค้าหลัก ไม่ใช่นักลงทุน**
+**Borrowers are the main customers, not investors**
 
-❌ ไม่ใช่: ตลาดซื้อขายสินทรัพย์ที่ติดปัญหา  
-✅ แต่เป็น: แพลตฟอร์มกู้เงินด่วนด้วยสินทรัพย์ดิจิทัล
+❌ Not: Distressed asset trading platform  
+✅ But: Quick cash loan platform with digital assets
 
 ---
 
-## คำศัพท์ที่ต้องเปลี่ยน
+## Terms to Change
 
-### คำที่ห้ามใช้ → คำที่ควรใช้แทน
+### Forbidden Terms → Friendly Alternatives
 
-| คำที่ห้าม (น่ากลัว)                      | คำที่ใช้แทน (เป็นมิตร)                                                  |
-| ---------------------------------------- | ----------------------------------------------------------------------- |
-| Liquidation (การขายทอดตลาด)              | การช่วยเหลือสินทรัพย์ (Asset Recovery) / ระบบปกป้อง (Protection System) |
-| Distressed Assets (สินทรัพย์ที่ติดปัญหา) | สินทรัพย์ที่รอการดูแล (Assets Awaiting Care)                            |
-| การยึดทรัพย์                             | การจัดการสินทรัพย์แทน (Asset Management)                                |
-| Keeper (ผู้รักษา)                        | ผู้ช่วยเหลือ (Helpers) / ผู้ดูแลระบบ (System Guardians)                 |
-| Hunter (นักล่า)                          | ผู้สนับสนุนสภาพคล่อง (Liquidity Providers)                              |
-| Liquidation Fee (ค่าธรรมเนียมการขายทอด)  | ค่าบริการจัดการ (Management Fee)                                        |
-| แบงค์ร้านรับจำนำ                         | ผู้ดูแลสภาพคล่อง (Liquidity Partners)                                   |
+| Forbidden Terms (Scary) | Alternative (Friendly)             |
+| ----------------------- | ---------------------------------- |
+| Liquidation             | Asset Recovery / Protection System |
+| Distressed Assets       | Assets Awaiting Care               |
+| Asset Seizure           | Asset Management                   |
+| Keeper                  | Helpers / System Guardians         |
+| Hunter                  | Liquidity Providers                |
+| Liquidation Fee         | Management Fee                     |
+| Pawn Shop               | Liquidity Partners                 |
 
 ---
 
@@ -35,7 +35,7 @@
 
 ### Core Philosophy
 
-**"น้อยแต่มาก" (Less is More)** - Simplicity builds long-term trust
+**"Less is More"** - Simplicity builds long-term trust
 
 ### Primary Taglines
 
@@ -57,66 +57,66 @@
 
 ### 7 Marketing Approaches
 
-#### 1️⃣ **Promise Approach** (สัญญาที่ชัดเจน)
+#### 1️⃣ **Promise Approach**
 
 ```
-🎯 Tagline: "8% ตลอดกู้ ไม่มีเซอร์ไพรส์"
+🎯 Tagline: "8% Fixed. No Surprises."
 
-ขยายความ:
-"ไม่ว่าตลาดจะเป็นยังไง คุณจ่าย 8% เหมือนวันแรกตลอดไป
-ไม่มีค่าธรรมเนียมแอบแฝง ไม่มีดอกเบี้ยขึ้นกลางคัน"
+Explanation:
+"No matter what the market does, you pay 8% like the first day forever.
+No hidden fees, no interest rate changes mid-term."
 
-Visual: เส้นตรงแบนราบ "8%"
-vs กราฟขึ้นลงปรี๊ดปร๊าดของคู่แข่ง
+Visual: Flat "8%" line
+vs Wavy graph of competitors
 ```
 
-#### 2️⃣ **Anti-DeFi Approach** (ตั้งตัวตรงข้ามความซับซ้อน)
+#### 2️⃣ **Anti-DeFi Approach**
 
 ```
 📱 Social Media Post:
-"DeFi บางที่บอกดอกเบี้ย 3%... พรุ่งนี้อาจกลายเป็น 25%
-GINVA บอก 8% วันนี้ = 8% ปีหน้า = 8% ตลอดกู้
+"Some DeFi says 3% interest... tomorrow it could become 25%
+GINVA says 8% today = 8% next year = 8% forever
 
-เราไม่เล่นเกมกับชีวิตคุณ"
+We don't play games with your life"
 
-Visual: เปรียบเทียบสองฝั่ง
-ซ้าย: กราฟซับซ้อน "ดอกเบี้ยแบบคู่แข่ง"
-ขวา: เส้นตรง "ดอกเบี้ย GINVA"
+Visual: Compare two sides
+Left: Complex graph "Competitor interest"
+Right: Straight line "GINVA interest"
 ```
 
-#### 3️⃣ **Sleep Well Approach** (เน้น Peace of Mind)
+#### 3️⃣ **Sleep Well Approach**
 
 ```
-🌙 Tagline: "กู้แล้วนอนหลับฝันดี"
+🌙 Tagline: "Borrow with Confidence, Sleep with Peace"
 
-ข้อความ:
-"ไม่ต้องตื่นมาเช็คตลาดตอน ตี 3
-ไม่ต้องกลัวโดนยึดทรัพย์กลางดึก
-GINVA มีระยะปกป้อง 72 ชั่วโมง
-เตือนก่อนล่วงหน้า ให้คุณมีเวลาแก้ไข"
+Message:
+"No need to check the market at 3 AM
+No need to fear asset seizure at midnight
+GINVA has 72-hour protection period
+Warn in advance so you have time to fix"
 
-Visual: รูปคนนอนหลับสบาย
-ข้อความ: "While others liquidate you while you sleep,
+Visual: Person sleeping peacefully
+Message: "While others liquidate you while you sleep,
 GINVA protects you while you sleep"
 ```
 
-#### 4️⃣ **Less is More Approach** (เรียบง่ายแต่ล้ำค่า)
+#### 4️⃣ **Less is More Approach**
 
 ```
-🌿 Tagline: "น้อยแต่มาก | Less is More"
+🌿 Tagline: "Less is More"
 
-ข้อความ:
-"เราไม่มีฟีเจอร์ซับซ้อนให้งง
-ไม่มีดอกเบี้ยที่ขึ้นลงวันละ 10 รอบ
-ไม่มีเงื่อนไขพิมพ์ละเอียดให้ปวดตา
+Message:
+"We don't have confusing complex features
+We don't have interest rates that change 10 times a day
+We don't have fine print that hurts your eyes
 
-มีแค่สิ่งที่คุณต้องการ:
-✓ ดอกเบี้ยคงที่ 8%
-✓ ยืด/คืนเมื่อไหร่ก็ได้
-✓ ปลอดภัยตลอด 72 ชั่วโมง"
+We only have what you need:
+✓ Fixed 8% interest
+✓ Extend/repay whenever
+✓ 72-hour protection"
 ```
 
-#### 5️⃣ **Trust Badge Approach** (ตราสัญลักษณ์ความน่าเชื่อถือ)
+#### 5️⃣ **Trust Badge Approach**
 
 ```
 🏛️ GINVA Trust Seal:
@@ -126,43 +126,43 @@ GINVA protects you while you sleep"
 "✓ No Hidden Fees"
 "✓ Transparent Forever"
 
-ข้อความ:
-"เราไม่มีคำว่า 'อาจ' หรือ 'ประมาณ'
-เราใช้คำว่า 'รับประกัน' และ 'สัญญา'"
+Message:
+"We don't use words like 'maybe' or 'approximately'
+We use words like 'guarantee' and 'promise'"
 ```
 
-#### 6️⃣ **Story/Emotional Approach** (เล่าเรื่องจากประสบการณ์จริง)
+#### 6️⃣ **Story/Emotional Approach**
 
 ```
 📖 Storytelling:
-"คุณเคยไหม? กู้เงินแล้วต้องคอยกังวลตลาดทุกวัน
+"Have you ever borrowed money and had to worry about the market every day?
 
-ผู้สร้าง GINVA เคยครับ
-เลยสร้างแพลตฟอร์มที่เขาอยากใช้เอง:
-แบบที่ดอกเบี้ยไม่ขึ้นกลางคัน
-แบบที่ไม่โดนยึดทรัพย์ตอนหลับ
-แบบที่รู้สึกปลอดภัยจริงๆ"
+I, the GINVA creator, have been there
+So I built a platform I myself want to use:
+One where interest doesn't change mid-term
+One where you don't get seized while sleeping
+One where you truly feel safe"
 
-💚 ปิดท้าย:
-"GINVA - ออกแบบมาเพื่อคนไม่ชอบเสี่ยง
-โดยคนไม่ชอบเสี่ยง"
+💚 Closing:
+"GINVA - Designed for people who don't like risk
+by people who don't like risk"
 ```
 
-#### 7️⃣ **Comparison Table Approach** (เปรียบเทียบตรงๆ)
+#### 7️⃣ **Comparison Table Approach**
 
 ```
-📊 ตารางเปรียบเทียบ:
+📊 Comparison Table:
 
-                    แพลตฟอร์มทั่วไป     GINVA
-ดอกเบี้ย            3-25% (ผันผวน)      8% (คงที่)
-การแจ้งเตือน        ไม่มี/น้อย          72 ชม. ล่วงหน้า
-ความซับซ้อน         สูง                ต่ำ
-ความโปร่งใส         มีเงื่อนไขแอบแฝง    ไม่มีค่าธรรมเนียมแอบแฝง
-ความรู้สึก           เครียด            สบายใจ
+                    Typical Platform    GINVA
+Interest            3-25% (variable)   8% (fixed)
+Notifications       None/little         72 hours advance
+Complexity          High                Low
+Transparency        Hidden conditions   No hidden fees
+Feeling             Stressful           Comfortable
 
 💬 Caption:
-"เราไม่ได้บอกว่าเราดีที่สุด
-แต่เราบอกว่าเราตรงไปตรงมา"
+"We're not saying we're the best
+But we're saying we're straightforward"
 ```
 
 ---
@@ -171,8 +171,8 @@ GINVA protects you while you sleep"
 
 **For Landing Page:**
 
-- Hero: "8% ตลอดกู้ ไม่มีเซอร์ไพรส์" (Approach #1)
-- Sub-hero: "กู้แล้วนอนหลับฝันดี" (Approach #3)
+- Hero: "8% Fixed. No Surprises." (Approach #1)
+- Sub-hero: "Borrow with Confidence, Sleep with Peace" (Approach #3)
 
 **For Social Media:**
 
@@ -182,114 +182,114 @@ GINVA protects you while you sleep"
 **For Print/Card:**
 
 - Trust Badges (Approach #5)
-- "น้อยแต่มาก" slogan (Approach #4)
+- "Less is More" slogan (Approach #4)
 
 **Key Principle:**
 
-> "อย่าพยายามอธิบายทุกอย่าง
-> ให้อธิบายสิ่งที่สำคัญที่สุดอย่างเดียว"
+> "Don't try to explain everything
+> Explain only the most important thing"
 
 ---
 
 ## Tagline & Slogans
 
-### สำหรับผู้กู้ (หลัก)
+### For Borrowers (Primary)
 
-**แบบสั้น:**
+**Short:**
 
-- "ได้เงินด่วน ไม่ต้องขายคริปโต"
-- "กู้ง่าย จ่ายคืนได้ ปลอดภัยกว่า"
-- "คริปโตของคุณ อยู่ที่เดิม แต่มีเงินใช้"
+- "Get cash fast without selling crypto"
+- "Borrow easy, repay anytime, more secure"
+- "Your crypto stays the same, but you have cash to use"
 
-**แบบเต็ม:**
+**Full:**
 
-- "GINVA - แพลตฟอร์มกู้เงินด้วยสินทรัพย์ดิจิทัลที่ใจดีที่สุด ให้เวลาคุณ 72 ชั่วโมงเพื่อจัดการก่อนมีอะไรเกิดขึ้น"
-- "ไม่ต้องขายคริปโตที่ถืออยู่ กู้เงินใช้ได้ทันที ด้วยดอกเบี้ยยุติธรรม"
+- "GINVA - The friendliest digital asset lending platform gives you 72 hours to manage before anything happens"
+- "Don't sell your held crypto, borrow cash immediately with fair interest"
 
-### สำหรับนักลงทุน (รอง)
+### For Investors (Secondary)
 
-- "สนับสนุนสภาพคล่อง เพื่อช่วยให้ผู้กู้มีโอกาส"
-- "ได้รับผลตอบแทนดี ขณะช่วยเหลือผู้ใช้ DeFi"
-
----
-
-## การอธิบายระบบ (สำหรับผู้กู้)
-
-### แบบง่าย 1 ประโยค:
-
-"GINVA ช่วยให้คุณกู้เงินโดยไม่ต้องขายคริปโต ถ้าราคาตกเรามีระบบปกป้องให้คุณ 72 ชั่วโมง"
-
-### แบบอธิบายละเอียด:
-
-"GINVA คือแพลตฟอร์มที่ช่วยให้คุณได้เงินใช้โดยไม่ต้องขายสินทรัพย์ดิจิทัลที่ถืออยู่
-
-✅ กู้เงินทันทีโดยใช้ SOL, BTC, ETH เป็นหลักประกัน  
-✅ ไม่ต้องรออนุมัติ ไม่ต้องยื่นเอกสาร  
-✅ ถ้าราคาสินทรัพย์ตก เราให้เวลาคุณ 72 ชั่วโมงเพื่อจัดการ  
-✅ ระบบของเราช่วยปกป้องคุณ ไม่ใช่ยึดทรัพย์ทันทีเหมือนที่อื่น"
+- "Provide liquidity to help borrowers have opportunities"
+- "Get good returns while helping DeFi users"
 
 ---
 
-## การอธิบายระบบ Liquidation (ใหม่)
+## Explaining the System (For Borrowers)
 
-### อย่าพูดว่า: "ระบบขายทอดตลาด"
+### Simple 1-sentence version:
 
-### พูดว่า: "ระบบปกป้องสินทรัพย์ของคุณ"
+"GINVA helps you borrow money without selling your crypto, if prices drop we give you 72 hours to protect yourself"
 
-**คำอธิบาย:**
-"หากราคาสินทรัพย์ค้ำประกันต่ำกว่าระดับที่กำหนด ระบบจะเปิดช่องทางให้ผู้สนับสนุนสภาพคล่องช่วยดูแลสินทรัพย์ของคุณแทน โดย:
+### Detailed explanation:
 
-- คุณมีเวลา 72 ชั่วโมงในการเพิ่มหลักประกันหรือคืนเงินกู้
-- หากไม่สามารถดำเนินการได้ สินทรัพย์จะถูกดูแลโดยผู้สนับสนุนที่ได้รับสิทธิ์ในราคายุติธรรม
-- คุณยังได้รับมูลค่าคงเหลือจากการจัดการสินทรัพย์"
+"GINVA is a platform that lets you get cash without selling your digital assets
 
----
-
-## ชื่อ Feature ใหม่
-
-| Feature เดิม    | ชื่อใหม่ (ผู้ใช้มองเห็น)            |
-| --------------- | ----------------------------------- |
-| Liquidation     | Asset Protection / Recovery System  |
-| Pawn Shop       | Liquidity Support Center            |
-| Storefront      | Opportunity Market (สำหรับนักลงทุน) |
-| Trigger Keeper  | Early Warning Assistant             |
-| Hunter          | Liquidity Partner                   |
-| Finalize Keeper | Completion Assistant                |
+✅ Borrow immediately using SOL, BTC, ETH as collateral  
+✅ No approval needed, no documents required  
+✅ If asset prices drop, we give you 72 hours to manage  
+✅ Our system protects you, not seize assets immediately like others"
 
 ---
 
-## ข้อความบน UI ที่ต้องเปลี่ยน
+## Explaining Liquidation System (New)
 
-### หน้า Dashboard
+### Don't say: "Auction system"
 
-**เดิม:**
+### Say: "Asset protection system"
+
+**Explanation:**
+"If your collateral asset price falls below the set level, the system will open a channel for liquidity supporters to help care for your assets instead, by:
+
+- You have 72 hours to add collateral or repay the loan
+- If you cannot proceed, assets will be cared for by eligible supporters at fair prices
+- You still receive remaining value from asset management"
+
+---
+
+## New Feature Names
+
+| Original Feature | New Name (User-Visible)            |
+| ---------------- | ---------------------------------- |
+| Liquidation      | Asset Protection / Recovery System |
+| Pawn Shop        | Liquidity Support Center           |
+| Storefront       | Opportunity Market                 |
+| Trigger Keeper   | Early Warning Assistant            |
+| Hunter           | Liquidity Partner                  |
+| Finalize Keeper  | Completion Assistant               |
+
+---
+
+## UI Text to Change
+
+### Dashboard Page
+
+**Original:**
 
 - "Your Liquidation Risk"
 - "Assets at Risk"
 
-**ใหม่:**
+**New:**
 
-- "Health Status" (สถานะสุขภาพบัญชี)
-- "Protection Level" (ระดับการปกป้อง)
+- "Health Status"
+- "Protection Level"
 
-### หน้า Pawn (กู้เงิน)
+### Pawn (Borrow) Page
 
-**เดิม:**
+**Original:**
 
 - "Borrowing with risk of liquidation"
 
-**ใหม่:**
+**New:**
 
 - "Get instant cash while keeping your crypto safe"
 - "Your crypto stays yours - just get the cash you need"
 
-### การแจ้งเตือน
+### Notifications
 
-**เดิม:**
+**Original:**
 
 - "⚠️ Your position is at risk of liquidation"
 
-**ใหม่:**
+**New:**
 
 - "📢 Friendly reminder: Please check your account health"
 - "💡 Opportunity: You can add more collateral to strengthen your position"
@@ -297,172 +297,172 @@ GINVA protects you while you sleep"
 
 ---
 
-## ข้อความสำหรับนักลงทุน (แยกสื่อสาร)
+## Messages for Investors (Separate Communication)
 
-**ต้องชัดเจนว่า:**
-"คุณกำลังสนับสนุนสภาพคล่องเพื่อช่วยเหลือผู้กู้ ไม่ใช่แย่งชิงทรัพย์สิน"
+**Must be clear:**
+"You're supporting liquidity to help borrowers, not fighting for assets"
 
-**คำอธิบาย:**
-"ในฐานะ Liquidity Partner คุณช่วยให้ระบบสามารถรองรับผู้กู้ได้มากขึ้น โดย:
+**Explanation:**
+"As a Liquidity Partner, you help the system support more borrowers by:
 
-- มีโอกาสได้รับสิทรัพย์ในราคาพิเศษเมื่อผู้กู้ไม่สามารถดูแลได้
-- ช่วยให้ระบบมีสภาพคล่องเพื่อปกป้องผู้กู้รายอื่น
-- ได้รับผลตอบแทนจากการช่วยเหลือระบบ"
+- Opportunity to receive assets at special prices when borrowers cannot maintain
+- Help system have liquidity to protect other borrowers
+- Receive returns from helping the system"
 
 ---
 
 ## Tone of Voice
 
-### ลักษณะที่ต้องมี:
+### Required characteristics:
 
-- **เป็นมิตร** - เหมือนเพื่อนที่คอยแนะนำ
-- **ปกป้อง** - เน้นความปลอดภัยของผู้ใช้
-- **ช่วยเหลือ** - ไม่ใช่คุกคาม
-- **โปร่งใส** - บอกทุกอย่างตรงๆ แต่ด้วยความห่วงใย
-- **สร้างโอกาส** - ไม่ใช่สร้างความกลัว
+- **Friendly** - Like a friend who recommends
+- **Protective** - Focus on user safety
+- **Helpful** - Not threatening
+- **Transparent** - Tell everything straight but with care
+- **Opportunity-building** - Not fear-building
 
-### ลักษณะที่ห้าม:
+### Forbidden characteristics:
 
-- น่ากลัว คุกคาม
-- ใช้ศัพท์เทคนิคมากเกินไป
-- เน้นการขายทอด การยึดทรัพย์
-- สื่อว่าผู้กู้เป็นฝ่ายผิด
+- Scary, threatening
+- Too much technical jargon
+- Emphasize auction, asset seizure
+- Implying borrowers are at fault
 
 ---
 
-## ตัวอย่าง Content ใหม่
+## New Content Examples
 
 ### Landing Page
 
 **Hero Section:**
 
 ```
-ได้เงินด่วน ไม่ต้องขายคริปโต
+Get Cash Fast Without Selling Crypto
 
-GINVA ช่วยให้คุณใช้สินทรัพย์ดิจิทัลเป็นหลักประกัน
-เพื่อกู้เงินใช้ทันที โดยไม่ต้องขายทรัพย์สินที่มีอยู่
+GINVA lets you use digital assets as collateral
+to borrow money immediately without selling your assets
 
-✓ อนุมัติทันที ไม่ต้องรอ
-✓ ไม่ตรวจสอบเครดิต
-✓ ดอกเบี้ยแข่งขันได้
-✓ ระบบปกป้อง 72 ชั่วโมง
+✓ Instant approval, no waiting
+✓ No credit check
+✓ Competitive interest
+✓ 72-hour protection system
 
-[เริ่มต้นกู้เงิน] [ศึกษาเพิ่มเติม]
+[Start Borrowing] [Learn More]
 ```
 
 **Why GINVA Section:**
 
 ```
-ทำไมต้อง GINVA?
+Why GINVA?
 
-🛡️ ปกป้องคุณเป็นอันดับ 1
-   ให้เวลาคุณ 72 ชั่วโมงก่อนมีอะไรเกิดขึ้น
-   ไม่ใช่ยึดทรัพย์ทันทีเหมือนที่อื่น
+🛡️ Protect You First
+   Give you 72 hours before anything happens
+   Not seize assets immediately like others
 
-⚡ ได้เงินทันใจ
-   ไม่ต้องขายคริปโต ไม่เสียโอกาสราคาขึ้น
+⚡ Get Cash Fast
+   Don't sell crypto, don't miss price appreciation
 
-💰 ดอกเบี้ยคงที่
-   8% ตลอดกู้ ไม่มีเซอร์ไพรส์ ไม่ขึ้นกลางคัน
+💰 Fixed Interest
+   8% for entire loan, no surprises, no mid-term changes
 
-🔒 ปลอดภัย โปร่งใส
-   ตรวจสอบทุกธุรกรรมบนบล็อกเชนได้
+🔒 Safe & Transparent
+   Verify every transaction on blockchain
 ```
 
-### หน้า How It Works
+### How It Works Page
 
-**สำหรับผู้กู้:**
+**For Borrowers:**
 
 ```
-วิธีใช้งานอย่างง่าย
+How It Works
 
-1. ฝากสินทรัพย์
-   นำ SOL, BTC, หรือ ETH มาเป็นหลักประกัน
-   ทรัพย์สินยังเป็นของคุณตลอด
+1. Deposit Assets
+   Use SOL, BTC, or ETH as collateral
+   Assets remain yours throughout
 
-2. กู้เงิน USDC
-   เลือกกู้ 20%, 40% หรือ 60% ของมูลค่า
-   รับเงินเข้ากระเป๋าทันที
+2. Borrow USDC
+   Choose to borrow 20%, 40%, or 60% of value
+   Receive money to wallet immediately
 
-3. ใช้เงินตามต้องการ
-   ไม่มีข้อจำกัดว่าต้องใช้ทำอะไร
+3. Use Money as Needed
+   No restrictions on what to use it for
 
-4. คืนเงินเมื่อพร้อม
-   คืนเมื่อไหร่ก็ได้ ไม่มีค่าปรับการคืนก่อนกำหนด
-   รับสินทรัพย์คืนเต็มจำนวน
+4. Repay When Ready
+   Repay anytime, no early repayment penalty
+   Receive full assets back
 ```
 
 **What if I can't repay?**
 
 ```
-หากไม่สามารถคืนเงินได้ตามกำหนด?
+If you can't repay on time?
 
-ไม่ต้องกังวล! เรามีระบบปกป้องคุณ:
+Don't worry! We have a system to protect you:
 
-✓ แจ้งเตือนล่วงหน้า 72 ชั่วโมง
-✓ คุณสามารถเพิ่มหลักประกันได้ตลอดเวลา
-✓ หรือคืนเฉพาะส่วนที่กู้มาก็ได้
-✓ ได้รับมูลค่าส่วนต่างคืนหากมีการจัดการสินทรัพย์
+✓ 72-hour advance notification
+✓ You can add collateral anytime
+✓ Or repay only what you borrowed
+✓ Receive difference value if assets are managed
 
-ระบบของเราออกแบบมาเพื่อช่วยเหลือ
-ไม่ใช่ลงโทษผู้ใช้
+Our system is designed to help
+not punish users
 ```
 
 ---
 
-## การสื่อสารกรณีฉุกเฉิน
+## Emergency Communication
 
-### เมื่อราคาใกล้ระดับที่กำหนด
+### When Price Approaches Threshold
 
-**แจ้งเตือนระดับ 1 (72 ชั่วโมงก่อน):**
-
-```
-💚 สถานะบัญชีของคุณยังปกติดี
-
-แต่เราขอแนะนำให้คุณพิจารณา:
-• เพิ่มหลักประกันเพื่อความมั่นใจ
-• หรือคืนเงินบางส่วน
-
-คุณมีเวลา 72 ชั่วโมงในการตัดสินใจ
-เราอยู่เคียงข้างคุณ 💪
-```
-
-**แจ้งเตือนระดับ 2 (24 ชั่วโมงก่อน):**
+**Level 1 Alert (72 hours before):**
 
 ```
-💛 กรุณาตรวจสอบบัญชีของคุณ
+💚 Your account status is still fine
 
-ราคาสินทรัพย์มีการเปลี่ยนแปลง
-เราแนะนำให้ดำเนินการเพื่อรักษาสิทธิ์ของคุณ:
+But we recommend you consider:
+• Add collateral for confidence
+• Or repay some of the loan
 
-[เพิ่มหลักประกัน] [คืนเงินกู้] [ดูตัวเลือกอื่นๆ]
+You have 72 hours to decide
+We're here for you 💪
+```
 
-เหลือเวลาอีก 24 ชั่วโมง
-ต้องการความช่วยเหลือ? [ติดต่อทีมงาน]
+**Level 2 Alert (24 hours before):**
+
+```
+💛 Please Check Your Account
+
+Asset prices have changed
+We recommend you take action to maintain your rights:
+
+[Add Collateral] [Repay Loan] [View Other Options]
+
+24 hours remaining
+Need help? [Contact Team]
 ```
 
 ---
 
-## สรุป
+## Summary
 
-### หลักการสื่อสารหลัก:
+### Core Communication Principles:
 
-1. **ผู้กู้คือลูกค้าหลัก** - สื่อสารกับเขาก่อนและมากที่สุด
-2. **เน้นประโยชน์** - ได้เงินด่วน ไม่ต้องขายคริปโต
-3. **สร้างความมั่นใจ** - ระบบปกป้อง 72 ชั่วโมง
-4. **ภาษาเป็นมิตร** - ไม่ใช่คำว่าขายทอด ยึดทรัพย์
-5. **แยกกลุ่มเป้าหมาย** - นักลงทุนคือผู้สนับสนุน ไม่ใช่ผู้ล่า
+1. **Borrowers are main customers** - Communicate with them first and most
+2. **Focus on benefits** - Get cash fast without selling crypto
+3. **Build confidence** - 72-hour protection system
+4. **Friendly language** - Not "auction" or "seizure" terms
+5. **Separate target groups** - Investors are supporters, not hunters
 
-### คำขวัญที่แนะนำ:
+### Recommended Taglines:
 
-**หลัก (Recommended):**
-**"8% ตลอดกู้ ไม่มีเซอร์ไพรส์"**
+**Primary (Recommended):**
+**"8% Fixed. No Surprises."**
 
-**รอง:**
+**Secondary:**
 
-- "ได้เงินด่วน ไม่ต้องขายคริปโต ปลอดภัยกว่าด้วยระบบปกป้อง 72 ชั่วโมง"
-- "GINVA - แพลตฟอร์มกู้เงินที่ใจดีที่สุดใน DeFi"
-- "กู้แล้วนอนหลับฝันดี"
+- "Get cash fast without selling crypto, more secure with 72-hour protection"
+- "GINVA - The friendliest lending platform in DeFi"
+- "Borrow with Confidence, Sleep with Peace"
 
 ---
 
@@ -470,37 +470,37 @@ GINVA ช่วยให้คุณใช้สินทรัพย์ดิ�
 
 ### The Decision: Fixed Rate over Dynamic Rate
 
-**หลักการ "น้อยแต่มาก" (Less is More)**
+**"Less is More" Principle**
 
-เราเลือก **Fixed Rate 8%** แทน Dynamic Rate ที่ผันผวนตามตลาด เพราะ:
+We chose **Fixed Rate 8%** over Dynamic Rate that fluctuates with the market because:
 
-| Dynamic Rate                         | Fixed Rate (GINVA)         |
-| ------------------------------------ | -------------------------- |
-| "ดอกเบี้ยอาจเปลี่ยน" → **ความกังวล** | "8% ตลอด" → **ความมั่นใจ** |
-| ต้องคอยมองตลาดตลอด                   | วางแผนการเงินได้ระยะยาว    |
-| ความผันผวน                           | ความสงบ นิ่ง แน่นอน        |
+| Dynamic Rate                      | Fixed Rate (GINVA)           |
+| --------------------------------- | ---------------------------- |
+| "Interest may change" → **Worry** | "8% always" → **Confidence** |
+| Must watch market constantly      | Can plan long-term finances  |
+| Volatility                        | Calm, stability, certainty   |
 
-### ใช่แล้ว! ตรงกับ DNA ของ GINVA ที่สุด
+### Yes! Fits GINVA's DNA Best
 
-> **"เราไม่ต้องการดอกเบี้ยที่ดีที่สุดในตลาด ที่แกว่งขึ้นลงจนน่าปวดหัว และซ้ำเติมลูกค้า แต่เราต้องการความปลอดภัยให้กับลูกค้า ที่จะมั่นใจได้ว่าจะไม่โดนหลอก"**
+> **"We don't want the best interest rate in the market that fluctuates so much it hurts customers and adds to their problems, but we want safety for customers who can be confident they won't be deceived"**
 
-### ผลลัพธ์:
+### Results:
 
-- ✅ ลูกค้าไม่ต้องกังวลเรื่องดอกเบี้ยเปลี่ยน
-- ✅ วางแผนการเงินได้แบบ Long-term
-- ✅ UX เรียบง่าย เข้าใจง่าย
-- ✅ ตรงกับคำขวัญ "ให้ความปลอดภัย สร้างความไว้วางใจ"
+- ✅ Customers don't worry about interest changes
+- ✅ Can plan finances long-term
+- ✅ Simple, easy-to-understand UX
+- ✅ Matches the motto "Provide Safety, Build Trust"
 
-### เปรียบเทียบเหมือนต้นไม้:
+### Compare like a tree:
 
 ```
-Dynamic Rate = ใบไม้ไหวตามลม (ผันผวนไปตามตลาด)
-Fixed Rate   = ลำต้นที่มั่นคง (ให้ความปลอดภัยเป็นหลัก)
+Dynamic Rate = Leaves swaying in wind (fluctuate with market)
+Fixed Rate   = Firm trunk (provides security primarily)
 ```
 
-**สรุป:** Fixed Rate ไม่ใช่การประนีประนอม แต่คือ **ความกล้าที่จะเรียบง่ายในยุคที่ทุกคนพยายามทำให้ซับซ้อน** 🌿
+**Summary:** Fixed Rate is not a compromise, but **the courage to be simple in an era where everyone tries to be complex** 🌿
 
 ---
 
 _Last Updated: 2026-02-14 by Agent Recommendation_
-_Core Philosophy: "น้อยแต่มาก" - Trust through Simplicity_
+_Core Philosophy: "Less is More" - Trust through Simplicity_

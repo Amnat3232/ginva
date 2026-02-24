@@ -1,51 +1,51 @@
-# ⚠️ การเปิดเผยความเสี่ยง (Risk Disclosure)
+# ⚠️ Risk Disclosure
 
-> **"ความปลอดภัยไม่ได้เกิดจากคำสัญญา แต่เกิดจากตรรกะที่ตรวจสอบได้"**
+> **"Safety doesn't come from promises, it comes from verifiable logic"**
 >
 > **Last Updated**: February 2026
 > **Protocol Version**: 2.0.0
 
 ---
 
-## 🚨 คำเตือนสำคัญ
+## 🚨 Important Warning
 
-**การใช้งาน GINVA Protocol มีความเสี่ยงสูง** ผู้ใช้ควรอ่านและเข้าใจความเสี่ยงทั้งหมดก่อนใช้งาน ระบบนี้เป็น **DeFi Protocol** ที่ทำงานอัตโนมัติและไม่มีการคุ้มครองจากรัฐบาลหรือสถาบันใด
-
----
-
-## 🔴 ความเสี่ยงหลัก
-
-### 1. ความเสี่ยงจากการล้างทรัพย์ (Liquidation Risk)
-
-GINVA มี **ระบบล้างทรัพย์ 2 ระบบ** ที่ทำงานต่างกัน:
-
-| ระบบ                           | เงื่อนไข             | ระยะเวลา |
-| ------------------------------ | -------------------- | -------- |
-| **Maturity Grace Period**      | ครบกำหนดอายุสัญญา    | 72 ชม.   |
-| **Immediate Price Protection** | Health Factor < 100% | ทันที    |
-
-#### ⚠️ คำเตือนสำคัญ
-
-**ระบบ Immediate Price Protection จะทำงานทันทีโดยไม่มีระยะเวลาผ่อนผัน 72 ชม.** เมื่อ:
-
-- มูลค่าหลักประกันลดลงจน Health Factor < 100%
-- ระบบต้องปกป้องเงินทุนของผู้สนับสนุน (นักลงทุน)
-
-**ผู้กู้อาจสูญเสียหลักประกันทั้งหมดโดยไม่มีโอกาสแก้ไข** หาก:
-
-- ตลาดเกิด Flash Crash
-- ไม่ติดตาม Health Factor อย่างสม่ำเสมอ
-- ไม่เติมหลักประกันเพิ่มเมื่อ Health Factor ใกล้ 100%
+**Using GINVA Protocol involves high risk** Users should read and understand all risks before using. This is a **DeFi Protocol** that operates automatically and has no government or institutional protection.
 
 ---
 
-### 2. ความเสี่ยงจากราคา (Price Risk)
+## 🔴 Main Risks
 
-- **ความผันผวนของราคาสินทรัพย์:** ราคา SOL, BTC, ETH อาจลดลงฉับพลัน 30-50% ภายในไม่กี่ชั่วโมง
-- **Oracle Delay:** Pyth Network มี stale threshold 15 วินาที ในตลาดผันผวนมาก อาจมี slippage
-- **Liquidation Price:** ผู้กู้อาจถูกล้างทรัพย์ที่ราคาที่ต่ำกว่าที่คาดหวัง
+### 1. Liquidation Risk
 
-**สูตรคำนวณราคาล้างทรัพย์:**
+GINVA has **2 liquidation systems** that work differently:
+
+| System                         | Condition            | Duration  |
+| ------------------------------ | -------------------- | --------- |
+| **Maturity Grace Period**      | Contract matures     | 72 hours  |
+| **Immediate Price Protection** | Health Factor < 100% | Immediate |
+
+#### ⚠️ Important Warning
+
+**The Immediate Price Protection system works instantly without the 72-hour grace period** when:
+
+- Collateral value decreases until Health Factor < 100%
+- System must protect investor (supporter) capital
+
+**Borrowers may lose all collateral without opportunity to fix** if:
+
+- Market experiences Flash Crash
+- Not monitoring Health Factor regularly
+- Not adding collateral when Health Factor is near 100%
+
+---
+
+### 2. Price Risk
+
+- **Asset Price Volatility:** SOL, BTC, ETH prices may drop 30-50% within hours
+- **Oracle Delay:** Pyth Network has 15-second stale threshold, in highly volatile markets there may be slippage
+- **Liquidation Price:** Borrowers may be liquidated at lower than expected prices
+
+**Liquidation Price Formula:**
 
 ```
 Liquidation Price = Loan Amount / (Collateral Amount × 0.85)
@@ -53,94 +53,94 @@ Liquidation Price = Loan Amount / (Collateral Amount × 0.85)
 
 ---
 
-### 3. ความเสี่ยงจาก Smart Contract
+### 3. Smart Contract Risk
 
-- **Bug ใน Smart Contract:** หากมี bug อาจทำให้สูญเสียเงินทั้งหมด
-- **Exploit:** แฮกเกอร์อาจหาช่องโหว่ในระบบ
-- **Oracle Failure:** หาก Pyth Network มีปัญหา ระบบอาจทำงานผิดพลาด
-
----
-
-### 4. ความเสี่ยงจากตลาด (Market Risk)
-
-- **Liquidity Risk:** หากไม่มีผู้ซื้อในตลาด การล้างทรัพย์อาจไม่ได้ราคาดี
-- **Slippage:** ในตลาดผันผวน อาจเกิด slipage สูง
-- **Mercenary Capital:** นักลงทุนระยะสั้นอาจถอนเงินเมื่อได้กำไร ทำให้สภาพคล่องลดลง
+- **Smart Contract Bug:** Bug may cause total loss of funds
+- **Exploit:** Hackers may find system vulnerabilities
+- **Oracle Failure:** If Pyth Network has issues, system may malfunction
 
 ---
 
-## 🛡️ ระบบป้องกันที่มีอยู่
+### 4. Market Risk
 
-### สำหรับผู้กู้
+- **Liquidity Risk:** If there are no buyers in the market, liquidation may not get good price
+- **Slippage:** In volatile markets, high slippage may occur
+- **Mercenary Capital:** Short-term investors may withdraw after gaining profit, reducing liquidity
 
-| ระบบ                      | รายละเอียด                             |
-| ------------------------- | -------------------------------------- |
-| **Maturity Grace Period** | 72 ชม. หลังครบกำหนด (เฉพาะกรณีครบอายุ) |
-| **Health Factor Alert**   | แจ้งเตือนเมื่อ HF < 150%               |
-| **LTV Options**           | Safe (20%), Standard (40%), Max (60%)  |
+---
 
-### สำหรับผู้สนับสนุน
+## 🛡️ Existing Protection Systems
 
-| ระบบ                    | รายละเอียด           |
-| ----------------------- | -------------------- |
-| **Shield Fee**          | 5% หากถอนก่อน 15 วัน |
-| **Priority Waterfall**  | จ่ายเงินต้นก่อนกำไร  |
-| **MultiSig Separation** | แยกกระเป๋า 5 ประเภท  |
+### For Borrowers
 
-### ระบบความปลอดภัยทางเทคนิค
+| System                    | Details                                 |
+| ------------------------- | --------------------------------------- |
+| **Maturity Grace Period** | 72 hours after maturity (maturity only) |
+| **Health Factor Alert**   | Notify when HF < 150%                   |
+| **LTV Options**           | Safe (20%), Standard (40%), Max (60%)   |
 
-- **Reentrancy Guard:** ป้องกันการโจมตีซ้ำ
-- **Flash Loan Protection:** ระยะถือขั้นต่ำ 5 นาที
-- **Timelock:** 48 ชม. สำหรับ emergency functions
-- **Rate Limiting:** 5 ธุรกรรม/บล็อก
+### For Supporters
+
+| System                  | Details                        |
+| ----------------------- | ------------------------------ |
+| **Shield Fee**          | 5% if withdrawn before 15 days |
+| **Priority Waterfall**  | Pay principal before profit    |
+| **MultiSig Separation** | 5 wallet types separated       |
+
+### Technical Security Systems
+
+- **Reentrancy Guard:** Prevent re-entry attacks
+- **Flash Loan Protection:** Minimum 5-minute hold period
+- **Timelock:** 48 hours for emergency functions
+- **Rate Limiting:** 5 transactions/block
 
 ---
 
 ## 📊 Health Factor Guidelines
 
-| สถานะ        | Health Factor | คำแนะนำ                      |
-| ------------ | ------------- | ---------------------------- |
-| 🟢 Safe      | ≥ 200%        | ปลอดภัย                      |
-| 🟡 Medium    | 150-199%      | ระวัง เพิ่มหลักประกันได้     |
-| 🟠 High Risk | 100-149%      | เสี่ยงสูง ต้องเติมหลักประกัน |
-| 🔴 Critical  | < 100%        | ถูกล้างทันที                 |
+| Status       | Health Factor | Recommendation                 |
+| ------------ | ------------- | ------------------------------ |
+| 🟢 Safe      | ≥ 200%        | Safe                           |
+| 🟡 Medium    | 150-199%      | Caution, can add collateral    |
+| 🟠 High Risk | 100-149%      | High risk, must add collateral |
+| 🔴 Critical  | < 100%        | Liquidated immediately         |
 
 ---
 
-## 💡 แนวทางลดความเสี่ยง
+## 💡 Risk Mitigation Guidelines
 
-### สำหรับผู้กู้
+### For Borrowers
 
-1. **ติดตาม Health Factor สม่ำเสมอ** - โดยเฉพาะในช่วงตลาดผันผวน
-2. **ใช้ LTV ต่ำกว่า 40%** - เผื่อพื้นที่ความปลอดภัย
-3. **เตรียมหลักประกันสำรอง** - กรณีฉุกเฉิน
-4. **ศึกษาการทำงานของระบบ** - เข้าใจทั้ง 2 ระบบปกป้อง
-5. **กระจายความเสี่ยง** - ไม่กู้เต็มจำนวน
+1. **Monitor Health Factor regularly** - especially during volatile markets
+2. **Use LTV below 40%** - for safety buffer
+3. **Prepare backup collateral** - for emergencies
+4. **Study system operation** - understand both protection systems
+5. **Diversify risk** - don't borrow maximum amount
 
-### สำหรับผู้สนับสนุน
+### For Supporters
 
-1. **ฝากเงินอย่างน้อย 15 วัน** - หลีกเลี่ยง Shield Fee
-2. **กระจายการลงทุน** - ไม่ลงทุนทั้งหมดในที่เดียว
-3. **ติดตามสถานการณ์** - พร้อมถอนหากมีปัญหา
-
----
-
-## ⚖️ ข้อจำกัดความรับผิด
-
-1. **ไม่มีการรับประกัน:** ไม่มีการรับประกันว่าจะได้รับเงินคืน
-2. **ความเสี่ยงของผู้ใช้:** ผู้ใช้รับความเสี่ยงเองทั้งหมด
-3. **ไม่มีการคุ้มครอง:** ไม่มีการคุ้มครองจากรัฐบาลหรือสถาบัน
-4. **Code is Law:** Smart Contract ทำงานตาม code ไม่ใช่ตามความตั้งใจ
+1. **Deposit for at least 15 days** - avoid Shield Fee
+2. **Diversify investments** - don't invest all in one place
+3. **Monitor situation** - be ready to withdraw if issues arise
 
 ---
 
-## 📞 ติดต่อ
+## ⚖️ Liability Limitations
 
-หากมีคำถามเกี่ยวกับความเสี่ยง:
+1. **No Guarantee:** No guarantee that funds will be returned
+2. **User Risk:** Users bear all risk themselves
+3. **No Protection:** No protection from government or institutions
+4. **Code is Law:** Smart Contracts operate by code, not intent
+
+---
+
+## 📞 Contact
+
+For questions about risks:
 
 - 📧 support@ginva.io
 - 💬 Discord: ginva-protocol
 
 ---
 
-**GINVA Protocol — โปร่งใส ตรวจสอบได้ มาตรฐานสถาบัน**
+**GINVA Protocol — Transparent. Verifiable. Institutional Standard.**

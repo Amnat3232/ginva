@@ -15,23 +15,26 @@ export default function Footer() {
               </span>
             </div>
             <p className="text-ginva-silver mb-4 max-w-md">
-              "กระจายรายได้ ส่งมอบความสุข ให้ความปลอดภัย สร้างความไว้วางใจ"
+              "Distribute Revenue, Deliver Happiness, Provide Safety, Build
+              Trust"
             </p>
             <p className="text-sm text-ginva-silver">
-              แพลตฟอร์มการเงินที่ยุติธรรมที่สุดบน Solana
+              The most fair financial platform on Solana
             </p>
           </div>
 
           {/* Links */}
           <div>
-            <h3 className="text-ginva-gold font-semibold mb-4">เอกสาร</h3>
+            <h3 className="text-ginva-gold font-semibold mb-4">
+              Documentation
+            </h3>
             <ul className="space-y-2">
               <li>
                 <Link
                   href="/docs/architecture"
                   className="text-ginva-silver hover:text-ginva-cyan transition-colors"
                 >
-                  สถาปัตยกรรม
+                  Architecture
                 </Link>
               </li>
               <li>
@@ -39,7 +42,7 @@ export default function Footer() {
                   href="/docs/deployment"
                   className="text-ginva-silver hover:text-ginva-cyan transition-colors"
                 >
-                  การ Deploy
+                  Deployment
                 </Link>
               </li>
               <li>
@@ -47,7 +50,7 @@ export default function Footer() {
                   href="/docs/security"
                   className="text-ginva-silver hover:text-ginva-cyan transition-colors"
                 >
-                  ความปลอดภัย
+                  Security
                 </Link>
               </li>
             </ul>
@@ -55,7 +58,7 @@ export default function Footer() {
 
           {/* Social */}
           <div>
-            <h3 className="text-ginva-gold font-semibold mb-4">ชุมชน</h3>
+            <h3 className="text-ginva-gold font-semibold mb-4">Community</h3>
             <ul className="space-y-2">
               <li>
                 <a
@@ -94,10 +97,10 @@ export default function Footer() {
         {/* Bottom */}
         <div className="mt-8 pt-8 border-t border-ginva-navy text-center">
           <p className="text-ginva-silver text-sm">
-            © 2024 GINVA Protocol. สร้างด้วย ❤️ บน Solana
+            © 2024 GINVA Protocol. Built with ❤️ on Solana
           </p>
           <p className="text-ginva-silver text-xs mt-2">
-            "กระจายรายได้ ส่งมอบความสุข ให้ความปลอดภัย สร้างความไว้วางใจ"
+            "Distribute Revenue, Deliver Happiness, Provide Safety, Build Trust"
           </p>
         </div>
       </div>

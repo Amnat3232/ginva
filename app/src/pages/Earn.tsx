@@ -332,7 +332,7 @@ const Earn = () => {
               <FiShield className="text-success me-2" /> GINVA Ecosystem
             </h1>
             <p className="text-muted">
-              ร่วมสนับสนุนระบบ หลายหลายวิธี - เลือกแบบที่เหมาะกับคุณ
+              Support the System in Multiple Ways - Choose What's Right for You
             </p>
           </div>
 
@@ -343,7 +343,7 @@ const Earn = () => {
                 <Card.Body>
                   <FiDollarSign size={32} className="text-primary mb-2" />
                   <h5 className="fw-bold">8%</h5>
-                  <small className="text-muted">ดอกเบี้ยผู้กู้</small>
+                  <small className="text-muted">Borrower Interest</small>
                 </Card.Body>
               </Card>
             </Col>
@@ -352,7 +352,7 @@ const Earn = () => {
                 <Card.Body>
                   <FiTrendingUp size={32} className="text-success mb-2" />
                   <h5 className="fw-bold">65.25%</h5>
-                  <small className="text-muted">รางวัลผู้สนับสนุน</small>
+                  <small className="text-muted">Supporter Rewards</small>
                 </Card.Body>
               </Card>
             </Col>
@@ -360,7 +360,7 @@ const Earn = () => {
               <Card className="text-center h-100 border-0 shadow-sm bg-warning-subtle">
                 <Card.Body>
                   <FiClock size={32} className="text-warning mb-2" />
-                  <h5 className="fw-bold">72 ชม.</h5>
+                  <h5 className="fw-bold">72 hours</h5>
                   <small className="text-muted">Maturity Grace</small>
                 </Card.Body>
               </Card>
@@ -370,7 +370,7 @@ const Earn = () => {
                 <Card.Body>
                   <FiUsers size={32} className="text-info mb-2" />
                   <h5 className="fw-bold">3</h5>
-                  <small className="text-muted">บทบาทผู้ช่วย</small>
+                  <small className="text-muted">Helper Roles</small>
                 </Card.Body>
               </Card>
             </Col>
@@ -385,27 +385,30 @@ const Earn = () => {
               variant="pills"
             >
               {/* Tab 1: Overview */}
-              <Tab eventKey="overview" title="📊 ภาพรวม">
+              <Tab eventKey="overview" title="📊 Overview">
                 <Card.Body className="p-4">
-                  <h4 className="fw-bold mb-4">3 บทบาทในระบบนิเวศ GINVA</h4>
+                  <h4 className="fw-bold mb-4">3 Roles in GINVA Ecosystem</h4>
 
                   <Row className="g-4">
                     <Col md={4}>
                       <Card className="h-100 border-primary">
                         <Card.Header className="bg-primary text-white">
-                          <h5 className="mb-0">🌿 ผู้สนับสนุน</h5>
+                          <h5 className="mb-0">🌿 Supporters</h5>
                         </Card.Header>
                         <Card.Body>
-                          <p>ฝาก USDC เพื่อให้ผู้กู้มีเงินทุนหมุนเวียน</p>
+                          <p>
+                            Deposit USDC to provide borrowers with circulating
+                            capital
+                          </p>
                           <hr />
-                          <h6 className="fw-bold">รายได้:</h6>
+                          <h6 className="fw-bold">Income:</h6>
                           <ul>
-                            <li>65.25% จากดอกเบี้ยทั้งหมด</li>
+                            <li>65.25% of all interest</li>
                             <li>APY ~8.5%</li>
                           </ul>
-                          <h6 className="fw-bold">ความเสี่ยง:</h6>
+                          <h6 className="fw-bold">Risk:</h6>
                           <ul>
-                            <li>Shield Fee 5% (ถอนก่อน 15 วัน)</li>
+                            <li>Shield Fee 5% (withdraw before 15 days)</li>
                           </ul>
                         </Card.Body>
                       </Card>
@@ -413,16 +416,19 @@ const Earn = () => {
                     <Col md={4}>
                       <Card className="h-100 border-warning">
                         <Card.Header className="bg-warning text-dark">
-                          <h5 className="mb-0">🛡️ ผู้ช่วยเหลือ</h5>
+                          <h5 className="mb-0">🛡️ Helpers</h5>
                         </Card.Header>
                         <Card.Body>
-                          <p>ดูแลระบบ 3 ขั้นตอน ช่วยเหลือผู้กู้และระบบ</p>
+                          <p>
+                            Maintain the system 3 steps, help borrowers and the
+                            system
+                          </p>
                           <hr />
-                          <h6 className="fw-bold">รายได้:</h6>
+                          <h6 className="fw-bold">Income:</h6>
                           <ul>
-                            <li>Helper A: 0.6% จากหลักประกัน</li>
-                            <li>Helper B: ซื้อสินทรัพย์ในราคาพิเศษ</li>
-                            <li>Helper C: 1.0 USDC ต่อครั้ง</li>
+                            <li>Helper A: 0.6% from collateral</li>
+                            <li>Helper B: Buy assets at special prices</li>
+                            <li>Helper C: 1.0 USDC per execution</li>
                           </ul>
                         </Card.Body>
                       </Card>
@@ -430,17 +436,17 @@ const Earn = () => {
                     <Col md={4}>
                       <Card className="h-100 border-success">
                         <Card.Header className="bg-success text-white">
-                          <h5 className="mb-0">🏪 ร้านค้า</h5>
+                          <h5 className="mb-0">🏪 Storefront</h5>
                         </Card.Header>
                         <Card.Body>
-                          <p>ซื้อสินทรัพย์หลุดจำนำในราคายุติธรรม</p>
+                          <p>Buy seized assets at fair prices</p>
                           <hr />
-                          <h6 className="fw-bold">ราคาพิเศษ:</h6>
+                          <h6 className="fw-bold">Special Prices:</h6>
                           <ul>
-                            <li>0-10 นาที: ส่วนลด 8%</li>
-                            <li>10-30 นาที: ส่วนลด 6%</li>
-                            <li>30-60 นาที: ส่วนลด 3%</li>
-                            <li>60+ นาที: ราคาตลาด</li>
+                            <li>0-10 minutes: 8% discount</li>
+                            <li>10-30 minutes: 6% discount</li>
+                            <li>30-60 minutes: 3% discount</li>
+                            <li>60+ minutes: market price</li>
                           </ul>
                         </Card.Body>
                       </Card>
@@ -449,44 +455,42 @@ const Earn = () => {
 
                   <Alert variant="info" className="mt-4">
                     <FiInfo className="me-2" />
-                    <strong>ทุกคนสามารถเป็นได้ทุกบทบาท!</strong>{" "}
-                    ไม่ว่าจะเป็นมนุษย์, AI Agent, หรือ Bot -
-                    ทุกคนมีสิทธิ์เท่าเทียมกันในการช่วยระบบและรับรางวัล
+                    <strong>Everyone can be any role!</strong> Whether human, AI
+                    Agent, or Bot - everyone has equal rights to help the system
+                    and earn rewards
                   </Alert>
                 </Card.Body>
               </Tab>
 
               {/* Tab 2: Deposit/Stake */}
-              <Tab eventKey="deposit" title="🌿 ผู้สนับสนุน">
+              <Tab eventKey="deposit" title="🌿 Supporter">
                 <Card.Body className="p-4">
-                  <h4 className="fw-bold mb-3">
-                    🌿 ผู้สนับสนุนสภาพคล่อง (Liquidity Provider)
-                  </h4>
+                  <h4 className="fw-bold mb-3">🌿 Liquidity Provider</h4>
                   <p className="text-muted">
-                    ฝาก USDC เพื่อเป็นแหล่งเงินทุนให้ผู้กู้
-                    รับดอกเบี้ยเป็นรางวัล
+                    Deposit USDC to provide capital for borrowers Earn interest
+                    as rewards
                   </p>
 
                   <Alert variant="success" className="mb-4">
-                    <h5 className="fw-bold">💰 รายได้</h5>
+                    <h5 className="fw-bold">💰 Income</h5>
                     <Row>
                       <Col md={6}>
                         <ul>
                           <li>
-                            ได้รับ <strong>65.25%</strong>{" "}
-                            จากดอกเบี้ยทั้งหมดที่ผู้กู้จ่าย
+                            Receive <strong>65.25%</strong> of all interest paid
+                            by borrowers
                           </li>
                           <li>
-                            APY ประมาณ <strong>8.5%</strong>
+                            APY approximately <strong>8.5%</strong>
                           </li>
-                          <li>รางวัลทบต้นอัตโนมัติ</li>
+                          <li>Auto-compounding rewards</li>
                         </ul>
                       </Col>
                       <Col md={6}>
                         <ul>
-                          <li>ไม่มีการล็อกเงิน</li>
-                          <li>ถอนได้ทุกเมื่อ</li>
-                          <li>Shield Fee 5% (ถอนก่อน 15 วัน)</li>
+                          <li>No money lock-up</li>
+                          <li>Withdraw anytime</li>
+                          <li>Shield Fee 5% (withdraw before 15 days)</li>
                         </ul>
                       </Col>
                     </Row>
@@ -557,9 +561,9 @@ const Earn = () => {
               </Tab>
 
               {/* Tab 3: Withdraw */}
-              <Tab eventKey="withdraw" title="⬆️ ถอนเงิน">
+              <Tab eventKey="withdraw" title="⬆️ Withdraw">
                 <Card.Body className="p-4">
-                  <h4 className="fw-bold mb-3">ถอนเงินสนับสนุน</h4>
+                  <h4 className="fw-bold mb-3">Withdraw Support</h4>
 
                   {!shieldStatus.isUserSafe && (
                     <Alert
@@ -648,7 +652,7 @@ const Earn = () => {
               </Tab>
 
               {/* Tab 4: Claim */}
-              <Tab eventKey="claim" title="🎁 รางวัล">
+              <Tab eventKey="claim" title="🎁 Rewards">
                 <Card.Body className="p-4">
                   <div className="text-center mb-4">
                     <h4 className="fw-bold mb-2">Claim Your Rewards</h4>
@@ -711,67 +715,60 @@ const Earn = () => {
               <Tab eventKey="helper-a" title="🛡️ Helper A">
                 <Card.Body className="p-4">
                   <h4 className="fw-bold mb-3">
-                    🛡️ Helper A: ผู้ตรวจสอบและแจ้งเตือน
+                    🛡️ Helper A: Monitor and Notify
                   </h4>
                   <p className="text-muted">
-                    ตรวจสอบสถานะเงินกู้และแจ้งเตือนเมื่อต้องการความช่วยเหลือ
+                    Check loan status and notify when assistance is needed
                   </p>
 
                   <Alert variant="warning" className="mb-4">
-                    <h5 className="fw-bold">🎁 รางวัล</h5>
-                    <Row>
-                      <Col md={6}>
-                        <h3 className="text-success">0.6%</h3>
-                        <p>ของมูลค่าหลักประกัน</p>
-                      </Col>
-                      <Col md={6}>
-                        <ul>
-                          <li>Trigger Health Factor → 0.6%</li>
-                          <li>Trigger Maturity → 0.6%</li>
-                          <li>ทำงานได้ทั้ง 2 ระบบ</li>
-                        </ul>
-                      </Col>
-                    </Row>
+                    <h5 className="fw-bold">🎁 Reward</h5>
+                    <p>0.6% of collateral value</p>
+                    <ul>
+                      <li>Works in both systems</li>
+                    </ul>
                   </Alert>
 
                   <Accordion defaultActiveKey="0">
                     <Accordion.Item eventKey="0">
-                      <Accordion.Header>📋 หน้าที่</Accordion.Header>
+                      <Accordion.Header>📋 Duties</Accordion.Header>
                       <Accordion.Body>
                         <ul>
-                          <li>ตรวจสอบสุขภาพบัญชีผู้กู้ (Health Factor)</li>
-                          <li>แจ้งเตือนล่วงหน้า 72 ชม. (เมื่อครบกำหนด)</li>
-                          <li>สั่งเริ่มกระบวนการช่วยเหลือ (Trigger)</li>
-                          <li>Monitor เงินกู้ที่มีปัญหา</li>
+                          <li>
+                            Monitor borrower account health (Health Factor)
+                          </li>
+                          <li>72-hour advance notification (at maturity)</li>
+                          <li>Trigger assistance process</li>
+                          <li>Monitor problematic loans</li>
                         </ul>
                       </Accordion.Body>
                     </Accordion.Item>
                     <Accordion.Item eventKey="1">
-                      <Accordion.Header>⚡ วิธีทำงาน</Accordion.Header>
+                      <Accordion.Header>⚡ How It Works</Accordion.Header>
                       <Accordion.Body>
                         <ol>
-                          <li>Scan หาเงินกู้ที่มี Health Factor &lt; 100%</li>
-                          <li>หรือ Scan หาเงินกู้ที่หมดอายุ + เกิน 72 ชม.</li>
+                          <li>Scan for loans with Health Factor &lt; 100%</li>
+                          <li>Or scan for expired loans + over 72 hours</li>
                           <li>
-                            เรียก function <code>trigger_liquidation</code>
+                            Call <code>trigger_liquidation</code> function
                           </li>
-                          <li>รับ 0.6% จากมูลค่าหลักประกัน</li>
+                          <li>Receive 0.6% from collateral value</li>
                         </ol>
                       </Accordion.Body>
                     </Accordion.Item>
                     <Accordion.Item eventKey="2">
-                      <Accordion.Header>🎯 เงื่อนไขการทำงาน</Accordion.Header>
+                      <Accordion.Header>🎯 Trigger Conditions</Accordion.Header>
                       <Accordion.Body>
                         <ul>
                           <li>
                             <strong>Health Factor:</strong> HF &lt; 100% →
-                            Liquidate ทันที
+                            Liquidate immediately
                           </li>
                           <li>
-                            <strong>Maturity:</strong> หมดอายุ + 72 ชม. แล้ว →
-                            Liquidate ได้
+                            <strong>Maturity:</strong> Expired + 72 hours → Can
+                            Liquidate
                           </li>
-                          <li>ต้องมี USDC ในกระเป๋า足够的สำหรับค่า gas</li>
+                          <li>Must have USDC in wallet for gas fees</li>
                         </ul>
                       </Accordion.Body>
                     </Accordion.Item>
@@ -779,7 +776,7 @@ const Earn = () => {
 
                   <div className="text-center mt-4">
                     <Button variant="warning" size="lg" href="/keeper">
-                      <FiEye className="me-2" /> ไปหน้า Keeper
+                      <FiEye className="me-2" /> Go to Keeper Page
                     </Button>
                   </div>
                 </Card.Body>
@@ -789,66 +786,67 @@ const Earn = () => {
               <Tab eventKey="helper-b" title="🏪 Helper B">
                 <Card.Body className="p-4">
                   <h4 className="fw-bold mb-3">
-                    🏪 Helper B: ผู้สนับสนุนสภาพคล่อง (ซื้อสินทรัพย์)
+                    🏪 Helper B: Liquidity Provider (Buy Assets)
                   </h4>
                   <p className="text-muted">
-                    เข้าซื้อสินทรัพย์หลุดจำนำในราคาพิเศษ ช่วยระบบมีสภาพคล่อง
+                    Buy seized assets at special prices, help system have
+                    liquidity
                   </p>
 
                   <Alert variant="success" className="mb-4">
                     <h5 className="fw-bold">
-                      💰 ราคาพิเศษ (Time-Based Discount)
+                      💰 Special Prices (Time-Based Discount)
                     </h5>
                     <Row className="text-center">
                       <Col xs={6} md={3}>
                         <Badge bg="success" className="mb-2">
-                          0-10 นาที
+                          0-10 min
                         </Badge>
                         <h4 className="text-success">-8%</h4>
-                        <small>ราคาต่ำสุด</small>
+                        <small>Lowest price</small>
                       </Col>
                       <Col xs={6} md={3}>
                         <Badge bg="info" className="mb-2">
-                          10-30 นาที
+                          10-30 min
                         </Badge>
                         <h4 className="text-info">-6%</h4>
                       </Col>
                       <Col xs={6} md={3}>
                         <Badge bg="warning" className="mb-2">
-                          30-60 นาที
+                          30-60 min
                         </Badge>
                         <h4 className="text-warning">-3%</h4>
                       </Col>
                       <Col xs={6} md={3}>
                         <Badge bg="secondary" className="mb-2">
-                          60+ นาที
+                          60+ min
                         </Badge>
-                        <h4 className="text-secondary">ตลาด</h4>
-                        <small>ราคาปกติ</small>
+                        <h4 className="text-secondary">Market</h4>
+                        <small>Regular price</small>
                       </Col>
                     </Row>
                   </Alert>
 
                   <Accordion>
                     <Accordion.Item eventKey="0">
-                      <Accordion.Header>📋 หน้าที่</Accordion.Header>
+                      <Accordion.Header>📋 Duties</Accordion.Header>
                       <Accordion.Body>
                         <ul>
-                          <li>เข้าซื้อสินทรัพย์หลุดจำนำจากร้านค้า</li>
-                          <li>ให้สภาพคล่องแก่ระบบ</li>
-                          <li>รับส่วนลดตามเวลาที่เข้าซื้อ</li>
-                          <li>ช่วยให้ผู้กู้ได้ราคาดีที่สุด</li>
+                          <li>Buy seized assets from storefront</li>
+                          <li>Provide liquidity to system</li>
+                          <li>Receive discount based on purchase time</li>
+                          <li>Help borrowers get best price</li>
                         </ul>
                       </Accordion.Body>
                     </Accordion.Item>
                     <Accordion.Item eventKey="1">
-                      <Accordion.Header>🛒 วิธีซื้อ</Accordion.Header>
+                      <Accordion.Header>🛒 How to Buy</Accordion.Header>
                       <Accordion.Body>
                         <ol>
-                          <li>ไปที่หน้า Storefront</li>
-                          <li>เลือกสินทรัพย์ที่ต้องการ</li>
-                          <li>จ่าย USDC ในราคาพิเศษ</li>
-                          <li>รับสินทรัพย์ไปทันที</li>
+                          <li>Go to Storefront page</li>
+                          <li>Select desired asset</li>
+                          <li>Pay USDC at special price</li>
+                          <li>Receive asset immediately</li>
                         </ol>
                       </Accordion.Body>
                     </Accordion.Item>
@@ -856,7 +854,7 @@ const Earn = () => {
 
                   <div className="text-center mt-4">
                     <Button variant="success" size="lg" href="/storefront">
-                      <FiShoppingCart className="me-2" /> ไปหน้าร้านค้า
+                      <FiShoppingCart className="me-2" /> Go to Storefront
                     </Button>
                   </div>
                 </Card.Body>
@@ -866,49 +864,49 @@ const Earn = () => {
               <Tab eventKey="helper-c" title="✅ Helper C">
                 <Card.Body className="p-4">
                   <h4 className="fw-bold mb-3">
-                    ✅ Helper C: ผู้ดำเนินการจัดการ
+                    ✅ Helper C: Operations Manager
                   </h4>
                   <p className="text-muted">
-                    จัดการส่งต่อรายได้และปิดกระบวนการให้สมบูรณ์
+                    Manage income distribution and complete the process
                   </p>
 
                   <Alert variant="info" className="mb-4">
-                    <h5 className="fw-bold">🎁 รางวัล</h5>
+                    <h5 className="fw-bold">🎁 Reward</h5>
                     <h3 className="text-primary">1.0 USDC</h3>
-                    <p>ต่อการดำเนินการ 1 ครั้ง</p>
+                    <p>per execution</p>
                   </Alert>
 
                   <Accordion>
                     <Accordion.Item eventKey="0">
-                      <Accordion.Header>📋 หน้าที่</Accordion.Header>
+                      <Accordion.Header>📋 Duties</Accordion.Header>
                       <Accordion.Body>
                         <ul>
-                          <li>สรุปผลธุรกรรมของระบบ</li>
-                          <li>สั่งงานระบบกระจายรายได้</li>
-                          <li>จัดการส่งต่อเงินให้ผู้เกี่ยวข้อง</li>
-                          <li>ปิดกระบวนการให้สมบูรณ์</li>
+                          <li>Summarize system transactions</li>
+                          <li>Execute income distribution</li>
+                          <li>Distribute funds to relevant parties</li>
+                          <li>Complete the process</li>
                         </ul>
                       </Accordion.Body>
                     </Accordion.Item>
                     <Accordion.Item eventKey="1">
-                      <Accordion.Header>💵 ลำดับการจ่ายเงิน</Accordion.Header>
+                      <Accordion.Header>💵 Payment Order</Accordion.Header>
                       <Accordion.Body>
                         <ol>
                           <li>
-                            <strong>Priority 1:</strong> จ่ายรางวัล Helper C
+                            <strong>Priority 1:</strong> Pay Helper C reward
                             (1.0 USDC)
                           </li>
                           <li>
-                            <strong>Priority 2:</strong> คืนเงินต้นเข้า Capital
-                            Wallet
+                            <strong>Priority 2:</strong> Return principal to
+                            Capital Wallet
                           </li>
                           <li>
-                            <strong>Priority 3:</strong> ส่วนเกินเป็นกำไร
+                            <strong>Priority 3:</strong> Excess as profit
                           </li>
                           <ul>
-                            <li>10% → Capital Wallet (กองทุน)</li>
-                            <li>24.75% → ทีมงาน</li>
-                            <li>65.25% → ผู้สนับสนุน (Stakers)</li>
+                            <li>10% → Capital Wallet (Fund)</li>
+                            <li>24.75% → Team</li>
+                            <li>65.25% → Supporters (Stakers)</li>
                           </ul>
                         </ol>
                       </Accordion.Body>
@@ -918,30 +916,34 @@ const Earn = () => {
               </Tab>
 
               {/* Tab 8: Risk Warning */}
-              <Tab eventKey="risks" title="⚠️ ความเสี่ยง">
+              <Tab eventKey="risks" title="⚠️ Risks">
                 <Card.Body className="p-4">
-                  <h4 className="fw-bold mb-3">⚠️ ความเสี่ยงและข้อควรรู้</h4>
+                  <h4 className="fw-bold mb-3">⚠️ Risks and Important Info</h4>
 
                   <Alert variant="danger" className="mb-4">
-                    <h5 className="fw-bold">🔴 ความเสี่ยงหลัก</h5>
+                    <h5 className="fw-bold">🔴 Main Risks</h5>
                     <ul>
                       <li>
                         <strong>Dual Protection System:</strong>
                         <ul>
-                          <li>Maturity Grace Period: 72 ชม. (หลังครบกำหนด)</li>
                           <li>
-                            Immediate Price Protection: ทันที เมื่อ HF &lt; 100%
+                            Maturity Grace Period: 72 hours (after maturity)
+                          </li>
+                          <li>
+                            Immediate Price Protection: Immediately when HF &lt;
+                            100%
                           </li>
                         </ul>
                       </li>
                       <li>
-                        <strong>Shield Fee:</strong> 5% หากถอนก่อน 15 วัน
+                        <strong>Shield Fee:</strong> 5% if withdrawn before 15
+                        days
                       </li>
                       <li>
-                        <strong>Smart Contract Risk:</strong> อาจมี bug
+                        <strong>Smart Contract Risk:</strong> May have bugs
                       </li>
                       <li>
-                        <strong>Price Risk:</strong> ราคาคริปโตผันผวน
+                        <strong>Price Risk:</strong> Crypto prices are volatile
                       </li>
                     </ul>
                   </Alert>
@@ -950,12 +952,12 @@ const Earn = () => {
                     <Col md={6}>
                       <Card className="bg-light">
                         <Card.Header>
-                          <h6 className="mb-0">🌿 ผู้สนับสนุน</h6>
+                          <h6 className="mb-0">🌿 Supporters</h6>
                         </Card.Header>
                         <Card.Body>
                           <ul>
-                            <li>Shield Fee 5% (ถอนก่อน 15 วัน)</li>
-                            <li>Impermanent Loss (ถ้าราคา USDC ขึ้น)</li>
+                            <li>Shield Fee 5% (withdraw before 15 days)</li>
+                            <li>Impermanent Loss (if USDC price goes up)</li>
                             <li>Smart Contract Risk</li>
                           </ul>
                         </Card.Body>
@@ -964,13 +966,13 @@ const Earn = () => {
                     <Col md={6}>
                       <Card className="bg-light">
                         <Card.Header>
-                          <h6 className="mb-0">🛡️ ผู้ช่วยเหลือ</h6>
+                          <h6 className="mb-0">🛡️ Helpers</h6>
                         </Card.Header>
                         <Card.Body>
                           <ul>
-                            <li>Gas Fee (ต้องจ่ายเพื่อทำธุรกรรม)</li>
-                            <li>Competition (คนอื่นอาจมาก่อน)</li>
-                            <li>Oracle Risk (ราคาอาจไม่แม่นยำ)</li>
+                            <li>Gas Fee (must pay for transactions)</li>
+                            <li>Competition (others may come first)</li>
+                            <li>Oracle Risk (price may be inaccurate)</li>
                           </ul>
                         </Card.Body>
                       </Card>
@@ -979,8 +981,8 @@ const Earn = () => {
 
                   <Alert variant="warning" className="mt-4">
                     <FiAlertTriangle className="me-2" />
-                    <strong>สำคัญ:</strong> ทุกการลงทุนมีความเสี่ยง
-                    ศึกษาข้อมูลให้ดีก่อนตัดสินใจ
+                    <strong>Important:</strong> All investments have risks Study
+                    information carefully before making decisions
                   </Alert>
                 </Card.Body>
               </Tab>

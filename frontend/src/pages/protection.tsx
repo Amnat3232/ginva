@@ -4,7 +4,7 @@ import Button from "../components/Button";
 import Card from "../components/Card";
 
 export default function ProtectionPage() {
-  // Mock data - ในอนาคตจะมาจาก API
+  // Mock data - will come from API in the future
   const [timeRemaining, setTimeRemaining] = useState(68 * 3600 + 42 * 60 + 15); // 68:42:15
   const [currentPrice, setCurrentPrice] = useState(89.5);
   const [liquidationPrice] = useState(95.0);
@@ -50,15 +50,15 @@ export default function ProtectionPage() {
   const gapPercent = ((gap / liquidationPrice) * 100).toFixed(1);
 
   return (
-    <Layout title="โหมดการปกป้อง - GINVA">
+    <Layout title="Protection Mode - GINVA">
       {/* Alert Banner */}
       <div className="bg-ginva-amber/20 border-b border-ginva-amber/50 py-3 px-4">
         <div className="max-w-4xl mx-auto flex items-center justify-center space-x-2">
           <span className="text-ginva-amber">⚠️</span>
           <span className="text-ginva-amber font-medium">
-            โหมดการปกป้องเปิดใช้งาน - คุณมีเวลา {hours}:
+            Protection Mode Active - You have {hours}:
             {minutes.toString().padStart(2, "0")}:
-            {seconds.toString().padStart(2, "0")} ในการดำเนินการ
+            {seconds.toString().padStart(2, "0")} to act
           </span>
         </div>
       </div>
@@ -66,16 +66,16 @@ export default function ProtectionPage() {
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Back Button */}
         <button className="text-ginva-silver hover:text-ginva-gold mb-6 flex items-center">
-          ← กลับไป Dashboard
+          ← Back to Dashboard
         </button>
 
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-display font-bold mb-2">
-            🛡️ ระบบปกป้อง 72 ชั่วโมง
+            🛡️ 72-Hour Protection System
           </h1>
           <p className="text-ginva-silver">
-            สินทรัพย์ของคุณได้รับการปกป้อง คุณมีเวลาในการดำเนินการ
+            Your assets are protected, you have time to act
           </p>
         </div>
 
@@ -115,7 +115,9 @@ export default function ProtectionPage() {
                   {minutes.toString().padStart(2, "0")}:
                   {seconds.toString().padStart(2, "0")}
                 </span>
-                <span className="text-sm text-ginva-silver mt-1">เหลือ</span>
+                <span className="text-sm text-ginva-silver mt-1">
+                  remaining
+                </span>
               </div>
             </div>
 
@@ -127,7 +129,7 @@ export default function ProtectionPage() {
               />
             </div>
             <div className="flex justify-between text-sm text-ginva-silver">
-              <span>ชั่วโมงที่ {72 - hours} จาก 72</span>
+              <span>Hour {72 - hours} of 72</span>
               <span>
                 {status.emoji} {status.text}
               </span>
@@ -137,11 +139,11 @@ export default function ProtectionPage() {
 
         {/* Current Status */}
         <Card className="mb-6">
-          <h2 className="text-xl font-semibold mb-4">สถานะปัจจุบัน</h2>
+          <h2 className="text-xl font-semibold mb-4">Current Status</h2>
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 bg-ginva-slate/50 rounded-lg">
               <p className="text-sm text-ginva-silver mb-1">
-                ราคา SOL ปัจจุบัน
+                Current SOL Price
               </p>
               <p
                 className={`text-2xl font-mono font-bold ${
@@ -158,7 +160,7 @@ export default function ProtectionPage() {
             </div>
             <div className="p-4 bg-ginva-slate/50 rounded-lg">
               <p className="text-sm text-ginva-silver mb-1">
-                ราคาช่วยเหลือของคุณ
+                Your Liquidation Price
               </p>
               <p className="text-2xl font-mono font-bold text-ginva-silver">
                 ${liquidationPrice.toFixed(2)}
@@ -168,7 +170,7 @@ export default function ProtectionPage() {
 
           <div className="mt-4 p-4 bg-ginva-slate/50 rounded-lg">
             <div className="flex justify-between items-center">
-              <span className="text-ginva-silver">ช่องว่าง:</span>
+              <span className="text-ginva-silver">Gap:</span>
               <span
                 className={`font-mono font-bold ${
                   gap < 0 ? "text-ginva-red" : "text-ginva-cyan"
@@ -178,7 +180,7 @@ export default function ProtectionPage() {
               </span>
             </div>
             <div className="mt-2 flex justify-between items-center">
-              <span className="text-ginva-silver">LTV ปัจจุบัน:</span>
+              <span className="text-ginva-silver">Current LTV:</span>
               <span className={`font-mono font-bold ${status.color}`}>
                 {ltv}% ({status.text} {status.emoji})
               </span>
@@ -186,12 +188,12 @@ export default function ProtectionPage() {
           </div>
 
           <button className="mt-4 text-ginva-cyan hover:underline text-sm">
-            ดูกราฟราคา →
+            View Price Chart →
           </button>
         </Card>
 
         {/* Recommended Actions */}
-        <h2 className="text-xl font-semibold mb-4">การดำเนินการที่แนะนำ</h2>
+        <h2 className="text-xl font-semibold mb-4">Recommended Actions</h2>
 
         {/* Option 1: Add Collateral */}
         <Card className="mb-4 border-l-4 border-l-ginva-cyan">
@@ -199,14 +201,14 @@ export default function ProtectionPage() {
             <div className="text-3xl">💚</div>
             <div className="flex-1">
               <h3 className="font-semibold text-ginva-cyan mb-1">
-                แนะนำ: เพิ่มหลักประกัน
+                Recommended: Add Collateral
               </h3>
               <p className="text-sm text-ginva-silver mb-3">
-                เพิ่ม 0.5 SOL ($44.75) → LTV จะลดเหลือ 65% (Safe Zone 🟢) →
-                ยกเลิกการปกป้องทันที
+                Add 0.5 SOL ($44.75) → LTV drops to 65% (Safe Zone 🟢) → Cancel
+                protection immediately
               </p>
               <Button variant="primary" size="sm">
-                เพิ่มหลักประกัน →
+                Add Collateral →
               </Button>
             </div>
           </div>
@@ -218,14 +220,14 @@ export default function ProtectionPage() {
             <div className="text-3xl">💛</div>
             <div className="flex-1">
               <h3 className="font-semibold text-ginva-amber mb-1">
-                ทางเลือก: คืนเงินบางส่วน
+                Alternative: Repay Partially
               </h3>
               <p className="text-sm text-ginva-silver mb-3">
-                คืน 50 USDC → LTV จะลดเหลือ 68% (Safe Zone 🟢) →
-                ดอกเบี้ี้ยเดือนถัดไปลดลง
+                Repay 50 USDC → LTV drops to 68% (Safe Zone 🟢) → Next month's
+                interest decreases
               </p>
               <Button variant="outline" size="sm">
-                คืนเงินบางส่วน →
+                Repay Partially →
               </Button>
             </div>
           </div>
@@ -237,19 +239,19 @@ export default function ProtectionPage() {
             <div className="text-3xl">🧡</div>
             <div className="flex-1">
               <h3 className="font-semibold text-orange-500 mb-1">
-                รอดูสถานการณ์
+                Wait and See
               </h3>
               <p className="text-sm text-ginva-silver mb-3">
-                ไม่ทำอะไรตอนนี้ → ต่อไปนี้จะเข้าสู่ระยะช่วยเหลือ →
-                ผู้ช่วยเหลือจะเข้ามาช่วยเหลือสินทรัพย์ →
-                คุณอาจได้รับเงินคืนบางส่วนหากมีส่วนเกิน
+                Do nothing now → Will enter rescue phase → Rescue helpers will
+                help protect assets → You may receive partial refund if there's
+                excess
               </p>
               <Button
                 variant="outline"
                 size="sm"
                 className="border-orange-500 text-orange-500 hover:bg-orange-500/10"
               >
-                รอดูสถานการณ์ต่อไป
+                Continue Waiting
               </Button>
             </div>
           </div>
@@ -258,7 +260,7 @@ export default function ProtectionPage() {
         {/* Timeline */}
         <Card>
           <h3 className="font-semibold mb-4 flex items-center">
-            <span className="mr-2">📊</span> Timeline การปกป้อง
+            <span className="mr-2">📊</span> Protection Timeline
           </h3>
           <div className="space-y-4">
             <div
@@ -270,12 +272,12 @@ export default function ProtectionPage() {
                 0
               </div>
               <div>
-                <p className="font-medium">ชั่วโมงที่ 0</p>
+                <p className="font-medium">Hour 0</p>
                 <p className="text-sm text-ginva-silver">
-                  🔔 แจ้งเตือน: หลักประกันของคุณต้องการการดูแล
+                  🔔 Alert: Your collateral needs attention
                 </p>
                 <p className="text-xs text-ginva-silver">
-                  คุณมีเวลา 72 ชั่วโมงในการดำเนินการ
+                  You have 72 hours to act
                 </p>
               </div>
             </div>
@@ -289,14 +291,12 @@ export default function ProtectionPage() {
                 24
               </div>
               <div>
-                <p className="font-medium">ชั่วโมงที่ 24</p>
+                <p className="font-medium">Hour 24</p>
                 <p className="text-sm text-ginva-silver">
-                  🟡 แจ้งเตือน: เหลือเวลา 48 ชั่วโมง
+                  🟡 Alert: 48 hours remaining
                 </p>
                 {hours <= 48 && hours > 24 && (
-                  <p className="text-xs text-ginva-amber">
-                    ← ตอนนี้อยู่ที่จุดนี้
-                  </p>
+                  <p className="text-xs text-ginva-amber">← Currently here</p>
                 )}
               </div>
             </div>
@@ -310,14 +310,12 @@ export default function ProtectionPage() {
                 48
               </div>
               <div>
-                <p className="font-medium">ชั่วโมงที่ 48</p>
+                <p className="font-medium">Hour 48</p>
                 <p className="text-sm text-ginva-silver">
-                  🟠 แจ้งเตือน: เหลือเวลา 24 ชั่วโมงสุดท้าย
+                  🟠 Alert: Last 24 hours remaining
                 </p>
                 {hours <= 24 && hours > 0 && (
-                  <p className="text-xs text-orange-500">
-                    ← ตอนนี้อยู่ที่จุดนี้
-                  </p>
+                  <p className="text-xs text-orange-500">← Currently here</p>
                 )}
               </div>
             </div>
@@ -331,9 +329,9 @@ export default function ProtectionPage() {
                 72
               </div>
               <div>
-                <p className="font-medium">ชั่วโมงที่ 72</p>
+                <p className="font-medium">Hour 72</p>
                 <p className="text-sm text-ginva-silver">
-                  🔴 สิ้นสุดระยะปกป้อง - เริ่มระยะช่วยเหลือ
+                  🔴 Protection period ends - Rescue phase begins
                 </p>
               </div>
             </div>
@@ -343,20 +341,20 @@ export default function ProtectionPage() {
         {/* Info Footer */}
         <Card className="mt-6 bg-ginva-navy/30">
           <h3 className="font-semibold mb-3 flex items-center">
-            <span className="mr-2">ℹ️</span> ข้อมูลเพิ่มเติม
+            <span className="mr-2">ℹ️</span> More Information
           </h3>
           <ul className="space-y-2 text-sm text-ginva-silver">
-            <li>• ระบบจะแจ้งเตือนคุณทุก 12 ชั่วโมง</li>
-            <li>• คุณสามารถดำเนินการได้ตลอด 72 ชั่วโมง</li>
-            <li>• หากไม่ดำเนินการ สินทรัพย์จะเข้าสู่ระยะช่วยเหลือ</li>
-            <li>• ทุกการดำเนินการต้องได้รับการอนุมัติจากคุณ</li>
+            <li>• System will alert you every 12 hours</li>
+            <li>• You can act anytime during the 72 hours</li>
+            <li>• If no action is taken, assets will enter rescue phase</li>
+            <li>• All actions require your approval</li>
           </ul>
           <div className="mt-4 flex space-x-4">
             <button className="text-ginva-cyan hover:underline text-sm">
-              📞 ติดต่อ Support
+              📞 Contact Support
             </button>
             <button className="text-ginva-cyan hover:underline text-sm">
-              📚 ศูนย์ช่วยเหลือ
+              📚 Help Center
             </button>
           </div>
         </Card>

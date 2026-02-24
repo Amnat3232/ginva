@@ -18,7 +18,7 @@ export default function Layout({
         <title>{title}</title>
         <meta
           name="description"
-          content="กระจายรายได้ ส่งมอบความสุข ให้ความปลอดภัย สร้างความไว้วางใจ"
+          content="Distribute Revenue, Deliver Happiness, Provide Safety, Build Trust"
         />
         <link rel="icon" href="/favicon.ico" />
       </Head>

@@ -5,9 +5,9 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navItems = [
-    { label: "ผู้กู้", href: "/borrow" },
-    { label: "ผู้สนับสนุน", href: "/support" },
-    { label: "ผู้ช่วยเหลือ", href: "/helper" },
+    { label: "Borrow", href: "/borrow" },
+    { label: "Supporters", href: "/support" },
+    { label: "Helpers", href: "/helper" },
   ];
 
   return (
@@ -34,7 +34,7 @@ export default function Header() {
               </Link>
             ))}
             <button className="btn-gold px-6 py-2 rounded-lg text-ginva-navy font-semibold hover:shadow-lg hover:shadow-ginva-gold/20 transition-all duration-300">
-              เข้าสู่ระบบ
+              Connect Wallet
             </button>
           </nav>
 
@@ -62,7 +62,7 @@ export default function Header() {
                 </Link>
               ))}
               <button className="btn-gold mx-4 px-6 py-2 rounded-lg text-ginva-navy font-semibold">
-                เข้าสู่ระบบ
+                Connect Wallet
               </button>
             </nav>
           </div>

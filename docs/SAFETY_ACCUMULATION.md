@@ -1,144 +1,144 @@
-# 🛡️ ระบบสะสมนิรภัย (Safety Accumulation System)
+# 🛡️ Safety Accumulation System
 
-> **"สะสมความมั่นคง ร่วมกันสร้างความปลอดภัย"**
-
----
-
-## อะไรคือ ระบบสะสมนิรภัย?
-
-**ระบบสะสมนิรภัย** คือกลไกปกป้องระยะเริ่มต้นของ GINVA เพื่อให้ระบบมีความมั่นคงเพียงพอก่อนที่ผู้สนับสนุนจะสามารถถอนเงินได้โดยไม่มีเงื่อนไข
-
-### เป้าหมายหลัก:
-
-1. **สร้างสภาพคล่องขั้นต่ำ** ให้ระบบแข็งแรงพอสำหรับผู้กู้
-2. **ป้องกันการถอนเงินก่อนกำหนด** ในช่วงที่ระบบยังเปราะบาง
-3. **รางวัลผู้ที่อยู่ด้วยกันจนสำเร็จ** ด้วยการยกเว้นค่าธรรมเนียม
+> **"Accumulate stability together, create safety"**
 
 ---
 
-## วิธีการทำงาน
+## What is the Safety Accumulation System?
 
-### เงื่อนไขการถอนเงิน
+**Safety Accumulation System** is GINVA's initial protection mechanism to ensure the system is stable enough before supporters can withdraw without conditions.
 
-| สถานะระบบ                | ระยะเวลาฝาก      | ค่าธรรมเนียม | สถานะ    |
-| ------------------------ | ---------------- | ------------ | -------- |
-| **สำรอง ≥ 500,000 USDC** | ไม่จำกัด         | **0%** ✅    | ปลอดภัย  |
-| **สำรอง < 500,000 USDC** | ครบ 15 วัน       | **0%** ✅    | ปลอดภัย  |
-| **สำรอง < 500,000 USDC** | ยังไม่ครบ 15 วัน | **5%** ⚠️    | ระยะสะสม |
+### Main Goals:
 
-### ค่าธรรมเนียม 5% ไปไหน?
-
-```
-ผู้ถอนก่อนกำหนด ──5%──► กองทุนสำรอง ──► เสริมความมั่นคงระบบ
-```
-
-**ไม่ใช่รายได้ทีมงาน** แต่เป็นการนำกลับเข้าระบบเพื่อความปลอดภัยของทุกคน
+1. **Create minimum liquidity** so system is strong enough for borrowers
+2. **Prevent early withdrawal** during system fragility period
+3. **Reward those who stay together** with fee exemptions
 
 ---
 
-## ตัวอย่างการคำนวณ
+## How It Works
 
-### กรณีที่ 1: ถอนหลังครบ 15 วัน
+### Withdrawal Conditions
 
-```
-ฝาก: 1,000 USDC
-ระยะเวลา: 20 วัน (ครบกำหนด)
-สำรองระบบ: 300,000 USDC (ยังไม่ถึงเป้า)
+| System Status              | Deposit Duration  | Fee       | Status              |
+| -------------------------- | ----------------- | --------- | ------------------- |
+| **Reserve ≥ 500,000 USDC** | Unlimited         | **0%** ✅ | Safe                |
+| **Reserve < 500,000 USDC** | 15 days complete  | **0%** ✅ | Safe                |
+| **Reserve < 500,000 USDC** | Less than 15 days | **5%** ⚠️ | Accumulation Period |
 
-ผลลัพธ์:
-✅ ถอนได้เต็ม 1,000 USDC
-✅ ไม่มีค่าธรรมเนียม
-```
-
-### กรณีที่ 2: ถอนก่อนครบ 15 วัน
+### Where Does the 5% Fee Go?
 
 ```
-ฝาก: 1,000 USDC
-ระยะเวลา: 10 วัน (ยังไม่ครบ)
-สำรองระบบ: 300,000 USDC (ยังไม่ถึงเป้า)
-
-ผลลัพธ์:
-⚠️ ค่าธรรมเนียม 5% = 50 USDC
-✅ ได้รับคืน 950 USDC
-💰 50 USDC เข้ากองทุนสำรอง
+Early Withdrawer ──5%──► Reserve Fund ──► Strengthen System Stability
 ```
 
-### กรณีที่ 3: ระบบมั่นคงแล้ว
+**Not team revenue** — it's returned to the system for everyone's safety
+
+---
+
+## Calculation Examples
+
+### Case 1: Withdraw After 15 Days
 
 ```
-ฝาก: 1,000 USDC
-ระยะเวลา: 5 วัน (ยังไม่ครบ 15 วัน)
-สำรองระบบ: 600,000 USDC (เกินเป้า 500,000)
+Deposit: 1,000 USDC
+Duration: 20 days (complete)
+System Reserve: 300,000 USDC (not yet at target)
 
-ผลลัพธ์:
-✅ ถอนได้เต็ม 1,000 USDC
-✅ ไม่มีค่าธรรมเนียม (เพราะระบบมั่นคงแล้ว)
+Result:
+✅ Full 1,000 USDC withdrawable
+✅ No fee
+```
+
+### Case 2: Withdraw Before 15 Days
+
+```
+Deposit: 1,000 USDC
+Duration: 10 days (incomplete)
+System Reserve: 300,000 USDC (not yet at target)
+
+Result:
+⚠️ 5% fee = 50 USDC
+✅ Receive 950 USDC back
+💰 50 USDC goes to reserve fund
+```
+
+### Case 3: System is Stable
+
+```
+Deposit: 1,000 USDC
+Duration: 5 days (less than 15 days)
+System Reserve: 600,000 USDC (exceeds 500,000 target)
+
+Result:
+✅ Full 1,000 USDC withdrawable
+✅ No fee (because system is stable)
 ```
 
 ---
 
-## ทำไมต้องมีระบบนี้?
+## Why This System Exists?
 
-### 🌱 เหมือนต้นไม้ที่ต้องรดน้ำช่วงแรก
+### 🌱 Like a Tree That Needs Watering at First
 
 ```
-ช่วงแรก (15 วัน)
+Initial Period (15 days)
     │
-    ├── ต้องการน้ำ (สภาพคล่อง) มาก
-    ├── หากถอนก่อน → ต้นหย่อน
-    └── ค่าธรรมเนียม = ปุ๋ยที่คืนให้ต้นไม้
+    ├── Needs lots of water (liquidity)
+    ├── If withdrawn early → tree withers
+    └── Fee = fertilizer returned to tree
 
-หลังครบ 15 วัน หรือ สำรองถึง 500K
+After 15 days complete OR Reserve reaches 500K
     │
-    ├── ต้นแข็งแรงแล้ว
-    └── ถอนได้ไม่มีเงื่อนไข
+    ├── Tree is strong now
+    └── Can withdraw without conditions
 ```
 
-### 💚 ผลประโยชน์ร่วมกัน
+### 💚 Mutual Benefits
 
-- **ผู้กู้:** ได้กู้จากระบบที่มีสภาพคล่องพอ
-- **ผู้สนับสนุน:** ได้รับผลตอบแทนอย่างยั่งยืน
-- **ระบบ:** เติบโตอย่างมั่นคง
-
----
-
-## คำถามที่พบบ่อย
-
-### Q: ทำไมต้องเสีย 5%?
-
-**A:** เพื่อป้องกันการถอนเงินก่อนกำหนดในช่วงที่ระบบยังเปราะบาง ค่าธรรมเนียมเข้ากองทุนสำรองเพื่อความมั่นคงของทุกคน
-
-### Q: ถ้าระบบถึงเป้า 500K เร็ว จะยกเลิกระยะ 15 วันไหม?
-
-**A:** ใช่! หากสำรองถึง 500,000 USDC จะถอนได้ทันทีโดยไม่มีค่าธรรมเนียม แม้ยังไม่ครบ 15 วัน
-
-### Q: ค่าธรรมเนียม 5% ใครได้?
-
-**A:** ไม่ใช่รายใคร แต่เข้ากองทุนสำรองของระบบเพื่อเสริมความมั่นคง
-
-### Q: สามารถตรวจสอบสถานะระบบได้ที่ไหน?
-
-**A:** ดูได้ที่หน้า Dashboard → "สถานะสะสมนิรภัย" จะแสดง:
-
-- สำรองปัจจุบัน / เป้า 500,000 USDC
-- ระยะเวลาฝากของคุณ
-- สถานะการถอน (ฟรี/มีค่าธรรมเนียม)
+- **Borrowers:** Can borrow from a system with sufficient liquidity
+- **Supporters:** Receive sustainable returns
+- **System:** Grows stably
 
 ---
 
-## สรุป
+## Frequently Asked Questions
 
-> **"ระบบสะสมนิรภัย"** ไม่ใช่การลงโทษ แต่เป็นการ **ปกป้องความมั่นคงร่วมกัน**
+### Q: Why pay 5%?
 
-- ✅ อยู่ครบ 15 วัน → ถอนฟรี
-- ✅ ระบบถึงเป้า 500K → ถอนฟรีทันที
-- ⚠️ ถอนก่อนในระบบยังเปราะบาง → เสีย 5% (เข้ากองทุนรวม)
+**A:** To prevent early withdrawal during system fragility. Fee goes to reserve fund for everyone's stability.
 
-**เราเติบโตไปด้วยกัน** 🌿
+### Q: If system reaches 500K quickly, will the 15-day period be cancelled?
+
+**A:** Yes! If reserve reaches 500,000 USDC, you can withdraw immediately with no fee, even before 15 days.
+
+### Q: Who gets the 5% fee?
+
+**A:** No one individually. It goes to the system's reserve fund to strengthen stability.
+
+### Q: Where can I check system status?
+
+**A:** See Dashboard → "Safety Accumulation Status" will show:
+
+- Current reserve / 500,000 USDC target
+- Your deposit duration
+- Withdrawal status (free/fee)
 
 ---
 
-## พารามิเตอร์ทางเทคนิค
+## Summary
+
+> **"Safety Accumulation System"** is not a punishment, but **mutual stability protection**
+
+- ✅ Stay for 15 days → Withdraw free
+- ✅ System reaches 500K target → Withdraw free immediately
+- ⚠️ Withdraw early while system fragile → Pay 5% (goes to collective fund)
+
+**We grow together** 🌿
+
+---
+
+## Technical Parameters
 
 ```rust
 target_reserves: 500_000_000_000      // 500,000 USDC (6 decimals)
@@ -148,5 +148,5 @@ exit_fee_bps: 500                     // 5% in basis points
 
 ---
 
-_อัปเดตล่าสุด: 2026-02-14_  
-_ระบบเริ่มใช้: ตั้งแต่ Block เริ่มต้น_
+_Last updated: 2026-02-14_  
+_System in effect: Since genesis block_

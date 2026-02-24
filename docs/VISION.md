@@ -1,163 +1,163 @@
-# GINVA: วิสัยทัศน์และปรัชญา
+# GINVA: Vision and Philosophy
 
-> **"กระจายรายได้ ส่งมอบความสุข ให้ความปลอดภัย สร้างความไว้วางใจ"**
+> **"Distribute Income. Deliver Happiness. Provide Safety. Build Trust"**
 >
-> _คำขวัญประจำระบบ GINVA_
+> _GINVA Manifesto_
 
 ---
 
-> "เราไม่ได้สร้างแค่โปรโตคอล แต่สร้างแพลตฟอร์มที่ไห้ความใส่ใจต่อผู้ใช้ นักลงทุน ผู้ช่วยเหลือระบบ และ ความยั่งยืนของระบบ"
+> "We're not just building a protocol, we're building a platform that cares about users, investors, system helpers, and sustainability"
 
 ---
 
-## Ginva เราต้องการที่จะสร้างระบบที่สร้างรายได้ไห้กับกลุ่มคนหลายๆกลุ่ม
+## Ginva We Want to Build a System That Generates Income for Many Groups
 
-วิสัยทัศน์ของ GINVA เกิดจากความตั้งใจที่จะสร้าง DeFi Protocol ที่ **ให้ความสำคัญกับผู้ใช้เป็นอันดับ 1** ไม่ใช่แค่เครื่องมือทำกำไรของนักลงทุนรายใหญ่
+GINVA's vision stems from the intention to build a DeFi protocol that **prioritizes users first**, not just as a profit-making tool for big investors.
 
-Ginva เราเชื่อว่าโปรโตคอลที่ดีต้อง **ปกป้องผู้ใช้ก่อน** แล้วค่อยคิดถึงผลกำไร
-
----
-
-## ปัญหาที่เราเห็นใน DeFi ในอดีต และ ปัจจุบัน
-
-**DeFi Lending ส่วนใหญ่มักเป็นระบบที่ทำร้ายผู้กู้:**
-
-- ❌ ยึดทรัพย์สินทันทีเมื่อราคาตก (ไม่ให้โอกาสแก้ไข)
-- ❌ ใช้คำศัพท์น่ากลัว: "Liquidation", "Seizure", "Forced Sale"
-- ❌ ระบบออกแบบมาเพื่อเอื้อประโยชน์นักลงทุน ไม่ใช่ผู้กู้
-- ❌ ผู้กู้รู้สึกเหมือนถูกล่า ไม่ใช่ถูกช่วยเหลือ
+Ginva believes that a good protocol must **protect users first**, then think about profit.
 
 ---
 
-## ทางออกที่ GINVA: เรามีระบบปกป้อง 72 ชั่วโมง
+## Problems We See in DeFi Past and Present
 
-แทนที่จะยึดทรัพย์สินในทันที ** แต่ Ginva เราให้เวลาผู้กู้ 72 ชั่วโมง ** เพื่อ
+**Most DeFi Lending Systems Often Harm Borrowers:**
 
-1- ✅ เพิ่มหลักประกันเพิ่มเติม
-2- ✅ คืนเงินกู้บางส่วน
-3- ✅ หรือปรึกษาหาทางออก
-
-**และนี่คือความแตกต่างระหว่าง "การไห้โอกาศไห้เวลา" กับ "การยึดทรัพย์ในทันที "**
-
----
-
-## กลไกระบบ 3 ขั้นตอนแบบเพิ่มโอกาศสร้างแหล่งรายได้
-
-แทนที่เราจะให้เพียงบอทตัวเดียวได้เข้ามาทำหน้าที่ยึดทุกอย่างในพริบตา จบกระบวนการ Ginva เราตั้งใจแบ่งหน้าที่ไห้เป็น 3 ขั้นตอน 3 ผู้เล่น 3 บทบาทหน้าที่ เพื่อจะสร้างโอกาสให้ทุกฝ่ายเข้ามาช่วยกันดูแลระบบและมีรายได้
-
-#3 บทบาทเหล่านั้นมีขั้นตอนอะไรบ้าง มาเริ่มที่
-
-### ขั้นตอนที่ 1 - ผู้ช่วยเหลือ (Helper A)
-
-**หน้าที่:** ตรวจสอบและแจ้งเตือนกระตุ้นระบบไห้ทำงาน
-รายละเอียดหน้าที่
-
-- ตรวจสอบสุขภาพบัญชี
-- แจ้งเตือนล่วงหน้า 72 ชั่วโมง
-- สั่งเริ่มกระบวนการช่วยเหลือ
-- **ได้รับ:** 0.6% ของมูลค่าหลักประกัน เป็นรางวัล
-
-### ขั้นตอนที่ 2 - ผู้สนับสนุนสภาพคล่อง (Helper B)
-
-**หน้าที่ ** ให้ความช่วยเหลือด้านสภาพคล่อง เข้าซื้อสินค้าหลุดจำนำ ที่วางขายที่หน้าร้าน บนเว็ปโดยตรง
-
-- เข้าซื้อสินทรัพย์ในราคายุติธรรมตามช่วงเวลา
-- ช่วยรักษาความมั่นคงของระบบสร้างสภาพคล่อง
-- \*\*โดยจะสามารถเข้าซื้อของหลุดจำนำในราคาที่พิเศษ
-  (ตามระดับเวลาที่กำหนด)
-
-### ขั้นตอนที่ 3 - ผู้ดำเนินการกระจายรายได้เข้าสู่ระบบตามลำดับ (Helper C)
-
-**หน้าที่ ** จัดการส่งต่อรายได้ของโปรโตคอลไปส่วนต่างๆให้เสร็จสิ้นตามที่กำหนด
-
-- สรุปผลธุรกรรมของระบบ
-- สั่งงานระบบกระจายรายได้
-- **ได้รับ ** 1.0 USDC ต่อการช่วยเหลือหนึ่งครั้ง
+- ❌ Seize assets immediately when price drops (no chance to fix)
+- ❌ Use scary terminology: "Liquidation", "Seizure", "Forced Sale"
+- ❌ System designed to benefit investors, not borrowers
+- ❌ Borrowers feel hunted, not helped
 
 ---
 
-## 🌟 หลักการที่สำคัญ เราเป็ระบบที่เปิดกว้างไห้ทุกกลุ่มอย่างเท่าเทียม
+## GINVA's Solution: 72-Hour Protection System
 
-**ผู้ช่วยเหลือระบบของเราไม่ใช่ "มีแค่บอทที่ระบบบังคับให้ทำได้"**
+Instead of seizing assets immediately ** But Ginva gives borrowers 72 hours ** to
 
-ที่ Ginva เราไม่ได้กำหนดตายตัวใว้ว่าต้องเป็นใครที่สามารถเป็นผู้ช่วยเหลือระบบได้
-ไม่ว่าจะเป็น
-✅ **มนุษย์** - นักลงทุนหรือบุคคลทั่วไปใครก็ได้และทำการตัดสินใจเอง  
-✅ **AI Agent** - โปรแกรมอัจฉริยะต่างๆที่มนุษย์รันใช้งานเองบนเครื่องตัวเองที่มนุษย์เรียนรู้สัางงานและตัดสินใจแทน  
-✅ **Bot อัตโนมัติ** - สคริปต์ที่รันตามกลยุทธ์ที่กำหนด  
-✅ **แบบผสมผสาน** - มนุษย์+AI ทำงานร่วมกัน
+1- ✅ Add additional collateral
+2- ✅ Repay partial loan
+3- ✅ Or consult for solutions
 
-**ไม่ว่าคุณจะเป็นใคร ใช้เครื่องมืออะไร มีต้นทุนเท่าไร หรือใช้เทคโนโลยีอะไร** ทุกคนมีสิทธิ์เข้ามาช่วยเหลือและแบ่งปันรายได้จาก ระบบ เท่าเทียมกัน ทั้งหมด
+**This is the difference between "Giving Time and Opportunity" vs "Immediate Seizure"**
 
 ---
 
-## หลักการสำคัญ
+## 3-Step System Mechanism That Creates Multiple Income Sources
 
-> **"การปกป้องผู้ใช้ สำคัญกว่าความง่ายของระบบ"**
+Instead of having a single bot seize everything in an instant, Ginva intentionally splits responsibilities into 3 steps, 3 roles, 3 functions to create opportunities for everyone to help maintain the system and earn income.
 
-แม้ว่าระบบ 3 ขั้นจะซับซ้อนกว่าการ liquidate แบบดั้งเดิม แต่เรายอมรับความซับซ้อนนั้น เพราะเราเชื่อว่า:
+# What are these 3 roles? Let's start with
 
-- การให้เวลา = การให้โอกาส
-- การให้โอกาส = การสร้างความไว้วางใจและเชื่อมั่น
-- ความไว้วางใจ = ส่งผลไห้เกิดระบบนิเวศที่ยั่งยืนมั่นคงยุติธรรมโปร่งใส
+### Step 1 - Helper (Helper A)
 
----
+**Role:** Check and notify to trigger the system
 
-## เป้าหมายสูงสุดของ Ginva
+Details:
 
-สร้าง **แพลตฟอร์ม จำนำสินทรัพดิจิตอลที่ใจดีที่สุด** ที่ผู้ใช้รู้สึกปลอดภัยและได้รับการปกป้อง ไม่ใช่รู้สึกถูกคุกคาม และ ไม่ปลอดภัย
+- Check account health
+- Notify 72 hours in advance
+- Initiate assistance process
+- **Receives:** 0.6% of collateral value as reward
 
-**GINVA คือโปรโตคอลที่สร้างมาจากหัวใจจริงๆ เพื่อที่จะดูแลกลุ่มผู้ใช้งานระบบทุกๆคน**
+### Step 2 - Liquidity Supporter (Helper B)
 
----
+**Role** Provide liquidity assistance, buy seized assets from storefront directly
 
-## คำขวัญประจำระบบ
+- Buy assets at fair prices by time
+- Help maintain system stability
+- **Can buy seized assets at special prices
+  (based on time tier)**
 
-> **"กระจายรายได้ ส่งมอบความสุข ให้ความปลอดภัย สร้างความไว้วางใจ"**
+### Step 3 - Income Distribution Operator (Helper C)
 
-คำขวัญนี้สะท้อนถึงหลักการสำคัญ 4 ประการของเรา:
+**Role** Complete the distribution of protocol income to all parts as specified
 
-1. **กระจายรายได้** - แบ่งปันผลประโยชน์อย่างยุติธรรมกับทุกฝ่าย
-2. **ส่งมอบความสุข** - สร้างประสบการณ์ที่ดีให้ผู้ใช้ทุกคน
-3. **ให้ความปลอดภัย** - ปกป้องสินทรัพย์และข้อมูลของผู้ใช้
-4. **สร้างความไว้วางใจ** - ความโปร่งใสและความน่าเชื่อถือในทุกธุรกรรม
-
----
-
-## คำมั่นสัญญาของเราที่ให้ไว้ต่อผู้ใช้งานและทุกคน
-
-เราสัญญาว่าจะไม่มีวัน
-
-❌ ไม่กระทำ"การยึดทรัพย์" กับผู้ใช้ อย่างไม่เป็นธรรมไม่ชัดเจน
-❌ จะไม่ออกแบบระบบที่จะเอื้อประโยชน์แค่กับกลุ่มนายทุนใหญ่  
-❌ ไม่ลืมว่าผู้กู้ ผู้ลงทุน Helper คือคนที่สำคัญต่อระบบที่สุด  
-❌ สร้างความกลัวหรือความวิตกกังวลให้ผู้ใช้
-
-✅ แต่เราจะทำ
-
-✅ พัฒนาระบบที่เป็นมิตรและสร้างความมั่นใจไห้ทุกคน  
-✅ ให้ความสำคัญกับผู้กู้เป็นอันดับต้นๆก่อนเสมอ  
-✅ ระบบที่จะปกป้อง ไม่ใช่ระบบที่จะลงโทษ อย่างไร้เหตุผล
-✅ ผู้ใช้งานทุกกบลุ่มต้องรู้สึกปลอดภัยถูกดูแล ต้องไม่ใช่รู้สึกถูกล่า
+- Summarize system transactions
+- Execute income distribution command
+- **Receives** 1.0 USDC per assistance
 
 ---
 
-## สรุป
+## 🌟 Important Principle: We Are a System That Opens Up to Everyone Equally
 
-**GINVA ไม่ใช่แค่โปรโตคอล lending อีกตัวหนึ่ง**
+**Our system helpers are not "only bots that the system forces to do"**
 
-แต่เราคือการเปลี่ยนแปลงของ DeFi ว่าควรที่จะต้องงานอย่างไร
+At Ginva, we don't rigidly define who can be system helpers
+Anyone can be
+✅ **Humans** - Investors or general public, anyone can make their own decisions  
+✅ **AI Agents** - Smart programs that humans run on their own machines that learn to command and decide on behalf  
+✅ **Bots** - Scripts that run on defined strategies  
+✅ **Hybrid** - Humans and AI working together
 
-- ผู้ใช้เป็นหัวใจต้องมาก่อนเสมอ
-- การปกป้องสำคัญกว่าการลงโทษ
-- ความโปร่งใสต้องมาพร้อมความเป็นมิตรและปลอดภัย
-- ทุกคนมีสิทธิ์เข้าร่วมไม่ว่าจะเป็นผู้กู้ ผู้สนับสนุน หรือผู้ช่วยเหลือ (ความเท่าเทียม)
-
-
-**เราไม่ได้สร้างแค่แพลตฟอร์ม แต่เรากำลังสร้างมาตรฐานใหม่ให้กับโลก DeFi ว่าแท้จริงควรที่จะดูแลผู้ใช้งานทุกๆกลุ่มอย่างไร**
+**No matter who you are, what tools you use, how much capital you have, or what technology you use** everyone has equal rights to participate in helping and sharing protocol income
 
 ---
 
-> **GINVA: กระจายรายได้ ส่งมอบความสุข ให้ความปลอดภัย สร้างความไว้วางใจ**
+## Important Principle
+
+> **"Protecting users comes before system simplicity"**
+
+Although the 3-step system is more complex than traditional liquidation, we accept that complexity because we believe that:
+
+- Giving time = Giving opportunity
+- Giving opportunity = Building trust and confidence
+- Trust = Results in a sustainable, stable, fair, and transparent ecosystem
+
+---
+
+## GINVA's Ultimate Goal
+
+Build **the most user-friendly digital asset collateral platform** where users feel safe and protected, not threatened, and insecure.
+
+**GINVA is a protocol built from genuine heart to care about every system user**
+
+---
+
+## System Mantra
+
+> **"Distribute Income. Deliver Happiness. Provide Safety. Build Trust"**
+
+This mantra reflects our 4 core principles:
+
+1. **Distribute Income** - Share benefits fairly with all parties
+2. **Deliver Happiness** - Create good experience for all users
+3. **Provide Safety** - Protect user assets and data
+4. **Build Trust** - Transparency and reliability in every transaction
+
+---
+
+## Our Promises to Users and Everyone
+
+We promise we will never
+
+❌ Perform "asset seizure" on users unfairly or unclear  
+❌ Design a system that only benefits large capital groups  
+❌ Forget that borrowers, investors, and Helpers are most important to the system  
+❌ Create fear or anxiety for users
+
+✅ But we will
+
+✅ Develop a friendly and confidence-building system  
+✅ Always prioritize borrowers first  
+✅ Build a system that protects, not punishes unreasonably  
+✅ Every user group must feel safe and cared for, not feel hunted
+
+---
+
+## Summary
+
+**GINVA is not just another lending protocol**
+
+But we are a transformation of how DeFi should work
+
+- Users are the heart, always come first
+- Protection comes before punishment
+- Transparency must come with friendliness and safety
+- Everyone has equal rights to participate whether borrowers, supporters, or helpers (equality)
+
+**We're not just building a platform, we're building a new standard for how the world should care about every user group**
+
+---
+
+> **GINVA: Distribute Income. Deliver Happiness. Provide Safety. Build Trust**
 >
-> _แพลตฟอร์มการเงินที่ยุติธรรมที่สุดบน Solana_
+> _The Fairest Financial Platform on Solana_

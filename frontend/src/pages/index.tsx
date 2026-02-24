@@ -6,40 +6,40 @@ import Card from "../components/Card";
 export default function LandingPage() {
   const stats = [
     { value: "$2.4M", label: "TVL" },
-    { value: "1,240", label: "เงินกู้ที่ใช้งาน" },
-    { value: "0", label: "การยึดทันที" },
-    { value: "65.25%", label: "ส่วนแบ่งผู้สนับสนุน" },
+    { value: "1,240", label: "Active Loans" },
+    { value: "0", label: "Instant Seizures" },
+    { value: "65.25%", label: "Supporter Share" },
   ];
 
   const steps = [
-    { icon: "🏦", title: "ฝากหลักประกัน", desc: "SOL, BTC, ETH" },
-    { icon: "💰", title: "รับ USDC ทันที", desc: "สูงสุด 60% ของมูลค่า" },
-    { icon: "🛡️", title: "ปลอดภัย 72 ชม.", desc: "ไม่มีการยึดทันที" },
+    { icon: "🏦", title: "Deposit Collateral", desc: "SOL, BTC, ETH" },
+    { icon: "💰", title: "Get USDC Instantly", desc: "Up to 60% of value" },
+    { icon: "🛡️", title: "72h Protection", desc: "No instant seizure" },
   ];
 
   const pillars = [
     {
       icon: "👤",
-      title: "ผู้กู้",
-      subtitle: "หัวใจ",
-      features: ["กู้เงิน", "ได้รับการปกป้อง", "72 ชม. รับมือ"],
+      title: "Borrowers",
+      subtitle: "Heart",
+      features: ["Borrow money", "Get protected", "72h to respond"],
     },
     {
       icon: "💰",
-      title: "ผู้สนับสนุน",
-      subtitle: "เส้นเลือดใหญ่",
-      features: ["Stake USDC", "รายได้ 65.25%", "ไม่มีล็อก"],
+      title: "Supporters",
+      subtitle: "Lifeblood",
+      features: ["Stake USDC", "65.25% revenue", "No lock-up"],
     },
     {
       icon: "🤖",
-      title: "ผู้ช่วยเหลือ",
-      subtitle: "ผู้พิทักษ์",
-      features: ["ตรวจสอบ", "ช่วยเหลือ", "รับรางวัล"],
+      title: "Helpers",
+      subtitle: "Guardians",
+      features: ["Monitor", "Assist", "Earn rewards"],
     },
   ];
 
   return (
-    <Layout title="GINVA - กู้เงินด้วยสินทรัพย์ดิจิทัล">
+    <Layout title="GINVA - Digital Asset Lending">
       {/* Hero Section */}
       <section className="relative py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center">
@@ -48,20 +48,20 @@ export default function LandingPage() {
           </h1>
 
           <p className="text-xl sm:text-2xl text-ginva-silver mb-4 max-w-3xl mx-auto">
-            "กระจายรายได้ ส่งมอบความสุข ให้ความปลอดภัย สร้างความไว้วางใจ"
+            "Distribute Income. Deliver Happiness. Provide Safety. Build Trust"
           </p>
 
           <p className="text-lg text-ginva-silver/80 mb-8 max-w-2xl mx-auto">
-            กู้เงินด้วยสินทรัพย์ดิจิทัลโดยไม่ต้องขาย พร้อมระบบปกป้อง 72
-            ชั่วโมงที่เป็นเอกลักษณ์
+            Borrow using digital assets without selling, with unique 72-hour
+            protection system
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Button variant="primary" size="lg">
-              🚀 เริ่มกู้เงิน
+              🚀 Start Borrowing
             </Button>
             <Button variant="outline" size="lg">
-              💰 เป็นผู้สนับสนุน
+              💰 Become a Supporter
             </Button>
           </div>
 
@@ -71,10 +71,10 @@ export default function LandingPage() {
               <span className="text-3xl">🛡️</span>
               <div className="text-left">
                 <p className="font-semibold text-ginva-cyan">
-                  ระบบปกป้อง 72 ชั่วโมง
+                  72-Hour Protection System
                 </p>
                 <p className="text-sm text-ginva-silver">
-                  ไม่มีการยึดทันที คุณมีเวลาในการรับมือ
+                  No instant seizure - You have time to respond
                 </p>
               </div>
             </div>
@@ -98,7 +98,7 @@ export default function LandingPage() {
       <section className="py-16 px-4 sm:px-6 lg:px-8 bg-ginva-slate/30">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-3xl font-display font-bold text-center mb-12">
-            วิธีใช้งานง่ายๆ ใน 3 ขั้นตอน
+            Easy 3-Step Process
           </h2>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -117,8 +117,9 @@ export default function LandingPage() {
           {/* Example */}
           <Card className="mt-8 max-w-2xl mx-auto bg-ginva-navy/50">
             <p className="text-ginva-silver text-center">
-              💡 <span className="text-ginva-gold">ตัวอย่าง:</span> ฝาก ETH 5
-              ตัว ($500) → รับ USDC 300 → มีเวลา 72 ชม. ในการรับมือหากราคาตก
+              💡 <span className="text-ginva-gold">Example:</span> Deposit 5 ETH
+              ($500) → Receive $300 USDC → Have 72 hours to respond if price
+              drops
             </p>
           </Card>
         </div>
@@ -128,10 +129,10 @@ export default function LandingPage() {
       <section className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-3xl font-display font-bold text-center mb-4">
-            🌳 ระบบนิเวศที่เกื้อกูลกัน
+            🌳 Balanced Ecosystem
           </h2>
           <p className="text-center text-ginva-silver mb-12">
-            ทุกคนคือส่วนสำคัญที่ขาดไม่ได้
+            Everyone is equally important
           </p>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -157,29 +158,29 @@ export default function LandingPage() {
       <section className="py-16 px-4 sm:px-6 lg:px-8 bg-ginva-slate/30">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-3xl font-display font-bold text-center mb-12">
-            ทำไมต้องเลือก GINVA?
+            Why Choose GINVA?
           </h2>
 
           <div className="grid md:grid-cols-3 gap-8 mb-12">
             <Card className="text-center">
               <div className="text-4xl mb-4">🛡️</div>
-              <h3 className="text-xl font-semibold mb-2">ปลอดภัยกว่า</h3>
+              <h3 className="text-xl font-semibold mb-2">Safer</h3>
               <p className="text-ginva-silver">
-                72 ชั่วโมงในการรับมือ ไม่มีการยึดทันที
+                72 hours to respond, no instant seizure
               </p>
             </Card>
             <Card className="text-center">
               <div className="text-4xl mb-4">💎</div>
-              <h3 className="text-xl font-semibold mb-2">โปร่งใส</h3>
+              <h3 className="text-xl font-semibold mb-2">Transparent</h3>
               <p className="text-ginva-silver">
-                ไม่มีค่าธรรมเนียมแอบแฝง ตรวจสอบได้ทุกธุรกรรม
+                No hidden fees, all transactions verifiable
               </p>
             </Card>
             <Card className="text-center">
               <div className="text-4xl mb-4">⚡</div>
-              <h3 className="text-xl font-semibold mb-2">รวดเร็ว</h3>
+              <h3 className="text-xl font-semibold mb-2">Fast</h3>
               <p className="text-ginva-silver">
-                อนุมัติทันที ไม่ต้องรอ ไม่มีเอกสาร
+                Instant approval, no waiting, no documents
               </p>
             </Card>
           </div>
@@ -188,10 +189,10 @@ export default function LandingPage() {
           <Card className="max-w-3xl mx-auto bg-ginva-navy/50">
             <div className="text-center">
               <p className="text-lg text-ginva-silver mb-4">
-                "ตอนแรกกลัวโดนยึดทรัพย์เหมือนแพลตฟอร์มอื่น แต่พอรู้ว่ามีเวลา 72
-                ชั่วโมง รู้สึกสบายใจมาก"
+                "At first I was afraid of getting seized like other platforms,
+                but knowing I have 72 hours made me feel much better"
               </p>
-              <p className="text-ginva-gold">— คุณ Alex, ผู้กู้</p>
+              <p className="text-ginva-gold">— Alex, Borrower</p>
             </div>
           </Card>
         </div>
@@ -201,17 +202,17 @@ export default function LandingPage() {
       <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl sm:text-4xl font-display font-bold mb-6">
-            พร้อมที่จะเริ่มต้นแล้วหรือยัง?
+            Ready to Get Started?
           </h2>
           <p className="text-xl text-ginva-silver mb-8">
-            เข้าร่วมกับระบบนิเวศที่ยุติธรรมและโปร่งใส
+            Join a fair and transparent ecosystem
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button variant="primary" size="lg">
-              🚀 เริ่มกู้เงินเลย
+              🚀 Start Borrowing Now
             </Button>
             <Button variant="outline" size="lg">
-              📖 อ่านเพิ่มเติม
+              📖 Learn More
             </Button>
           </div>
         </div>

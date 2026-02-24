@@ -1,239 +1,193 @@
-# สถาปัตยกรรมระบบ GINVA
+# GINVA System Architecture
 
-> **"กระจายรายได้ ส่งมอบความสุข ให้ความปลอดภัย สร้างความไว้วางใจ"** > **"ความปลอดภัยไม่ได้เกิดจากคำสัญญา แต่เกิดจากตรรกะที่ตรวจสอบได้"**
+> **"Distribute Income. Deliver Happiness. Provide Safety. Build Trust"** > **"Safety doesn't come from promises, it comes from verifiable logic"**
 
-## ภาพรวม
+## Overview
 
-GINVA คือแพลตฟอร์มสินเชื่อที่ใช้สินทรัพย์ดิจิทัลเป็นหลักประกัน สร้างบน Solana โดยมี **ระบบปกป้อง 2 ชั้น** ที่แยกออกจากกันอย่างชัดเจน:
+GINVA is a cryptocurrency-backed lending platform built on Solana with **2 independent protection layers**:
 
-1. **Maturity Grace Period** - ระยะผ่อนผัน 72 ชม. หลังครบกำหนด
-2. **Immediate Price Protection** - ล้างทรัพย์ทันทีเมื่อ HF < 100%
-
----
-
-## 🌳 3 เสาหลักของระบบนิเวศ
-
-### 1. ผู้กู้: หัวใจของโปรโตคอล 💚
-
-> **"ให้ความปลอดภัย"**
-
-**บทบาท:** ศูนย์กลางที่ทำให้ทุกอย่างขับเคลื่อน
-
-**สิ่งที่ผู้กู้ทำได้:**
-
-- ฝากหลักประกัน (SOL, BTC, ETH)
-- กู้ USDC ทันที
-- ตรวจสอบสุขภาพบัญชี
-- ต่อเวลาหรือคืนเงินกู้
-
-**ฟีเจอร์สำคัญ:** ระบบปกป้อง 2 ชั้น
-
-- **Maturity Grace Period:** 72 ชม. หลังครบกำหนด (เฉพาะกรณีครบอายุสัญญา)
-- **Immediate Price Protection:** ล้างทันทีเมื่อ Health Factor < 100%
-
-> ⚠️ **คำเตือน:** ผู้กู้ต้องติดตาม Health Factor ตลอดเวลา ในตลาดผันผวน ระบบอาจล้างทรัพย์ทันทีโดยไม่มีการแจ้งเตือนล่วงหน้า 72 ชม.
+1. **Maturity Grace Period** - 72-hour grace period after maturity
+2. **Immediate Price Protection** - Liquidate immediately when HF < 100%
 
 ---
 
-### 2. ผู้สนับสนุน: เส้นเลือดใหญ่ของระบบนิเวศ 🌿
+## 🌳 3 Pillars of the Ecosystem
 
-> **"กระจายรายได้"**
+### 1. Borrowers: The Heart of the Protocol 💚
 
-**บทบาท:** ส่งเลือด (สภาพคล่อง) ไปเลี้ยงทุกส่วน ไม่มีคุณ ระบบจะเหี่ยวเฉา
+> **"Provide Safety"**
 
-**สิ่งที่ผู้สนับสนุนทำ:**
+**Role:** The center that drives everything
 
-- Stake USDC เพื่อสนับสนุนแพลตฟอร์ม
-- ได้รับ 65.25% จากรายได้ทั้งหมดของโปรโตคอล
-- ช่วยรักษาความมั่นคงของระบบ
+**What borrowers can do:**
 
-**สิทธิประโยชน์:** รางวัลทบต้นอัตโนมัติ ไม่มีการล็อก
+- Deposit collateral (SOL, BTC, ETH)
+- Borrow USDC immediately
+- Monitor account health
+- Extend or repay loan
 
----
+**Key Feature:** 2-Layer Protection System
 
-### 3. ผู้ช่วยเหลือ: ผู้พิทักษ์เสถียรภาพของระบบ 🛡️
+- **Maturity Grace Period:** 72 hours after maturity (contract expiration only)
+- **Immediate Price Protection:** Liquidate immediately when Health Factor < 100%
 
-> **"สร้างความไว้วางใจ"**
-
-**บทบาท:** เฝ้าระวังและดูแลให้คำมั่นสัญญาเป็นจริง
-
-**เครือข่ายผู้ช่วยเหลือ:**
-
-- **ผู้ช่วยเหลือ A:** ผู้ตรวจสอบและแจ้งเตือน (รางวัล 0.6%)
-- **ผู้ช่วยเหลือ B:** ผู้สนับสนุนสภาพคล่อง (โอกาสซื้อในราคาพิเศษ)
-- **ผู้ช่วยเหลือ C:** ผู้ดำเนินการ (รางวัล 1.0 USDC)
+> ⚠️ **Warning:** Borrowers must monitor Health Factor at all times. In volatile markets, the system may liquidate immediately without 72-hour notice.
 
 ---
 
-## 🎬 ระบบปกป้อง 2 ชั้น (Dual Protection System)
+### 2. Supporters: The Lifeblood of the Ecosystem 🌿
 
-### ชั้นที่ 1: Maturity Grace Period (ระยะผ่อนผันหลังครบกำหนด)
+> **"Distribute Income"**
+
+**Role:** Supply liquidity (blood) to nourish every part. Without it, the system will wither.
+
+**What supporters do:**
+
+- Stake USDC to support the platform
+- Receive 65.25% of all protocol revenue
+- Help maintain system stability
+
+**Benefits:** Auto-compounding rewards, no lock-up
+
+---
+
+### 3. Helpers: Guardians of System Stability 🛡️
+
+> **"Build Trust"**
+
+**Role:** Monitor and ensure promises are fulfilled
+
+**Helper Network:**
+
+- **Helper A:** Checker and notifier (reward 0.6%)
+- **Helper B:** Liquidity supporter (opportunity to buy at special price)
+- **Helper C:** Operator (reward 1.0 USDC)
+
+---
+
+## 🎬 Dual Protection System
+
+### Layer 1: Maturity Grace Period (72 hours after maturity)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│       Maturity Grace Period (72 ชม.)                       │
+│       Maturity Grace Period (72 hours)                      │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  🎭 ACT 1: การตื่นตัว (The Awakening)                       │
+│  🎭 ACT 1: The Awakening                                    │
 │          │                                                  │
 │          ▼                                                  │
-│  ครบกำหนดอายุสัญญา 📅                                       │
+│  Contract Matures 📅                                        │
 │          │                                                  │
 │          ▼                                                  │
-│  🔔 แจ้งเตือนล่วงหน้า (72 ชั่วโมงก่อน)                      │
-│          • ระบบแจ้งเตือนผู้กู้                             │
-│          • ผู้กู้มีตัวเลือก:                                │
-│            - เพิ่มหลักประกัน                               │
-│            - คืนเงินบางส่วน                                │
-│            - ต่อเวลาสัญญา                                  │
-│            - รอดูสถานการณ์                                 │
+│  🔔 Advance Notification (72 hours before)                 │
+│          • System notifies borrower                        │
+│          • Borrower has options:                           │
+│            - Add collateral                                │
+│            - Repay partial                                  │
+│            - Extend contract                                │
+│            - Wait and see                                  │
 │          │                                                  │
 │          ▼                                                  │
-│  🎭 ACT 2: การรับมือ (The Response)                        │
+│  🎭 ACT 2: The Response                                    │
+│          ▼                                                  │
+│  ⏰ Protection Period (72 hours)                            │
+│          • Assets are safe                                 │
+│          • Borrower has time to act                        │
+│          • Helper A monitors                               │
 │          │                                                  │
 │          ▼                                                  │
-│  ⏰ ระยะปกป้อง (72 ชั่วโมง)                                 │
-│          • สินทรัพย์ยังปลอดภัย                             │
-│          • ผู้กู้มีเวลาดำเนินการ                            │
-│          • ผู้ช่วยเหลือ A ตรวจสอบ                          │
+│  🤝 Assistance Phase                                       │
+│          • Helper B provides liquidity                     │
+│          • Fair pricing by time:                          │
+│            - 0-10 minutes: 8% discount                    │
+│            - 10-30 minutes: 6% discount                   │
+│            - 30-60 minutes: 3% discount                    │
+│            - 60+ minutes: market price                    │
 │          │                                                  │
 │          ▼                                                  │
-│  🤝 ระยะช่วยเหลือ                                         │
-│          • ผู้ช่วยเหลือ B ให้สภาพคล่อง                    │
-│          • ราคายุติธรรมตามช่วงเวลา:                        │
-│            - 0-10 นาที: ส่วนลด 8%                         │
-│            - 10-30 นาที: ส่วนลด 6%                        │
-│            - 30-60 นาที: ส่วนลด 3%                        │
-│            - 60+ นาที: ราคาตลาด                           │
-│          │                                                  │
+│  🎭 ACT 3: The Resolution                                 │
 │          ▼                                                  │
-│  🎭 ACT 3: การฟื้นฟู (The Resolution)                      │
-│          │                                                  │
-│          ▼                                                  │
-│  ✨ การจบกระบวนการ                                         │
-│          • ผู้ช่วยเหลือ C จัดการ                           │
-│          • กระจายรายได้                                    │
-│          • ส่วนเกินเข้ากองทุนสำรอง (ประกันความเสี่ยง)      │
+│  ✨ Process Complete                                       │
+│          • Helper C executes                               │
+│          • Distribute income                               │
+│          • Excess goes to reserve fund (insurance)         │
 │                                                             │
-│  🎯 ผลลัพธ์: จากความตื่นตระหนก สู่ความสบายใจ              │
+│  🎯 Result: From Panic to Peace of Mind                   │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**ใช้กับ:** ฟังก์ชัน `liquidate_by_maturity` - กรณีสัญญาถึงกำหนดชำระตามเวลาเท่านั้น
+**Used for:** `liquidate_by_maturity` function - maturity case only
 
 ---
 
-### ชั้นที่ 2: Immediate Price Protection (ระบบปกป้องราคาทันที)
+### Layer 2: Immediate Price Protection (No grace period)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│        Immediate Price Protection (ไม่มีระยะเวลาผ่อนผัน)   │
+│        Immediate Price Protection (no grace period)        │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  ⚠️ เงื่อนไขที่ทำให้ระบบทำงาน:                              │
+│  ⚠️ Trigger Conditions:                                   │
 │     Health Factor < 100%                                   │
 │                                                             │
-│  📉 กลไกการคำนวณ:                                           │
-│     HF = (มูลค่าหลักประกัน × LTV) / จำนวนเงินกู้            │
+│  📉 Calculation:                                          │
+│     HF = (Collateral Value × LTV) / Borrow Amount          │
 │                                                             │
-│  🔥 สถานการณ์ที่พบบ่อย:                                     │
-│     - ตลาดผันผวน (Flash Crash)                             │
-│     - ราคาหลักประกันลดลงฉับพลัน                             │
-│     - ผู้กู้ไม่ได้ติดตามสถานการณ์                           │
+│  🔥 Common Scenarios:                                     │
+│     - Volatile markets (Flash Crash)                       │
+│     - Collateral value drops suddenly                     │
+│     - Borrower not monitoring situation                   │
 │                                                             │
-│  ⚡ ผลลัพธ์:                                                │
-│     - ระบบล้างทรัพย์ทันที (Immediate)                       │
-│     - ไม่มี 72 ชม. ผ่อนผัน                                 │
-│     - ปกป้องเงินทุนนักลงทุน                                 │
-│     - ไม่มีหนี้สินค้างชำระ                                 │
+│  ⚡ Result:                                                │
+│     - Immediate liquidation                                │
+│     - No 72-hour grace period                              │
+│     - Protects investor capital                            │
+│     - No bad debt                                         │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**ใช้กับ:** ฟังก์ชัน `liquidate_by_health_factor` - กรณีราคาหลักประกันวิกฤต
+**Used for:** `liquidate_by_health_factor` function - critical collateral price case
 
-> 🚨 **คำเตือนสำคัญ:** ระบบนี้ทำงาน **ทันที** ไม่มีการแจ้งเตือนล่วงหน้า 72 ชม. ผู้กู้ต้องรักษา Health Factor ให้สูงกว่า 100% ตลอดเวลา
+> 🚨 **Important Warning:** This system works **immediately** without 72-hour notice. Borrowers must maintain Health Factor above 100% at all times.
 > ┌─────────────────────────────────────────────────────────────┐
-> │ 🎬 ระบบปกป้อง 72 ชั่วโมง │
+> │ 🎬 72-Hour Protection System │
 > ├─────────────────────────────────────────────────────────────┤
 > │ │
-> │ 🎭 ACT 1: การตื่นตัว (The Awakening) │
-> │ │ │
-> │ ▼ │
-> │ มูลค่าหลักประกันลดลง │
-> │ │ │
-> │ ▼ │
-> │ 🔔 เตือนล่วงหน้า (72 ชั่วโมงก่อน) │
-> │ • ระบบแจ้งเตือนผู้กู้ │
-> │ • ผู้กู้มีตัวเลือก: │
-> │ - เพิ่มหลักประกัน │
-> │ - คืนเงินบางส่วน │
-> │ - รอดูสถานการณ์ │
-> │ │ │
-> │ ▼ │
-> │ 🎭 ACT 2: การรับมือ (The Response) │
-> │ │ │
-> │ ▼ │
-> │ ⏰ ระยะปกป้อง (72 ชั่วโมง) │
-> │ • สินทรัพย์ยังปลอดภัย │
-> │ • ผู้กู้มีเวลาดำเนินการ │
-> │ • ผู้ช่วยเหลือ A ตรวจสอบ │
-> │ │ │
-> │ ▼ │
-> │ 🤝 ระยะช่วยเหลือ │
-> │ • ผู้ช่วยเหลือ B ให้สภาพคล่อง │
-> │ • ราคายุติธรรมตามช่วงเวลา: │
-> │ - 0-10 นาที: ส่วนลด 8% │
-> │ - 10-30 นาที: ส่วนลด 6% │
-> │ - 30-60 นาที: ส่วนลด 3% │
-> │ - 60+ นาที: ราคาตลาด │
-> │ │ │
-> │ ▼ │
-> │ 🎭 ACT 3: การฟื้นฟู (The Resolution) │
-> │ │ │
-> │ ▼ │
-> │ ✨ การจบกระบวนการ │
-> │ • ผู้ช่วยเหลือ C จัดการ │
-> │ • กระจายรายได้ │
-> │ • ส่วนเกินเข้ากองทุนสำรอง (ประกันความเสี่ยง) │
-> │ │
-> │ 🎯 ผลลัพธ์: จากความตื่นตระหนก สู่ความสบายใจ │
-> │ │
-> └─────────────────────────────────────────────────────────────┘
-
-```
+> │ 🎭 ACT 1: The Awakening │ │
+> │ ▼ │ │ Collateral Value Drops │ │ ▼ │ │ 🔔 Advance Warning (72 hours before) │ │ • System notifies borrower │ │ • Borrower has options: │ │ - Add collateral │ │ - Repay partial │ │ - Wait and see │ │ │ ▼ │ │ 🎭 ACT 2: The Response │ │ ▼ │ │ ⏰ Protection Period (72 hours) │ │ • Assets are safe │ │ • Borrower has time to act │ │ • Helper A monitors │ │ │ ▼ │ │ 🤝 Assistance Phase │ │ • Helper B provides liquidity │ │ • Fair pricing by time: │ │ - 0-10 minutes: 8% discount │ │ - 10-30 minutes: 6% discount │ │ - 30-60 minutes: 3% discount │ │ - 60+ minutes: market price │ │ │ ▼ │ │ 🎭 ACT 3: The Resolution │ │ ▼ │ │ ✨ Process Complete │ │ • Helper C executes │ │ • Distribute income │ │ • Excess goes to reserve fund (insurance) │ │ │ │ 🎯 Result: From Panic to Peace of Mind │ │ │ └─────────────────────────────────────────────────────────────┘
 
 ---
 
-## 💰 การกระจายรายได้: ปรัชญา "กระจายรายได้"
+## 💰 Revenue Distribution: "Distribute Income" Philosophy
+
+```
+All Interest Revenue
+│
+├── 65.25% → Supporters (Lifeblood)
+│
+├── 24.75% → Operations Team (Trunk)
+│
+└── 10% → Liquidity Fund (Roots)
 
 ```
 
-ดอกเบี้ยทั้งหมด
-│
-├── 65.25% → ผู้สนับสนุน (เส้นเลือดใหญ่)
-│
-├── 24.75% → ทีมดำเนินการ (ลำต้น)
-│
-└── 10% → กองทุนสภาพคล่อง (รากฐาน)
+**Fair Sharing:** Reward supporters while protecting the system
 
-```
-
-**การแบ่งปันที่ยุติธรรม:** รางวัลผู้สนับสนุนขณะปกป้องระบบ
-
-**การจัดสรรส่วนเกิน:** 100% เข้ากองทุนสำรอง (ประกันความเสี่ยง)
+**Excess Allocation:** 100% to Reserve Fund (Risk Insurance)
 
 ---
 
-## 🛡️ ฟีเจอร์ความปลอดภัยหลัก
+## 🛡️ Key Security Features
 
-1. **การป้องกันการโจมตีซ้ำซ้อน** - Reentrancy Guards
-2. **การป้องกัน Flash Loan** - ระยะเวลาถือขั้นต่ำ 5 นาที
-3. **การหยุดฉุกเฉิน** - มี Timelock ป้องกัน
-4. **การจำกัดอัตราการทำธุรกรรม** - Rate Limiting ต่อผู้ใช้
-5. **การตรวจสอบ Oracle** - ข้อมูลราคาสดไม่เกิน 15 วินาที
-6. **การรองรับหลายสินทรัพย์** - LTV แยกต่อสินทรัพย์
+1. **Reentrancy Guards** - Prevent repeat attacks
+2. **Flash Loan Protection** - Minimum 5-minute hold period
+3. **Emergency Stop** - Timelock protected
+4. **Rate Limiting** - Transaction rate limit per user
+5. **Oracle Validation** - Price data max 15 seconds stale
+6. **Multi-Asset Support** - Separate LTV per asset
 
 ---
 
@@ -261,32 +215,31 @@ GINVA คือแพลตฟอร์มสินเชื่อที่ใ�
 
 ---
 
-## 🎯 ทำไมต้องใช้สถาปัตยกรรมนี้?
+## 🚀 Why This Architecture?
 
-### เปรียบเทียบแนวคิด
+### Concept Comparison
 
-**DeFi แบบดั้งเดิม:** การช่วยเหลือทันที → ผู้กู้สูญเสียทุกสิ่งในพริบตา
+**Traditional DeFi:** Immediate help → Borrower loses everything instantly
 
-**GINVA:** การปกป้อง 72 ชั่วโมง → ผู้กู้มีเวลาในการรักษาสินทรัพย์
+**GINVA:** 72-hour protection → Borrower has time to save assets
 
-### หลักการที่เรายึดถือ
+### Our Principles
 
-1. **การปกป้องผู้กู้** สำคัญกว่าความเร็ว
-2. **โอกาสที่ยุติธรรม** สำคัญกว่าประสิทธิภาพ
-3. **ความยั่งยืนของระบบนิเวศ** สำคัญกว่ากำไรระยะสั้น
+1. **Protecting borrowers** comes before speed
+2. **Fair opportunities** come before efficiency
+3. **Ecosystem sustainability** comes before short-term profit
 
 ---
 
-## 🚀 การ Deploy
+## 🚀 Deployment
 
-- **เครือข่าย:** Solana Devnet
+- **Network:** Solana Devnet
 - **Program ID:** `2SiGJi9VkD96oWLNizmMkGFwFpHq1tEETVqrLCezWKou`
-- **เวอร์ชัน:** 2.0.0
-- **สถานะ:** ทดสอบอย่างแข็งขัน
+- **Version:** 2.0.0
+- **Status:** Actively testing
 
 ---
 
-> **"กระจายรายได้ ส่งมอบความสุข ให้ความปลอดภัย สร้างความไว้วางใจ"**
+> **"Distribute Income. Deliver Happiness. Provide Safety. Build Trust"**
 >
-> _สถาปัตยกรรมที่ออกแบบด้วยหัวใจผู้กู้ ขับเคลื่อนด้วยผู้สนับสนุน ดูแลโดยผู้ช่วยเหลือ_
-```
+> _Architecture designed with borrower heart, driven by supporters, guarded by helpers_

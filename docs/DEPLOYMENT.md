@@ -1,32 +1,32 @@
-# GINVA - คู่มือการ Deploy
+# GINVA - Deployment Guide
 
-> **"กระจายรายได้ ส่งมอบความสุข ให้ความปลอดภัย สร้างความไว้วางใจ"**
+> **"Distribute Income. Deliver Happiness. Provide Safety. Build Trust"**
 
-## ภาพรวม
+## Overview
 
-GINVA เป็นโปรโตคอลสินเชื่อบน Solana ที่มี **ระบบช่วยเหลือสินทรัพย์แบบ 3 ขั้นตอน** ที่เป็นเอกลักษณ์:
+GINVA is a lending protocol on Solana with a unique **3-step asset assistance system**:
 
-1. **ขั้นตอนที่ 1: เริ่มกระบวนการ** (ผู้ช่วยเหลือ A) - ตรวจพบบัญชีที่ต้องการความช่วยเหลือ รับหลักประกัน ได้รับรางวัล 0.6%
-2. **ขั้นตอนที่ 2: แลกเปลี่ยน** (ใครก็ได้หลัง 24 ชม.) - หลังจาก 24 ชั่วโมง สามารถแลก SOL→USDC ผ่าน Jupiter ได้รับรางวัลจากการสร้างสภาพคล่อง
-3. **ขั้นตอนที่ 3: จบกระบวนการ** (ผู้ช่วยเหลือ C) - กระจาย USDC คืนเงินต้น แบ่งรายได้ ได้รับรางวัล 1.0 USDC
+1. **Step 1: Initiate Process** (Helper A) - Detect accounts needing assistance, receive collateral, get 0.6% reward
+2. **Step 2: Exchange** (Anyone after 24 hours) - After 24 hours, can exchange SOL→USDC via Jupiter, receive reward from providing liquidity
+3. **Step 3: Complete Process** (Helper C) - Distribute USDC, return principal, split income, receive 1.0 USDC reward
 
-## 🏗️ สถาปัตยกรรม
+## 🏗️ Architecture
 
-### 🌳 ส่วนประกอบหลัก
+### 🌳 Main Components
 
-- **กระเป๋าทุน (Capital Wallet)**: เก็บ USDC สำหรับปล่อยกู้ (PDA ควบคุมโดยโปรโตคอล)
-- **กระเป๋าหลักประกัน (Vault Wallet)**: เก็บหลักประกันของผู้กู้ (PDA ควบคุมโดยโปรโตคอล)
-- **กระเป๋ารายได้ (Revenue Wallet)**: รับกำไรของโปรโตคอล (PDA ควบคุมโดยโปรโตคอล)
-- **กระเป๋าสินทรัพย์ที่ถูกช่วยเหลือ (Seized Assets Vault)**: ที่เก็บชั่วคราวสำหรับหลักประกันระหว่างกระบวนการช่วยเหลือ
-- **กระเป๋ากระบวนการ (Processing Vault)**: เก็บ USDC หลังการแลกเปลี่ยนก่อนการกระจายรายได้
+- **Capital Wallet**: Stores USDC for lending (PDA controlled by protocol)
+- **Vault Wallet**: Stores borrower collateral (PDA controlled by protocol)
+- **Revenue Wallet**: Receives protocol profits (PDA controlled by protocol)
+- **Seized Assets Vault**: Temporary storage for collateral during assistance process
+- **Processing Vault**: Stores USDC after exchange before income distribution
 
-### ✨ ฟีเจอร์สำคัญ
+### ✨ Key Features
 
-- ✅ **ผู้ช่วยเหลือไม่ต้องใช้ทุน**: ผู้ช่วยเหลือไม่จำเป็นต้องมีทุนในการเข้าร่วม
-- ✅ **ธุรกรรมแบบอะตอมิก**: การดำเนินการที่ปราศจากความเสี่ยงผ่าน CPI
-- ✅ **การเชื่อมต่อ Pyth Oracle**: ราคาแบบเรียลไทม์พร้อมช่วงความเชื่อมั่น
-- ✅ **หน้าต่างชุมชน 24 ชั่วโมง**: เวลาสำหรับการซื้อในราคาส่วนลดก่อนการแลกเปลี่ยนอัตโนมัติ
-- ✅ **ป้องกัน MEV**: ผู้ช่วยเหลือหลายราย กลไกหมดเวลา ต้องใช้ที่อยู่ต่างกัน
+- ✅ **No capital required for helpers**: Helpers don't need capital to participate
+- ✅ **Atomic transactions**: Risk-free operations through CPI
+- ✅ **Pyth Oracle connection**: Real-time prices with confidence intervals
+- ✅ **24-hour community window**: Time for discounted purchases before automatic exchange
+- ✅ **MEV prevention**: Multiple helpers, time limit mechanism, must use different addresses
 
 ## Prerequisites
 
@@ -65,35 +65,35 @@ solana airdrop 2
 
 ## Docker Build (Recommended)
 
-เนื่องจากปัญหา Toolchain compatibility ระหว่าง Solana build tools และ dependencies ใหม่ แนะนำให้ใช้ Docker:
+Due to toolchain compatibility issues between Solana build tools and new dependencies, using Docker is recommended:
 
 ### Quick Start with Docker
 
 ```bash
-# Build with Docker (แก้ปัญหา toolchain ทันที)
+# Build with Docker (fixes toolchain issues immediately)
 npm run build:docker
 
-# หรือใช้ script โดยตรง
+# Or use script directly
 ./docker-build.sh
 ```
 
 ### Docker Commands
 
 ```bash
-# Build โปรแกรม
+# Build program
 npm run build:docker
 
-# รันเทส
+# Run tests
 npm run test:docker
 
-# เข้า shell สำหรับคำสั่ง manual
+# Enter shell for manual commands
 npm run docker:shell
 
-# ล้าง cache
+# Clean cache
 npm run docker:clean
 ```
 
-### สิ่งที่ต้องติดตั้งก่อนใช้ Docker
+### Prerequisites for Docker
 
 ```bash
 # Install Docker
@@ -109,37 +109,37 @@ docker --version
 docker-compose --version
 ```
 
-### วิธีทำงาน
+### How It Works
 
-Docker จะสร้าง environment ที่มี:
+Docker will create an environment with:
 
-- Rust 1.79 (เวอร์ชั่นที่ compatible)
+- Rust 1.79 (compatible version)
 - Solana CLI 1.18.26
 - Anchor CLI 0.32.1
 - Node.js 20
-- ทุก dependencies ที่ต้องการ
+- All required dependencies
 
-**ข้อดี:**
+**Benefits:**
 
-- ✅ ไม่ต้องกังวลเรื่อง Rust version บนเครื่อง
-- ✅ Build ได้ 100% แน่นอน
-- ✅ ใช้งานได้ทั้ง macOS, Linux, Windows
-- ✅ แชร์ cache ระหว่างการ build
+- ✅ Don't worry about Rust version on machine
+- ✅ 100% guaranteed build
+- ✅ Works on macOS, Linux, Windows
+- ✅ Share cache between builds
 
 ## Deployment Steps
 
 ### Option A: Docker Build (Recommended)
 
 ```bash
-# 1. Build ด้วย Docker
+# 1. Build with Docker
 npm run build:docker
 
-# 2. Deploy (ใช้คำสั่งปกติ หรือใน Docker shell)
+# 2. Deploy (use normal command or in Docker shell)
 npm run docker:shell
-# แล้วรัน: anchor deploy --provider.cluster devnet
+# then run: anchor deploy --provider.cluster devnet
 ```
 
-### Option B: Native Build (ถ้าไม่มีปัญหา toolchain)
+### Option B: Native Build (if no toolchain issues)
 
 ```bash
 # Build the program
@@ -222,35 +222,35 @@ npm run demo:liquidation
 npm run demo:full
 ```
 
-## 🤖 การดำเนินการของผู้ช่วยเหลือ
+## 🤖 Keeper Operations
 
-### การรัน Bot แลกเปลี่ยนอัตโนมัติ
+### Running Auto-Exchange Bot
 
 ```bash
-# เริ่มการเฝ้าระวัง
+# Start monitoring
 npm run bot:start
 
-# Bot จะ:
-# - เฝ้าระวังการเริ่มกระบวนการช่วยเหลือ
-# - รอหมดเวลา 24 ชั่วโมง
-# - ดำเนินการแลกเปลี่ยนผ่าน Jupiter
-# - ได้รับรางวัลจากการสร้างสภาพคล่อง
+# Bot will:
+# - Monitor assistance process initiation
+# - Wait for 24-hour timeout
+# - Execute exchange via Jupiter
+# - Receive reward from providing liquidity
 ```
 
-### การดำเนินการด้วยตนเองของผู้ช่วยเหลือ
+### Manual Keeper Operations
 
 ```bash
-# ขั้นตอนที่ 1: เริ่มกระบวนการช่วยเหลือ
-# ต้องตรวจพบบัญชีที่มีปัญหา (health factor < 1.0 หรือค้างชำระ > 33 วัน)
-# รางวัล: 0.6% ของมูลค่าหลักประกัน
+# Step 1: Initiate assistance process
+# Must detect problematic accounts (health factor < 1.0 or overdue > 33 days)
+# Reward: 0.6% of collateral value
 
-# ขั้นตอนที่ 2: ดำเนินการแลกเปลี่ยน
-# ใครก็ได้สามารถเรียกได้หลังจากหมดเวลา 24 ชั่วโมง
-# รางวัล: จากการสร้างสภาพคล่อง
+# Step 2: Execute exchange
+# Anyone can call after 24-hour timeout
+# Reward: From providing liquidity
 
-# ขั้นตอนที่ 3: จบกระบวนการ
-# ต้องเรียกโดยผู้ช่วยเหลือคนอื่นที่ไม่ใช่ขั้นตอนที่ 1 & 2
-# รางวัล: 1.0 USDC ต่อการช่วยเหลือหนึ่งครั้ง
+# Step 3: Complete process
+# Must be called by a different helper from step 1 & 2
+# Reward: 1.0 USDC per assistance
 ```
 
 ## Configuration
@@ -273,42 +273,42 @@ KEEPER_PRIVATE_KEY=[...]
 JUPITER_API_URL=https://quote-api.jup.ag/v6
 ```
 
-### พารามิเตอร์ของโปรโตคอล
+### Protocol Parameters
 
 ```typescript
-// การตั้งค่าปัจจุบันในสมาร์ทคอนแทร็ก
-const LIQUIDATION_TIMEOUT = 86400; // 24 ชั่วโมง
-const HELPER_A_REWARD_BPS = 60; // 0.6% สำหรับผู้ช่วยเหลือ A
-const HELPER_C_REWARD_USDC = 1000000; // 1.0 USDC สำหรับผู้ช่วยเหลือ C
-const SAFETY_THRESHOLD = 85; // 85% ของมูลค่าหลักประกัน
+// Current settings in smart contract
+const LIQUIDATION_TIMEOUT = 86400; // 24 hours
+const HELPER_A_REWARD_BPS = 60; // 0.6% for Helper A
+const HELPER_C_REWARD_USDC = 1000000; // 1.0 USDC for Helper C
+const SAFETY_THRESHOLD = 85; // 85% of collateral value
 ```
 
 ## Known Limitations
 
 ### Build Toolchain Compatibility - RESOLVED ✅
 
-**Issue**: Solana build tools (cargo-build-sbf v1.75.0) ไม่รองรับ `edition2024` ที่ dependencies ใหม่ต้องการ
+**Issue**: Solana build tools (cargo-build-sbf v1.75.0) don't support `edition2024` that new dependencies require
 
-**Solution**: ใช้ Docker Build (แนะนำ)
+**Solution**: Use Docker Build (recommended)
 
 ```bash
-# Build ด้วย Docker แก้ปัญหาได้ทันที
+# Build with Docker fixes issue immediately
 npm run build:docker
 ```
 
 **Why Docker?**
 
-- ✅ ใช้ Rust 1.79 ที่ compatible กับทุก dependencies
-- ✅ ไม่ต้องแก้ไข code หรือ downgrade อะไร
-- ✅ Build ได้ 100% แน่นอน
-- ✅ ใช้งานได้ทุก OS (macOS, Linux, Windows)
+- ✅ Uses Rust 1.79 compatible with all dependencies
+- ✅ No code changes or downgrades needed
+- ✅ 100% guaranteed build
+- ✅ Works on all OS (macOS, Linux, Windows)
 
-**Alternative Solutions** (ถ้าไม่ใช้ Docker):
+**Alternative Solutions** (if not using Docker):
 
-1. รอ Solana tools v2.0+ (ไม่มีกำหนด)
-2. Downgrade เป็น Anchor 0.29.0 + Pyth SDK เก่า (ต้องแก้ code ใหม่)
+1. Wait for Solana tools v2.0+ (no ETA)
+2. Downgrade to Anchor 0.29.0 + old Pyth SDK (requires code changes)
 
-**Status**: ✅ แก้ปัญหาได้แล้วด้วย Docker
+**Status**: ✅ Issue resolved with Docker
 
 ## Production Deployment Checklist
 
@@ -326,86 +326,86 @@ Before deploying to mainnet:
 - [ ] Audit by security firm
 - [ ] Bug bounty program
 
-## 🏗️ แผนภาพสถาปัตยกรรม
+## 🏗️ Architecture Diagram
 
 ```
-โฟลว์ผู้ใช้:
-═══════════
+User Flow:
+===========
 
-1. ฝากหลักประกัน
-   SOL ของผู้ใช้ → กระเป๋าหลักประกัน (PDA)
+1. Deposit Collateral
+   User SOL → Collateral Wallet (PDA)
 
-2. กู้ USDC
-   กระเป๋าทุน → USDC ของผู้ใช้
-   สร้างบัญชีเงินกู้พร้อม LTV
+2. Borrow USDC
+   Capital Wallet → User USDC
+   Create loan account with LTV
 
-3. คืนเงิน (กรณีปกติ)
-   USDC ของผู้ใช้ → กระเป๋าทุน
-   กระเป๋าหลักประกัน → SOL ของผู้ใช้ (คืน)
+3. Repay (Normal Case)
+   User USDC → Capital Wallet
+   Collateral Wallet → User SOL (return)
 
-โฟลว์การช่วยเหลือสินทรัพย์:
-═══════════════════════════
+Asset Assistance Flow:
+=======================
 
-🎬 ขั้นตอนที่ 1: เริ่มกระบวนการ (ผู้ช่วยเหลือ A)
+🎬 Step 1: Initiate Process (Helper A)
 ┌─────────────────┐
-│  ตรวจพบบัญชี    │
-│  ที่ต้องการ     │
-│  ความช่วยเหลือ  │
+│  Detect Account │
+│  Needing        │
+│  Assistance     │
 └────────┬────────┘
          │
          ▼
 ┌─────────────────┐     ┌──────────────────────┐
-│ รับ 99.4%       │────▶│ กระเป๋าสินทรัพย์    │
-│ หลักประกัน      │     │ ที่ถูกช่วยเหลือ      │
-└─────────────────┘     │ (รอ 24 ชั่วโมง)     │
+│ Receive 99.4%   │────▶│ Seized Assets     │
+│ Collateral      │     │ Vault              │
+└─────────────────┘     │ (wait 24 hours)   │
          │              └──────────────────────┘
          ▼
 ┌─────────────────┐
-│ ผู้ช่วยเหลือ A  │
-│ ได้รับ 0.6%     │
-│ ทันที           │
+│ Helper A        │
+│ receives 0.6%   │
+│ immediately     │
 └─────────────────┘
 
-🎬 ขั้นตอนที่ 2: แลกเปลี่ยน (ใครก็ได้หลัง 24 ชม.)
+🎬 Step 2: Exchange (Anyone after 24 hours)
 ┌──────────────────────┐
-│ กระเป๋าสินทรัพย์    │
-│ ที่ถูกช่วยเหลือ     │
-│ (SOL)               │
+│ Seized Assets      │
+│ Vault (SOL)        │
 └──────────┬───────────┘
            │
            ▼
 ┌──────────────────┐     ┌───────────────────┐
-│ Jupiter Swap     │────▶│ กระเป๋ากระบวนการ │
-│ SOL → USDC       │     │ (USDC)            │
+│ Jupiter Swap      │────▶│ Processing Vault │
+│ SOL → USDC       │     │ (USDC)           │
 └──────────────────┘     └───────────────────┘
            │
            ▼
 ┌──────────────────┐
-│ ผู้ดำเนินการ    │
-│ ได้รับรางวัล    │
-│ สร้างสภาพคล่อง  │
+│ Operator        │
+│ receives        │
+│ liquidity       │
+│ reward          │
 └──────────────────┘
 
-🎬 ขั้นตอนที่ 3: จบกระบวนการ (ผู้ช่วยเหลือ C)
+🎬 Step 3: Complete Process (Helper C)
 ┌───────────────────┐
-│ กระเป๋ากระบวนการ │
-│ (USDC)            │
+│ Processing Vault │
+│ (USDC)           │
 └─────────┬─────────┘
           │
           ▼
 ┌─────────┴─────────────────────────┐
-│ เงินต้น → กระเป๋าทุน             │
-│ กำไร 10% → กระเป๋าทุน            │
-│ กำไร 90% → กระจายตามสัดส่วน      │
-│ ผู้ช่วยเหลือ C ได้รับ 1.0 USDC   │
+│ Principal → Capital Wallet       │
+│ Profit 10% → Capital Wallet     │
+│ Profit 90% → Distribute by ratio│
+│ Helper C receives 1.0 USDC      │
 └───────────────────────────────────┘
 ```
 
 ---
 
-> **"กระจายรายได้ ส่งมอบความสุข ให้ความปลอดภัย สร้างความไว้วางใจ"**
+> **"Distribute Income. Deliver Happiness. Provide Safety. Build Trust"**
 >
-> _GINVA - แพลตฟอร์มการเงินที่ยุติธรรมที่สุดบน Solana_
+> _GINVA - The Fairest Financial Platform on Solana_
 
 ## Support
 
