@@ -1,115 +1,115 @@
-# GINVA: การนำเสนอทางการตลาด
+# GINVA: Marketing Pitch
 
-> **"กระจายรายได้ ส่งมอบความสุข ให้ความปลอดภัย สร้างความไว้วางใจ"**
+> **"Distribute Revenue, Deliver Happiness, Provide Safety, Build Trust"**
 
-## พาดหัวหลัก
+## Main Headline
 
-**DeFi ที่เป็นมิตรกับผู้กู้ สร้างรายได้ให้ทุกฝ่าย**
+**Fair DeFi for Borrowers, Revenue for Everyone**
 
-## ข้อความดึงดูด (The Hook)
+## The Hook
 
-DeFi มานานน่ากลัวสำหรับผู้กู้
+DeFi has been scary for borrowers
 
-การยึดทรัพย์เป็นกล่องดำ ผู้ช่วยเหลือเอาเปรียบผู้ใช้ หนี้เสียทำลายโปรโตคอล
-เราสร้าง GINVA เพื่อ **เปลี่ยนแปลง** สิ่งนั้น
+Asset seizure is a black box, helpers take advantage of users, bad debt destroys protocols
+We built GINVA to **change** that
 
-## แนวคิดหลัก
+## Core Concept
 
-แพลตฟอร์มสินเชื่อบน Solana ที่:
+A lending platform on Solana that:
 
-- ✅ **ให้ความปลอดภัย** — ระบบปกป้อง 72 ชั่วโมง
-- ✅ **กระจายรายได้** — ผู้สนับสนุนได้รับส่วนแบ่ง 65.25%
-- ✅ **สร้างความไว้วางใจ** — โปร่งใส ยุติธรรม ตรวจสอบได้
+- ✅ **Provides Safety** — 72-hour protection system
+- ✅ **Distributes Revenue** — Supporters get 65.25% share
+- ✅ **Builds Trust** — Transparent, fair, verifiable
 
-## ข้อเสนอ
+## The Offer
 
-เข้าร่วมกับเราที่ [ginva.io](https://ginva.io)
-สร้างรายได้จากการเป็นผู้สนับสนุนสภาพคล่อง หรือผู้ช่วยเหลือในระบบที่ยุติธรรม
-
----
-
-## เอกสารการตลาดฉบับเต็ม
-
-### เรื่องราวของ GINVA (สำหรับ Landing Page)
-
-**วิธีการแบบเดิม:**
-การช่วยเหลือสินทรัพย์เป็นเรื่องน่ากลัว
-
-- ผู้ช่วยเหลือเอาเปรียบผู้ใช้ผ่าน gas wars
-- หนี้เสียทำลายโปรโตคอล
-- ผู้กู้สูญเสียทุกสิ่งในพริบตา
-
-**วิธีการของ GINVA:**
-เราเปลี่ยนการช่วยเหลือสินทรัพย์ให้เป็น **ระบบที่ยุติธรรม**
-
-เมื่อผู้กู้ไม่สามารถดำเนินการได้ สินทรัพย์จะไม่ถูกขายทิ้งทันที—แต่จะเข้าสู่ **กระบวนการช่วยเหลือ 72 ชั่วโมง** ด้วยกลไกราคายุติธรรมตามช่วงเวลา ที่ออกแบบมาเพื่อความโปร่งใสและเป็นธรรม
-
-คุณไม่จำเป็นต้องเป็น bot ก็มีส่วนร่วมได้ คุณแค่ต้อง **พร้อมที่จะช่วยเหลือ**
-
-### คำขวัญ (Taglines)
-
-- "กระจายรายได้ ส่งมอบความสุข ให้ความปลอดภัย สร้างความไว้วางใจ"
-- "แพลตฟอร์มสินเชื่อที่ยุติธรรมที่สุดบน Solana"
-- "ผู้กู้ได้รับโอกาส ผู้สนับสนุนได้รับรายได้ ผู้ช่วยเหลือได้รับรางวัล"
-- "ความเสี่ยงชัดเจน ราคาโปร่งใส ระบบยุติธรรม"
-
-### ข้อความสำหรับกลุ่มเป้าหมาย
-
-**สำหรับผู้กู้:**
-"ศักดิ์ศรีและความยุติธรรม คุณมีเวลา 72 ชั่วโมงในการปกป้องสินทรัพย์ของคุณ"
-
-**สำหรับผู้สนับสนุน:**
-"ส่วนแบ่งรายได้ 65.25% จากทุกธุรกรรม ไม่มีการล็อก ถอนได้ทุกเมื่อ"
-
-**สำหรับผู้ช่วยเหลือ:**
-"เป็นฮีโร่ที่ได้รับรางวัล ช่วยรักษาความมั่นคงของระบบและรับส่วนแบ่ง"
+Join us at [ginva.io](https://ginva.io)
+Earn rewards by being a liquidity supporter or helper in a fair system
 
 ---
 
-## ไอเดียปฏิทินเนื้อหา
+## Full Marketing Documentation
 
-### สัปดาห์ที่ 1: ปัญหา
+### The GINVA Story (for Landing Page)
 
-- Tweet thread: "ทำไม DeFi ถึงน่ากลัวสำหรับผู้กู้"
-- Medium: "ความจริงที่ซ่อนอยู่ในโลก DeFi"
+**Traditional Way:**
+Asset assistance is scary
 
-### สัปดาห์ที่ 2: ทางออก
+- Helpers take advantage of users through gas wars
+- Bad debt destroys protocols
+- Borrowers lose everything in an instant
 
-- Tweet thread: "แนะนำระบบปกป้อง 72 ชั่วโมง"
-- Infographic: ระดับราคาตามช่วงเวลา
+**GINVA Way:**
+We turn asset assistance into a **fair system**
 
-### สัปดาห์ที่ 3: กลไก
+When borrowers can't act, assets won't be sold immediately—they'll enter a **72-hour assistance process** with fair time-based pricing mechanisms designed for transparency and fairness
 
-- Deep dive: "GINVA ทำงานอย่างไร"
-- Video: การเดินทางของผู้กู้ตั้งแต่ต้นจนจบ
+You don't need to be a bot to participate, you just need to **be ready to help**
 
-### สัปดาห์ที่ 4: โอกาส
+### Taglines
 
-- คู่มือผู้สนับสนุน: "วิธีรับส่วนแบ่ง 65.25%"
-- กรณีศึกษา: เรื่องราวความสำเร็จจริง
+- "Distribute Revenue, Deliver Happiness, Provide Safety, Build Trust"
+- "The Most Fair Lending Platform on Solana"
+- "Borrowers get opportunities, Supporters get income, Helpers get rewards"
+- "Clear risks, transparent prices, fair system"
 
----
+### Messages for Target Audiences
 
-## บันทึกอัตลักษณ์ภาพ
+**For Borrowers:**
+"Dignity and fairness - You have 72 hours to protect your assets"
 
-**สี:**
+**For Supporters:**
+"65.25% revenue share from every transaction, no lock-up, withdraw anytime"
 
-- ทองคำ: #FFD700 (Gold)
-- เงิน: #C0C0C0 (Silver)
-- ทองแดง: #CD7F32 (Bronze)
-- เขียวหวาน: #228B22 (Forest Green) - แทนความเติบโต
-
-**โทนเสียง:**
-
-- เป็นมิตรแต่มั่นคง
-- ดูแลแต่มืออาชีพ
-- แข่งขันได้แต่ยุติธรรม
-
-**คำสำคัญ:**
-ความปลอดภัย, ความยุติธรรม, โปร่งใส, การแบ่งปัน, ความไว้วางใจ, โอกาส, ความพร้อม, ศักดิ์ศรี, การปกป้อง
+**For Helpers:**
+"Be a rewarded hero, help maintain system stability and earn shares"
 
 ---
 
-> **"กระจายรายได้ ส่งมอบความสุข ให้ความปลอดภัย สร้างความไว้วางใจ"**
+## Content Calendar Ideas
+
+### Week 1: The Problem
+
+- Tweet thread: "Why DeFi is scary for borrowers"
+- Medium: "The hidden truth in DeFi world"
+
+### Week 2: The Solution
+
+- Tweet thread: "Introducing the 72-hour protection system"
+- Infographic: Time-based pricing levels
+
+### Week 3: The Mechanism
+
+- Deep dive: "How GINVA works"
+- Video: The borrower's journey from start to finish
+
+### Week 4: The Opportunity
+
+- Supporter guide: "How to earn 65.25% share"
+- Case studies: Real success stories
+
+---
+
+## Brand Identity Notes
+
+**Colors:**
+
+- Gold: #FFD700
+- Silver: #C0C0C0
+- Bronze: #CD7F32
+- Forest Green: #228B22 - Represents growth
+
+**Tone:**
+
+- Friendly but stable
+- Caring but professional
+- Competitive but fair
+
+**Key Words:**
+Safety, fairness, transparency, sharing, trust, opportunity, readiness, dignity, protection
+
+---
+
+> **"Distribute Revenue, Deliver Happiness, Provide Safety, Build Trust"**
 >
-> _GINVA - แพลตฟอร์มการเงินที่ยุติธรรมที่สุดบน Solana_
+> _GINVA - The Most Fair Financial Platform on Solana_

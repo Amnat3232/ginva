@@ -1,11 +1,11 @@
 # GINVA Liquidation System Test Scenarios
 
-## สรุปการแก้ไข
+## Summary
 
-แยก Liquidation เป็น 2 ระบบที่ชัดเจน:
+Separated Liquidation into 2 clear systems:
 
-- **System A (Health Factor)**: ยึดตามราคาตลาด - ทันที
-- **System B (Maturity)**: ยึดตามครบกำหนด - มี 72 ชม. ปกป้อง
+- **System A (Health Factor)**: Based on market price - Immediate
+- **System B (Maturity)**: Based on maturity deadline - 72-hour protection
 
 ---
 

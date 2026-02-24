@@ -1,31 +1,31 @@
 # 🤖 GINVA Helper Bot Suite
 
-> **"กระจายรายได้ ส่งมอบความสุข ให้ความปลอดภัย สร้างความไว้วางใจ"**
+> **"Distribute Revenue, Deliver Happiness, Provide Safety, Build Trust"**
 
-บอทอัตโนมัติสำหรับผู้ช่วยเหลือ GINVA Protocol - ผู้พิทักษ์เสถียรภาพของระบบ
+Automated bots for GINVA Protocol Helpers - System Stability Guardians
 
-## 🎯 ฟีเจอร์
+## 🎯 Features
 
-### 1. 🔨 บอทผู้ช่วยเหลือ A (Trigger Helper Bot)
+### 1. 🔨 Trigger Helper Bot (A)
 
-- เฝ้าระวังเงินกู้ที่ใช้งานอยู่ทั้งหมดเพื่อหาตำแหน่งที่ต้องการความช่วยเหลือ
-- เริ่มกระบวนการช่วยเหลืออัตโนมัติเมื่อสุขภาพบัญชีต่ำ
-- ได้รับรางวัล 0.6% เมื่อช่วยเหลือสำเร็จ
-- กำหนดเกณฑ์กำไรขั้นต่ำได้
+- Monitor all active loans to find positions needing assistance
+- Automatically trigger rescue process when account health is low
+- Earn 0.6% reward when assisting successfully
+- Configurable minimum profit threshold
 
-### 2. 🏪 บอทนักล่าร้านค้า (Storefront Hunter Bot)
+### 2. 🏪 Storefront Hunter Bot (B)
 
-- เฝ้าระวังร้านค้าสำหรับสินทรัพย์ลดราคา
-- กลยุทธ์ราคาตามช่วงเวลา (8% → 6% → 3% → 0%)
-- การซื้อแข่งขันด้วยค่าธรรมเนียมความเร็ว
-- การซื้อแบบเรียลไทม์ตามโอกาส
+- Monitor storefronts for discounted assets
+- Time-based pricing strategy (8% → 6% → 3% → 0%)
+- Competitive purchasing with speed fees
+- Real-time purchasing based on opportunities
 
-### 3. ✨ บอทผู้ช่วยเหลือ C (Finalize Helper Bot)
+### 3. ✨ Finalize Helper Bot (C)
 
-- เฝ้าระวังการช่วยเหลือที่แลกเปลี่ยนแล้ว
-- จบกระบวนการกระจายรายได้
-- ได้รับรางวัลคงที่ 1.0 USDC ต่อการช่วยเหลือ
-- รักษาความมั่นคงของโปรโตคอล
+- Monitor completed rescues awaiting distribution
+- Complete the revenue distribution process
+- Earn fixed 1.0 USDC reward per assistance
+- Maintain protocol stability
 
 ## 🚀 Quick Start
 
@@ -71,51 +71,51 @@ npm start
 npm run start
 ```
 
-### รันบอทแยกกัน
+### Run Individual Bots
 
 ```bash
-# บอทผู้ช่วยเหลือ A เท่านั้น
+# Trigger Helper Bot only
 npm run start:trigger
 
-# บอทนักล่าร้านค้า เท่านั้น
+# Storefront Hunter Bot only
 npm run start:hunter
 
-# บอทผู้ช่วยเหลือ C เท่านั้น
+# Finalize Helper Bot only
 npm run start:finalize
 ```
 
-## ⚙️ ตัวเลือกการตั้งค่า
+## ⚙️ Configuration Options
 
-แก้ไขออบเจกต์ `CONFIG` ใน `keeper-suite.ts`:
+Edit the `CONFIG` object in `keeper-suite.ts`:
 
 ```typescript
 const CONFIG = {
-  // การตั้งค่าบอทผู้ช่วยเหลือ A
+  // Trigger Helper Bot configuration
   trigger: {
     enabled: true,
-    minProfit: 0.5, // กำไร USDC ขั้นต่ำในการช่วยเหลือ
-    checkInterval: 5000, // ตรวจสอบทุก 5 วินาที
-    maxConcurrent: 3, // จำนวนสูงสุดที่ช่วยเหลือพร้อมกัน
+    minProfit: 0.5, // Minimum USDC profit to assist
+    checkInterval: 5000, // Check every 5 seconds
+    maxConcurrent: 3, // Maximum concurrent assists
   },
 
-  // การตั้งค่าบอทนักล่าร้านค้า
+  // Storefront Hunter Bot configuration
   hunter: {
     enabled: true,
-    minDiscount: 6, // ส่วนลดขั้นต่ำ % ในการซื้อ
-    maxDiscount: 8, // ส่วนลดสูงสุด % (ความปลอดภัย)
-    checkInterval: 2000, // ตรวจสอบทุก 2 วินาที
-    maxInvestment: 10000, // USDC สูงสุดต่อดีล
+    minDiscount: 6, // Minimum discount % to buy
+    maxDiscount: 8, // Maximum discount % (safety)
+    checkInterval: 2000, // Check every 2 seconds
+    maxInvestment: 10000, // Max USDC per deal
   },
 
-  // การตั้งค่าบอทผู้ช่วยเหลือ C
+  // Finalize Helper Bot configuration
   finalize: {
     enabled: true,
-    checkInterval: 10000, // ตรวจสอบทุก 10 วินาที
-    minProfit: 1.0, // รางวัลขั้นต่ำ 1.0 USDC
+    checkInterval: 10000, // Check every 10 seconds
+    minProfit: 1.0, // Minimum reward 1.0 USDC
   },
 
-  // ทั่วไป
-  priorityFee: 10000, // Micro-lamports สำหรับความเร็ว
+  // General
+  priorityFee: 10000, // Micro-lamports for speed
   commitment: "confirmed",
 };
 ```
@@ -223,10 +223,10 @@ BUSL-1.1 (Business Source License)
 
 ---
 
-> **"กระจายรายได้ ส่งมอบความสุข ให้ความปลอดภัย สร้างความไว้วางใจ"**
+> **"Distribute Revenue, Deliver Happiness, Provide Safety, Build Trust"**
 >
-> _GINVA - แพลตฟอร์มการเงินที่ยุติธรรมที่สุดบน Solana_
+> _GINVA - The Most Fair Financial Platform on Solana_
 
-**เป็นผู้พิทักษ์ระบบและสร้างรายได้ไปพร้อมกัน! 🛡️**
+**Be a system guardian and earn rewards simultaneously! 🛡️**
 
-_ระบบที่ดีต้องมีผู้ช่วยเหลือที่ดี — ความเร็วและประสิทธิภาพคือกุญแจสำคัญ!_
+_A good system needs good helpers — speed and efficiency are the key!_
