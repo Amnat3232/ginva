@@ -1,57 +1,56 @@
 # 🎨 GINVA Design System: "Trust Through Transparency"
 
-> **"กระจายรายได้ ส่งมอบความสุข ให้ความปลอดภัย สร้างความไว้วางใจ"**
+> **"Distribute Revenue, Deliver Happiness, Provide Safety, Build Trust"**
 
 ---
 
-## 1. อารมณ์และ Tone (Brand Personality)
+## 1. Emotion and Tone (Brand Personality)
 
-| คุณสมบัติ       | คำอธิบาย                | การใช้ใน UI                    |
-| :-------------- | :---------------------- | :----------------------------- |
-| **Trustworthy** | น่าเชื่อถือ ไม่หลอกลวง  | สีเข้ม ฟอนต์ชัด ระยะห่างดี     |
-| **Protective**  | ปกป้องผู้ใช้เหมือนเกราะ | ไอคอนโล่ การแจ้งเตือนนุ่มนวล   |
-| **Transparent** | โปร่งใส ไม่มีดักทาง     | ตัวเลขชัดเจน ไม่มี hidden fees |
-| **Calm**        | สงบ ไม่กดดัน            | สี cool tone ลดความวิตกกังวล   |
+| Attribute       | Description                    | Usage in UI                            |
+| :-------------- | :----------------------------- | :------------------------------------- |
+| **Trustworthy** | Reliable, no deception         | Dark colors, clear fonts, good spacing |
+| **Protective**  | Protecting users like a shield | Shield icons, gentle alerts            |
+| **Transparent** | Open, no traps                 | Clear numbers, no hidden fees          |
+| **Calm**        | Calm, not pressuring           | Cool tone colors reduce anxiety        |
 
 ---
 
 ## 🌈 Color Palette
 
-### Primary Colors (สีหลัก)
+### Primary Colors
 
 ```css
---ginva-navy: #0a1628; /* สีหลัก - ความน่าเชื่อถือ */
---ginva-gold: #d4af37; /* สีเน้น - มูลค่า ความมั่งคั่ง */
---ginva-cyan: #00d4aa; /* สี success - การปกป้อง */
+--ginva-navy: #0a1628; /* Primary - Trust */
+--ginva-gold: #d4af37; /* Accent - Value & Prosperity */
+--ginva-cyan: #00d4aa; /* Success - Protection */
 ```
 
 ### Secondary Colors
 
 ```css
---ginva-slate: #1e293b; /* background secondary */
---ginva-silver: #94a3b8; /* text secondary */
---ginva-red: #ef4444; /* alert - ใช้น้อย นุ่มนวล */
---ginva-amber: #f59e0b; /* warning - 72hr countdown */
+--ginva-slate: #1e293b; /* Background secondary */
+--ginva-silver: #94a3b8; /* Text secondary */
+--ginva-red: #ef4444; /* Alert - use sparingly, gentle */
+--ginva-amber: #f59e0b; /* Warning - 72hr countdown */
 ```
 
-### Gradient สำคัญ
+### Important Gradients
 
-- **Protection Gradient:** `linear-gradient(135deg, #00D4AA 0%, #0A1628 100%)` — ใช้ตอนโชว์การปกป้อง
-- **Gold Shine:** `linear-gradient(90deg, #D4AF37 0%, #F4E4BC 50%, #D4AF37 100%)` — สำหรับ CTA สำคัญ
+- **Protection Gradient:** `linear-gradient(135deg, #00D4AA 0%, #0A1628 100%)` — Used when showing protection
+- **Gold Shine:** `linear-gradient(90deg, #D4AF37 0%, #F4E4BC 50%, #D4AF37 100%)` — For important CTAs
 
 ---
 
 ## 🔤 Typography
 
-| บทบาท        | ฟอนต์          | ขนาด    | น้ำหนัก  |
+| Role         | Font           | Size    | Weight   |
 | :----------- | :------------- | :------ | :------- |
 | Display/Logo | Space Grotesk  | 48px+   | Bold     |
 | Headings     | Inter          | 32px    | SemiBold |
 | Body         | Inter          | 16px    | Regular  |
 | Numbers/Data | JetBrains Mono | 14-24px | Medium   |
-| Thai Text    | Kanit / Prompt | 16px    | Regular  |
 
-**หลักการ:** ตัวเลขต้องอ่านง่าย (ใช้ Mono) เพราะเกี่ยวกับเงิน!
+**Principle:** Numbers must be easy to read (use Mono) because it involves money!
 
 ---
 
@@ -61,17 +60,17 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  🏛️ GINVA        [ผู้กู้] [ผู้สนับสนุน] [ผู้ช่วยเหลือ] [Dashboard]  👤  │
+│  🏛️ GINVA        [Borrow] [Supporters] [Helpers] [Dashboard]  👤  │
 │                                                             │
-│  แท็บที่เลือกจะมี underline สีทอง + ไอคอนเล็กข้างหน้า        │
+│  Selected tab has gold underline + small icon before         │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 **Key Features:**
 
-- Sticky header บนมือถือ แต่ซ่อนตอน scroll down โผล่ตอน scroll up
-- Active state: ขีดเส้นใต้สีทอง + glow เล็กน้อย
-- Mobile: Hamburger menu ที่เป็นรูปโล่แทนขีด 3 ขีด (branding!)
+- Sticky header on mobile but hide when scrolling down, show when scrolling up
+- Active state: gold underline + subtle glow
+- Mobile: Hamburger menu as shield icon instead of 3 lines (branding!)
 
 ---
 
@@ -80,26 +79,26 @@
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                                                             │
-│     "กู้เงินทันที                                           │
-│      โดยไม่ต้องขายคริปโต"                                   │
+│     "Borrow instantly                                        │
+│      without selling crypto"                                 │
 │                                                             │
-│     [🚀 เริ่มกู้เงิน]  [💰 เป็นผู้สนับสนุน]                  │
+│     [🚀 Start Borrowing]  [💰 Become Supporter]            │
 │                                                             │
 │     ┌─────────────────────────────────────────┐              │
-│     │  🛡️ ระบบปกป้อง 72 ชั่วโมง              │              │
-│     │  สินทรัพย์ของคุณปลอดภัยเสมอ            │              │
+│     │  🛡️ 72-Hour Protection System         │              │
+│     │  Your assets are always safe           │              │
 │     └─────────────────────────────────────────┘              │
 │                                                             │
-│     [สถิติสด: $2.4M TVL | 1,240 เงินกู้ที่ใช้งาน | 0 การยึดทันที]
+│     [Live Stats: $2.4M TVL | 1,240 Active Loans | 0 Liquidated]
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 **UX Psychology:**
 
-- ตัวเลข "0 การยึดทันที" สร้างความน่าเชื่อถือทันที
-- ปุ่มหลักสีทอง รองสีใส (outline)
-- ไม่มี animation รกตา เน้น smooth fade-in
+- "0 Liquidations" creates instant trust
+- Primary button: gold fill, secondary: outline
+- No cluttered animations, focus on smooth fade-in
 
 ---
 
@@ -109,7 +108,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  ขั้นตอนที่ 1 จาก 4: เลือกหลักประกัน                        │
+│  Step 1 of 4: Select Collateral                             │
 │                                                             │
 │  ┌─────────┐  ┌─────────┐  ┌─────────┐                      │
 │  │   SOL   │  │   BTC   │  │   ETH   │                      │
@@ -117,23 +116,23 @@
 │  │ $142.50 │  │ $67,240 │  │ $3,890 │                      │
 │  └─────────┘  └─────────┘  └─────────┘                      │
 │                                                             │
-│  จำนวน: [████████████░░░░░░] 5.5 SOL                       │
+│  Amount: [████████████░░░░░░] 5.5 SOL                       │
 │                                                             │
 │  ┌─────────────────────────────────────────┐                  │
-│  │  💡 คุณจะได้รับ: 330 USDC              │                  │
-│  │     LTV: 42% (Safe Zone 🟢)            │                  │
-│  │     ดอกเบี้ย: 12% APR                  │                  │
+│  │  💡 You will receive: 330 USDC                            │
+│  │     LTV: 42% (Safe Zone 🟢)                            │
+│  │     Interest: 12% APR                                   │  │
 │  └─────────────────────────────────────────┘                  │
 │                                                             │
-│           [ดำเนินการต่อ →]                                  │
+│           [Continue →]                                      │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 **UX Details:**
 
-- Visual LTV Gauge: สีเขียว/เหลือง/แดง ตามความเสี่ยง
-- Real-time calculation: พิมพ์ปุ๊บ คำนวณปั๊บ
-- Card selection: คลิกที่ card ทั้งใบ ไม่ใช่แค่ radio button
+- Visual LTV Gauge: Green/yellow/red based on risk
+- Real-time calculation: Type and calculate instantly
+- Card selection: Click entire card, not just radio button
 
 ---
 
@@ -141,31 +140,31 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  ขั้นตอนที่ 2 จาก 4: ตรวจสอบการปกป้องของคุณ                  │
+│  Step 2 of 4: Review Your Protection                       │
 │                                                             │
 │  ┌─────────────────────────────────────────┐                  │
-│  │  🛡️ ระบบปกป้อง 72 ชั่วโมงของคุณ        │                  │
+│  │  🛡️ Your 72-Hour Protection System     │                  │
 │  │                                         │                  │
-│  │  ถ้า SOL ต่ำกว่า $95.00:                │                  │
-│  │  • ชั่วโมงที่ 0-72: คุณสามารถเพิ่มหลักประกัน │
-│  │  • ชั่วโมงที่ 72+: ระบบเริ่มกระบวนการช่วยเหลือ │
+│  │  If SOL drops below $95.00:            │                  │
+│  │  • Hours 0-72: You can add collateral  │                  │
+│  │  • Hour 72+: System begins rescue       │                  │
 │  │                                         │                  │
-│  │  [ดู Timeline Visualization →]         │                  │
+│  │  [View Timeline Visualization →]        │                  │
 │  └─────────────────────────────────────────┘                  │
 │                                                             │
 │  ┌─────────────────────────────────────────┐                  │
-│  │  📊 สรุปเงินกู้                        │                  │
-│  │  หลักประกัน: 5.5 SOL ($467.50)         │                  │
-│  │  ได้รับ: 330 USDC                      │                  │
-│  │  ดอกเบี้ย: 3.3 USDC/เดือน               │                  │
-│  │  ราคาช่วยเหลือ: $95.00/SOL             │                  │
+│  │  📊 Loan Summary                       │                  │
+│  │  Collateral: 5.5 SOL ($467.50)         │                  │
+│  │  You receive: 330 USDC                 │                  │
+│  │  Interest: 3.3 USDC/month             │                  │
+│  │  Liquidation Price: $95.00/SOL         │                  │
 │  └─────────────────────────────────────────┘                  │
 │                                                             │
-│  [← กลับ]        [ยืนยันและกู้เงิน]                         │
+│  [← Back]        [Confirm and Borrow]                       │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**สำคัญ:** ต้องมี Timeline Visualization ที่โชว์ช่วง 72 ชั่วโมงชัดเจน!
+**Important:** Must have Timeline Visualization showing the 72-hour period clearly!
 
 ---
 
@@ -173,12 +172,12 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  ขั้นตอนที่ 3 จาก 4: เชื่อมต่ออย่างปลอดภัย                    │
+│  Step 3 of 4: Connect Securely                             │
 │                                                             │
-│  [Phantom]  [Solflare]  [Backpack]  [อื่นๆ...]               │
+│  [Phantom]  [Solflare]  [Backpack]  [Others...]              │
 │                                                             │
-│  🔒 GINVA ไม่สามารถเข้าถึง private keys ของคุณได้           │
-│  🔒 ทุกธุรกรรมต้องได้รับการอนุมัติจากคุณ                    │
+│  🔒 GINVA cannot access your private keys                  │
+│  🔒 All transactions require your approval                  │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -189,9 +188,9 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  ✅ สำเร็จ! 330 USDC ถูกส่งไปยังกระเป๋าของคุณ              │
+│  ✅ Success! 330 USDC sent to your wallet                  │
 │                                                             │
-│  [ไปที่ Dashboard]  [แชร์บน X]                              │
+│  [Go to Dashboard]  [Share on X]                          │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -202,29 +201,29 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  ยินดีต้อนรับกลับมา, 0x7a2f...8e4d 👋                       │
+│  Welcome back, 0x7a2f...8e4d 👋                            │
 │                                                             │
 │  ┌─────────────────────┐  ┌─────────────────────────────┐   │
-│  │  เงินกู้ที่ใช้งานอยู่ │  │  สุขภาพบัญชี               │   │
+│  │  Active Loans       │  │  Account Health            │   │
 │  │  ┌───────────────┐  │  │                             │   │
-│  │  │ 5.5 SOL       │  │  │  [████████░░░░░░░░░░] 78%   │   │
-│  │  │ หลักประกัน    │  │  │  Safe Zone 🟢               │   │
+│  │  │ 5.5 SOL       │  │  │  [████████░░░░░░░░░░] 78%  │   │
+│  │  │ Collateral    │  │  │  Safe Zone 🟢              │   │
 │  │  │               │  │  │                             │   │
-│  │  │ 330 USDC      │  │  │  ดอกเบี้ี้ยครั้งต่อไป:       │   │
-│  │  │ กู้แล้ว       │  │  │  อีก 2 วัน (15 มี.ค.)       │   │
-│  │  │               │  │  │  [จ่ายตอนนี้]               │   │
-│  │  │ LTV: 42%      │  │  │                             │   │
-│  │  │ [จัดการ →]    │  │  └─────────────────────────────┘   │
+│  │  │ 330 USDC      │  │  │  Next interest:            │   │
+│  │  │ Borrowed      │  │  │  In 2 days (Mar 15)       │   │
+│  │  │               │  │  │  [Pay Now]                │   │
+│  │  │ LTV: 42%     │  │  │                             │   │
+│  │  │ [Manage →]   │  │  └─────────────────────────────┘   │
 │  │  └───────────────┘  │                                    │
 │  └─────────────────────┘                                    │
 │                                                             │
 │  ┌─────────────────────────────────────────────────────────┐ │
-│  │  ⚠️  การแจ้งเตือนการปกป้อง                              │ │
-│  │  ไม่มีการแจ้งเตือนที่ใช้งานอยู่ สินทรัพย์ของคุณปลอดภัย 🛡️ │ │
+│  │  ⚠️  Protection Alerts                                 │ │
+│  │  No active alerts, your assets are safe 🛡️            │ │
 │  │                                                         │ │
-│  │  [ถ้ามีการแจ้งเตือน:]                                    │ │
-│  │  🚨 ราคา SOL กำลังลด! เหลือเวลา 68 ชั่วโมง              │ │
-│  │  [เพิ่มหลักประกัน] [คืนบางส่วน] [ไม่ทำอะไร]             │ │
+│  │  [If there were alerts:]                                │ │
+│  │  🚨 SOL price dropping! 68 hours remaining             │ │
+│  │  [Add Collateral] [Repay Partially] [Do Nothing]       │ │
 │  └─────────────────────────────────────────────────────────┘ │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
@@ -232,52 +231,52 @@
 
 **Health Bar Logic:**
 
-- 🟢 0-50% LTV: Safe (สีเขียว)
-- 🟡 50-75% LTV: Caution (สีเหลือง)
-- 🟠 75-85% LTV: Warning (สีส้ม)
-- 🔴 85%+ LTV: Entering Protection (สีแดง + countdown)
+- 🟢 0-50% LTV: Safe (Green)
+- 🟡 50-75% LTV: Caution (Yellow)
+- 🟠 75-85% LTV: Warning (Orange)
+- 🔴 85%+ LTV: Entering Protection (Red + countdown)
 
 ---
 
-### 2.5 72-Hour Protection Interface (สำคัญที่สุด!)
+### 2.5 72-Hour Protection Interface (Most Important!)
 
-นี่คือจุดขายหลักของ GINVA ต้องออกแบบให้ดีที่สุด:
+This is GINVA's main selling point, must be designed perfectly:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  🛡️ โหมดการปกป้องเปิดใช้งาน                                 │
+│  🛡️ Protection Mode Active                                 │
 │                                                             │
 │  ┌─────────────────────────────────────────────────────────┐ │
 │  │                                                         │ │
-│  │    [=================>          ] 68:42:15 เหลือ       │ │
+│  │    [=================>          ] 68:42:15 remaining  │ │
 │  │         ████████░░░░░░░░░░░░░░░░                        │ │
-│  │         ชั่วโมงที่ 4 จาก 72                              │ │
+│  │         Hour 4 of 72                                    │ │
 │  │                                                         │ │
-│  │    SOL ปัจจุบัน: $89.50  |  ราคาช่วยเหลือ: $95.00      │ │
-│  │    ช่องว่าง: -$5.50 (-5.8%)                             │ │
-│  │                                                         │ │
-│  └─────────────────────────────────────────────────────────┐ │
-│                                                             │
-│  ┌─────────────────────────────────────────────────────────┐ │
-│  │  💡 การดำเนินการที่แนะนำ:                               │ │
-│  │                                                         │ │
-│  │  [1] เพิ่ม 0.5 SOL หลักประกัน   → ยกเลิกการปกป้อง      │ │
-│  │  [2] คืน 50 USDC               → LTV ลดเหลือ 35%       │ │
-│  │  [3] ไม่ทำอะไร                → เข้าสู่ระยะช่วยเหลือ   │ │
+│  │    SOL Price: $89.50  |  Liquidation: $95.00          │ │
+│  │    Gap: -$5.50 (-5.8%)                                │ │
 │  │                                                         │ │
 │  └─────────────────────────────────────────────────────────┘ │
 │                                                             │
-│  [📞 ติดต่อ Support]  [📚 เรียนรู้เพิ่มเติม]                │
+│  ┌─────────────────────────────────────────────────────────┐ │
+│  │  💡 Recommended Actions:                               │ │
+│  │                                                         │ │
+│  │  [1] Add 0.5 SOL collateral → Cancel protection       │ │
+│  │  [2] Repay 50 USDC → LTV drops to 35%               │ │
+│  │  [3] Do nothing → Enter rescue phase                  │ │
+│  │                                                         │ │
+│  └─────────────────────────────────────────────────────────┘ │
+│                                                             │
+│  [📞 Contact Support]  [📚 Learn More]                     │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 **Visual Countdown:**
 
-- ชั่วโมงแรก: สีเขียว (นุ่มนวล)
-- ชั่วโมง 24-48: สีเหลือง
-- ชั่วโมง 48-72: สีส้ม
-- ชั่วโมงสุดท้าย: กระพริบช้าๆ สีแดงอ่อน (ไม่ตกใจ)
+- First hour: Green (gentle)
+- Hours 24-48: Yellow
+- Hours 48-72: Orange
+- Final hour: Slow blink light red (not alarming)
 
 ---
 
@@ -285,25 +284,25 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  💰 ศูนย์ผู้สนับสนุน                                        │
+│  💰 Supporter Center                                        │
 │                                                             │
-│  Stake ของคุณ: 5,000 USDC                                  │
-│  ได้รับแล้ว: 234.50 USDC (+12.4% APY)                      │
-│  ทบต้นอัตโนมัติ: ON 🔄                                     │
+│  Your Stake: 5,000 USDC                                    │
+│  Earned: 234.50 USDC (+12.4% APY)                         │
+│  Auto-compound: ON 🔄                                      │
 │                                                             │
 │  ┌─────────────────────────────────────────────────────────┐ │
-│  │  การแบ่งรายได้ (30 วันล่าสุด)                          │ │
+│  │  Revenue Share (Last 30 Days)                          │ │
 │  │                                                         │ │
-│  │  ส่วนของคุณ (65.25%):     ████████████████████  $152.80 │ │
-│  │  ทีมดำเนินการ (24.75%):   ████████              $58.00  │ │
-│  │  กองทุนสภาพคล่อง (10%):   ███                   $23.70  │ │
+│  │  Your Share (65.25%):     ████████████████████  $152.80 │
+│  │  Operations (24.75%):     ████████              $58.00  │
+│  │  Capital Pool (10%):     ███                   $23.70  │
 │  │                                                         │ │
-│  │  รายได้รวมของโปรโตคอล: $234.50                        │ │
+│  │  Total Protocol Revenue: $234.50                        │ │
 │  └─────────────────────────────────────────────────────────┘ │
 │                                                             │
-│  [เพิ่ม Stake] [ถอน] [รับรางวัล]                            │
+│  [Add Stake] [Withdraw] [Claim Rewards]                    │
 │                                                             │
-│  ⚡ ไม่มีระยะเวลาล็อก ถอนได้ทุกเมื่อ                        │
+│  ⚡ No lock-up period, withdraw anytime                    │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -314,26 +313,26 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  🤖 ศูนย์ผู้ช่วยเหลือ                                       │
+│  🤖 Helper Center                                           │
 │                                                             │
-│  โอกาสที่มีอยู่:                                           │
+│  Available Opportunities:                                    │
 │                                                             │
 │  ┌─────────────────────────────────────────────────────────┐ │
-│  │  🔍 บทบาทการตรวจสอบ                                     │ │
-│  │  3 เงินกู้ที่ต้องการการตรวจสอบ                          │ │
-│  │  รางวัล: 0.6% ของมูลค่าหลักประกัน                      │ │
-│  │  [ดูรายการ]                                             │ │
+│  │  🔍 Monitoring Role                                     │ │
+│  │  3 loans need monitoring                               │ │
+│  │  Reward: 0.6% of collateral value                     │ │
+│  │  [View List]                                           │ │
 │  └─────────────────────────────────────────────────────────┘ │
 │                                                             │
 │  ┌─────────────────────────────────────────────────────────┐ │
-│  │  🤝 บทบาทการสนับสนุน                                    │ │
-│  │  1 สินทรัพย์ในช่วง Golden Window (ส่วนลด 8%!)          │ │
-│  │  สินทรัพย์: 10 SOL ที่ $892.00 (ตลาด: $970.00)         │ │
-│  │  เหลือเวลา: 04:32                                      │ │
-│  │  [ดำเนินการตอนนี้]                                      │ │
+│  │  🤝 Support Role                                       │ │
+│  │  1 asset in Golden Window (8% discount!)               │ │
+│  │  Asset: 10 SOL at $892.00 (Market: $970.00)          │ │
+│  │  Time remaining: 04:32                                 │ │
+│  │  [Act Now]                                             │ │
 │  └─────────────────────────────────────────────────────────┘ │
 │                                                             │
-│  รายได้ของคุณวันนี้: 3.4 USDC                              │
+│  Your earnings today: 3.4 USDC                              │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -342,52 +341,52 @@
 
 ## 📱 Mobile-First Considerations
 
-| ปัญหา DeFi ทั่วไป   | วิธีแก้ของ GINVA                            |
-| :------------------ | :------------------------------------------ |
-| ตัวเลขเยอะไปหมด     | ใช้ Accordion ซ่อนรายละเอียด โชว์แค่สำคัญ   |
-| Gas fee ไม่ชัด      | แสดง "Total You'll Receive" หักทุกอย่างแล้ว |
-| กลัวกดผิด           | Swipe to Confirm สำหรับธุรกรรมใหญ่          |
-| ไม่รู้ว่าทำอะไรอยู่ | Progress Bar ติดบนสุดตลอดเวลา               |
+| Common DeFi Issue | GINVA's Solution                                     |
+| :---------------- | :--------------------------------------------------- |
+| Too many numbers  | Use Accordion to hide details, show only important   |
+| Unclear gas fees  | Show "Total You'll Receive" with everything deducted |
+| Fear of wrong tap | Swipe to Confirm for big transactions                |
+| Don't know status | Progress Bar sticky at top always                    |
 
 ---
 
-## 🎬 Micro-interactions (สร้างความประทับใจ)
+## 🎬 Micro-interactions (Creating Impressions)
 
-| Action                 | Animation                   | ความหมาย                 |
-| :--------------------- | :-------------------------- | :----------------------- |
-| กดปุ่ม Borrow          | โล่เล็กขึ้นมาหมุนรอบปุ่ม    | การปกป้องเริ่มต้น        |
-| Protection ใกล้หมดเวลา | ชายแดนกระพริบสีส้มอ่อน      | เร่งปฏิกิริยา แต่ไม่ตกใจ |
-| ชำระเงินสำเร็จ         | ตัวเลขวิ่งขึ้นแล้วค่อยๆ จาง | ความสำเร็จ               |
-| LTV เปลี่ยน            | Gauge หมุนนุ่มนวล           | Real-time feedback       |
+| Action                      | Animation                  | Meaning                 |
+| :-------------------------- | :------------------------- | :---------------------- |
+| Press Borrow button         | Small shield orbits button | Protection begins       |
+| Protection time running out | Borders flash light orange | Urgent but not alarming |
+| Payment successful          | Numbers count up and fade  | Success                 |
+| LTV changes                 | Gauge rotates smoothly     | Real-time feedback      |
 
 ---
 
 ## 🧪 A/B Testing Ideas
 
-1. **"72-Hour" vs "3-Day"** — อันไหนทำให้คนเข้าใจง่ายกว่า?
-2. **Protection Timeline** — แบบ linear กับวงกลม อันไหนใช้งานง่ายกว่า?
-3. **CTA Color** — ทอง vs เขียว อันไหน convert ดีกว่า?
+1. **"72-Hour" vs "3-Day"** — Which is easier to understand?
+2. **Protection Timeline** — Linear vs circular, which is easier to use?
+3. **CTA Color** — Gold vs green, which converts better?
 
 ---
 
-## 🛠️ Technical Stack แนะนำ
+## 🛠️ Recommended Technical Stack
 
 ```
 Frontend:
 ├── Framework: Next.js 14 (App Router)
 ├── Styling: Tailwind CSS + Framer Motion (animation)
-├── State: Zustand (เรียบง่าย)
+├── State: Zustand (simple)
 ├── Wallet: Solana Wallet Adapter
-├── Charts: Recharts (สำหรับ LTV history)
+├── Charts: Recharts (for LTV history)
 └── Icons: Lucide React (clean, modern)
 
 Design Tool:
-├── Figma (สร้าง component library)
-└── Prototype: ลอง 72-hour countdown flow ให้ครบ
+├── Figma (create component library)
+└── Prototype: Test 72-hour countdown flow completely
 ```
 
 ---
 
-> **"กระจายรายได้ ส่งมอบความสุข ให้ความปลอดภัย สร้างความไว้วางใจ"**
+> **"Distribute Revenue, Deliver Happiness, Provide Safety, Build Trust"**
 >
-> _GINVA Design System - ออกแบบด้วยความโปร่งใส สร้างด้วยความไว้วางใจ_
+> _GINVA Design System - Designed with transparency, built with trust_

@@ -83,7 +83,7 @@ You need:
 
 ## Our Philosophy
 
-> **"น้อยแต่มาก" (Less is More)**
+> **"Less is More"**
 
 This isn't just about our Fixed Rate approach. It's about our entire existence.
 
