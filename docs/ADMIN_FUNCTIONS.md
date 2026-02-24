@@ -1,118 +1,118 @@
 # GINVA Admin Functions Summary
 
-## สรุปฟังก์ชันที่ Admin สามารถอัพเดทได้
+## Summary of Functions Admin Can Update
 
 ---
 
-## 1. Emergency Controls (ฉุกเฉิน)
+## 1. Emergency Controls
 
-| Function           | Description                         | Parameters |
-| ------------------ | ----------------------------------- | ---------- |
-| `emergency_pause`  | หยุดระบบทั้งหมดฉุกเฉิน              | -          |
-| `emergency_resume` | เปิดระบบกลับมา (มี timelock 48 ชม.) | -          |
+| Function           | Description                      | Parameters |
+| ------------------ | -------------------------------- | ---------- |
+| `emergency_pause`  | Emergency pause entire system    | -          |
+| `emergency_resume` | Resume system (48 hour timelock) | -          |
 
-**Security:** ใช้ได้เฉพาะ Admin เท่านั้น
-
----
-
-## 2. Protocol Configuration (การตั้งค่าโปรโตคอล)
-
-| Function                 | Description                 | Parameters |
-| ------------------------ | --------------------------- | ---------- |
-| `update_protocol_config` | อัพเดทการตั้งค่าหลักของระบบ |            |
-
-**Parameters ที่อัพเดทได้:**
-
-- `new_timeout` - Liquidation timeout (วินาที)
-- `new_swap_reward_bps` - รางวัล Swap (1% = 100 bps)
-- `new_distribute_reward_bps` - รางวัล Distribute (1% = 100 bps)
-- `new_min_loan` - ขั้นต่ำที่กู้ได้
-- `new_max_loan` - สูงสุดที่กู้ได้
+**Security:** Admin only
 
 ---
 
-## 3. Interest Rates (อัตราดอกเบี้ย)
+## 2. Protocol Configuration
 
-| Function                | Description         | Parameters                              |
-| ----------------------- | ------------------- | --------------------------------------- |
-| `update_interest_rates` | อัพเดทอัตราดอกเบี้ย | `new_base_rate_bps`, `new_max_rate_bps` |
+| Function                 | Description               | Parameters |
+| ------------------------ | ------------------------- | ---------- |
+| `update_protocol_config` | Update main system config |            |
+
+**Parameters that can be updated:**
+
+- `new_timeout` - Liquidation timeout (seconds)
+- `new_swap_reward_bps` - Swap reward (1% = 100 bps)
+- `new_distribute_reward_bps` - Distribute reward (1% = 100 bps)
+- `new_min_loan` - Minimum loan amount
+- `new_max_loan` - Maximum loan amount
+
+---
+
+## 3. Interest Rates
+
+| Function                | Description           | Parameters                              |
+| ----------------------- | --------------------- | --------------------------------------- |
+| `update_interest_rates` | Update interest rates | `new_base_rate_bps`, `new_max_rate_bps` |
 
 **Constraints:**
 
-- Base rate: 0.5% - 20% ต่อปี (50 - 2000 bps)
+- Base rate: 0.5% - 20% per year (50 - 2000 bps)
 - Max rate: Base rate - 50% (5000 bps max)
-- **Cooldown:** อัพเดทได้ทุก 1 วัน
+- **Cooldown:** Can update every 1 day
 
 ---
 
-## 4. LTV Levels (ระดับ LTV)
+## 4. LTV Levels
 
-| Function            | Description                  | Parameters                                        |
-| ------------------- | ---------------------------- | ------------------------------------------------- |
-| `update_ltv_levels` | อัพเดทระดับ LTV ทั้ง 3 ระดับ | `new_ltv_safe`, `new_ltv_standard`, `new_ltv_max` |
+| Function            | Description             | Parameters                                        |
+| ------------------- | ----------------------- | ------------------------------------------------- |
+| `update_ltv_levels` | Update all 3 LTV levels | `new_ltv_safe`, `new_ltv_standard`, `new_ltv_max` |
 
 **Constraints:**
 
 - Safe: 1% - 30%
 - Standard: Safe < Standard ≤ 50%
 - Max: Standard < Max ≤ 90%
-- **Cooldown:** อัพเดทได้ทุก 1 วัน
+- **Cooldown:** Can update every 1 day
 
 ---
 
-## 5. Asset Configuration (การตั้งค่าสินทรัพย์)
+## 5. Asset Configuration
 
-| Function              | Description                        | Parameters |
-| --------------------- | ---------------------------------- | ---------- |
-| `update_asset_config` | อัพเดทการตั้งค่าสินทรัพย์แต่ละชนิด |            |
+| Function              | Description                       | Parameters |
+| --------------------- | --------------------------------- | ---------- |
+| `update_asset_config` | Update config for each asset type |            |
 
-**Parameters ที่อัพเดทได้:**
+**Parameters that can be updated:**
 
-- `is_active` - เปิด/ปิดการใช้งานสินทรัพย์
-- `max_ltv` - LTV สูงสุดของสินทรัพย์นี้
-- `liquidation_threshold` - ระดับที่ต้องยึดสินทรัพย์
-- `new_feed_id_hex` - Pyth Oracle Feed ID ใหม่
-
----
-
-## 6. Operations Wallet (กระเป๋า Ops)
-
-| Function            | Description                   | Parameters               |
-| ------------------- | ----------------------------- | ------------------------ |
-| `update_ops_wallet` | เปลี่ยนกระเป๋ารับค่าธรรมเนียม | `new_ops_wallet: Pubkey` |
-
-**Purpose:** รับค่าธรรมเนียมสำหรับทีมงาน (เงินเดือน, server, marketing)
+- `is_active` - Enable/disable asset
+- `max_ltv` - Maximum LTV for this asset
+- `liquidation_threshold` - Level for asset seizure
+- `new_feed_id_hex` - New Pyth Oracle Feed ID
 
 ---
 
-## 7. Initialization (การเริ่มต้น)
+## 6. Operations Wallet
 
-| Function           | Description                                  |
-| ------------------ | -------------------------------------------- |
-| `initialize`       | สร้าง System Config ครั้งแรก (ตั้งค่า admin) |
-| `initialize_asset` | เพิ่มสินทรัพย์ใหม่ (SOL, BTC, ETH)           |
+| Function            | Description                  | Parameters               |
+| ------------------- | ---------------------------- | ------------------------ |
+| `update_ops_wallet` | Change fee collection wallet | `new_ops_wallet: Pubkey` |
+
+**Purpose:** Receive fees for team operations (salary, server, marketing)
 
 ---
 
-## สรุป: Admin สามารถอัพเดทได้ทั้งหมด 7 หมวด
+## 7. Initialization
+
+| Function           | Description                                 |
+| ------------------ | ------------------------------------------- |
+| `initialize`       | Create System Config first time (set admin) |
+| `initialize_asset` | Add new asset (SOL, BTC, ETH)               |
+
+---
+
+## Summary: Admin Can Update All 7 Categories
 
 ```
-1. Emergency Controls     → pause / resume ระบบ
+1. Emergency Controls     → pause / resume system
 2. Protocol Config       → timeout, rewards, loan limits
-3. Interest Rates        → base rate, max rate (มี cooldown 1 วัน)
-4. LTV Levels            → 3 ระดับ (มี cooldown 1 วัน)
-5. Asset Config          → เปิด/ปิด, LTV, threshold, oracle
-6. Ops Wallet            → เปลี่ยนกระเป๋าเงิน
-7. Initialization        → ตั้งค่าเริ่มต้น
+3. Interest Rates        → base rate, max rate (1 day cooldown)
+4. LTV Levels            → 3 levels (1 day cooldown)
+5. Asset Config          → enable/disable, LTV, threshold, oracle
+6. Ops Wallet            → change wallet address
+7. Initialization        → initial setup
 ```
 
 ---
 
 ## Security Notes
 
-- ทุก function ต้องมี `AdminOnly` constraint (เฉพาะ admin เท่านั้น)
-- Interest rate และ LTV มี cooldown 1 วัน เพื่อป้องกันการเปลี่ยนบ่อยเกินไป
-- Emergency pause/resume มี timelock 48 ชั่วโมงหลัง resume ก่อนจะทำธุรกรรมได้
+- Every function requires `AdminOnly` constraint
+- Interest rate and LTV have 1 day cooldown to prevent frequent changes
+- Emergency pause/resume has 48 hour timelock after resume before transactions can proceed
 
 ---
 
