@@ -1,48 +1,48 @@
-# 📱 วิธีติดตั้ง GINVA App
+# 📱 GINVA App Installation Guide
 
-## สำหรับมือถือ (iOS/Android)
+## For Mobile (iOS/Android)
 
-### ขั้นตอนที่ 1: เปิดเว็บไซต์
+### Step 1: Open Website
 
 ```
 https://ginva.vercel.app
 ```
 
-### ขั้นตอนที่ 2: ติดตั้ง
+### Step 2: Install
 
 **iOS (Safari):**
 
-1. กดปุ่ม **Share** (ปุ่ม □↗)
-2. เลื่อนลง → กด **Add to Home Screen**
-3. กด **Add**
+1. Press the **Share** button (□↗ button)
+2. Scroll down → Press **Add to Home Screen**
+3. Press **Add**
 
 **Android (Chrome):**
 
-1. กดปุ่ม **Menu** (จุด 3 ข้างบน)
-2. เลือก **Install App** หรือ **Add to Home Screen**
-3. กด **Install**
+1. Press the **Menu** button (3 dots top right)
+2. Select **Install App** or **Add to Home Screen**
+3. Press **Install**
 
 ---
 
-## ✅ หลังติดตั้ง
+## ✅ After Installation
 
-- เปิดจาก Home Screen ได้เลย
-- ใช้งานแบบ Offline ได้บางส่วน
-- แจ้งเตือนได้ (ถ้าเปิด 权限)
-
----
-
-## 📋 ความต้องการ
-
-|         | ขั้นต่ำ                   |
-| ------- | ------------------------- |
-| iOS     | 15.0+                     |
-| Android | Chrome 90+                |
-| Network | Internet สำหรับใช้งานจริง |
+- Open from Home Screen directly
+- Partial offline support available
+- Notifications enabled (if permissions granted)
 
 ---
 
-## 🔧 สำหรับนักพัฒนา
+## 📋 Requirements
+
+|         | Minimum               |
+| ------- | --------------------- |
+| iOS     | 15.0+                 |
+| Android | Chrome 90+            |
+| Network | Internet for live use |
+
+---
+
+## 🔧 For Developers
 
 ```bash
 # Run locally

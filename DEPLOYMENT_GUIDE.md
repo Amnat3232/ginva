@@ -1,34 +1,34 @@
 # 🚀 GINVA Devnet Deployment Guide
 
-## ข้อมูล Program
+## Program Info
 
 - **Program ID:** `2SiGJi9VkD96oWLNizmMkGFwFpHq1tEETVqrLCezWKou`
 - **Network:** Solana Devnet
 
 ---
 
-## ขั้นตอนการ Deploy
+## Deployment Steps
 
-### 1. ตรวจสอบ Environment
+### 1. Check Environment
 
 ```bash
-# ตรวจสอบ Solana version
+# Check Solana version
 solana --version
 
-# ตรวจสอบ Anchor version
+# Check Anchor version
 anchor --version
 
-# ตรวจสอบ wallet
+# Check wallet
 solana address
 ```
 
 ### 2. Configure Wallet
 
 ```bash
-# Set wallet เป็นของคุณ
+# Set wallet to your own
 solana config set --keypair ~/.config/solana/id.json
 
-# Set network เป็น devnet
+# Set network to devnet
 solana config set --url devnet
 ```
 
@@ -52,9 +52,9 @@ ts-node scripts/setup-devnet.ts
 
 ---
 
-## หลัง Deploy เสร็จ
+## After Deployment
 
-### ทดสอบระบบ
+### Test the System
 
 ```bash
 # Run all tests
@@ -64,7 +64,7 @@ anchor test
 anchor test --skip-deploy tests/integration-devnet.test.ts
 ```
 
-### ตรวจสอบ Program บน Explorer
+### Check Program on Explorer
 
 ```
 https://explorer.solana.com/address/2SiGJi9VkD96oWLNizmMkGFwFpHq1tEETVqrLCezWKou?cluster=devnet
@@ -72,22 +72,22 @@ https://explorer.solana.com/address/2SiGJi9VkD96oWLNizmMkGFwFpHq1tEETVqrLCezWKou
 
 ---
 
-## หน้าที่ต้องทดสอบ
+## Test Cases
 
-| #   | ฟังก์ชัน                       | วิธีทดสอบ                 |
+| #   | Function                       | Test Method               |
 | --- | ------------------------------ | ------------------------- |
-| 1   | Deposit Collateral             | ฝาก SOL เป็นหลักประกัน    |
-| 2   | Borrow USDC                    | กู้ USDC โดยใช้ SOL ค้ำ   |
-| 3   | Extend Loan                    | ต่ออายุเงินกู้            |
-| 4   | Repay Loan                     | คืนเงินกู้                |
-| 5   | Stake LP                       | ฝาก USDC เพื่อรับดอกเบี้ย |
-| 6   | Unstake LP                     | ถอน USDC                  |
-| 7   | Trigger Liquidation (HF)       | ทดสอบ HF < 100%           |
-| 8   | Trigger Liquidation (Maturity) | ทดสอบหลังครบกำหนด 72 ชม.  |
+| 1   | Deposit Collateral             | Deposit SOL as collateral |
+| 2   | Borrow USDC                    | Borrow USDC using SOL     |
+| 3   | Extend Loan                    | Extend loan term          |
+| 4   | Repay Loan                     | Repay loan                |
+| 5   | Stake LP                       | Deposit USDC for interest |
+| 6   | Unstake LP                     | Withdraw USDC             |
+| 7   | Trigger Liquidation (HF)       | Test HF < 100%            |
+| 8   | Trigger Liquidation (Maturity) | Test after 72hr deadline  |
 
 ---
 
-## ปัญหาที่อาจพบ
+## Common Issues
 
 ### 1. Low Balance
 
@@ -112,9 +112,9 @@ solana-keygen new --outfile ~/.config/solana/id.json
 
 ---
 
-## ติดต่อ
+## Contact
 
-หากมีปัญหา ตรวจสอบที่:
+If you have issues, check:
 
 - Discord: #dev-support
 - GitHub Issues
