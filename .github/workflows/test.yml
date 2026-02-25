@@ -27,7 +27,7 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@master
@@ -99,7 +99,7 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
       - name: Check JavaScript/TypeScript formatting
         run: npm run lint
@@ -128,11 +128,11 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
       - name: Install bot dependencies
         working-directory: bots
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
       - name: TypeScript check
         working-directory: bots
@@ -184,12 +184,12 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
       - name: Build frontend
         working-directory: app
         run: |
-          npm ci
+          npm install --legacy-peer-deps
           npm run build
         continue-on-error: true
 
