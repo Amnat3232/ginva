@@ -1,0 +1,277 @@
+import React, { useState } from "react";
+import Layout from "../components/Layout";
+import Card from "../components/Card";
+import Button from "../components/Button";
+import { useAlerts } from "../hooks/useAlerts";
+import type { Alert } from "../types";
+
+const ALERT_TYPE_LABELS: Record<Alert["type"], string> = {
+  health_factor: "Health Factor Alert",
+  maturity: "Maturity Alert",
+  liquidation: "Liquidation Warning",
+};
+
+const ALERT_TYPE_DESCRIPTIONS: Record<Alert["type"], string> = {
+  health_factor: "Get notified when your health factor drops below threshold",
+  maturity: "Receive alerts before your loan matures",
+  liquidation: "Warning when approaching liquidation risk",
+};
+
+export default function AlertsPage() {
+  const [userId] = useState("user123");
+  const { loading, error, alerts, toggleAlert, createAlert, deleteAlert } =
+    useAlerts(userId);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newAlertType, setNewAlertType] =
+    useState<Alert["type"]>("health_factor");
+  const [threshold, setThreshold] = useState("1.5");
+
+  const handleCreateAlert = async () => {
+    await createAlert(newAlertType, parseFloat(threshold));
+    setShowCreateModal(false);
+    setThreshold("1.5");
+  };
+
+  const getAlertIcon = (type: Alert["type"]) => {
+    switch (type) {
+      case "health_factor":
+        return "❤️";
+      case "maturity":
+        return "📅";
+      case "liquidation":
+        return "🚨";
+      default:
+        return "🔔";
+    }
+  };
+
+  const getAlertColor = (type: Alert["type"]) => {
+    switch (type) {
+      case "health_factor":
+        return "text-ginva-cyan";
+      case "maturity":
+        return "text-ginva-gold";
+      case "liquidation":
+        return "text-ginva-red";
+      default:
+        return "text-ginva-silver";
+    }
+  };
+
+  return (
+    <Layout title="Alerts - GINVA">
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-2xl font-display font-bold mb-1">Alerts</h1>
+            <p className="text-ginva-silver">
+              Manage your notification preferences
+            </p>
+          </div>
+          <Button variant="primary" onClick={() => setShowCreateModal(true)}>
+            + Add Alert
+          </Button>
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ginva-cyan"></div>
+          </div>
+        ) : error ? (
+          <Card>
+            <div className="text-center py-8">
+              <p className="text-ginva-red">
+                Error loading alerts: {error.message}
+              </p>
+            </div>
+          </Card>
+        ) : (
+          <>
+            {/* Active Alerts */}
+            <div className="mb-6">
+              <h2 className="text-lg font-semibold mb-4">Active Alerts</h2>
+              {alerts.filter((a) => a.enabled).length === 0 ? (
+                <Card>
+                  <div className="text-center py-8">
+                    <div className="text-4xl mb-3">🔔</div>
+                    <p className="text-ginva-silver">No active alerts</p>
+                    <p className="text-sm text-ginva-silver mt-1">
+                      Create an alert to get notified
+                    </p>
+                  </div>
+                </Card>
+              ) : (
+                <div className="space-y-4">
+                  {alerts
+                    .filter((alert) => alert.enabled)
+                    .map((alert) => (
+                      <Card key={alert.id}>
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start space-x-4">
+                            <div className="text-2xl">
+                              {getAlertIcon(alert.type)}
+                            </div>
+                            <div>
+                              <h3
+                                className={`font-semibold ${getAlertColor(
+                                  alert.type
+                                )}`}
+                              >
+                                {ALERT_TYPE_LABELS[alert.type]}
+                              </h3>
+                              <p className="text-ginva-silver text-sm mt-1">
+                                {ALERT_TYPE_DESCRIPTIONS[alert.type]}
+                              </p>
+                              {alert.threshold && (
+                                <p className="text-sm text-ginva-silver mt-2">
+                                  Threshold:{" "}
+                                  <span className="font-mono text-ginva-cyan">
+                                    {alert.threshold}
+                                  </span>
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <button
+                              onClick={() =>
+                                toggleAlert(alert.id, !alert.enabled)
+                              }
+                              className="p-2 hover:bg-ginva-slate/50 rounded-lg transition-colors"
+                              title={alert.enabled ? "Disable" : "Enable"}
+                            >
+                              {alert.enabled ? "🔔" : "🔕"}
+                            </button>
+                            <button
+                              onClick={() => deleteAlert(alert.id)}
+                              className="p-2 hover:bg-ginva-red/20 rounded-lg transition-colors text-ginva-red"
+                              title="Delete"
+                            >
+                              🗑️
+                            </button>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                </div>
+              )}
+            </div>
+
+            {/* Disabled Alerts */}
+            {alerts.filter((a) => !a.enabled).length > 0 && (
+              <div>
+                <h2 className="text-lg font-semibold mb-4 text-ginva-silver">
+                  Disabled Alerts
+                </h2>
+                <div className="space-y-4 opacity-60">
+                  {alerts
+                    .filter((alert) => !alert.enabled)
+                    .map((alert) => (
+                      <Card key={alert.id}>
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start space-x-4">
+                            <div className="text-2xl">
+                              {getAlertIcon(alert.type)}
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-ginva-silver">
+                                {ALERT_TYPE_LABELS[alert.type]}
+                              </h3>
+                              <p className="text-ginva-silver text-sm mt-1">
+                                {ALERT_TYPE_DESCRIPTIONS[alert.type]}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <button
+                              onClick={() =>
+                                toggleAlert(alert.id, !alert.enabled)
+                              }
+                              className="p-2 hover:bg-ginva-slate/50 rounded-lg transition-colors"
+                            >
+                              {alert.enabled ? "🔔" : "🔕"}
+                            </button>
+                            <button
+                              onClick={() => deleteAlert(alert.id)}
+                              className="p-2 hover:bg-ginva-red/20 rounded-lg transition-colors text-ginva-red"
+                            >
+                              🗑️
+                            </button>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Create Modal */}
+        {showCreateModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <Card className="w-full max-w-md">
+              <h2 className="text-xl font-semibold mb-4">Create New Alert</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm text-ginva-silver mb-2">
+                    Alert Type
+                  </label>
+                  <select
+                    value={newAlertType}
+                    onChange={(e) =>
+                      setNewAlertType(e.target.value as Alert["type"])
+                    }
+                    className="w-full bg-ginva-slate border border-ginva-slate/50 rounded-lg px-4 py-2 focus:outline-none focus:border-ginva-cyan"
+                  >
+                    <option value="health_factor">Health Factor Alert</option>
+                    <option value="maturity">Maturity Alert</option>
+                    <option value="liquidation">Liquidation Warning</option>
+                  </select>
+                </div>
+
+                {newAlertType === "health_factor" && (
+                  <div>
+                    <label className="block text-sm text-ginva-silver mb-2">
+                      Threshold (Health Factor)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      max="10"
+                      value={threshold}
+                      onChange={(e) => setThreshold(e.target.value)}
+                      className="w-full bg-ginva-slate border border-ginva-slate/50 rounded-lg px-4 py-2 focus:outline-none focus:border-ginva-cyan"
+                      placeholder="e.g., 1.5"
+                    />
+                    <p className="text-xs text-ginva-silver mt-1">
+                      Alert when health factor drops below this value
+                    </p>
+                  </div>
+                )}
+
+                <div className="flex space-x-3 pt-4">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setShowCreateModal(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="primary"
+                    className="flex-1"
+                    onClick={handleCreateAlert}
+                  >
+                    Create Alert
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          </div>
+        )}
+      </div>
+    </Layout>
+  );
+}
