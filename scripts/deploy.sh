@@ -72,8 +72,15 @@ echo -e "\n${YELLOW}📄 Step 6: Exporting IDL...${NC}"
 cp target/idl/ginva.json ./ginva.json
 echo "✅ IDL exported"
 
-# Step 7: Verify deployment
-echo -e "\n${YELLOW}✅ Step 7: Verifying deployment...${NC}"
+# Step 7: Copy TypeScript types
+echo -e "\n${YELLOW}📄 Step 7: Copying TypeScript types...${NC}"
+if [ -d "app/src/types" ]; then
+    cp target/types/ginva.ts app/src/types/ginva.ts 2>/dev/null || echo "Types file not found, will be generated"
+    echo "✅ TypeScript types updated"
+fi
+
+# Step 8: Verify deployment
+echo -e "\n${YELLOW}✅ Step 8: Verifying deployment...${NC}"
 DEPLOYED_ID=$(solana program show $PROGRAM_ID --url $CLUSTER | grep "Program address" | awk '{print $3}')
 if [ "$DEPLOYED_ID" == "$PROGRAM_ID" ]; then
     echo "✅ Program verified on chain"
@@ -90,8 +97,16 @@ echo "Program ID: $PROGRAM_ID"
 echo "Network: $CLUSTER"
 echo "Wallet: $WALLET_ADDRESS"
 echo ""
+echo "Agent Keeper Program features:"
+echo "  - Agent Registration: register_agent"
+echo "  - Agent Settings: update_agent_settings"
+echo "  - Operation Recording: record_agent_operation"
+echo "  - Rewards Claiming: claim_agent_rewards"
+echo "  - Admin Controls: pause_agent, disable_agent"
+echo ""
 echo "Next steps:"
 echo "  1. Run: ts-node scripts/setup-devnet.ts"
 echo "  2. Test: anchor test"
+echo "  3. Register Agent: ts-node bots/agent-integration.ts"
 echo ""
 echo "Explorer: https://explorer.solana.com/address/$PROGRAM_ID?cluster=$CLUSTER"

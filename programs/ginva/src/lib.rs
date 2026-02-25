@@ -35,7 +35,7 @@ pub const REENTRANCY_GUARD_ACTIVE: u8 = 1;
 pub const REENTRANCY_GUARD_INACTIVE: u8 = 0;
 
 // Program ID - matches Anchor.toml devnet deployment
-declare_id!("E5FsRVneKo5eDq4Y3sHX7PicR1ts4xwRfsyhu3FHwYNk");
+declare_id!("6U1QUPxGuWLU9jizzcJiLsKzZU6LT95FzihaVzLsk8xU");
 
 // CONSTANTS
 

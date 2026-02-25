@@ -8,6 +8,7 @@ import Redeem from "./pages/Redeem";
 import MyTickets from "./pages/MyTickets";
 import Storefront from "./pages/Storefront";
 import Keeper from "./pages/Keeper";
+import Agent from "./pages/Agent";
 import Admin from "./pages/Admin";
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
           <Route path="/my-tickets" element={<MyTickets />} />
           <Route path="/storefront" element={<Storefront />} />
           <Route path="/keeper" element={<Keeper />} />
+          <Route path="/agent" element={<Agent />} />
           <Route path="/admin" element={<Admin />} />
         </Routes>
       </Container>

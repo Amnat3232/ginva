@@ -1,4 +1,4 @@
-import { FiActivity, FiZap, FiShield } from "react-icons/fi";
+import { FiActivity, FiZap, FiShield, FiUser } from "react-icons/fi";
 import { Container, Nav, Navbar as BootstrapNavbar } from "react-bootstrap";
 import { useWallet } from "@solana/wallet-adapter-react";
 import {
@@ -55,6 +55,13 @@ const Navbar = () => {
             >
               <FiZap className="me-1" />
               <small>Keeper</small>
+            </Nav.Link>
+            <Nav.Link
+              href="/agent"
+              className="me-2 py-1 px-2 text-info fw-bold"
+            >
+              <FiUser className="me-1" />
+              <small>Agent</small>
             </Nav.Link>
             <Nav.Link
               href="/admin"
