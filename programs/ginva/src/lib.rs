@@ -35,7 +35,7 @@ pub const REENTRANCY_GUARD_ACTIVE: u8 = 1;
 pub const REENTRANCY_GUARD_INACTIVE: u8 = 0;
 
 // Program ID - matches Anchor.toml devnet deployment
-declare_id!("9BRKxrDaC6D7XLVqwZSMeqkNPhYHdpogwxC5Dph4F9Hf");
+declare_id!("E5FsRVneKo5eDq4Y3sHX7PicR1ts4xwRfsyhu3FHwYNk");
 
 // CONSTANTS
 
@@ -69,6 +69,28 @@ const JUPITER_PROGRAM_ID: Pubkey = pubkey!("JUP4Fb2cqiRUcaTHdrPC8h2gNsA2ETXiPDD3
 // 🛡️ SECURITY: Compile-time check to prevent local-test on mainnet
 #[cfg(all(feature = "local-test", not(feature = "devnet")))]
 compile_error!("local-test feature must be used with devnet feature");
+
+// 🤖 AGENT KEEPER PROGRAM CONSTANTS
+// Revenue Share Model: 45% Human Owner | 35% AI Agent | 15% Safety Fund | 5% Development
+pub const AGENT_REVENUE_HUMAN_SHARE_BPS: u16 = 4500; // 45% to human owner
+pub const AGENT_REVENUE_AI_SHARE_BPS: u16 = 3500; // 35% to AI agent
+pub const AGENT_REVENUE_SAFETY_BPS: u16 = 1500; // 15% to safety fund
+pub const AGENT_REVENUE_DEV_BPS: u16 = 500; // 5% to development fund
+
+// Agent System Limits
+pub const MAX_AGENT_NAME_LENGTH: usize = 64;
+pub const MAX_AGENT_DESCRIPTION_LENGTH: usize = 256;
+pub const MAX_AGENT_FRAMEWORK_LENGTH: usize = 32;
+pub const MAX_AGENT_CAPABILITIES: usize = 10;
+
+// Agent Rate Limits
+pub const AGENT_MIN_RATE_LIMIT_SECONDS: u16 = 1; // Min 1 second between operations
+pub const AGENT_MAX_RATE_LIMIT_SECONDS: u16 = 300; // Max 5 minutes between operations
+pub const AGENT_DEFAULT_RATE_LIMIT: u16 = 15; // Default 15 seconds
+
+// Agent Performance Thresholds
+pub const AGENT_MIN_SUCCESS_RATE: u16 = 80; // Min 80% success rate
+pub const AGENT_MAX_RESPONSE_TIME_MS: u32 = 5000; // Max 5 second response time
 
 mod liquidation_helper {
     use super::*;
@@ -2621,9 +2643,542 @@ pub mod ginva {
 
         Ok(())
     }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 🤖 AGENT KEEPER PROGRAM - INSTRUCTIONS
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    // REGISTER AGENT - Register a new AI Agent with the protocol
+    pub fn register_agent(
+        ctx: Context<RegisterAgent>,
+        name: String,
+        description: String,
+        framework: String,
+    ) -> Result<()> {
+        let agent_account = &mut ctx.accounts.agent_account;
+        let system_config = &mut ctx.accounts.system_config;
+        let clock = Clock::get()?;
+
+        // Security: Check pause status
+        require!(!system_config.is_paused, GinvaError::ProtocolPaused);
+
+        // Check if agent already registered
+        require!(
+            agent_account.agent_pubkey == Pubkey::default(),
+            GinvaError::AgentAlreadyRegistered
+        );
+
+        // 🛡️ SECURITY: Verify usdc_account belongs to owner
+        require!(
+            ctx.accounts.usdc_account.owner == ctx.accounts.owner.key(),
+            GinvaError::Unauthorized
+        );
+
+        // Validate input
+        require!(
+            name.len() > 0 && name.len() <= MAX_AGENT_NAME_LENGTH,
+            GinvaError::InvalidInput
+        );
+        require!(
+            description.len() <= MAX_AGENT_DESCRIPTION_LENGTH,
+            GinvaError::InvalidInput
+        );
+        require!(
+            framework.len() > 0 && framework.len() <= MAX_AGENT_FRAMEWORK_LENGTH,
+            GinvaError::InvalidInput
+        );
+
+        // Initialize agent account
+        agent_account.agent_pubkey = ctx.accounts.owner.key();
+        agent_account.metadata = AgentMetadata {
+            name,
+            description,
+            framework,
+            version: "1.0.0".to_string(),
+            capabilities: vec!["liquidation".to_string(), "monitoring".to_string()],
+            owner: ctx.accounts.owner.key(),
+            contact: String::new(),
+        };
+        agent_account.status = AgentStatus::Active;
+        agent_account.roles = vec![AgentRole::All];
+        agent_account.performance = AgentPerformance::default();
+        agent_account.settings = AgentSettings::default();
+        agent_account.usdc_account = ctx.accounts.usdc_account.key();
+        agent_account.registered_at = clock.unix_timestamp;
+        agent_account.last_active_at = clock.unix_timestamp;
+        agent_account.pending_rewards = 0;
+        agent_account.version = 1;
+
+        msg!(
+            "🤖 Agent registered: {} ({})",
+            agent_account.metadata.name,
+            agent_account.agent_pubkey
+        );
+        msg!("Framework: {}", agent_account.metadata.framework);
+        msg!("Revenue split: 45% Human | 35% Agent | 15% Safety | 5% Dev");
+
+        emit!(AgentRegistered {
+            agent: agent_account.agent_pubkey,
+            owner: agent_account.metadata.owner,
+            framework: agent_account.metadata.framework.clone(),
+            timestamp: clock.unix_timestamp,
+        });
+
+        Ok(())
+    }
+
+    // UPDATE AGENT SETTINGS - Update agent configuration
+    pub fn update_agent_settings(
+        ctx: Context<UpdateAgentSettings>,
+        max_concurrent_ops: Option<u16>,
+        rate_limit_seconds: Option<u16>,
+        min_health_factor: Option<u16>,
+        max_slippage_bps: Option<u16>,
+    ) -> Result<()> {
+        let agent_account = &mut ctx.accounts.agent_account;
+        let clock = Clock::get()?;
+
+        // 🔒 SECURITY: Verify owner is calling this function
+        require!(
+            ctx.accounts.owner.key() == agent_account.metadata.owner,
+            GinvaError::Unauthorized
+        );
+
+        // Check agent is active
+        require!(
+            matches!(agent_account.status, AgentStatus::Active),
+            GinvaError::AgentNotActive
+        );
+
+        // Update settings
+        if let Some(max_ops) = max_concurrent_ops {
+            agent_account.settings.max_concurrent_ops = max_ops;
+        }
+        if let Some(rate_limit) = rate_limit_seconds {
+            require!(
+                rate_limit >= AGENT_MIN_RATE_LIMIT_SECONDS
+                    && rate_limit <= AGENT_MAX_RATE_LIMIT_SECONDS,
+                GinvaError::InvalidInput
+            );
+            agent_account.settings.rate_limit_seconds = rate_limit;
+        }
+        if let Some(min_hf) = min_health_factor {
+            agent_account.settings.min_health_factor = min_hf;
+        }
+        if let Some(slippage) = max_slippage_bps {
+            agent_account.settings.max_slippage_bps = slippage;
+        }
+
+        agent_account.last_active_at = clock.unix_timestamp;
+
+        msg!("🤖 Agent settings updated: {}", agent_account.metadata.name);
+        Ok(())
+    }
+
+    // RECORD AGENT OPERATION - Record a successful agent operation for rewards
+    pub fn record_agent_operation(
+        ctx: Context<RecordAgentOperation>,
+        loan_account_pubkey: Pubkey,
+        operation_type: u8,
+        reward_amount: u64,
+        success: bool,
+        response_time_ms: u32,
+    ) -> Result<()> {
+        let agent_account = &mut ctx.accounts.agent_account;
+        let revenue_distribution = &mut ctx.accounts.revenue_distribution;
+        let system_config = &mut ctx.accounts.system_config;
+        let clock = Clock::get()?;
+
+        // 🔒 SECURITY: Reentrancy guard
+        check_reentrancy_guard(system_config.reentrancy_guard)?;
+        system_config.reentrancy_guard = REENTRANCY_GUARD_ACTIVE;
+
+        // 🔒 SECURITY: Verify owner or agent is calling this function
+        require!(
+            ctx.accounts.agent.key() == agent_account.metadata.owner
+                || ctx.accounts.agent.key() == agent_account.agent_pubkey,
+            GinvaError::Unauthorized
+        );
+
+        // Validate agent status
+        require!(
+            matches!(agent_account.status, AgentStatus::Active),
+            GinvaError::AgentNotActive
+        );
+        require!(
+            agent_account.settings.is_enabled,
+            GinvaError::AgentOperationsDisabled
+        );
+        require!(!agent_account.settings.is_paused, GinvaError::AgentPaused);
+
+        // Check rate limiting
+        let time_since_last = clock
+            .unix_timestamp
+            .saturating_sub(agent_account.last_active_at);
+        require!(
+            time_since_last >= agent_account.settings.rate_limit_seconds as i64,
+            GinvaError::AgentRateLimitExceeded
+        );
+
+        // 🛡️ ANTI-COLLUSION: Prevent agent from operating on its own loan
+        // Agent cannot record operations for loans where it or its owner is the borrower
+        // Note: This requires loan_account to be passed and validated in production
+        // For now, we log a warning for manual review
+        if operation_type == 1 || operation_type == 2 || operation_type == 3 {
+            msg!(
+                "⚠️ ANTI-COLLUSION: Operation {} by agent {} on loan {}",
+                operation_type,
+                agent_account.agent_pubkey,
+                loan_account_pubkey
+            );
+        }
+
+        // Update performance metrics
+        if success {
+            agent_account.performance.successful_operations = agent_account
+                .performance
+                .successful_operations
+                .saturating_add(1);
+        } else {
+            agent_account.performance.failed_operations = agent_account
+                .performance
+                .failed_operations
+                .saturating_add(1);
+        }
+
+        // Calculate success rate
+        let total_ops = agent_account.performance.successful_operations
+            + agent_account.performance.failed_operations;
+        if total_ops > 0 {
+            agent_account.performance.success_rate =
+                ((agent_account.performance.successful_operations as u128 * 10000)
+                    / total_ops as u128) as u16;
+        }
+
+        // Update response time (moving average)
+        if agent_account.performance.avg_response_time_ms > 0 {
+            agent_account.performance.avg_response_time_ms =
+                (agent_account.performance.avg_response_time_ms + response_time_ms) / 2;
+        } else {
+            agent_account.performance.avg_response_time_ms = response_time_ms;
+        }
+
+        // Check performance threshold
+        require!(
+            agent_account.performance.success_rate >= AGENT_MIN_SUCCESS_RATE,
+            GinvaError::AgentPerformanceBelowThreshold
+        );
+
+        // Update timestamps
+        agent_account.last_active_at = clock.unix_timestamp;
+
+        // Calculate revenue shares (45/35/15/5)
+        if reward_amount > 0 {
+            let human_share = reward_amount
+                .saturating_mul(AGENT_REVENUE_HUMAN_SHARE_BPS as u64)
+                .checked_div(10000)
+                .unwrap_or(0);
+
+            let ai_share = reward_amount
+                .saturating_mul(AGENT_REVENUE_AI_SHARE_BPS as u64)
+                .checked_div(10000)
+                .unwrap_or(0);
+
+            let safety_share = reward_amount
+                .saturating_mul(AGENT_REVENUE_SAFETY_BPS as u64)
+                .checked_div(10000)
+                .unwrap_or(0);
+
+            let dev_share = reward_amount
+                .saturating_mul(AGENT_REVENUE_DEV_BPS as u64)
+                .checked_div(10000)
+                .unwrap_or(0);
+
+            // Update agent's pending rewards (AI agent's 35% share)
+            agent_account.performance.total_earnings = agent_account
+                .performance
+                .total_earnings
+                .saturating_add(ai_share);
+            agent_account.pending_rewards = agent_account.pending_rewards.saturating_add(ai_share);
+
+            // Update revenue distribution
+            revenue_distribution.total_revenue = revenue_distribution
+                .total_revenue
+                .saturating_add(reward_amount);
+            revenue_distribution.human_share_accumulated = revenue_distribution
+                .human_share_accumulated
+                .saturating_add(human_share);
+            revenue_distribution.ai_share_accumulated = revenue_distribution
+                .ai_share_accumulated
+                .saturating_add(ai_share);
+            revenue_distribution.safety_fund_accumulated = revenue_distribution
+                .safety_fund_accumulated
+                .saturating_add(safety_share);
+            revenue_distribution.dev_fund_accumulated = revenue_distribution
+                .dev_fund_accumulated
+                .saturating_add(dev_share);
+
+            msg!("💰 Agent operation recorded: {} reward", reward_amount);
+            msg!(
+                "   Human (45%): {} | Agent (35%): {} | Safety (15%): {} | Dev (5%): {}",
+                human_share,
+                ai_share,
+                safety_share,
+                dev_share
+            );
+        }
+
+        // 🔒 RESET REENTRANCY GUARD
+        system_config.reentrancy_guard = REENTRANCY_GUARD_INACTIVE;
+
+        emit!(AgentOperationRecorded {
+            agent: agent_account.agent_pubkey,
+            loan_account: loan_account_pubkey,
+            operation_type,
+            reward_amount,
+            success,
+            timestamp: clock.unix_timestamp,
+        });
+
+        Ok(())
+    }
+
+    // CLAIM AGENT REWARDS - Agent claims its accumulated rewards
+    pub fn claim_agent_rewards(ctx: Context<ClaimAgentRewards>) -> Result<()> {
+        let agent_account = &mut ctx.accounts.agent_account;
+        let revenue_distribution = &mut ctx.accounts.revenue_distribution;
+
+        // Validate agent status
+        require!(
+            matches!(agent_account.status, AgentStatus::Active),
+            GinvaError::AgentNotActive
+        );
+
+        // Check pending rewards
+        require!(
+            agent_account.pending_rewards > 0,
+            GinvaError::NoPendingRewards
+        );
+
+        let reward_amount = agent_account.pending_rewards;
+
+        // Check revenue distribution has sufficient funds
+        require!(
+            revenue_distribution.ai_share_accumulated >= reward_amount,
+            GinvaError::InsufficientFunds
+        );
+
+        // Transfer rewards to agent's USDC account
+        let bump = ctx.bumps.revenue_wallet_authority;
+        let seeds = &[b"revenue_auth".as_ref(), &[bump]];
+        let signer = &[&seeds[..]];
+
+        let cpi_accounts = Transfer {
+            from: ctx.accounts.revenue_wallet.to_account_info(),
+            to: ctx.accounts.agent_usdc_account.to_account_info(),
+            authority: ctx.accounts.revenue_wallet_authority.to_account_info(),
+        };
+        let cpi_ctx = CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            cpi_accounts,
+            signer,
+        );
+        token::transfer(cpi_ctx, reward_amount)?;
+
+        // Update state
+        revenue_distribution.ai_share_accumulated = revenue_distribution
+            .ai_share_accumulated
+            .saturating_sub(reward_amount);
+        agent_account.pending_rewards = 0;
+
+        msg!("🤖 Agent claimed rewards: {} USDC", reward_amount);
+
+        emit!(AgentRewardsClaimed {
+            agent: agent_account.agent_pubkey,
+            amount: reward_amount,
+        });
+
+        Ok(())
+    }
+
+    // PAUSE/UNPAUSE AGENT - Admin can pause agent for maintenance
+    pub fn pause_agent(ctx: Context<PauseAgent>, pause: bool) -> Result<()> {
+        let agent_account = &mut ctx.accounts.agent_account;
+        let system_config = &ctx.accounts.system_config;
+
+        // 🔒 SECURITY: Only admin can pause/unpause agents
+        require!(
+            ctx.accounts.admin.key() == system_config.admin,
+            GinvaError::Unauthorized
+        );
+
+        require!(
+            matches!(agent_account.status, AgentStatus::Active),
+            GinvaError::AgentNotActive
+        );
+
+        agent_account.settings.is_paused = pause;
+
+        if pause {
+            msg!("🤖 Agent paused: {}", agent_account.metadata.name);
+        } else {
+            msg!("🤖 Agent unpaused: {}", agent_account.metadata.name);
+        }
+
+        Ok(())
+    }
+
+    // DISABLE AGENT - Admin can disable misbehaving agent
+    pub fn disable_agent(ctx: Context<DisableAgent>) -> Result<()> {
+        let agent_account = &mut ctx.accounts.agent_account;
+        let system_config = &ctx.accounts.system_config;
+
+        // 🔒 SECURITY: Only admin can disable agents
+        require!(
+            ctx.accounts.admin.key() == system_config.admin,
+            GinvaError::Unauthorized
+        );
+
+        require!(
+            matches!(agent_account.status, AgentStatus::Active),
+            GinvaError::AgentNotActive
+        );
+
+        agent_account.status = AgentStatus::Disabled;
+        agent_account.settings.is_enabled = false;
+
+        msg!("🤖 Agent disabled: {}", agent_account.metadata.name);
+
+        emit!(AgentDisabled {
+            agent: agent_account.agent_pubkey,
+        });
+
+        Ok(())
+    }
 }
 
-// HELPER FUNCTIONS
+// ═══════════════════════════════════════════════════════════════════════════
+// 🤖 AGENT KEEPER PROGRAM - CONTEXT STRUCTURES
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[derive(Accounts)]
+pub struct RegisterAgent<'info> {
+    #[account(mut)]
+    pub owner: Signer<'info>,
+    #[account(
+        init,
+        payer = owner,
+        space = 8 + size_of::<AgentAccount>(),
+        seeds = [b"agent", owner.key().as_ref()],
+        bump
+    )]
+    pub agent_account: Account<'info, AgentAccount>,
+    #[account(mut)]
+    pub usdc_account: Account<'info, TokenAccount>,
+    #[account(
+        init,
+        payer = owner,
+        space = 8 + size_of::<AgentRevenueDistribution>(),
+        seeds = [b"agent_revenue"],
+        bump
+    )]
+    pub revenue_distribution: Account<'info, AgentRevenueDistribution>,
+    #[account(mut)]
+    pub system_config: Account<'info, SystemConfig>,
+    pub system_program: AccountInfo<'info>,
+    pub token_program: AccountInfo<'info>,
+}
+
+#[derive(Accounts)]
+pub struct UpdateAgentSettings<'info> {
+    #[account(mut)]
+    pub owner: Signer<'info>,
+    #[account(mut)]
+    pub agent_account: Account<'info, AgentAccount>,
+    pub system_config: Account<'info, SystemConfig>,
+}
+
+#[derive(Accounts)]
+pub struct RecordAgentOperation<'info> {
+    #[account(mut)]
+    pub agent: Signer<'info>,
+    #[account(mut)]
+    pub agent_account: Account<'info, AgentAccount>,
+    #[account(mut)]
+    pub revenue_distribution: Account<'info, AgentRevenueDistribution>,
+    #[account(mut)]
+    pub system_config: Account<'info, SystemConfig>,
+    pub system_program: AccountInfo<'info>,
+}
+
+#[derive(Accounts)]
+pub struct ClaimAgentRewards<'info> {
+    #[account(mut)]
+    pub agent: Signer<'info>,
+    #[account(mut)]
+    pub agent_account: Account<'info, AgentAccount>,
+    #[account(mut)]
+    pub revenue_distribution: Account<'info, AgentRevenueDistribution>,
+    #[account(mut)]
+    pub agent_usdc_account: Account<'info, TokenAccount>,
+    #[account(mut)]
+    pub revenue_wallet: Account<'info, TokenAccount>,
+    /// CHECK: PDA derived from [b"revenue_auth"]
+    #[account(seeds = [b"revenue_auth"], bump)]
+    pub revenue_wallet_authority: AccountInfo<'info>,
+    pub token_program: AccountInfo<'info>,
+}
+
+#[derive(Accounts)]
+pub struct PauseAgent<'info> {
+    #[account(mut)]
+    pub admin: Signer<'info>,
+    #[account(mut)]
+    pub agent_account: Account<'info, AgentAccount>,
+    pub system_config: Account<'info, SystemConfig>,
+}
+
+#[derive(Accounts)]
+pub struct DisableAgent<'info> {
+    #[account(mut)]
+    pub admin: Signer<'info>,
+    #[account(mut)]
+    pub agent_account: Account<'info, AgentAccount>,
+    pub system_config: Account<'info, SystemConfig>,
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 🤖 AGENT KEEPER PROGRAM - EVENTS
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[event]
+pub struct AgentRegistered {
+    pub agent: Pubkey,
+    pub owner: Pubkey,
+    pub framework: String,
+    pub timestamp: i64,
+}
+
+#[event]
+pub struct AgentOperationRecorded {
+    pub agent: Pubkey,
+    pub loan_account: Pubkey,
+    pub operation_type: u8,
+    pub reward_amount: u64,
+    pub success: bool,
+    pub timestamp: i64,
+}
+
+#[event]
+pub struct AgentRewardsClaimed {
+    pub agent: Pubkey,
+    pub amount: u64,
+}
+
+#[event]
+pub struct AgentDisabled {
+    pub agent: Pubkey,
+}
 
 /// 🛡️ RATE LIMITING: Check and update user operation rate limits
 /// Uses slot-based tracking for more accurate rate limiting on Solana
@@ -3171,6 +3726,152 @@ pub struct LiquidationProcess {
     // Keeper A reward tracking (for separate claim)
     pub keeper_reward_amount: u64,
     pub keeper_reward_claimed: bool,
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 🤖 AGENT KEEPER PROGRAM - ACCOUNT STRUCTURES
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[derive(Clone, AnchorSerialize, AnchorDeserialize)]
+pub enum AgentStatus {
+    Active,
+    Disabled,
+    UnderReview,
+    Suspended,
+    Unregistered,
+}
+
+impl Default for AgentStatus {
+    fn default() -> Self {
+        AgentStatus::Active
+    }
+}
+
+#[derive(Clone, AnchorSerialize, AnchorDeserialize)]
+pub enum AgentRole {
+    KeeperA, // Trigger Guardian
+    KeeperB, // Storefront Hunter
+    KeeperC, // Distributor
+    All,     // All roles
+}
+
+impl Default for AgentRole {
+    fn default() -> Self {
+        AgentRole::All
+    }
+}
+
+#[derive(Clone, AnchorSerialize, AnchorDeserialize)]
+pub struct AgentMetadata {
+    pub name: String,
+    pub description: String,
+    pub framework: String,
+    pub version: String,
+    pub capabilities: Vec<String>,
+    pub owner: Pubkey,
+    pub contact: String,
+}
+
+impl Default for AgentMetadata {
+    fn default() -> Self {
+        AgentMetadata {
+            name: String::new(),
+            description: String::new(),
+            framework: String::new(),
+            version: String::new(),
+            capabilities: Vec::new(),
+            owner: Pubkey::default(),
+            contact: String::new(),
+        }
+    }
+}
+
+#[derive(Clone, AnchorSerialize, AnchorDeserialize)]
+pub struct AgentPerformance {
+    pub successful_operations: u64,
+    pub failed_operations: u64,
+    pub success_rate: u16,
+    pub avg_response_time_ms: u32,
+    pub uptime_percent: u16,
+    pub last_operation_at: i64,
+    pub total_earnings: u64,
+}
+
+impl Default for AgentPerformance {
+    fn default() -> Self {
+        AgentPerformance {
+            successful_operations: 0,
+            failed_operations: 0,
+            success_rate: 100,
+            avg_response_time_ms: 0,
+            uptime_percent: 100,
+            last_operation_at: 0,
+            total_earnings: 0,
+        }
+    }
+}
+
+#[derive(Clone, AnchorSerialize, AnchorDeserialize)]
+pub struct AgentSettings {
+    pub max_concurrent_ops: u16,
+    pub rate_limit_seconds: u16,
+    pub min_health_factor: u16,
+    pub max_slippage_bps: u16,
+    pub is_enabled: bool,
+    pub is_paused: bool,
+}
+
+impl Default for AgentSettings {
+    fn default() -> Self {
+        AgentSettings {
+            max_concurrent_ops: 5,
+            rate_limit_seconds: AGENT_DEFAULT_RATE_LIMIT,
+            min_health_factor: 80,
+            max_slippage_bps: 2000,
+            is_enabled: true,
+            is_paused: false,
+        }
+    }
+}
+
+#[account]
+#[derive(Default)]
+pub struct AgentAccount {
+    pub agent_pubkey: Pubkey,
+    pub metadata: AgentMetadata,
+    pub status: AgentStatus,
+    pub roles: Vec<AgentRole>,
+    pub performance: AgentPerformance,
+    pub settings: AgentSettings,
+    pub usdc_account: Pubkey,
+    pub registered_at: i64,
+    pub last_active_at: i64,
+    pub pending_rewards: u64,
+    pub version: u16,
+}
+
+#[account]
+#[derive(Default)]
+pub struct AgentRevenueDistribution {
+    pub total_revenue: u64,
+    pub human_share_accumulated: u64,
+    pub ai_share_accumulated: u64,
+    pub safety_fund_accumulated: u64,
+    pub dev_fund_accumulated: u64,
+    pub last_distribution_at: i64,
+    pub distribution_count: u64,
+}
+
+#[account]
+#[derive(Default)]
+pub struct AgentOperation {
+    pub agent_pubkey: Pubkey,
+    pub loan_account: Pubkey,
+    pub operation_type: u8, // 1=Liquidate, 2=Buy, 3=Finalize
+    pub reward_amount: u64,
+    pub success: bool,
+    pub response_time_ms: u32,
+    pub executed_at: i64,
 }
 
 // CONTEXT STRUCTURES
@@ -4183,4 +4884,44 @@ pub enum GinvaError {
     // 🔄 Payment Errors (2030-2039)
     #[msg("Payment period not met - need at least 30 days since last payment")]
     PaymentPeriodNotMet = 2030,
+
+    // 🤖 Agent Keeper Program Errors (3000-3099)
+    #[msg("Agent not registered")]
+    AgentNotRegistered = 3000,
+    #[msg("Agent already registered")]
+    AgentAlreadyRegistered = 3001,
+    #[msg("Agent registration disabled")]
+    AgentRegistrationDisabled = 3002,
+    #[msg("Agent operations disabled")]
+    AgentOperationsDisabled = 3003,
+    #[msg("Agent rate limit exceeded")]
+    AgentRateLimitExceeded = 3004,
+    #[msg("Agent health factor too low")]
+    AgentHealthFactorTooLow = 3005,
+    #[msg("Agent not active")]
+    AgentNotActive = 3006,
+    #[msg("Agent collusion detected")]
+    AgentCollusionDetected = 3007,
+    #[msg("Suspicious agent activity detected")]
+    SuspiciousActivityDetected = 3008,
+    #[msg("Agent maximum concurrent operations reached")]
+    MaxConcurrentOperationsReached = 3009,
+    #[msg("Agent minimum health factor not met")]
+    AgentMinHealthFactorNotMet = 3010,
+    #[msg("Invalid agent role")]
+    InvalidAgentRole = 3011,
+    #[msg("Agent not authorized for this operation")]
+    AgentNotAuthorized = 3012,
+    #[msg("Agent performance below threshold")]
+    AgentPerformanceBelowThreshold = 3013,
+    #[msg("Revenue distribution failed")]
+    RevenueDistributionFailed = 3014,
+    #[msg("Invalid revenue share percentage")]
+    InvalidRevenueShare = 3015,
+    #[msg("Agent account paused")]
+    AgentPaused = 3016,
+
+    // Generic Input Error
+    #[msg("Invalid input provided")]
+    InvalidInput = 4000,
 }

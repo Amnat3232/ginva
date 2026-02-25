@@ -6,7 +6,7 @@ resolution = true
 skip-lint = false
 
 [programs.devnet]
-ginva = "9BRKxrDaC6D7XLVqwZSMeqkNPhYHdpogwxC5Dph4F9Hf"
+ginva = "E5FsRVneKo5eDq4Y3sHX7PicR1ts4xwRfsyhu3FHwYNk"
 
 [registry]
 url = "https://api.apr.dev"
