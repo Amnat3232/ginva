@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Layout from "../components/Layout";
 import Card from "../components/Card";
 import Button from "../components/Button";
 import { useAlerts } from "../hooks/useAlerts";
+import { supabase } from "../lib/supabase";
 import type { Alert } from "../types";
 
 const ALERT_TYPE_LABELS: Record<Alert["type"], string> = {
@@ -18,16 +19,36 @@ const ALERT_TYPE_DESCRIPTIONS: Record<Alert["type"], string> = {
 };
 
 export default function AlertsPage() {
-  const [userId] = useState("user123");
+  const [userId, setUserId] = useState<string | null>(null);
+  const [loadingUser, setLoadingUser] = useState(true);
+
+  useEffect(() => {
+    async function getUser() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUserId(user?.id ?? null);
+      setLoadingUser(false);
+    }
+    getUser();
+  }, []);
+
   const { loading, error, alerts, toggleAlert, createAlert, deleteAlert } =
     useAlerts(userId);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newAlertType, setNewAlertType] =
     useState<Alert["type"]>("health_factor");
   const [threshold, setThreshold] = useState("1.5");
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const handleCreateAlert = async () => {
-    await createAlert(newAlertType, parseFloat(threshold));
+    const parsed = parseFloat(threshold);
+    if (isNaN(parsed) || parsed < 0 || parsed > 10) {
+      setValidationError("Threshold must be between 0 and 10");
+      return;
+    }
+    setValidationError(null);
+    await createAlert(newAlertType, parsed);
     setShowCreateModal(false);
     setThreshold("1.5");
   };
@@ -73,10 +94,19 @@ export default function AlertsPage() {
           </Button>
         </div>
 
-        {loading ? (
+        {loadingUser || loading ? (
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ginva-cyan"></div>
           </div>
+        ) : !userId ? (
+          <Card>
+            <div className="text-center py-8">
+              <div className="text-4xl mb-3">🔐</div>
+              <p className="text-ginva-silver">
+                Please connect your wallet to manage alerts
+              </p>
+            </div>
+          </Card>
         ) : error ? (
           <Card>
             <div className="text-center py-8">
@@ -245,6 +275,11 @@ export default function AlertsPage() {
                       className="w-full bg-ginva-slate border border-ginva-slate/50 rounded-lg px-4 py-2 focus:outline-none focus:border-ginva-cyan"
                       placeholder="e.g., 1.5"
                     />
+                    {validationError && (
+                      <p className="text-xs text-ginva-red mt-1">
+                        {validationError}
+                      </p>
+                    )}
                     <p className="text-xs text-ginva-silver mt-1">
                       Alert when health factor drops below this value
                     </p>

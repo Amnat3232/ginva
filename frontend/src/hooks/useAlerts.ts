@@ -13,7 +13,7 @@ interface UseAlertsResult {
 }
 
 export function useAlerts(
-  userId: string,
+  userId: string | null,
   filterType?: Alert["type"]
 ): UseAlertsResult {
   const [loading, setLoading] = useState(true);
