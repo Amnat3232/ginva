@@ -3001,6 +3001,172 @@ pub mod ginva {
         Ok(())
     }
 
+    // CLAIM HUMAN OWNER SHARE - Human owner claims their 45% share
+    pub fn claim_human_share(ctx: Context<ClaimHumanShare>) -> Result<()> {
+        let agent_account = &mut ctx.accounts.agent_account;
+        let revenue_distribution = &mut ctx.accounts.revenue_distribution;
+
+        // Validate agent is registered and active
+        require!(
+            agent_account.agent_pubkey != Pubkey::default(),
+            GinvaError::AgentNotRegistered
+        );
+        require!(
+            matches!(agent_account.status, AgentStatus::Active),
+            GinvaError::AgentNotActive
+        );
+
+        // Get human owner's pending share
+        let pending_human_share = revenue_distribution.human_share_accumulated;
+
+        // Check there are funds to claim
+        require!(pending_human_share > 0, GinvaError::NoPendingRewards);
+
+        // Transfer to human owner's USDC account
+        let bump = ctx.bumps.revenue_wallet_authority;
+        let seeds = &[b"revenue_auth".as_ref(), &[bump]];
+        let signer = &[&seeds[..]];
+
+        let cpi_accounts = Transfer {
+            from: ctx.accounts.revenue_wallet.to_account_info(),
+            to: ctx.accounts.owner_usdc_account.to_account_info(),
+            authority: ctx.accounts.revenue_wallet_authority.to_account_info(),
+        };
+        let cpi_ctx = CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            cpi_accounts,
+            signer,
+        );
+        token::transfer(cpi_ctx, pending_human_share)?;
+
+        // Update distribution state
+        revenue_distribution.human_share_accumulated = revenue_distribution
+            .human_share_accumulated
+            .saturating_sub(pending_human_share);
+
+        msg!("💰 Human owner claimed: {} USDC", pending_human_share);
+
+        emit!(HumanShareClaimed {
+            owner: agent_account.metadata.owner,
+            agent: agent_account.agent_pubkey,
+            amount: pending_human_share,
+        });
+
+        Ok(())
+    }
+
+    // DISTRIBUTE SAFETY FUND - Admin distributes safety fund to eligible recipients
+    pub fn distribute_safety_fund(
+        ctx: Context<DistributeSafetyFund>,
+        recipient: Pubkey,
+        amount: u64,
+    ) -> Result<()> {
+        let revenue_distribution = &mut ctx.accounts.revenue_distribution;
+        let system_config = &ctx.accounts.system_config;
+
+        // Security: Only admin can distribute
+        require!(
+            ctx.accounts.admin.key() == system_config.admin,
+            GinvaError::Unauthorized
+        );
+
+        // Check sufficient funds in safety fund
+        require!(
+            revenue_distribution.safety_fund_accumulated >= amount,
+            GinvaError::InsufficientFunds
+        );
+
+        // Transfer to recipient
+        let bump = ctx.bumps.revenue_wallet_authority;
+        let seeds = &[b"revenue_auth".as_ref(), &[bump]];
+        let signer = &[&seeds[..]];
+
+        let cpi_accounts = Transfer {
+            from: ctx.accounts.revenue_wallet.to_account_info(),
+            to: ctx.accounts.recipient_usdc_account.to_account_info(),
+            authority: ctx.accounts.revenue_wallet_authority.to_account_info(),
+        };
+        let cpi_ctx = CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            cpi_accounts,
+            signer,
+        );
+        token::transfer(cpi_ctx, amount)?;
+
+        // Update distribution state
+        revenue_distribution.safety_fund_accumulated = revenue_distribution
+            .safety_fund_accumulated
+            .saturating_sub(amount);
+
+        msg!(
+            "🛡️ Safety fund distributed: {} USDC to {}",
+            amount,
+            recipient
+        );
+
+        emit!(SafetyFundDistributed {
+            recipient,
+            amount,
+            admin: ctx.accounts.admin.key(),
+        });
+
+        Ok(())
+    }
+
+    // DISTRIBUTE DEV FUND - Admin distributes development fund
+    pub fn distribute_dev_fund(
+        ctx: Context<DistributeDevFund>,
+        recipient: Pubkey,
+        amount: u64,
+    ) -> Result<()> {
+        let revenue_distribution = &mut ctx.accounts.revenue_distribution;
+        let system_config = &ctx.accounts.system_config;
+
+        // Security: Only admin can distribute
+        require!(
+            ctx.accounts.admin.key() == system_config.admin,
+            GinvaError::Unauthorized
+        );
+
+        // Check sufficient funds in dev fund
+        require!(
+            revenue_distribution.dev_fund_accumulated >= amount,
+            GinvaError::InsufficientFunds
+        );
+
+        // Transfer to recipient
+        let bump = ctx.bumps.revenue_wallet_authority;
+        let seeds = &[b"revenue_auth".as_ref(), &[bump]];
+        let signer = &[&seeds[..]];
+
+        let cpi_accounts = Transfer {
+            from: ctx.accounts.revenue_wallet.to_account_info(),
+            to: ctx.accounts.recipient_usdc_account.to_account_info(),
+            authority: ctx.accounts.revenue_wallet_authority.to_account_info(),
+        };
+        let cpi_ctx = CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            cpi_accounts,
+            signer,
+        );
+        token::transfer(cpi_ctx, amount)?;
+
+        // Update distribution state
+        revenue_distribution.dev_fund_accumulated = revenue_distribution
+            .dev_fund_accumulated
+            .saturating_sub(amount);
+
+        msg!("💻 Dev fund distributed: {} USDC to {}", amount, recipient);
+
+        emit!(DevFundDistributed {
+            recipient,
+            amount,
+            admin: ctx.accounts.admin.key(),
+        });
+
+        Ok(())
+    }
+
     // PAUSE/UNPAUSE AGENT - Admin can pause agent for maintenance
     pub fn pause_agent(ctx: Context<PauseAgent>, pause: bool) -> Result<()> {
         let agent_account = &mut ctx.accounts.agent_account;
@@ -3130,6 +3296,58 @@ pub struct ClaimAgentRewards<'info> {
 }
 
 #[derive(Accounts)]
+pub struct ClaimHumanShare<'info> {
+    #[account(mut)]
+    pub owner: Signer<'info>,
+    #[account(mut)]
+    pub agent_account: Account<'info, AgentAccount>,
+    #[account(mut)]
+    pub revenue_distribution: Account<'info, AgentRevenueDistribution>,
+    #[account(mut)]
+    pub owner_usdc_account: Account<'info, TokenAccount>,
+    #[account(mut)]
+    pub revenue_wallet: Account<'info, TokenAccount>,
+    /// CHECK: PDA derived from [b"revenue_auth"]
+    #[account(seeds = [b"revenue_auth"], bump)]
+    pub revenue_wallet_authority: AccountInfo<'info>,
+    pub token_program: AccountInfo<'info>,
+}
+
+#[derive(Accounts)]
+pub struct DistributeSafetyFund<'info> {
+    #[account(mut)]
+    pub admin: Signer<'info>,
+    #[account(mut)]
+    pub revenue_distribution: Account<'info, AgentRevenueDistribution>,
+    #[account(mut)]
+    pub revenue_wallet: Account<'info, TokenAccount>,
+    #[account(mut)]
+    pub recipient_usdc_account: Account<'info, TokenAccount>,
+    /// CHECK: PDA derived from [b"revenue_auth"]
+    #[account(seeds = [b"revenue_auth"], bump)]
+    pub revenue_wallet_authority: AccountInfo<'info>,
+    pub system_config: Account<'info, SystemConfig>,
+    pub token_program: AccountInfo<'info>,
+}
+
+#[derive(Accounts)]
+pub struct DistributeDevFund<'info> {
+    #[account(mut)]
+    pub admin: Signer<'info>,
+    #[account(mut)]
+    pub revenue_distribution: Account<'info, AgentRevenueDistribution>,
+    #[account(mut)]
+    pub revenue_wallet: Account<'info, TokenAccount>,
+    #[account(mut)]
+    pub recipient_usdc_account: Account<'info, TokenAccount>,
+    /// CHECK: PDA derived from [b"revenue_auth"]
+    #[account(seeds = [b"revenue_auth"], bump)]
+    pub revenue_wallet_authority: AccountInfo<'info>,
+    pub system_config: Account<'info, SystemConfig>,
+    pub token_program: AccountInfo<'info>,
+}
+
+#[derive(Accounts)]
 pub struct PauseAgent<'info> {
     #[account(mut)]
     pub admin: Signer<'info>,
@@ -3178,6 +3396,27 @@ pub struct AgentRewardsClaimed {
 #[event]
 pub struct AgentDisabled {
     pub agent: Pubkey,
+}
+
+#[event]
+pub struct HumanShareClaimed {
+    pub owner: Pubkey,
+    pub agent: Pubkey,
+    pub amount: u64,
+}
+
+#[event]
+pub struct SafetyFundDistributed {
+    pub recipient: Pubkey,
+    pub amount: u64,
+    pub admin: Pubkey,
+}
+
+#[event]
+pub struct DevFundDistributed {
+    pub recipient: Pubkey,
+    pub amount: u64,
+    pub admin: Pubkey,
 }
 
 /// 🛡️ RATE LIMITING: Check and update user operation rate limits
