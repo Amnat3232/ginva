@@ -29,11 +29,9 @@ export default function ProtectionPage() {
   };
 
   const getStatusText = () => {
-    if (hours > 48)
-      return { text: "Safe Zone", color: "text-ginva-cyan", emoji: "🟢" };
-    if (hours > 24)
-      return { text: "Caution Zone", color: "text-ginva-amber", emoji: "🟡" };
-    return { text: "Warning Zone", color: "text-orange-500", emoji: "🟠" };
+    if (hours > 48) return { text: "Safe Zone", color: "text-ginva-cyan" };
+    if (hours > 24) return { text: "Caution Zone", color: "text-ginva-amber" };
+    return { text: "Warning Zone", color: "text-orange-500" };
   };
 
   const status = getStatusText();
@@ -55,7 +53,12 @@ export default function ProtectionPage() {
       {/* Alert Banner */}
       <div className="bg-ginva-amber/20 border-b border-ginva-amber/50 py-3 px-4">
         <div className="max-w-4xl mx-auto flex items-center justify-center space-x-2">
-          <span className="text-ginva-amber">⚠️</span>
+          <Icon
+            name="warning"
+            size="md"
+            className="text-ginva-amber"
+            ariaLabel="Warning"
+          />
           <span className="text-ginva-amber font-medium">
             Protection Mode Active - You have {hours}:
             {minutes.toString().padStart(2, "0")}:
@@ -72,8 +75,14 @@ export default function ProtectionPage() {
 
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-display font-bold mb-2">
-            🛡️ 72-Hour Protection System
+          <h1 className="text-3xl font-display font-bold mb-2 flex items-center gap-3">
+            <Icon
+              name="shield"
+              size="xl"
+              className="text-ginva-cyan"
+              ariaLabel="Shield"
+            />
+            72-Hour Protection System
           </h1>
           <p className="text-ginva-silver">
             Your assets are protected, you have time to act
@@ -131,9 +140,7 @@ export default function ProtectionPage() {
             </div>
             <div className="flex justify-between text-sm text-ginva-silver">
               <span>Hour {72 - hours} of 72</span>
-              <span>
-                {status.emoji} {status.text}
-              </span>
+              <span className={status.color}>{status.text}</span>
             </div>
           </div>
         </Card>
@@ -156,7 +163,10 @@ export default function ProtectionPage() {
                 ${currentPrice.toFixed(2)}
               </p>
               {currentPrice < liquidationPrice && (
-                <p className="text-sm text-ginva-red">🔴 {gapPercent}%</p>
+                <p className="text-sm text-ginva-red flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-ginva-red inline-block" />
+                  {gapPercent}%
+                </p>
               )}
             </div>
             <div className="p-4 bg-ginva-slate/50 rounded-lg">
@@ -183,7 +193,7 @@ export default function ProtectionPage() {
             <div className="mt-2 flex justify-between items-center">
               <span className="text-ginva-silver">Current LTV:</span>
               <span className={`font-mono font-bold ${status.color}`}>
-                {ltv}% ({status.text} {status.emoji})
+                {ltv}% ({status.text})
               </span>
             </div>
           </div>
@@ -199,13 +209,20 @@ export default function ProtectionPage() {
         {/* Option 1: Add Collateral */}
         <Card className="mb-4 border-l-4 border-l-ginva-cyan">
           <div className="flex items-start space-x-4">
-            <div className="text-3xl">💚</div>
+            <div className="w-10 h-10 rounded-full bg-ginva-cyan/20 flex items-center justify-center">
+              <Icon
+                name="check"
+                size="md"
+                className="text-ginva-cyan"
+                ariaLabel="Recommended"
+              />
+            </div>
             <div className="flex-1">
               <h3 className="font-semibold text-ginva-cyan mb-1">
                 Recommended: Add Collateral
               </h3>
               <p className="text-sm text-ginva-silver mb-3">
-                Add 0.5 SOL ($44.75) → LTV drops to 65% (Safe Zone 🟢) → Cancel
+                Add 0.5 SOL ($44.75) → LTV drops to 65% (Safe Zone) → Cancel
                 protection immediately
               </p>
               <Button variant="primary" size="sm">
@@ -218,13 +235,20 @@ export default function ProtectionPage() {
         {/* Option 2: Repay Partial */}
         <Card className="mb-4 border-l-4 border-l-ginva-amber">
           <div className="flex items-start space-x-4">
-            <div className="text-3xl">💛</div>
+            <div className="w-10 h-10 rounded-full bg-ginva-amber/20 flex items-center justify-center">
+              <Icon
+                name="currency-dollar"
+                size="md"
+                className="text-ginva-amber"
+                ariaLabel="Alternative"
+              />
+            </div>
             <div className="flex-1">
               <h3 className="font-semibold text-ginva-amber mb-1">
                 Alternative: Repay Partially
               </h3>
               <p className="text-sm text-ginva-silver mb-3">
-                Repay 50 USDC → LTV drops to 68% (Safe Zone 🟢) → Next month's
+                Repay 50 USDC → LTV drops to 68% (Safe Zone) → Next month's
                 interest decreases
               </p>
               <Button variant="outline" size="sm">
@@ -237,7 +261,14 @@ export default function ProtectionPage() {
         {/* Option 3: Wait */}
         <Card className="mb-6 border-l-4 border-l-orange-500">
           <div className="flex items-start space-x-4">
-            <div className="text-3xl">🧡</div>
+            <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center">
+              <Icon
+                name="clock"
+                size="md"
+                className="text-orange-500"
+                ariaLabel="Wait"
+              />
+            </div>
             <div className="flex-1">
               <h3 className="font-semibold text-orange-500 mb-1">
                 Wait and See
@@ -261,7 +292,13 @@ export default function ProtectionPage() {
         {/* Timeline */}
         <Card>
           <h3 className="font-semibold mb-4 flex items-center">
-            <span className="mr-2">📊</span> Protection Timeline
+            <Icon
+              name="clock"
+              size="md"
+              className="mr-2"
+              ariaLabel="Timeline"
+            />
+            Protection Timeline
           </h3>
           <div className="space-y-4">
             <div
@@ -274,8 +311,14 @@ export default function ProtectionPage() {
               </div>
               <div>
                 <p className="font-medium">Hour 0</p>
-                <p className="text-sm text-ginva-silver">
-                  🔔 Alert: Your collateral needs attention
+                <p className="text-sm text-ginva-silver flex items-center gap-1">
+                  <Icon
+                    name="bell"
+                    size="sm"
+                    className="text-ginva-cyan"
+                    ariaLabel="Alert"
+                  />
+                  Alert: Your collateral needs attention
                 </p>
                 <p className="text-xs text-ginva-silver">
                   You have 72 hours to act
@@ -293,8 +336,14 @@ export default function ProtectionPage() {
               </div>
               <div>
                 <p className="font-medium">Hour 24</p>
-                <p className="text-sm text-ginva-silver">
-                  🟡 Alert: 48 hours remaining
+                <p className="text-sm text-ginva-silver flex items-center gap-1">
+                  <Icon
+                    name="warning"
+                    size="sm"
+                    className="text-ginva-amber"
+                    ariaLabel="Alert"
+                  />
+                  Alert: 48 hours remaining
                 </p>
                 {hours <= 48 && hours > 24 && (
                   <p className="text-xs text-ginva-amber">← Currently here</p>
@@ -312,8 +361,14 @@ export default function ProtectionPage() {
               </div>
               <div>
                 <p className="font-medium">Hour 48</p>
-                <p className="text-sm text-ginva-silver">
-                  🟠 Alert: Last 24 hours remaining
+                <p className="text-sm text-ginva-silver flex items-center gap-1">
+                  <Icon
+                    name="warning"
+                    size="sm"
+                    className="text-orange-500"
+                    ariaLabel="Alert"
+                  />
+                  Alert: Last 24 hours remaining
                 </p>
                 {hours <= 24 && hours > 0 && (
                   <p className="text-xs text-orange-500">← Currently here</p>
@@ -331,8 +386,14 @@ export default function ProtectionPage() {
               </div>
               <div>
                 <p className="font-medium">Hour 72</p>
-                <p className="text-sm text-ginva-silver">
-                  🔴 Protection period ends - Rescue phase begins
+                <p className="text-sm text-ginva-silver flex items-center gap-1">
+                  <Icon
+                    name="exclamation"
+                    size="sm"
+                    className="text-ginva-red"
+                    ariaLabel="Critical"
+                  />
+                  Protection period ends - Rescue phase begins
                 </p>
               </div>
             </div>
@@ -342,7 +403,13 @@ export default function ProtectionPage() {
         {/* Info Footer */}
         <Card className="mt-6 bg-ginva-navy/30">
           <h3 className="font-semibold mb-3 flex items-center">
-            <span className="mr-2">ℹ️</span> More Information
+            <Icon
+              name="information"
+              size="md"
+              className="mr-2"
+              ariaLabel="Information"
+            />
+            More Information
           </h3>
           <ul className="space-y-2 text-sm text-ginva-silver">
             <li>• System will alert you every 12 hours</li>
@@ -351,11 +418,13 @@ export default function ProtectionPage() {
             <li>• All actions require your approval</li>
           </ul>
           <div className="mt-4 flex space-x-4">
-            <button className="text-ginva-cyan hover:underline text-sm">
-              📞 Contact Support
+            <button className="text-ginva-cyan hover:underline text-sm flex items-center gap-1">
+              <Icon name="phone" size="sm" ariaLabel="Contact" />
+              Contact Support
             </button>
-            <button className="text-ginva-cyan hover:underline text-sm">
-              📚 Help Center
+            <button className="text-ginva-cyan hover:underline text-sm flex items-center gap-1">
+              <Icon name="question" size="sm" ariaLabel="Help" />
+              Help Center
             </button>
           </div>
         </Card>
