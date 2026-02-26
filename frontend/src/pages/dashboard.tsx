@@ -2,6 +2,7 @@ import React from "react";
 import Layout from "../components/Layout";
 import Button from "../components/Button";
 import Card from "../components/Card";
+import Icon from "../components/Icon";
 
 export default function DashboardPage() {
   // Mock data
@@ -13,6 +14,21 @@ export default function DashboardPage() {
     healthStatus: "safe", // safe, caution, warning, critical
     nextPayment: { days: 2, date: "Mar 15" },
     monthlyInterest: 3.3,
+  };
+
+  const getHealthStatus = (status: string) => {
+    switch (status) {
+      case "safe":
+        return "Safe";
+      case "caution":
+        return "Caution";
+      case "warning":
+        return "Warning";
+      case "critical":
+        return "Critical";
+      default:
+        return "Unknown";
+    }
   };
 
   const getHealthColor = (status: string) => {
@@ -30,18 +46,18 @@ export default function DashboardPage() {
     }
   };
 
-  const getHealthEmoji = (status: string) => {
+  const getHealthBgColor = (status: string) => {
     switch (status) {
       case "safe":
-        return "🟢";
+        return "bg-ginva-cyan";
       case "caution":
-        return "🟡";
+        return "bg-ginva-amber";
       case "warning":
-        return "🟠";
+        return "bg-orange-500";
       case "critical":
-        return "🔴";
+        return "bg-ginva-red";
       default:
-        return "⚪";
+        return "bg-ginva-silver";
     }
   };
 
@@ -50,8 +66,9 @@ export default function DashboardPage() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Welcome */}
         <div className="mb-8">
-          <h1 className="text-2xl font-display font-bold mb-1">
-            Welcome back, {user.address} 👋
+          <h1 className="text-2xl font-display font-bold mb-1 flex items-center gap-2">
+            Welcome back, {user.address}
+            <Icon name="hand" size="md" ariaLabel="waving hand" />
           </h1>
           <p className="text-ginva-silver">This is your account overview</p>
         </div>
@@ -63,7 +80,13 @@ export default function DashboardPage() {
             {/* Active Loan Card */}
             <Card>
               <h2 className="text-xl font-semibold mb-4 flex items-center">
-                <span className="mr-2">📋</span> Active Loans
+                <Icon
+                  name="clipboard"
+                  size="md"
+                  className="mr-2"
+                  ariaLabel="clipboard"
+                />
+                Active Loans
               </h2>
 
               <div className="bg-ginva-slate/30 rounded-xl p-6">
@@ -89,7 +112,7 @@ export default function DashboardPage() {
                       user.healthStatus
                     )}`}
                   >
-                    {user.ltv}% ({getHealthEmoji(user.healthStatus)} Safe Zone)
+                    {user.ltv}% ({getHealthStatus(user.healthStatus)} Zone)
                   </span>
                 </div>
 
@@ -102,12 +125,25 @@ export default function DashboardPage() {
             {/* Protection Alerts */}
             <Card>
               <h2 className="text-xl font-semibold mb-4 flex items-center">
-                <span className="mr-2">⚠️</span> Protection Alerts
+                <Icon
+                  name="exclamation"
+                  size="md"
+                  className="mr-2 text-ginva-amber"
+                  ariaLabel="alert"
+                />
+                Protection Alerts
               </h2>
 
               {/* No Alert State */}
               <div className="bg-ginva-cyan/10 border border-ginva-cyan/30 rounded-xl p-6 text-center">
-                <div className="text-4xl mb-3">🛡️</div>
+                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-ginva-cyan/20 flex items-center justify-center">
+                  <Icon
+                    name="shield"
+                    size="lg"
+                    className="text-ginva-cyan"
+                    ariaLabel="protected"
+                  />
+                </div>
                 <p className="text-ginva-cyan font-medium">No active alerts</p>
                 <p className="text-ginva-silver text-sm mt-1">
                   Your assets are safe
@@ -117,7 +153,7 @@ export default function DashboardPage() {
               {/* Example Alert (commented out)
               <div className="bg-ginva-amber/10 border border-ginva-amber/30 rounded-xl p-6">
                 <div className="flex items-start space-x-3">
-                  <span className="text-2xl">🚨</span>
+                  <Icon name="exclamation" size="lg" className="text-ginva-amber flex-shrink-0" ariaLabel="Warning" />
                   <div className="flex-1">
                     <p className="text-ginva-amber font-medium">
                       SOL price dropping! 68 hours remaining
@@ -146,27 +182,47 @@ export default function DashboardPage() {
             <Card>
               <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
               <div className="grid grid-cols-2 gap-4">
-                <button className="p-4 bg-ginva-slate/50 rounded-xl hover:bg-ginva-slate/70 transition-colors text-left">
-                  <div className="text-2xl mb-2">💰</div>
+                <button
+                  className="p-4 bg-ginva-slate/50 rounded-xl hover:bg-ginva-slate/70 transition-colors text-left"
+                  aria-label="Borrow more money"
+                >
+                  <div className="w-8 h-8 mb-2 text-ginva-gold">
+                    <Icon name="currency-dollar" size="lg" ariaLabel="borrow" />
+                  </div>
                   <div className="font-medium">Borrow More</div>
                   <div className="text-sm text-ginva-silver">
                     Increase borrowing limit
                   </div>
                 </button>
-                <button className="p-4 bg-ginva-slate/50 rounded-xl hover:bg-ginva-slate/70 transition-colors text-left">
-                  <div className="text-2xl mb-2">💸</div>
+                <button
+                  className="p-4 bg-ginva-slate/50 rounded-xl hover:bg-ginva-slate/70 transition-colors text-left"
+                  aria-label="Repay loan"
+                >
+                  <div className="w-8 h-8 mb-2 text-ginva-cyan">
+                    <Icon name="banknotes" size="lg" ariaLabel="repay" />
+                  </div>
                   <div className="font-medium">Repay</div>
                   <div className="text-sm text-ginva-silver">Repay loan</div>
                 </button>
-                <button className="p-4 bg-ginva-slate/50 rounded-xl hover:bg-ginva-slate/70 transition-colors text-left">
-                  <div className="text-2xl mb-2">🏦</div>
+                <button
+                  className="p-4 bg-ginva-slate/50 rounded-xl hover:bg-ginva-slate/70 transition-colors text-left"
+                  aria-label="Add collateral"
+                >
+                  <div className="w-8 h-8 mb-2 text-ginva-cyan">
+                    <Icon name="bank" size="lg" ariaLabel="add collateral" />
+                  </div>
                   <div className="font-medium">Add Collateral</div>
                   <div className="text-sm text-ginva-silver">
                     Increase safety
                   </div>
                 </button>
-                <button className="p-4 bg-ginva-slate/50 rounded-xl hover:bg-ginva-slate/70 transition-colors text-left">
-                  <div className="text-2xl mb-2">📅</div>
+                <button
+                  className="p-4 bg-ginva-slate/50 rounded-xl hover:bg-ginva-slate/70 transition-colors text-left"
+                  aria-label="Extend loan term"
+                >
+                  <div className="w-8 h-8 mb-2 text-ginva-gold">
+                    <Icon name="calendar" size="lg" ariaLabel="extend" />
+                  </div>
                   <div className="font-medium">Extend</div>
                   <div className="text-sm text-ginva-silver">Extend term</div>
                 </button>
@@ -193,20 +249,34 @@ export default function DashboardPage() {
                   <span
                     className={`font-bold ${getHealthColor(user.healthStatus)}`}
                   >
-                    {getHealthEmoji(user.healthStatus)} {100 - user.ltv}%
+                    <span
+                      className={`inline-block w-2 h-2 rounded-full mr-1 ${getHealthBgColor(
+                        user.healthStatus
+                      )}`}
+                    />
+                    {100 - user.ltv}%
                   </span>
                 </div>
               </div>
 
               {/* Status */}
               <div className="text-center p-4 bg-ginva-cyan/10 rounded-xl mb-4">
-                <div className="text-3xl mb-2">
-                  {getHealthEmoji(user.healthStatus)}
+                <div
+                  className={`w-8 h-8 mx-auto mb-2 rounded-full ${getHealthBgColor(
+                    user.healthStatus
+                  )} flex items-center justify-center`}
+                >
+                  <Icon
+                    name="check"
+                    size="sm"
+                    className="text-white"
+                    ariaLabel="status check"
+                  />
                 </div>
                 <div
                   className={`font-bold ${getHealthColor(user.healthStatus)}`}
                 >
-                  Safe Zone
+                  {getHealthStatus(user.healthStatus)} Zone
                 </div>
                 <div className="text-sm text-ginva-silver">
                   Your account is in good standing
@@ -272,7 +342,13 @@ export default function DashboardPage() {
               <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
               <div className="space-y-4">
                 <div className="flex items-start space-x-3">
-                  <div className="text-xl">💰</div>
+                  <div className="w-6 h-6 text-ginva-gold">
+                    <Icon
+                      name="currency-dollar"
+                      size="md"
+                      ariaLabel="borrowed"
+                    />
+                  </div>
                   <div className="flex-1">
                     <div className="font-medium">Borrow Money</div>
                     <div className="text-sm text-ginva-silver">+330 USDC</div>
@@ -282,7 +358,9 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <div className="flex items-start space-x-3">
-                  <div className="text-xl">🏦</div>
+                  <div className="w-6 h-6 text-ginva-cyan">
+                    <Icon name="bank" size="md" ariaLabel="deposited" />
+                  </div>
                   <div className="flex-1">
                     <div className="font-medium">Deposit Collateral</div>
                     <div className="text-sm text-ginva-silver">+5.5 SOL</div>
@@ -292,7 +370,9 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <div className="flex items-start space-x-3">
-                  <div className="text-xl">💸</div>
+                  <div className="w-6 h-6 text-ginva-cyan">
+                    <Icon name="banknotes" size="md" ariaLabel="paid" />
+                  </div>
                   <div className="flex-1">
                     <div className="font-medium">Pay Interest</div>
                     <div className="text-sm text-ginva-silver">-3.3 USDC</div>

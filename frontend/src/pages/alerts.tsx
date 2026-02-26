@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Layout from "../components/Layout";
 import Card from "../components/Card";
 import Button from "../components/Button";
+import Icon from "../components/Icon";
 import { useAlerts } from "../hooks/useAlerts";
 import { supabase } from "../lib/supabase";
 import type { Alert } from "../types";
@@ -53,16 +54,39 @@ export default function AlertsPage() {
     setThreshold("1.5");
   };
 
-  const getAlertIcon = (type: Alert["type"]) => {
+  const getAlertIcon = (type: Alert["type"], className = "") => {
     switch (type) {
       case "health_factor":
-        return "❤️";
+        return (
+          <Icon
+            name="heart"
+            size="lg"
+            className={className}
+            ariaLabel="health"
+          />
+        );
       case "maturity":
-        return "📅";
+        return (
+          <Icon
+            name="calendar"
+            size="lg"
+            className={className}
+            ariaLabel="maturity"
+          />
+        );
       case "liquidation":
-        return "🚨";
+        return (
+          <Icon
+            name="exclamation"
+            size="lg"
+            className={className}
+            ariaLabel="warning"
+          />
+        );
       default:
-        return "🔔";
+        return (
+          <Icon name="bell" size="lg" className={className} ariaLabel="alert" />
+        );
     }
   };
 
@@ -101,7 +125,9 @@ export default function AlertsPage() {
         ) : !userId ? (
           <Card>
             <div className="text-center py-8">
-              <div className="text-4xl mb-3">🔐</div>
+              <div className="w-12 h-12 mx-auto mb-3 text-ginva-cyan">
+                <Icon name="lock" size="xl" ariaLabel="locked" />
+              </div>
               <p className="text-ginva-silver">
                 Please connect your wallet to manage alerts
               </p>
@@ -123,7 +149,9 @@ export default function AlertsPage() {
               {alerts.filter((a) => a.enabled).length === 0 ? (
                 <Card>
                   <div className="text-center py-8">
-                    <div className="text-4xl mb-3">🔔</div>
+                    <div className="w-12 h-12 mx-auto mb-3 text-ginva-silver">
+                      <Icon name="bell" size="xl" ariaLabel="no alerts" />
+                    </div>
                     <p className="text-ginva-silver">No active alerts</p>
                     <p className="text-sm text-ginva-silver mt-1">
                       Create an alert to get notified
@@ -138,7 +166,7 @@ export default function AlertsPage() {
                       <Card key={alert.id}>
                         <div className="flex items-start justify-between">
                           <div className="flex items-start space-x-4">
-                            <div className="text-2xl">
+                            <div className={getAlertColor(alert.type)}>
                               {getAlertIcon(alert.type)}
                             </div>
                             <div>
@@ -169,15 +197,32 @@ export default function AlertsPage() {
                               }
                               className="p-2 hover:bg-ginva-slate/50 rounded-lg transition-colors"
                               title={alert.enabled ? "Disable" : "Enable"}
+                              aria-label={
+                                alert.enabled ? "Disable alert" : "Enable alert"
+                              }
                             >
-                              {alert.enabled ? "🔔" : "🔕"}
+                              {alert.enabled ? (
+                                <Icon
+                                  name="bell"
+                                  size="md"
+                                  ariaLabel="bell on"
+                                />
+                              ) : (
+                                <Icon
+                                  name="bell"
+                                  size="md"
+                                  className="text-ginva-silver"
+                                  ariaLabel="bell off"
+                                />
+                              )}
                             </button>
                             <button
                               onClick={() => deleteAlert(alert.id)}
                               className="p-2 hover:bg-ginva-red/20 rounded-lg transition-colors text-ginva-red"
                               title="Delete"
+                              aria-label="Delete alert"
                             >
-                              🗑️
+                              <Icon name="trash" size="md" ariaLabel="delete" />
                             </button>
                           </div>
                         </div>
@@ -200,7 +245,7 @@ export default function AlertsPage() {
                       <Card key={alert.id}>
                         <div className="flex items-start justify-between">
                           <div className="flex items-start space-x-4">
-                            <div className="text-2xl">
+                            <div className="text-ginva-silver">
                               {getAlertIcon(alert.type)}
                             </div>
                             <div>
@@ -218,14 +263,23 @@ export default function AlertsPage() {
                                 toggleAlert(alert.id, !alert.enabled)
                               }
                               className="p-2 hover:bg-ginva-slate/50 rounded-lg transition-colors"
+                              aria-label={
+                                alert.enabled ? "Disable alert" : "Enable alert"
+                              }
                             >
-                              {alert.enabled ? "🔔" : "🔕"}
+                              <Icon
+                                name="bell"
+                                size="md"
+                                className="text-ginva-silver"
+                                ariaLabel="bell off"
+                              />
                             </button>
                             <button
                               onClick={() => deleteAlert(alert.id)}
                               className="p-2 hover:bg-ginva-red/20 rounded-lg transition-colors text-ginva-red"
+                              aria-label="Delete alert"
                             >
-                              🗑️
+                              <Icon name="trash" size="md" ariaLabel="delete" />
                             </button>
                           </div>
                         </div>

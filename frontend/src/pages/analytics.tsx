@@ -1,6 +1,7 @@
 import React from "react";
 import Layout from "../components/Layout";
 import Card from "../components/Card";
+import Icon from "../components/Icon";
 import { useAnalytics } from "../hooks/useAnalytics";
 
 export default function AnalyticsPage() {
@@ -196,8 +197,9 @@ export default function AnalyticsPage() {
                 <div className="space-y-4">
                   <div className="flex justify-between items-center p-3 bg-ginva-slate/30 rounded-lg">
                     <span className="text-ginva-silver">Protocol Health</span>
-                    <span className="text-ginva-cyan font-bold">
-                      🟢 Excellent
+                    <span className="text-ginva-cyan font-bold flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-ginva-cyan inline-block" />
+                      Excellent
                     </span>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-ginva-slate/30 rounded-lg">

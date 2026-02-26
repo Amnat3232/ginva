@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Layout from "../components/Layout";
 import Button from "../components/Button";
 import Card from "../components/Card";
+import Icon from "../components/Icon";
 
 export default function ProtectionPage() {
   // Mock data - will come from API in the future

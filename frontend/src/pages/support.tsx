@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Layout from "../components/Layout";
 import Button from "../components/Button";
 import Card from "../components/Card";
+import Icon from "../components/Icon";
 
 export default function SupporterPage() {
   const [stakeAmount, setStakeAmount] = useState(1000);
@@ -36,7 +37,12 @@ export default function SupporterPage() {
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center space-x-3 mb-2">
-            <span className="text-4xl">💰</span>
+            <Icon
+              name="coins"
+              size="xl"
+              className="text-ginva-gold"
+              ariaLabel="Coins"
+            />
             <div>
               <h1 className="text-3xl font-display font-bold">
                 Supporter Center
@@ -68,7 +74,20 @@ export default function SupporterPage() {
               {supporterData.apy}%
             </div>
             <div className="text-sm text-ginva-silver mt-2">
-              Auto-compound: {supporterData.autoCompound ? "ON 🔄" : "OFF"}
+              Auto-compound:{" "}
+              {supporterData.autoCompound ? (
+                <>
+                  <Icon
+                    name="refresh"
+                    size="sm"
+                    className="inline"
+                    ariaLabel="On"
+                  />{" "}
+                  ON
+                </>
+              ) : (
+                "OFF"
+              )}
             </div>
           </Card>
 
@@ -245,7 +264,14 @@ export default function SupporterPage() {
 
               <div className="grid md:grid-cols-3 gap-6 mb-8">
                 <div className="p-6 bg-ginva-gold/10 rounded-xl border border-ginva-gold/30">
-                  <div className="text-3xl mb-3">👥</div>
+                  <div className="mb-3">
+                    <Icon
+                      name="users"
+                      size="xl"
+                      className="text-ginva-gold"
+                      ariaLabel="Users"
+                    />
+                  </div>
                   <h3 className="font-semibold text-ginva-gold mb-2">
                     Supporters 65.25%
                   </h3>
@@ -255,7 +281,9 @@ export default function SupporterPage() {
                 </div>
 
                 <div className="p-6 bg-ginva-slate/50 rounded-xl">
-                  <div className="text-3xl mb-3">🛠️</div>
+                  <div className="mb-3">
+                    <Icon name="cog" size="xl" ariaLabel="Operations" />
+                  </div>
                   <h3 className="font-semibold mb-2">Operations Team 24.75%</h3>
                   <p className="text-sm text-ginva-silver">
                     For development and system maintenance
@@ -263,7 +291,9 @@ export default function SupporterPage() {
                 </div>
 
                 <div className="p-6 bg-ginva-slate/50 rounded-xl">
-                  <div className="text-3xl mb-3">🏦</div>
+                  <div className="mb-3">
+                    <Icon name="bank" size="xl" ariaLabel="Bank" />
+                  </div>
                   <h3 className="font-semibold mb-2">Capital Pool 10%</h3>
                   <p className="text-sm text-ginva-silver">
                     Buffer for system stability
@@ -273,7 +303,13 @@ export default function SupporterPage() {
 
               <div className="bg-ginva-cyan/10 border border-ginva-cyan/30 rounded-xl p-6">
                 <h3 className="font-semibold text-ginva-cyan mb-3">
-                  💡 Example:
+                  <Icon
+                    name="light-bulb"
+                    size="md"
+                    className="inline mr-2"
+                    ariaLabel="Example"
+                  />
+                  Example:
                 </h3>
                 <p className="text-ginva-silver">
                   If borrower pays interest{" "}
@@ -387,14 +423,31 @@ export default function SupporterPage() {
                 <div className="flex justify-between py-3">
                   <span className="text-ginva-silver">Auto-compound:</span>
                   <span className="text-ginva-cyan">
-                    {supporterData.autoCompound ? "Enabled 🔄" : "Disabled"}
+                    {supporterData.autoCompound ? (
+                      <>
+                        <Icon
+                          name="refresh"
+                          size="sm"
+                          className="inline"
+                          ariaLabel="Enabled"
+                        />{" "}
+                        Enabled
+                      </>
+                    ) : (
+                      "Disabled"
+                    )}
                   </span>
                 </div>
               </div>
 
               <div className="bg-ginva-cyan/10 border border-ginva-cyan/30 rounded-xl p-4">
                 <div className="flex items-start space-x-3">
-                  <span className="text-2xl">⚡</span>
+                  <Icon
+                    name="bolt"
+                    size="lg"
+                    className="text-ginva-cyan flex-shrink-0"
+                    ariaLabel="No lockup"
+                  />
                   <div>
                     <h3 className="font-semibold text-ginva-cyan mb-1">
                       No Lock-up
@@ -416,7 +469,12 @@ export default function SupporterPage() {
         {/* Info Banner */}
         <Card className="mt-8 bg-ginva-navy/30">
           <div className="flex items-start space-x-4">
-            <span className="text-3xl">💡</span>
+            <Icon
+              name="light-bulb"
+              size="xl"
+              className="text-ginva-cyan flex-shrink-0"
+              ariaLabel="Tip"
+            />
             <div>
               <h3 className="font-semibold mb-2">Why Become a Supporter?</h3>
               <ul className="space-y-2 text-ginva-silver">

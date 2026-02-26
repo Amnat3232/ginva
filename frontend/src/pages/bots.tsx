@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Layout from "../components/Layout";
 import Card from "../components/Card";
 import Button from "../components/Button";
+import Icon from "../components/Icon";
 
 interface BotConfig {
   id: string;
@@ -155,7 +156,9 @@ export default function BotsPage() {
             <Card key={bot.id}>
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 <div className="flex items-start space-x-4">
-                  <div className="text-3xl">🤖</div>
+                  <div className="w-10 h-10 text-ginva-cyan">
+                    <Icon name="robot" size="lg" ariaLabel="bot" />
+                  </div>
                   <div>
                     <div className="flex items-center space-x-3 mb-1">
                       <h3 className="font-semibold text-lg">{bot.name}</h3>
@@ -187,8 +190,8 @@ export default function BotsPage() {
                   >
                     {bot.status === "active" ? "Pause" : "Activate"}
                   </Button>
-                  <Button variant="outline" size="sm">
-                    ⚙️
+                  <Button variant="outline" size="sm" aria-label="Bot settings">
+                    <Icon name="cog" size="md" ariaLabel="settings" />
                   </Button>
                 </div>
               </div>
@@ -199,7 +202,9 @@ export default function BotsPage() {
         {filteredBots.length === 0 && (
           <Card>
             <div className="text-center py-12">
-              <div className="text-4xl mb-3">🤖</div>
+              <div className="w-12 h-12 mx-auto mb-3 text-ginva-silver">
+                <Icon name="robot" size="xl" ariaLabel="no bots" />
+              </div>
               <p className="text-ginva-silver">No bots in this category</p>
             </div>
           </Card>
@@ -212,7 +217,9 @@ export default function BotsPage() {
             Build your own automated bot using our Bot SDK
           </p>
           <div className="bg-ginva-slate/30 rounded-xl p-6 text-center">
-            <div className="text-4xl mb-3">🛠️</div>
+            <div className="w-12 h-12 mx-auto mb-3 text-ginva-silver">
+              <Icon name="cog" size="xl" ariaLabel="coming soon" />
+            </div>
             <p className="text-ginva-silver mb-4">
               Bot SDK coming soon - configure automated strategies
             </p>

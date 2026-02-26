@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Layout from "../components/Layout";
 import Button from "../components/Button";
 import Card from "../components/Card";
+import Icon from "../components/Icon";
 
 interface CollateralOption {
   symbol: string;
@@ -89,7 +90,9 @@ export default function BorrowPage() {
               ${option.price.toLocaleString()}
             </div>
             {selectedCollateral.symbol === option.symbol && (
-              <div className="mt-2 text-ginva-gold">☑️</div>
+              <div className="mt-2 text-ginva-gold">
+                <Icon name="check-circle" size="md" ariaLabel="selected" />
+              </div>
             )}
           </button>
         ))}
@@ -133,7 +136,12 @@ export default function BorrowPage() {
       {/* Summary */}
       <Card className="bg-ginva-navy/50 border-ginva-gold/30">
         <div className="flex items-start space-x-3 mb-4">
-          <span className="text-2xl">💡</span>
+          <Icon
+            name="light-bulb"
+            size="lg"
+            className="text-ginva-gold"
+            ariaLabel="info"
+          />
           <div>
             <h3 className="font-semibold text-ginva-gold">Summary</h3>
           </div>
@@ -148,7 +156,7 @@ export default function BorrowPage() {
           <div className="flex justify-between">
             <span className="text-ginva-silver">LTV:</span>
             <span className="font-mono text-ginva-cyan">
-              {ltv}% (Safe Zone 🟢)
+              {ltv}% (Safe Zone)
             </span>
           </div>
           <div className="flex justify-between">
@@ -159,7 +167,12 @@ export default function BorrowPage() {
           </div>
           <div className="pt-2 border-t border-ginva-slate">
             <div className="flex items-center space-x-2">
-              <span className="text-ginva-cyan">🛡️</span>
+              <Icon
+                name="shield"
+                size="sm"
+                className="text-ginva-cyan"
+                ariaLabel="protected"
+              />
               <span className="text-ginva-cyan">
                 72-Hour Protection System: Active
               </span>
@@ -187,7 +200,12 @@ export default function BorrowPage() {
       {/* Protection Info */}
       <Card className="mb-6 bg-gradient-to-r from-ginva-cyan/10 to-ginva-navy border-ginva-cyan/30">
         <div className="flex items-start space-x-3 mb-4">
-          <span className="text-3xl">🛡️</span>
+          <Icon
+            name="shield"
+            size="xl"
+            className="text-ginva-cyan"
+            ariaLabel="shield"
+          />
           <div>
             <h3 className="font-semibold text-ginva-cyan text-lg">
               72-Hour Protection System
@@ -234,7 +252,8 @@ export default function BorrowPage() {
       {/* Loan Details */}
       <Card>
         <h3 className="font-semibold mb-4 flex items-center">
-          <span className="mr-2">📊</span> Loan Details
+          <Icon name="chart-bar" size="md" className="mr-2" ariaLabel="chart" />
+          Loan Details
         </h3>
         <div className="space-y-3">
           <div className="flex justify-between py-2 border-b border-ginva-slate/30">
@@ -302,17 +321,24 @@ export default function BorrowPage() {
       {/* Wallet Options */}
       <div className="grid grid-cols-2 gap-4 mb-8">
         {[
-          { name: "Phantom", icon: "👻" },
-          { name: "Solflare", icon: "🎒" },
-          { name: "Backpack", icon: "🎒" },
-          { name: "Others...", icon: "➕" },
+          { name: "Phantom", icon: "wallet" },
+          { name: "Solflare", icon: "wallet" },
+          { name: "Backpack", icon: "wallet" },
+          { name: "Others...", icon: "plus" },
         ].map((wallet) => (
           <button
             key={wallet.name}
             onClick={handleNext}
             className="p-6 rounded-xl border-2 border-ginva-slate hover:border-ginva-gold hover:bg-ginva-gold/5 transition-all duration-200 flex flex-col items-center"
+            aria-label={`Connect ${wallet.name} wallet`}
           >
-            <span className="text-4xl mb-3">{wallet.icon}</span>
+            <div className="w-10 h-10 mb-3 text-ginva-gold">
+              <Icon
+                name={wallet.icon as any}
+                size="xl"
+                ariaLabel={wallet.name}
+              />
+            </div>
             <span className="font-semibold">{wallet.name}</span>
           </button>
         ))}
@@ -321,7 +347,12 @@ export default function BorrowPage() {
       {/* Security Info */}
       <Card className="bg-ginva-navy/50">
         <div className="flex items-start space-x-3">
-          <span className="text-2xl">🔒</span>
+          <Icon
+            name="lock"
+            size="lg"
+            className="text-ginva-cyan"
+            ariaLabel="security"
+          />
           <div>
             <h3 className="font-semibold mb-2">Security</h3>
             <ul className="space-y-2 text-sm text-ginva-silver">
@@ -338,7 +369,14 @@ export default function BorrowPage() {
   // Step 4: Success
   const Step4 = () => (
     <div className="animate-fade-in text-center py-8">
-      <div className="text-6xl mb-6">✅</div>
+      <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-ginva-cyan/20 flex items-center justify-center">
+        <Icon
+          name="check-circle"
+          size="xl"
+          className="text-ginva-cyan"
+          ariaLabel="success"
+        />
+      </div>
       <h2 className="text-3xl font-display font-bold mb-4">Success!</h2>
       <p className="text-xl text-ginva-silver mb-2">
         <span className="text-ginva-gold font-bold">
