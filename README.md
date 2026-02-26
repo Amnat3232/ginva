@@ -311,6 +311,43 @@ Assets Transferred to Keeper B ✅
 
 ---
 
+## ⚠️ Important: Admin Controls Disclosure
+
+> **Users should be aware that the following parameters can be changed by the protocol admin:**
+
+### Interest Rate Management
+
+| Parameter             | Current Default | Can Be Changed By Admin |
+| --------------------- | --------------- | ----------------------- |
+| Base Interest Rate    | **8% APR**      | ✅ Yes (0.5% - 20%)     |
+| Maximum Interest Rate | 20% APR         | ✅ Yes (up to 50%)      |
+| Update Cooldown       | 24 hours        | ✅ Yes                  |
+
+- Admin can change interest rates at any time after the cooldown period
+- Changes apply to **new loans only** (existing loans keep their original rate)
+- Rate changes are emitted as events for transparency
+
+### LTV (Loan-to-Value) Management
+
+| Level           | Default  | Can Be Changed By Admin   |
+| --------------- | -------- | ------------------------- |
+| Safe            | 20%      | ✅ Yes (1% - 30%)         |
+| Standard        | 40%      | ✅ Yes (> Safe - 50%)     |
+| Max             | 60%      | ✅ Yes (> Standard - 90%) |
+| Update Cooldown | 24 hours | ✅ Yes                    |
+
+- ⚠️ **Important:** Admin can reduce LTV levels, which may cause existing loans to become eligible for liquidation if collateral value drops
+- LTV changes are emitted as events for transparency
+
+### Emergency Controls
+
+| Action          | Description                                            |
+| --------------- | ------------------------------------------------------ |
+| Emergency Pause | Stops all operations (except repayments)               |
+| Resume          | Requires 48-hour timelock before operations can resume |
+
+---
+
 ## 📝 License
 
 **BUSL-1.1** (Business Source License 1.1)

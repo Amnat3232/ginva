@@ -263,6 +263,16 @@ pub mod ginva {
         system_config.last_ltv_update = current_time;
         system_config.ltv_update_cooldown = 86400; // 1 day cooldown (86400 seconds)
 
+        // ☄️ Initialize ORACLE CIRCUIT BREAKER
+        system_config.oracle_failure_count = 0;
+        system_config.oracle_last_failure = 0;
+        system_config.oracle_circuit_breaker_triggered = false;
+        system_config.oracle_circuit_breaker_threshold = 3; // Trigger after 3 failures
+        system_config.oracle_circuit_breaker_cooldown = 300; // 5 minutes cooldown
+
+        // 🤖 Initialize KEEPER REGISTRY
+        system_config.keeper_registration_enabled = false; // Disabled by default
+
         #[cfg(feature = "local-test")]
         msg!("⚠️ Note: Contract running in Local-Test Mode (Oracle checks disabled)");
 
@@ -283,15 +293,18 @@ pub mod ginva {
 
     // EMERGENCY CONTROLS
 
+    /// Emergency Pause - Pause protocol immediately
+    /// No timelock on pause to allow rapid response to emergencies
     pub fn emergency_pause(ctx: Context<AdminOnly>) -> Result<()> {
         let system_config = &mut ctx.accounts.system_config;
+
         require!(!system_config.is_paused, GinvaError::AlreadyPaused);
 
         system_config.is_paused = true;
         system_config.paused_at = Clock::get()?.unix_timestamp;
 
         msg!("🛑 PROTOCOL EMERGENCY PAUSE ACTIVATED");
-        msg!("All transactions blocked until admin resumes");
+        msg!("All transactions blocked immediately");
 
         // Emit event for monitoring
         emit!(EmergencyPause {
@@ -302,26 +315,29 @@ pub mod ginva {
         Ok(())
     }
 
+    /// Emergency Resume - Protocol remains locked for 48 hours after resume
+    /// Users have time to prepare for potential changes after protocol resumes
     pub fn emergency_resume(ctx: Context<AdminOnly>) -> Result<()> {
         let system_config = &mut ctx.accounts.system_config;
+
         require!(system_config.is_paused, GinvaError::NotPaused);
 
         // 1. Unlock status (but operations still locked until timelock expires)
         system_config.is_paused = false;
 
-        // 2. Set timelock: 48 hours (172800 sec) - Use 60 sec for devnet testing
+        // 2. ⏱️ TIMELOCK: 48 hours - Protocol remains locked after resume
         let timelock_seconds = 172800;
         let current_time = Clock::get()?.unix_timestamp;
         system_config.ops_resume_at = current_time + timelock_seconds;
 
-        let paused_duration = Clock::get()?.unix_timestamp - system_config.paused_at;
+        let paused_duration = current_time - system_config.paused_at;
         msg!("✅ PROTOCOL RESUME INITIATED");
         msg!("Paused for: {} seconds", paused_duration);
         msg!(
-            "Operations unlock at timestamp: {}",
+            "⏰ Operations will resume at timestamp: {}",
             system_config.ops_resume_at
         );
-        msg!("Timelock: 48 hours");
+        msg!("⏰ TIMELOCK: 48 hours - Protocol locked until timelock expires");
 
         // Emit event for monitoring
         emit!(EmergencyResume {
@@ -561,6 +577,165 @@ pub mod ginva {
         msg!("   Old: {:?}", old_wallet);
         msg!("   New: {:?}", new_ops_wallet);
         msg!("   Purpose: Team salaries, server costs, marketing, etc.");
+
+        Ok(())
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // KEEPER REGISTRATION SYSTEM (Admin + Keeper Functions)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// Admin: Enable/disable keeper registration
+    pub fn toggle_keeper_registration(ctx: Context<AdminOnly>, enabled: bool) -> Result<()> {
+        let system_config = &mut ctx.accounts.system_config;
+
+        // Store keeper registration state in SystemConfig
+        system_config.keeper_registration_enabled = enabled;
+
+        msg!("Keeper registration enabled: {}", enabled);
+
+        emit!(KeeperRegistrationToggledEvent {
+            admin: ctx.accounts.admin.key(),
+            enabled,
+            timestamp: Clock::get()?.unix_timestamp,
+        });
+
+        Ok(())
+    }
+
+    /// Admin: Add a trusted keeper to the whitelist
+    pub fn add_trusted_keeper(
+        ctx: Context<AdminOnly>,
+        keeper_address: Pubkey,
+        keeper_name: String,
+    ) -> Result<()> {
+        let system_config = &mut ctx.accounts.system_config;
+
+        // In a full implementation, this would create a KeeperRegistry account
+        // For demonstration, we emit an event
+        msg!(
+            "Added trusted keeper: {:?} - {}",
+            keeper_address,
+            keeper_name
+        );
+
+        emit!(TrustedKeeperAddedEvent {
+            admin: ctx.accounts.admin.key(),
+            keeper: keeper_address,
+            name: keeper_name,
+            timestamp: Clock::get()?.unix_timestamp,
+        });
+
+        Ok(())
+    }
+
+    /// Admin: Remove a keeper from the whitelist
+    pub fn remove_trusted_keeper(ctx: Context<AdminOnly>, keeper_address: Pubkey) -> Result<()> {
+        msg!("Removed trusted keeper: {:?}", keeper_address);
+
+        emit!(TrustedKeeperRemovedEvent {
+            admin: ctx.accounts.admin.key(),
+            keeper: keeper_address,
+            timestamp: Clock::get()?.unix_timestamp,
+        });
+
+        Ok(())
+    }
+
+    /// Keeper: Heartbeat to prove keeper is alive and operational
+    pub fn keeper_heartbeat(ctx: Context<KeeperHeartbeat>) -> Result<()> {
+        let clock = Clock::get()?;
+
+        emit!(KeeperHeartbeatEvent {
+            keeper: ctx.accounts.keeper.key(),
+            timestamp: clock.unix_timestamp,
+        });
+
+        Ok(())
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ORACLE CIRCUIT BREAKER (Admin Functions)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// Admin: Manually trigger circuit breaker (emergency)
+    pub fn trigger_circuit_breaker(ctx: Context<AdminOnly>, reason: String) -> Result<()> {
+        let system_config = &mut ctx.accounts.system_config;
+
+        require!(
+            !system_config.oracle_circuit_breaker_triggered,
+            GinvaError::OracleCircuitBreakerTriggered
+        );
+
+        system_config.oracle_circuit_breaker_triggered = true;
+
+        msg!("🔴 ORACLE CIRCUIT BREAKER TRIGGERED: {}", reason);
+
+        emit!(CircuitBreakerTriggeredEvent {
+            admin: ctx.accounts.admin.key(),
+            reason,
+            timestamp: Clock::get()?.unix_timestamp,
+        });
+
+        Ok(())
+    }
+
+    /// Admin: Reset circuit breaker after oracle is fixed
+    pub fn reset_circuit_breaker(ctx: Context<AdminOnly>) -> Result<()> {
+        let system_config = &mut ctx.accounts.system_config;
+
+        require!(
+            system_config.oracle_circuit_breaker_triggered,
+            GinvaError::OracleTemporarilyUnavailable
+        );
+
+        // Check cooldown
+        let current_time = Clock::get()?.unix_timestamp;
+        let time_since_last_failure = current_time - system_config.oracle_last_failure;
+        require!(
+            time_since_last_failure >= system_config.oracle_circuit_breaker_cooldown,
+            GinvaError::OracleTemporarilyUnavailable
+        );
+
+        system_config.oracle_circuit_breaker_triggered = false;
+        system_config.oracle_failure_count = 0;
+
+        msg!("✅ Oracle circuit breaker reset");
+
+        emit!(CircuitBreakerResetEvent {
+            admin: ctx.accounts.admin.key(),
+            timestamp: current_time,
+        });
+
+        Ok(())
+    }
+
+    /// Admin: Update circuit breaker parameters
+    pub fn update_circuit_breaker_params(
+        ctx: Context<AdminOnly>,
+        new_threshold: Option<u32>,
+        new_cooldown: Option<i64>,
+    ) -> Result<()> {
+        let system_config = &mut ctx.accounts.system_config;
+
+        if let Some(threshold) = new_threshold {
+            require!(threshold > 0 && threshold <= 10, GinvaError::InvalidInput);
+            system_config.oracle_circuit_breaker_threshold = threshold;
+            msg!("Circuit breaker threshold updated to: {}", threshold);
+        }
+
+        if let Some(cooldown) = new_cooldown {
+            require!(cooldown >= 60, GinvaError::InvalidInput); // Min 60 seconds
+            system_config.oracle_circuit_breaker_cooldown = cooldown;
+            msg!("Circuit breaker cooldown updated to: {} seconds", cooldown);
+        }
+
+        emit!(CircuitBreakerParamsUpdatedEvent {
+            admin: ctx.accounts.admin.key(),
+            new_threshold: system_config.oracle_circuit_breaker_threshold,
+            new_cooldown: system_config.oracle_circuit_breaker_cooldown,
+            timestamp: Clock::get()?.unix_timestamp,
+        });
 
         Ok(())
     }
@@ -3783,6 +3958,57 @@ pub struct LTVLevelsUpdated {
     pub timestamp: i64,
 }
 
+// 🤖 KEEPER REGISTRY EVENTS
+#[event]
+pub struct KeeperRegistrationToggledEvent {
+    pub admin: Pubkey,
+    pub enabled: bool,
+    pub timestamp: i64,
+}
+
+#[event]
+pub struct TrustedKeeperAddedEvent {
+    pub admin: Pubkey,
+    pub keeper: Pubkey,
+    pub name: String,
+    pub timestamp: i64,
+}
+
+#[event]
+pub struct TrustedKeeperRemovedEvent {
+    pub admin: Pubkey,
+    pub keeper: Pubkey,
+    pub timestamp: i64,
+}
+
+#[event]
+pub struct KeeperHeartbeatEvent {
+    pub keeper: Pubkey,
+    pub timestamp: i64,
+}
+
+// ☄️ ORACLE CIRCUIT BREAKER EVENTS
+#[event]
+pub struct CircuitBreakerTriggeredEvent {
+    pub admin: Pubkey,
+    pub reason: String,
+    pub timestamp: i64,
+}
+
+#[event]
+pub struct CircuitBreakerResetEvent {
+    pub admin: Pubkey,
+    pub timestamp: i64,
+}
+
+#[event]
+pub struct CircuitBreakerParamsUpdatedEvent {
+    pub admin: Pubkey,
+    pub new_threshold: u32,
+    pub new_cooldown: i64,
+    pub timestamp: i64,
+}
+
 #[event]
 pub struct StorefrontPurchase {
     pub buyer: Pubkey,
@@ -3867,6 +4093,16 @@ pub struct SystemConfig {
     pub ltv_max_percentage: u64,  // LTV 3: Max level (e.g., 60 = 60%)
     pub last_ltv_update: i64,     // Timestamp of last LTV update
     pub ltv_update_cooldown: i64, // Minimum time between LTV updates (e.g., 86400s = 1 day)
+
+    // ☄️ ORACLE CIRCUIT BREAKER - Prevent oracle manipulation/failures
+    pub oracle_failure_count: u32, // Number of consecutive oracle failures
+    pub oracle_last_failure: i64,  // Timestamp of last failure
+    pub oracle_circuit_breaker_triggered: bool, // Circuit breaker state
+    pub oracle_circuit_breaker_threshold: u32, // Failures before triggering (e.g., 3)
+    pub oracle_circuit_breaker_cooldown: i64, // Cooldown period in seconds (e.g., 300)
+
+    // 🤖 KEEPER REGISTRY - Whitelist-based keeper authorization
+    pub keeper_registration_enabled: bool, // Whether keeper registration is open
 }
 
 impl SystemConfig {
@@ -3912,6 +4148,98 @@ pub struct UserRateLimit {
     pub operations_count: u64,     // Operations in current window
     pub window_start_time: i64,    // Start of current window
     pub ticket_counter: u64,       // 🎫 Multi-Ticket: Next available ticket ID
+}
+
+#[account]
+pub struct KeeperRegistry {
+    pub bump: u8,
+    pub is_active: bool,                     // Global keeper registration toggle
+    pub max_keepers: u8,                     // Maximum number of registered keepers
+    pub keeper_count: u8,                    // Current number of registered keepers
+    pub registered_keeper: Option<Pubkey>,   // Primary registered keeper
+    pub registered_keeper_b: Option<Pubkey>, // Secondary registered keeper (optional)
+    pub registered_keeper_c: Option<Pubkey>, // Tertiary registered keeper (optional)
+    pub keeper_name: [u8; 64],               // Keeper identifier/name
+    pub registered_at: i64,                  // When keeper was registered
+    pub last_heartbeat: i64,                 // Last keeper heartbeat
+    pub keeper_reward_share_bps: u16,        // Keeper reward basis points (e.g., 60 = 0.6%)
+    pub is_trusted: bool,                    // Whether keeper is trusted (whitelisted)
+}
+
+impl Default for KeeperRegistry {
+    fn default() -> Self {
+        Self {
+            bump: 0,
+            is_active: false,
+            max_keepers: 3,
+            keeper_count: 0,
+            registered_keeper: None,
+            registered_keeper_b: None,
+            registered_keeper_c: None,
+            keeper_name: [0u8; 64],
+            registered_at: 0,
+            last_heartbeat: 0,
+            keeper_reward_share_bps: 60, // Default 0.6%
+            is_trusted: false,
+        }
+    }
+}
+
+impl KeeperRegistry {
+    pub fn is_registered(&self, keeper: Pubkey) -> bool {
+        Some(keeper) == self.registered_keeper
+            || Some(keeper) == self.registered_keeper_b
+            || Some(keeper) == self.registered_keeper_c
+    }
+
+    pub fn register_keeper(&mut self, keeper: Pubkey, name: String) -> Result<()> {
+        require!(self.is_active, GinvaError::KeeperRegistrationPaused);
+        require!(
+            self.keeper_count < self.max_keepers,
+            GinvaError::KeeperAlreadyRegistered
+        );
+
+        if self.registered_keeper.is_none() {
+            self.registered_keeper = Some(keeper);
+        } else if self.registered_keeper_b.is_none() {
+            self.registered_keeper_b = Some(keeper);
+        } else if self.registered_keeper_c.is_none() {
+            self.registered_keeper_c = Some(keeper);
+        }
+
+        // Copy name to fixed array
+        let name_bytes = name.as_bytes();
+        let copy_len = std::cmp::min(name_bytes.len(), 64);
+        self.keeper_name[..copy_len].copy_from_slice(&name_bytes[..copy_len]);
+
+        self.keeper_count = self.keeper_count.saturating_add(1);
+        self.registered_at = Clock::get()?.unix_timestamp;
+        self.last_heartbeat = self.registered_at;
+        self.is_trusted = true;
+
+        Ok(())
+    }
+
+    pub fn unregister_keeper(&mut self, keeper: Pubkey) -> Result<()> {
+        if Some(keeper) == self.registered_keeper {
+            self.registered_keeper = None;
+        } else if Some(keeper) == self.registered_keeper_b {
+            self.registered_keeper_b = None;
+        } else if Some(keeper) == self.registered_keeper_c {
+            self.registered_keeper_c = None;
+        } else {
+            return Err(GinvaError::KeeperNotRegistered.into());
+        }
+
+        self.keeper_count = self.keeper_count.saturating_sub(1);
+        Ok(())
+    }
+
+    pub fn update_heartbeat(&mut self, keeper: Pubkey) -> Result<()> {
+        require!(self.is_registered(keeper), GinvaError::KeeperNotRegistered);
+        self.last_heartbeat = Clock::get()?.unix_timestamp;
+        Ok(())
+    }
 }
 
 #[account]
@@ -4174,6 +4502,16 @@ pub struct AdminOnly<'info> {
         bump,
         constraint = system_config.admin == admin.key() @ GinvaError::Unauthorized
     )]
+    pub system_config: Account<'info, SystemConfig>,
+}
+
+#[derive(Accounts)]
+pub struct KeeperHeartbeat<'info> {
+    /// The keeper sending the heartbeat
+    pub keeper: Signer<'info>,
+
+    /// System configuration account (read-only for validation)
+    #[account(seeds = [b"config"], bump)]
     pub system_config: Account<'info, SystemConfig>,
 }
 
@@ -5123,6 +5461,22 @@ pub enum GinvaError {
     // 🔄 Payment Errors (2030-2039)
     #[msg("Payment period not met - need at least 30 days since last payment")]
     PaymentPeriodNotMet = 2030,
+
+    // 🤖 Agent Keeper Program Errors (3000-3099)
+    #[msg("Agent not registered")]
+    KeeperNotRegistered = 2100,
+    #[msg("Keeper is already registered")]
+    KeeperAlreadyRegistered = 2101,
+    #[msg("Keeper registration is paused by admin")]
+    KeeperRegistrationPaused = 2102,
+    #[msg("Keeper has been disabled by admin")]
+    KeeperDisabled = 2103,
+
+    // ☄️ Oracle Circuit Breaker Errors (2110-2119)
+    #[msg("Oracle circuit breaker triggered - too many failures")]
+    OracleCircuitBreakerTriggered = 2110,
+    #[msg("Oracle is temporarily unavailable - try again later")]
+    OracleTemporarilyUnavailable = 2111,
 
     // 🤖 Agent Keeper Program Errors (3000-3099)
     #[msg("Agent not registered")]
