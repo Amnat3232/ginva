@@ -1,0 +1,190 @@
+{
+  "version": "0.1.0",
+  "name": "ginva",
+  "instructions": [
+    {
+      "name": "depositCollateral",
+      "accounts": [
+        { "name": "user", "isMut": true, "isSigner": true },
+        { "name": "userTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "collateralVault", "isMut": true, "isSigner": false },
+        { "name": "loanAccount", "isMut": true, "isSigner": false },
+        { "name": "systemConfig", "isMut": false, "isSigner": false },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false },
+        { "name": "rent", "isMut": false, "isSigner": false }
+      ],
+      "args": [{ "name": "amount", "type": "u64" }]
+    },
+    {
+      "name": "borrowUsdc",
+      "accounts": [
+        { "name": "user", "isMut": true, "isSigner": true },
+        { "name": "loanAccount", "isMut": true, "isSigner": false },
+        { "name": "userUsdcAccount", "isMut": true, "isSigner": false },
+        { "name": "usdcVault", "isMut": true, "isSigner": false },
+        { "name": "systemConfig", "isMut": false, "isSigner": false },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [{ "name": "amount", "type": "u64" }]
+    },
+    {
+      "name": "repayLoan",
+      "accounts": [
+        { "name": "user", "isMut": true, "isSigner": true },
+        { "name": "loanAccount", "isMut": true, "isSigner": false },
+        { "name": "userUsdcAccount", "isMut": true, "isSigner": false },
+        { "name": "usdcVault", "isMut": true, "isSigner": false },
+        { "name": "systemConfig", "isMut": false, "isSigner": false },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [{ "name": "loanId", "type": "u32" }]
+    },
+    {
+      "name": "liquidateByHealthFactor",
+      "accounts": [
+        { "name": "liquidator", "isMut": true, "isSigner": true },
+        { "name": "loanAccount", "isMut": true, "isSigner": false },
+        { "name": "liquidatorCollateral", "isMut": true, "isSigner": false },
+        { "name": "liquidatorUsdc", "isMut": true, "isSigner": false },
+        { "name": "collateralVault", "isMut": true, "isSigner": false },
+        { "name": "usdcVault", "isMut": true, "isSigner": false },
+        { "name": "triggerAccount", "isMut": true, "isSigner": false },
+        { "name": "systemConfig", "isMut": false, "isSigner": false },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [{ "name": "loanId", "type": "u32" }]
+    },
+    {
+      "name": "claimTriggerReward",
+      "accounts": [
+        { "name": "keeper", "isMut": true, "isSigner": true },
+        { "name": "triggerAccount", "isMut": true, "isSigner": false },
+        { "name": "keeperRewardAccount", "isMut": true, "isSigner": false },
+        { "name": "systemConfig", "isMut": false, "isSigner": false },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": []
+    },
+    {
+      "name": "stakeLp",
+      "accounts": [
+        { "name": "user", "isMut": true, "isSigner": true },
+        { "name": "userLpAccount", "isMut": true, "isSigner": false },
+        { "name": "stakingAccount", "isMut": true, "isSigner": false },
+        { "name": "systemConfig", "isMut": false, "isSigner": false },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false },
+        { "name": "rent", "isMut": false, "isSigner": false }
+      ],
+      "args": [{ "name": "amount", "type": "u64" }]
+    },
+    {
+      "name": "unstakeLp",
+      "accounts": [
+        { "name": "user", "isMut": true, "isSigner": true },
+        { "name": "userLpAccount", "isMut": true, "isSigner": false },
+        { "name": "stakingAccount", "isMut": true, "isSigner": false },
+        { "name": "systemConfig", "isMut": false, "isSigner": false },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [{ "name": "amount", "type": "u64" }]
+    },
+    {
+      "name": "registerAgent",
+      "accounts": [
+        { "name": "owner", "isMut": true, "isSigner": true },
+        { "name": "agentAccount", "isMut": true, "isSigner": false },
+        { "name": "systemConfig", "isMut": false, "isSigner": false },
+        { "name": "rent", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "name", "type": "string" },
+        { "name": "description", "type": "string" },
+        { "name": "framework", "type": "string" },
+        { "name": "capabilities", "type": "string" }
+      ]
+    },
+    {
+      "name": "updateAgentSettings",
+      "accounts": [
+        { "name": "owner", "isMut": true, "isSigner": true },
+        { "name": "agentAccount", "isMut": true, "isSigner": false }
+      ],
+      "args": [
+        { "name": "name", "type": "string" },
+        { "name": "description", "type": "string" },
+        { "name": "rateLimit", "type": "u16" }
+      ]
+    },
+    {
+      "name": "pauseAgent",
+      "accounts": [
+        { "name": "owner", "isMut": true, "isSigner": true },
+        { "name": "agentAccount", "isMut": true, "isSigner": false }
+      ],
+      "args": [{ "name": "pause", "type": "bool" }]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "LoanAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "owner", "type": "publicKey" },
+          { "name": "collateralAmount", "type": "u64" },
+          { "name": "borrowedAmount", "type": "u64" },
+          { "name": "interestAccrued", "type": "u64" },
+          { "name": "startTime", "type": "i64" },
+          { "name": "maturityTime", "type": "i64" },
+          { "name": "healthFactor", "type": "i128" },
+          { "name": "isActive", "type": "bool" }
+        ]
+      }
+    },
+    {
+      "name": "SystemConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "authority", "type": "publicKey" },
+          { "name": "depositFeeBps", "type": "u16" },
+          { "name": "borrowFeeBps", "type": "u16" },
+          { "name": "liquidationThreshold", "type": "u16" },
+          { "name": "ltv", "type": "u16" }
+        ]
+      }
+    },
+    {
+      "name": "AgentAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "owner", "type": "publicKey" },
+          { "name": "name", "type": "string" },
+          { "name": "description", "type": "string" },
+          { "name": "framework", "type": "string" },
+          { "name": "capabilities", "type": "string" },
+          { "name": "rateLimit", "type": "u16" },
+          { "name": "isPaused", "type": "bool" },
+          { "name": "totalRewards", "type": "u64" },
+          { "name": "createdAt", "type": "i64" }
+        ]
+      }
+    },
+    {
+      "name": "StakingAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "owner", "type": "publicKey" },
+          { "name": "stakedAmount", "type": "u64" },
+          { "name": "rewardsEarned", "type": "u64" },
+          { "name": "lastClaimTime", "type": "i64" }
+        ]
+      }
+    }
+  ],
+  "metadata": {
+    "address": "6U1QUPxGuWLU9jizzcJiLsKzZU6LT95FzihaVzLsk8xU"
+  }
+}
