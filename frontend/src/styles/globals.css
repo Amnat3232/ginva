@@ -124,3 +124,36 @@ h3 {
   font-family: "Kanit", sans-serif;
   line-height: 1.6;
 }
+
+/* Reduced Motion Support - Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .countdown-critical {
+    animation: none;
+  }
+
+  .card-hover {
+    transition: none;
+  }
+
+  .card-hover:hover {
+    transform: none;
+  }
+
+  .btn-gold {
+    transition: none;
+    background-position: 0 0;
+  }
+
+  .btn-gold:hover {
+    background-position: 0 0;
+  }
+}
