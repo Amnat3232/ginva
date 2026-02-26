@@ -133,6 +133,84 @@ const getTierColor = (discount: number): string => {
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // ═══════════════════════════════════════════════════════════
+// 🛡️ RATE LIMITER (RPC Protection)
+// ═══════════════════════════════════════════════════════════
+
+class RateLimiter {
+  private requestTimes: number[] = [];
+  private readonly maxRequests: number;
+  private readonly windowMs: number;
+  private readonly retryDelays: number[] = [1000, 2000, 4000, 8000, 16000];
+
+  constructor(maxRequests: number = 10, windowMs: number = 1000) {
+    this.maxRequests = maxRequests;
+    this.windowMs = windowMs;
+  }
+
+  async acquire(): Promise<void> {
+    const now = Date.now();
+    this.requestTimes = this.requestTimes.filter(
+      (t) => now - t < this.windowMs
+    );
+
+    if (this.requestTimes.length >= this.maxRequests) {
+      const oldestRequest = this.requestTimes[0];
+      const waitTime = this.windowMs - (now - oldestRequest);
+      console.log(
+        chalk.yellow(`⚠️ Rate limit reached, waiting ${waitTime}ms...`)
+      );
+      await sleep(waitTime);
+      return this.acquire();
+    }
+
+    this.requestTimes.push(now);
+  }
+
+  async executeWithRetry<T>(
+    fn: () => Promise<T>,
+    operationName: string
+  ): Promise<T | null> {
+    for (let attempt = 0; attempt < this.retryDelays.length; attempt++) {
+      try {
+        await this.acquire();
+        return await fn();
+      } catch (error: any) {
+        const isRateLimit =
+          error?.message?.includes("429") ||
+          error?.message?.includes("rate limit") ||
+          error?.code === -32005;
+
+        if (isRateLimit && attempt < this.retryDelays.length - 1) {
+          const delay = this.retryDelays[attempt];
+          console.log(
+            chalk.yellow(
+              `⚠️ ${operationName} rate limited, retrying in ${delay}ms... (attempt ${
+                attempt + 1
+              })`
+            )
+          );
+          await sleep(delay);
+          continue;
+        }
+
+        if (attempt > 0) {
+          console.log(
+            chalk.red(
+              `❌ ${operationName} failed after ${attempt + 1} attempts`
+            )
+          );
+        }
+        throw error;
+      }
+    }
+    return null;
+  }
+}
+
+// Global rate limiter for RPC calls
+const rpcLimiter = new RateLimiter(10, 1000); // 10 requests per second
+
+// ═══════════════════════════════════════════════════════════
 // 🔨 TRIGGER KEEPER BOT (Keeper A)
 // ═══════════════════════════════════════════════════════════
 
@@ -172,25 +250,28 @@ class TriggerKeeperBot {
   }
 
   private async scanAndTrigger() {
-    // Fetch all active loan accounts
-    const loans = await program.account.loanAccount.all();
+    // Use rate limiter for RPC calls
+    await rpcLimiter.executeWithRetry(async () => {
+      // Fetch all active loan accounts
+      const loans = await program.account.loanAccount.all();
 
-    for (const loan of loans) {
-      const loanData = loan.account;
+      for (const loan of loans) {
+        const loanData = loan.account;
 
-      // Skip non-active loans
-      if (loanData.status !== 1) continue; // Not Active
+        // Skip non-active loans
+        if (loanData.status !== 1) continue; // Not Active
 
-      // Check if liquidatable
-      const isLiquidatable = await this.checkLiquidatable(loanData);
+        // Check if liquidatable
+        const isLiquidatable = await this.checkLiquidatable(loanData);
 
-      if (
-        isLiquidatable &&
-        this.activeLiquidations < CONFIG.trigger.maxConcurrent
-      ) {
-        await this.triggerLiquidation(loan.publicKey, loanData);
+        if (
+          isLiquidatable &&
+          this.activeLiquidations < CONFIG.trigger.maxConcurrent
+        ) {
+          await this.triggerLiquidation(loan.publicKey, loanData);
+        }
       }
-    }
+    }, "Trigger scan");
   }
 
   private async checkLiquidatable(loanData: any): Promise<boolean> {
@@ -371,28 +452,31 @@ class StorefrontHunterBot {
   }
 
   private async scanAndBuy() {
-    // Fetch all triggered liquidation processes
-    const processes = await program.account.liquidationProcess.all();
-    const now = Math.floor(Date.now() / 1000);
+    // Use rate limiter for RPC calls
+    await rpcLimiter.executeWithRetry(async () => {
+      // Fetch all triggered liquidation processes
+      const processes = await program.account.liquidationProcess.all();
+      const now = Math.floor(Date.now() / 1000);
 
-    for (const process of processes) {
-      const data = process.account;
+      for (const process of processes) {
+        const data = process.account;
 
-      // Only check Triggered but not yet Swapped
-      if (data.status !== 1 || data.swapped) continue;
+        // Only check Triggered but not yet Swapped
+        if (data.status !== 1 || data.swapped) continue;
 
-      // Calculate time-based discount
-      const elapsed = now - data.triggeredAt.toNumber();
-      const discount = this.calculateDiscount(elapsed);
+        // Calculate time-based discount
+        const elapsed = now - data.triggeredAt.toNumber();
+        const discount = this.calculateDiscount(elapsed);
 
-      // Check if in our target range
-      if (
-        discount >= CONFIG.hunter.minDiscount &&
-        discount <= CONFIG.hunter.maxDiscount
-      ) {
-        await this.buyFromStorefront(process.publicKey, data, discount);
+        // Check if in our target range
+        if (
+          discount >= CONFIG.hunter.minDiscount &&
+          discount <= CONFIG.hunter.maxDiscount
+        ) {
+          await this.buyFromStorefront(process.publicKey, data, discount);
+        }
       }
-    }
+    }, "Hunter scan");
   }
 
   private calculateDiscount(elapsedSeconds: number): number {
@@ -606,23 +690,26 @@ class FinalizeKeeperBot {
   }
 
   private async scanAndFinalize() {
-    // Fetch all swapped liquidation processes
-    const processes = await program.account.liquidationProcess.all();
+    // Use rate limiter for RPC calls
+    await rpcLimiter.executeWithRetry(async () => {
+      // Fetch all swapped liquidation processes
+      const processes = await program.account.liquidationProcess.all();
 
-    for (const process of processes) {
-      const data = process.account;
+      for (const process of processes) {
+        const data = process.account;
 
-      // Only check Swapped but not yet Finalized
-      if (data.status !== 2) continue; // Not Swapped
+        // Only check Swapped but not yet Finalized
+        if (data.status !== 2) continue; // Not Swapped
 
-      // Check if deadline hasn't passed
-      const now = Math.floor(Date.now() / 1000);
-      const deadline = data.deadlineForDistribution?.toNumber() || 0;
+        // Check if deadline hasn't passed
+        const now = Math.floor(Date.now() / 1000);
+        const deadline = data.deadlineForDistribution?.toNumber() || 0;
 
-      if (now < deadline) {
-        await this.finalize(process.publicKey, data);
+        if (now < deadline) {
+          await this.finalize(process.publicKey, data);
+        }
       }
-    }
+    }, "Finalize scan");
   }
 
   private async finalize(processAddress: PublicKey, processData: any) {

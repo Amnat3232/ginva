@@ -267,7 +267,9 @@ SOLANA_RPC_URL=https://api.devnet.solana.com
 PROGRAM_ID=qhuM4YAAwGYmTnK7rcXminqaMR72412CcHMu99QxeZS
 
 # Keeper wallet (for bot operations)
-KEEPER_PRIVATE_KEY=[...]
+# ⚠️ IMPORTANT: Never commit actual private keys! Use environment variables:
+# KEEPER_PRIVATE_KEY=$(cat ./keeper-key.json | jq -r '.[0]')
+# Or use: KEEPER_PRIVATE_KEY=your_base58_encoded_key
 
 # Jupiter API
 JUPITER_API_URL=https://quote-api.jup.ag/v6

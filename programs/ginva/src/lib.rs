@@ -108,14 +108,25 @@ mod liquidation_helper {
         vault_authority_bump: u8,
         liquidation_type: LiquidationType,
     ) -> Result<()> {
+        // 🛡️ SECURITY: Validate collateral exists before liquidation
+        require!(
+            loan_account.collateral_amount > 0,
+            GinvaError::InsufficientCollateral
+        );
+
         let trigger_reward = loan_account
             .collateral_amount
             .saturating_mul(60)
             .checked_div(10000)
             .unwrap_or(0);
+
+        // 🛡️ SECURITY: Validate reward doesn't exceed collateral (defensive check)
         let remaining_for_swap = loan_account
             .collateral_amount
             .saturating_sub(trigger_reward);
+
+        // Additional validation: ensure we have collateral to transfer
+        require!(remaining_for_swap > 0, GinvaError::InsufficientCollateral);
 
         let seeds = &[b"vault_auth".as_ref(), &[vault_authority_bump]];
         let signer = &[&seeds[..]];
@@ -565,6 +576,12 @@ pub mod ginva {
         require!(
             ctx.accounts.admin.key() == system_config.admin,
             GinvaError::Unauthorized
+        );
+
+        // 🛡️ SECURITY: Validate new wallet is not zero address
+        require!(
+            new_ops_wallet != Pubkey::default(),
+            GinvaError::InvalidWalletAddress
         );
 
         // Record ops wallet old
