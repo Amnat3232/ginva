@@ -1,10 +1,24 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Layout from "../components/Layout";
 import Button from "../components/Button";
 import Card from "../components/Card";
 import Icon from "../components/Icon";
+import Skeleton, {
+  SkeletonStats,
+  SkeletonCard,
+  SkeletonChart,
+} from "../components/Skeleton";
 
 export default function DashboardPage() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Mock data
   const user = {
     address: "0x7a2f...8e4d",
@@ -66,11 +80,25 @@ export default function DashboardPage() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Welcome */}
         <div className="mb-8">
-          <h1 className="text-2xl font-display font-bold mb-1 flex items-center gap-2">
-            Welcome back, {user.address}
-            <Icon name="hand" size="md" ariaLabel="waving hand" />
-          </h1>
-          <p className="text-ginva-silver">This is your account overview</p>
+          {isLoading ? (
+            <>
+              <Skeleton
+                variant="text"
+                width={200}
+                height={32}
+                className="mb-2"
+              />
+              <Skeleton variant="text" width={180} height={20} />
+            </>
+          ) : (
+            <>
+              <h1 className="text-2xl font-display font-bold mb-1 flex items-center gap-2">
+                Welcome back, {user.address}
+                <Icon name="hand" size="md" ariaLabel="waving hand" />
+              </h1>
+              <p className="text-ginva-silver">This is your account overview</p>
+            </>
+          )}
         </div>
 
         {/* Main Grid */}
@@ -78,49 +106,53 @@ export default function DashboardPage() {
           {/* Left Column - Active Loans */}
           <div className="lg:col-span-2 space-y-6">
             {/* Active Loan Card */}
-            <Card>
-              <h2 className="text-xl font-semibold mb-4 flex items-center">
-                <Icon
-                  name="clipboard"
-                  size="md"
-                  className="mr-2"
-                  ariaLabel="clipboard"
-                />
-                Active Loans
-              </h2>
+            {isLoading ? (
+              <SkeletonCard />
+            ) : (
+              <Card>
+                <h2 className="text-xl font-semibold mb-4 flex items-center">
+                  <Icon
+                    name="clipboard"
+                    size="md"
+                    className="mr-2"
+                    ariaLabel="clipboard"
+                  />
+                  Active Loans
+                </h2>
 
-              <div className="bg-ginva-slate/30 rounded-xl p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <div className="text-3xl font-mono font-bold text-ginva-gold">
-                      {user.collateral.amount} {user.collateral.symbol}
+                <div className="bg-ginva-slate/30 rounded-xl p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <div className="text-3xl font-mono font-bold text-ginva-gold">
+                        {user.collateral.amount} {user.collateral.symbol}
+                      </div>
+                      <div className="text-ginva-silver">Collateral</div>
                     </div>
-                    <div className="text-ginva-silver">Collateral</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-mono font-bold">
-                      {user.borrowed} USDC
+                    <div className="text-right">
+                      <div className="text-2xl font-mono font-bold">
+                        {user.borrowed} USDC
+                      </div>
+                      <div className="text-ginva-silver">Borrowed</div>
                     </div>
-                    <div className="text-ginva-silver">Borrowed</div>
                   </div>
-                </div>
 
-                <div className="flex justify-between items-center py-4 border-t border-ginva-slate/30">
-                  <span className="text-ginva-silver">LTV:</span>
-                  <span
-                    className={`font-mono font-bold ${getHealthColor(
-                      user.healthStatus
-                    )}`}
-                  >
-                    {user.ltv}% ({getHealthStatus(user.healthStatus)} Zone)
-                  </span>
-                </div>
+                  <div className="flex justify-between items-center py-4 border-t border-ginva-slate/30">
+                    <span className="text-ginva-silver">LTV:</span>
+                    <span
+                      className={`font-mono font-bold ${getHealthColor(
+                        user.healthStatus
+                      )}`}
+                    >
+                      {user.ltv}% ({getHealthStatus(user.healthStatus)} Zone)
+                    </span>
+                  </div>
 
-                <button className="w-full mt-4 py-3 bg-ginva-slate hover:bg-ginva-slate/70 rounded-lg text-ginva-gold font-medium transition-colors">
-                  Manage Loan →
-                </button>
-              </div>
-            </Card>
+                  <button className="w-full mt-4 py-3 bg-ginva-slate hover:bg-ginva-slate/70 rounded-lg text-ginva-gold font-medium transition-colors">
+                    Manage Loan →
+                  </button>
+                </div>
+              </Card>
+            )}
 
             {/* Protection Alerts */}
             <Card>

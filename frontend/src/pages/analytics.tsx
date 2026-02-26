@@ -3,6 +3,11 @@ import Layout from "../components/Layout";
 import Card from "../components/Card";
 import Icon from "../components/Icon";
 import { useAnalytics } from "../hooks/useAnalytics";
+import {
+  SkeletonStats,
+  SkeletonChart,
+  SkeletonCard,
+} from "../components/Skeleton";
 
 export default function AnalyticsPage() {
   const { loading, error, stats, historicalData, topCollateral } =
@@ -34,8 +39,10 @@ export default function AnalyticsPage() {
         </div>
 
         {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ginva-cyan"></div>
+          <div className="space-y-8">
+            <SkeletonStats />
+            <SkeletonChart />
+            <SkeletonCard />
           </div>
         ) : error ? (
           <div className="bg-ginva-red/10 border border-ginva-red/30 rounded-xl p-6 text-center">
