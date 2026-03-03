@@ -105,9 +105,9 @@ const Redeem = () => {
     if (!program || !selectedTicket) return;
     setLoading(true);
     try {
-      // Call Smart Contract: repay_loan
+      // Call Smart Contract: repay_loan (no params needed)
       const tx = await program.methods
-        .repayLoan(selectedTicket.account.loanId)
+        .repayLoan()
         .accounts({
           loanAccount: selectedTicket.pubkey,
         })
@@ -130,7 +130,7 @@ const Redeem = () => {
     setLoading(true);
     try {
       await program.methods
-        .extendLoan(selectedTicket.account.loanId)
+        .extendLoan()
         .accounts({
           loanAccount: selectedTicket.pubkey,
         })

@@ -111,7 +111,7 @@ export class GinvaProgram {
     return agentAccount;
   }
 
-  async depositCollateral(amount: BN): Promise<Transaction> {
+  async depositCollateral(amount: BN, loanId?: BN): Promise<Transaction> {
     const user = this.wallet!.publicKey!;
     const loanAccount = await this.getLoanAccount(user);
     const systemConfig = await this.getSystemConfig();
@@ -135,7 +135,11 @@ export class GinvaProgram {
       .transaction();
   }
 
-  async borrowUsdc(amount: BN): Promise<Transaction> {
+  async borrowUsdc(
+    loanId: number,
+    ltvOption: number,
+    durationDays: number
+  ): Promise<Transaction> {
     const user = this.wallet!.publicKey!;
     const loanAccount = await this.getLoanAccount(user);
     const systemConfig = await this.getSystemConfig();
@@ -146,7 +150,7 @@ export class GinvaProgram {
     );
 
     return this.program.methods
-      .borrowUsdc(amount)
+      .borrowUsdc(new BN(loanId), new BN(ltvOption), new BN(durationDays))
       .accounts({
         user,
         loanAccount,
@@ -158,7 +162,7 @@ export class GinvaProgram {
       .transaction();
   }
 
-  async repayLoan(loanId: number): Promise<Transaction> {
+  async repayLoan(): Promise<Transaction> {
     const user = this.wallet!.publicKey!;
     const loanAccount = await this.getLoanAccount(user);
     const systemConfig = await this.getSystemConfig();
@@ -169,7 +173,7 @@ export class GinvaProgram {
     );
 
     return this.program.methods
-      .repayLoan(new BN(loanId))
+      .repayLoan()
       .accounts({
         user,
         loanAccount,

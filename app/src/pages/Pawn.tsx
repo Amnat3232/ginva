@@ -228,7 +228,7 @@ const Pawn = () => {
       // Deposit collateral
       showSuccess("Depositing Collateral...", "Please confirm the transaction");
       await program.methods
-        .depositCollateral(collateralLamports, new anchor.BN(loanId))
+        .depositCollateral(collateralLamports)
         .accounts({
           borrower: publicKey,
           systemConfig: systemConfigPda,
@@ -242,10 +242,7 @@ const Pawn = () => {
         })
         .rpc();
 
-      // Borrow USDC
-      const borrowLamports = new anchor.BN(
-        Math.floor(parseFloat(borrowAmount) * 1e6)
-      );
+      // Borrow USDC - Smart Contract คำนวณ amount จาก ltv_option
       const capitalWalletPda = PublicKey.findProgramAddressSync(
         [Buffer.from("capital_wallet")],
         program.programId
@@ -276,7 +273,7 @@ const Pawn = () => {
 
       showSuccess("Borrowing USDC...", "Please confirm the transaction");
       await program.methods
-        .borrowUsdc(borrowLamports, loanId, ltvOption, durationDays)
+        .borrowUsdc(loanId, ltvOption, durationDays)
         .accounts({
           user: publicKey,
           systemConfig: systemConfigPda,
