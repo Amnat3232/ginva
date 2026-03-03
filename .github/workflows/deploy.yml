@@ -1,25 +1,29 @@
-name: Deploy to Devnet
+name: 🚀 Auto Deploy to Devnet
 
 on:
+  push:
+    branches: [develop]
+    paths:
+      - "programs/**"
+      - "Anchor.toml"
+      - "package.json"
   workflow_dispatch:
     inputs:
       skip_tests:
         description: "Skip tests before deploy"
         type: boolean
         default: false
-  push:
-    branches:
-      - develop
-      - main
-    paths:
-      - "programs/**"
-      - "Anchor.toml"
+
+env:
+  SOLANA_VERSION: 1.18.26
+  ANCHOR_VERSION: 0.29.0
 
 jobs:
   build-and-deploy:
+    name: Build & Deploy to Devnet
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup Node.js
@@ -28,70 +32,95 @@ jobs:
           node-version: "20"
           cache: "npm"
 
-      - name: Install Rust
+      - name: Setup Rust
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: 1.79.0
+          toolchain: stable
 
-      - name: Cache Cargo
+      - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@v2
         with:
-          workspaces: ./programs/ginva
+          workspaces: programs/ginva
 
       - name: Install Solana CLI
         run: |
-          SOLANA_VERSION="v1.18.26"
+          SOLANA_VERSION="v${SOLANA_VERSION}"
           curl -fSLo /tmp/solana-release.tar.bz2 "https://github.com/solana-labs/solana/releases/download/${SOLANA_VERSION}/solana-release-x86_64-unknown-linux-gnu.tar.bz2"
           mkdir -p "$HOME/.local/share/solana"
           tar xjf /tmp/solana-release.tar.bz2 -C "$HOME/.local/share/solana"
           mkdir -p "$HOME/.local/share/solana/install"
           ln -sf "$HOME/.local/share/solana/solana-release/bin" "$HOME/.local/share/solana/install/active_release"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
-          export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
-          solana --version
 
-      - name: Setup Wallet
-        run: |
-          export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
-          echo "${{ secrets.SOLANA_PRIVATE_KEY }}" > wallet.json
-          solana config set --keypair wallet.json --url devnet
+      - name: Install Anchor CLI
+        run: npm install -g @coral-xyz/anchor-cli@${ANCHOR_VERSION}
 
-      - name: Install Anchor
-        run: npm install -g @coral-xyz/anchor
-
-      - name: Install Yarn dependencies
-        run: yarn install
-
-      - name: Run tests
-        if: ${{ !inputs.skip_tests }}
-        run: anchor test
-        env:
-          ANCHOR_PROVIDER_URL: https://api.devnet.solana.com
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
 
       - name: Build Program
         run: anchor build
-        env:
-          ANCHOR_PROVIDER_URL: https://api.devnet.solana.com
 
-      - name: Show Program ID
-        run: |
-          echo "Program ID: $(grep -A1 '\[programs.devnet\]' Anchor.toml | tail -n1 | awk '{print $3}')"
+      - name: Run Tests
+        if: ${{ !inputs.skip_tests }}
+        run: anchor test --skip-build
+        env:
+          ANCHOR_PROVIDER_CLUSTER: devnet
+          ANCHOR_PROVIDER_URL: https://api.devnet.solana.com
 
       - name: Deploy to Devnet
-        run: anchor deploy
+        if: success()
+        run: anchor deploy --provider.cluster devnet
         env:
+          ANCHOR_PROVIDER_CLUSTER: devnet
           ANCHOR_PROVIDER_URL: https://api.devnet.solana.com
 
-      - name: Generate IDL
-        run: anchor idl init --filepath target/idl/ginva.json $(grep -A1 '\[programs.devnet\]' Anchor.toml | tail -n1 | awk '{print $3}')
-        env:
-          ANCHOR_PROVIDER_URL: https://api.devnet.solana.com
+      - name: Export IDL
+        if: success()
+        run: |
+          cp target/idl/ginva.json ./ginva.json
+          echo "✅ IDL exported"
 
-      - name: Copy IDL to frontend
-        run: cp target/idl/ginva.json app/src/idl/ginva.json
+      - name: Get Program ID
+        if: success()
+        id: program-info
+        run: |
+          PROGRAM_ID=$(anchor keys sync 2>/dev/null | grep "Program ID:" | awk '{print $3}' || cat program-keypair.json | jq -r '.pubkey')
+          echo "Program ID: $PROGRAM_ID"
+          echo "program_id=$PROGRAM_ID" >> $GITHUB_OUTPUT
 
-      - name: Commit IDL changes
-        uses: stefanzweifel/git-auto-commit-action@v5
+      - name: Create Deployment Commit
+        if: success()
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add -A
+          git commit -m "deploy: deploy to devnet $(date '+%Y-%m-%d %H:%M')" || true
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
         with:
-          commit_message: "chore: update IDL after devnet deploy"
-          file_pattern: "app/src/idl/ginva.json"
+          name: deployment-artifacts
+          path: |
+            target/idl/ginva.json
+            program-keypair.json
+
+  notify:
+    name: Notify Deployment
+    needs: build-and-deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Discord Notification
+        if: always()
+        run: |
+          STATUS="${{ needs.build-and-deploy.result }}"
+          if [ "$STATUS" == "success" ]; then
+            MSG="✅ GINVA deployed to Devnet successfully!"
+          else
+            MSG="❌ GINVA deployment failed: $STATUS"
+          fi
+          curl -X POST "${{ secrets.DISCORD_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"content\": \"$MSG\n\nCommit: ${{ github.sha }}\nWorkflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}"
+        continue-on-error: true
