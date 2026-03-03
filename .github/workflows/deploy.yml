@@ -2,9 +2,18 @@ name: Deploy to Devnet
 
 on:
   workflow_dispatch:
+    inputs:
+      skip_tests:
+        description: "Skip tests before deploy"
+        type: boolean
+        default: false
   push:
     branches:
       - develop
+      - main
+    paths:
+      - "programs/**"
+      - "Anchor.toml"
 
 jobs:
   build-and-deploy:
@@ -17,11 +26,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+          cache: "npm"
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: 1.79.0
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ./programs/ginva
 
       - name: Install Solana CLI
         run: |
@@ -44,12 +59,39 @@ jobs:
       - name: Install Anchor
         run: npm install -g @coral-xyz/anchor
 
+      - name: Install Yarn dependencies
+        run: yarn install
+
+      - name: Run tests
+        if: ${{ !inputs.skip_tests }}
+        run: anchor test
+        env:
+          ANCHOR_PROVIDER_URL: https://api.devnet.solana.com
+
       - name: Build Program
         run: anchor build
         env:
           ANCHOR_PROVIDER_URL: https://api.devnet.solana.com
 
+      - name: Show Program ID
+        run: |
+          echo "Program ID: $(grep -A1 '\[programs.devnet\]' Anchor.toml | tail -n1 | awk '{print $3}')"
+
       - name: Deploy to Devnet
         run: anchor deploy
         env:
           ANCHOR_PROVIDER_URL: https://api.devnet.solana.com
+
+      - name: Generate IDL
+        run: anchor idl init --filepath target/idl/ginva.json $(grep -A1 '\[programs.devnet\]' Anchor.toml | tail -n1 | awk '{print $3}')
+        env:
+          ANCHOR_PROVIDER_URL: https://api.devnet.solana.com
+
+      - name: Copy IDL to frontend
+        run: cp target/idl/ginva.json app/src/idl/ginva.json
+
+      - name: Commit IDL changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update IDL after devnet deploy"
+          file_pattern: "app/src/idl/ginva.json"
