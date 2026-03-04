@@ -57,6 +57,11 @@ jobs:
       - name: Install Anchor CLI
         run: npm install -g @coral-xyz/anchor-cli@${ANCHOR_VERSION}
 
+      - name: Setup Wallet
+        run: |
+          echo "${{ secrets.SOLANA_PRIVATE_KEY }}" > wallet.json
+          solana config set --keypair wallet.json --url devnet
+
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
