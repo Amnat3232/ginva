@@ -18,6 +18,11 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useState, useEffect } from "react";
 import { useGinvaProgram } from "../hooks/useGinvaProgram";
 import { usePythPrice, formatPrice } from "../hooks/usePythPrice";
+import {
+  useCoinGecko,
+  formatPercentage,
+  formatMarketCap,
+} from "../hooks/useCoinGecko";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
 
@@ -65,6 +70,13 @@ const Dashboard = () => {
     connection,
     true
   );
+
+  // CoinGecko prices (auto-refresh every 30 seconds)
+  const {
+    prices: cgPrices,
+    loading: cgLoading,
+    lastUpdate: cgUpdate,
+  } = useCoinGecko(30000);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -388,6 +400,83 @@ const Dashboard = () => {
               </Col>
             ))}
           </Row>
+          {/* CoinGecko Market Overview */}
+          <div
+            style={{
+              marginTop: "16px",
+              paddingTop: "16px",
+              borderTop: "1px solid rgba(255,255,255,0.1)",
+            }}
+          >
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <span
+                style={{
+                  color: "rgba(255,255,255,0.6)",
+                  fontSize: "11px",
+                  textTransform: "uppercase",
+                  letterSpacing: "1px",
+                }}
+              >
+                Market Overview
+              </span>
+              <small
+                style={{ color: "rgba(255,255,255,0.4)", fontSize: "10px" }}
+              >
+                {cgUpdate && `Updated ${cgUpdate.toLocaleTimeString()}`}
+              </small>
+            </div>
+            {cgLoading ? (
+              <div className="text-center py-2">
+                <small style={{ color: "rgba(255,255,255,0.4)" }}>
+                  Loading market data...
+                </small>
+              </div>
+            ) : (
+              <Row className="g-2">
+                {cgPrices.map((coin) => (
+                  <Col key={coin.id} xs={6} md={3} className="mb-2">
+                    <div
+                      style={{
+                        background: "rgba(255,255,255,0.03)",
+                        borderRadius: "8px",
+                        padding: "10px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          color: "rgba(255,255,255,0.5)",
+                          fontSize: "11px",
+                          fontWeight: 600,
+                        }}
+                      >
+                        {coin.symbol.toUpperCase()}
+                      </div>
+                      <div
+                        style={{
+                          color: "white",
+                          fontSize: "14px",
+                          fontWeight: 600,
+                          fontFamily: "'Exo 2', sans-serif",
+                        }}
+                      >
+                        ${formatPrice(coin.usd)}
+                      </div>
+                      <div
+                        style={{
+                          color:
+                            coin.usd_24h_change >= 0 ? "#10b981" : "#ef4444",
+                          fontSize: "11px",
+                          fontWeight: 500,
+                        }}
+                      >
+                        {formatPercentage(coin.usd_24h_change)}
+                      </div>
+                    </div>
+                  </Col>
+                ))}
+              </Row>
+            )}
+          </div>
         </Card.Body>
       </Card>
 
