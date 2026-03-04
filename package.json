@@ -34,11 +34,13 @@
     "@solana/wallet-adapter-wallets": "^0.16.1",
     "@solana/web3.js": "^1.98.4",
     "bn.js": "^5.2.1",
+    "bs58": "^6.0.0",
     "chalk": "^4.1.2",
     "dotenv": "^16.3.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "text-encoding-utf-8": "^1.0.2"
+    "text-encoding-utf-8": "^1.0.2",
+    "whatwg-url": "^16.0.1"
   },
   "devDependencies": {
     "@types/bn.js": "^5.1.0",

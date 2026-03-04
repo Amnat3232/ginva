@@ -6,3 +6,12 @@ target
 node_modules
 test-ledger
 .yarn
+
+# Secrets - DO NOT COMMIT
+*.json
+!package.json
+.env.local
+.env.production.local
+secret*.json
+keypair*.json
+*.key
