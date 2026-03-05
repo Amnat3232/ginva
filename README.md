@@ -1,5 +1,9 @@
 # 🏛️ GINVA — Digital Asset Pawnshop
 
+<div align="center">
+  <img src="app/public/images/logos/ginva-logo.png" alt="GINVA Logo" width="300" />
+</div>
+
 > **"8% Fixed APR — No Surprises"**  
 > **"Transparent. Verifiable. Institutional Standard."**
 
@@ -157,18 +161,17 @@ No Bad Debt ✅
 | Parameter                 | Value (from Smart Contract)  |
 | ------------------------- | ---------------------------- |
 | **Interest Rate**         | 8% APR (fixed)               |
-| **Governance Range**      | 0.5% - 20%                   |
-| **Governance Cooldown**   | 24 hours                     |
 | **Maturity Grace Period** | 72 hours (259,200 seconds)   |
 | **Price Protection**      | Immediate (HF < 100%)        |
-| **LTV Safe**              | 20%                          |
-| **LTV Standard**          | 40%                          |
-| **LTV Max**               | 60%                          |
-| **Deposit Fee**           | Configurable (0-2.5%)        |
+| **LTV Safe**              | 20% (fixed)                  |
+| **LTV Standard**          | 40% (fixed)                  |
+| **LTV Max**               | 60% (fixed)                  |
 | **Shield Fee**            | 5% (withdraw before 15 days) |
 | **Oracle**                | Pyth Network (15s stale)     |
 | **Network**               | Solana Devnet                |
 | **License**               | BUSL-1.1                     |
+
+> **Note:** All parameters above are **HARDCODED** and **IMMUTABLE** - cannot be changed after deployment. To modify any parameter, a new version of the contract must be deployed.
 
 ---
 
@@ -311,35 +314,34 @@ Assets Transferred to Keeper B ✅
 
 ---
 
-## ⚠️ Important: Admin Controls Disclosure
+## ⚠️ Important: Protocol Design
 
-> **Users should be aware that the following parameters can be changed by the protocol admin:**
+> **GINVA is designed with IMMUTABLE parameters for maximum security and transparency.**
 
-### Interest Rate Management
+### Why Hardcoded?
 
-| Parameter             | Current Default | Can Be Changed By Admin |
-| --------------------- | --------------- | ----------------------- |
-| Base Interest Rate    | **8% APR**      | ✅ Yes (0.5% - 20%)     |
-| Maximum Interest Rate | 20% APR         | ✅ Yes (up to 50%)      |
-| Update Cooldown       | 24 hours        | ✅ Yes                  |
+| Aspect               | Benefit                                                        |
+| -------------------- | -------------------------------------------------------------- |
+| **Security**         | No admin can change rates - eliminates single point of failure |
+| **Transparency**     | Users know exactly what they'll get - forever                  |
+| **Decentralization** | No trust required in any single person                         |
+| **Simplicity**       | Code is simpler = fewer bugs = safer                           |
 
-- Admin can change interest rates at any time after the cooldown period
-- Changes apply to **new loans only** (existing loans keep their original rate)
-- Rate changes are emitted as events for transparency
+### Parameters are Fixed
 
-### LTV (Loan-to-Value) Management
+All core parameters are **hardcoded** in the smart contract:
 
-| Level           | Default  | Can Be Changed By Admin   |
-| --------------- | -------- | ------------------------- |
-| Safe            | 20%      | ✅ Yes (1% - 30%)         |
-| Standard        | 40%      | ✅ Yes (> Safe - 50%)     |
-| Max             | 60%      | ✅ Yes (> Standard - 90%) |
-| Update Cooldown | 24 hours | ✅ Yes                    |
+| Parameter     | Value    | Can Change?       |
+| ------------- | -------- | ----------------- |
+| Interest Rate | 8% APR   | ❌ No - Immutable |
+| LTV Safe      | 20%      | ❌ No - Immutable |
+| LTV Standard  | 40%      | ❌ No - Immutable |
+| LTV Max       | 60%      | ❌ No - Immutable |
+| Grace Period  | 72 hours | ❌ No - Immutable |
 
-- ⚠️ **Important:** Admin can reduce LTV levels, which may cause existing loans to become eligible for liquidation if collateral value drops
-- LTV changes are emitted as events for transparency
+### Emergency Controls Only
 
-### Emergency Controls
+The admin can only perform these actions in emergencies:
 
 | Action          | Description                                            |
 | --------------- | ------------------------------------------------------ |

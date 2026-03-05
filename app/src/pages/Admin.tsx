@@ -18,7 +18,6 @@ import {
   FiShield,
   FiSettings,
   FiPercent,
-  FiHome,
   FiDollarSign,
   FiAlertTriangle,
   FiCheckCircle,
@@ -66,17 +65,6 @@ const Admin = () => {
     distributeRewardBps: 100,
     minLoanSize: 1000000,
     maxLoanSize: 1000000000000,
-  });
-
-  const [interestRates, setInterestRates] = useState({
-    baseRate: 800,
-    maxRate: 2000,
-  });
-
-  const [ltvLevels, setLtvLevels] = useState({
-    safe: 20,
-    standard: 40,
-    max: 60,
   });
 
   const [opsWallet, setOpsWallet] = useState("");
@@ -135,17 +123,6 @@ const Admin = () => {
           maxLoanSize: protocolConfig.maxLoanSize.toNumber(),
         });
 
-        setInterestRates({
-          baseRate: systemConfig.baseInterestRateBps,
-          maxRate: systemConfig.maxInterestRateBps,
-        });
-
-        setLtvLevels({
-          safe: systemConfig.ltvSafePercentage,
-          standard: systemConfig.ltvStandardPercentage,
-          max: systemConfig.ltvMaxPercentage,
-        });
-
         setOpsWallet(systemConfig.opsWallet.toString());
       } catch (error) {
         console.error("Error fetching stats:", error);
@@ -184,70 +161,6 @@ const Admin = () => {
         .rpc();
 
       showSuccess("Protocol Config Updated!");
-    } catch (error: any) {
-      showError("Update Failed", error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Update Interest Rates
-  const handleUpdateInterestRates = async () => {
-    if (!connected || !program || !publicKey) {
-      showError("Wallet Not Connected");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const systemConfigPda = PublicKey.findProgramAddressSync(
-        [Buffer.from("config")],
-        program.programId
-      )[0];
-
-      await program.methods
-        .updateInterestRates(interestRates.baseRate, interestRates.maxRate)
-        .accounts({
-          admin: publicKey,
-          systemConfig: systemConfigPda,
-        })
-        .rpc();
-
-      showSuccess("Interest Rates Updated!");
-    } catch (error: any) {
-      showError("Update Failed", error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Update LTV Levels
-  const handleUpdateLtvLevels = async () => {
-    if (!connected || !program || !publicKey) {
-      showError("Wallet Not Connected");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const systemConfigPda = PublicKey.findProgramAddressSync(
-        [Buffer.from("config")],
-        program.programId
-      )[0];
-
-      await program.methods
-        .updateLtvLevels(
-          new anchor.BN(ltvLevels.safe),
-          new anchor.BN(ltvLevels.standard),
-          new anchor.BN(ltvLevels.max)
-        )
-        .accounts({
-          admin: publicKey,
-          systemConfig: systemConfigPda,
-        })
-        .rpc();
-
-      showSuccess("LTV Levels Updated!");
     } catch (error: any) {
       showError("Update Failed", error.message);
     } finally {
@@ -515,8 +428,6 @@ const Admin = () => {
           >
             <Tab eventKey="overview" title="Current Settings" />
             <Tab eventKey="protocol" title="Protocol Config" />
-            <Tab eventKey="interest" title="Interest Rates" />
-            <Tab eventKey="ltv" title="LTV Levels" />
             <Tab eventKey="wallet" title="Ops Wallet" />
             <Tab eventKey="assets" title="Asset Management" />
           </Tabs>
@@ -709,161 +620,6 @@ const Admin = () => {
                   <FiCheckCircle className="me-2" />
                 )}
                 Update Protocol Config
-              </Button>
-            </Form>
-          )}
-
-          {/* Interest Rates Tab */}
-          {activeTab === "interest" && (
-            <Form>
-              <Alert variant="info">
-                <FiPercent className="me-2" />
-                Interest rate updates have a 1-day cooldown period. Values are
-                in basis points (100 bps = 1%).
-              </Alert>
-              <Row>
-                <Col md={6}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Base Interest Rate (bps)</Form.Label>
-                    <Form.Control
-                      type="number"
-                      value={interestRates.baseRate}
-                      onChange={(e) =>
-                        setInterestRates({
-                          ...interestRates,
-                          baseRate: parseInt(e.target.value),
-                        })
-                      }
-                    />
-                    <Form.Text className="text-muted">
-                      Range: 50 - 2000 (0.5% - 20%)
-                    </Form.Text>
-                  </Form.Group>
-                </Col>
-                <Col md={6}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Max Interest Rate (bps)</Form.Label>
-                    <Form.Control
-                      type="number"
-                      value={interestRates.maxRate}
-                      onChange={(e) =>
-                        setInterestRates({
-                          ...interestRates,
-                          maxRate: parseInt(e.target.value),
-                        })
-                      }
-                    />
-                    <Form.Text className="text-muted">
-                      Range: Base - 5000 (Max 50%)
-                    </Form.Text>
-                  </Form.Group>
-                </Col>
-              </Row>
-              <div className="mb-3">
-                <strong>Preview:</strong>
-                <div>
-                  Base Rate: {(interestRates.baseRate / 100).toFixed(2)}%
-                </div>
-                <div>Max Rate: {(interestRates.maxRate / 100).toFixed(2)}%</div>
-              </div>
-              <Button
-                variant="primary"
-                onClick={handleUpdateInterestRates}
-                disabled={loading}
-              >
-                {loading ? (
-                  <Spinner animation="border" size="sm" className="me-2" />
-                ) : (
-                  <FiCheckCircle className="me-2" />
-                )}
-                Update Interest Rates
-              </Button>
-            </Form>
-          )}
-
-          {/* LTV Levels Tab */}
-          {activeTab === "ltv" && (
-            <Form>
-              <Alert variant="info">
-                <FiHome className="me-2" />
-                LTV updates have a 1-day cooldown period. Safe &lt; Standard
-                &lt; Max.
-              </Alert>
-              <Row>
-                <Col md={4}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Safe LTV (%)</Form.Label>
-                    <Form.Control
-                      type="number"
-                      value={ltvLevels.safe}
-                      onChange={(e) =>
-                        setLtvLevels({
-                          ...ltvLevels,
-                          safe: parseInt(e.target.value),
-                        })
-                      }
-                    />
-                    <Form.Text className="text-muted">
-                      Range: 1-30%. Low risk option.
-                    </Form.Text>
-                  </Form.Group>
-                </Col>
-                <Col md={4}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Standard LTV (%)</Form.Label>
-                    <Form.Control
-                      type="number"
-                      value={ltvLevels.standard}
-                      onChange={(e) =>
-                        setLtvLevels({
-                          ...ltvLevels,
-                          standard: parseInt(e.target.value),
-                        })
-                      }
-                    />
-                    <Form.Text className="text-muted">
-                      Range: Safe - 50%
-                    </Form.Text>
-                  </Form.Group>
-                </Col>
-                <Col md={4}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Max LTV (%)</Form.Label>
-                    <Form.Control
-                      type="number"
-                      value={ltvLevels.max}
-                      onChange={(e) =>
-                        setLtvLevels({
-                          ...ltvLevels,
-                          max: parseInt(e.target.value),
-                        })
-                      }
-                    />
-                    <Form.Text className="text-muted">
-                      Range: Standard - 90%
-                    </Form.Text>
-                  </Form.Group>
-                </Col>
-              </Row>
-              <div className="mb-3">
-                <strong>Current Settings:</strong>
-                <div className="d-flex gap-2 mt-2">
-                  <Badge bg="success">Safe: {ltvLevels.safe}%</Badge>
-                  <Badge bg="info">Standard: {ltvLevels.standard}%</Badge>
-                  <Badge bg="danger">Max: {ltvLevels.max}%</Badge>
-                </div>
-              </div>
-              <Button
-                variant="primary"
-                onClick={handleUpdateLtvLevels}
-                disabled={loading}
-              >
-                {loading ? (
-                  <Spinner animation="border" size="sm" className="me-2" />
-                ) : (
-                  <FiCheckCircle className="me-2" />
-                )}
-                Update LTV Levels
               </Button>
             </Form>
           )}

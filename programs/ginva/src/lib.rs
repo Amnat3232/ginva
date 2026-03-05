@@ -35,7 +35,25 @@ pub const REENTRANCY_GUARD_ACTIVE: u8 = 1;
 pub const REENTRANCY_GUARD_INACTIVE: u8 = 0;
 
 // Program ID - matches Anchor.toml devnet deployment
-declare_id!("HneSigDWobUJcL8PiRqbdzkoqtmiK1B3rEBov87PbmiC");
+declare_id!("AGWyrRLyMY6cVAiQVTgmKEMEaQEYP6DNdJRwZEFeVzEv");
+
+// === HARDCODED PARAMETERS (Immutable - Cannot be changed) ===
+pub const APR: u64 = 800; // 8.00% APR (basis points: 8_00) - IMMUTABLE
+pub const LTV_SAFE: u8 = 20; // 20% LTV Safe - IMMUTABLE
+pub const LTV_STANDARD: u8 = 40; // 40% LTV Standard - IMMUTABLE
+pub const LTV_MAX: u8 = 60; // 60% LTV Max - IMMUTABLE
+
+// Calculate interest using fixed APR
+pub fn calculate_interest(principal: u64, duration_seconds: u64, apr_bps: u64) -> u64 {
+    // interest = principal * APR * duration / (10000 * 365 * 86400)
+    principal
+        .checked_mul(apr_bps)
+        .unwrap()
+        .checked_mul(duration_seconds)
+        .unwrap()
+        .checked_div(10000 * 365 * 86400)
+        .unwrap()
+}
 
 // CONSTANTS
 
@@ -261,18 +279,13 @@ pub mod ginva {
 
         let current_time = Clock::get()?.unix_timestamp;
 
-        // 💰 Initialize CONFIGURABLE INTEREST RATES
-        system_config.base_interest_rate_bps = 800; // Default 8% (800 bps)
-        system_config.max_interest_rate_bps = 2000; // Max 20% (2000 bps)
-        system_config.last_rate_update = current_time;
-        system_config.rate_update_cooldown = 86400; // 1 day cooldown (86400 seconds)
+        // 💰 Initialize HARDCODED INTEREST RATE (IMMUTABLE - Cannot be changed)
+        system_config.base_interest_rate_bps = APR as u16; // 8% (800 bps) - HARDCODED
 
-        // 🏠 Initialize CONFIGURABLE LTV LEVELS
-        system_config.ltv_safe_percentage = 20; // 🟢 Safe: 20%
-        system_config.ltv_standard_percentage = 40; // 🟡 Standard: 40%
-        system_config.ltv_max_percentage = 60; // 🔴 Max: 60%
-        system_config.last_ltv_update = current_time;
-        system_config.ltv_update_cooldown = 86400; // 1 day cooldown (86400 seconds)
+        // 🏠 Initialize HARDCODED LTV LEVELS (IMMUTABLE - Cannot be changed)
+        system_config.ltv_safe_percentage = LTV_SAFE as u64; // 20% - HARDCODED
+        system_config.ltv_standard_percentage = LTV_STANDARD as u64; // 40% - HARDCODED
+        system_config.ltv_max_percentage = LTV_MAX as u64; // 60% - HARDCODED
 
         // ☄️ Initialize ORACLE CIRCUIT BREAKER
         system_config.oracle_failure_count = 0;
@@ -404,119 +417,17 @@ pub mod ginva {
         Ok(())
     }
 
-    // CONFIGURABLE INTEREST RATE MANAGEMENT
+    // ⛔ INTEREST RATE AND LTV ARE HARDCODED (IMMUTABLE)
+    // APR = 8%, LTV = 20%/40%/60%
+    // To change these values, deploy a new version of the contract
 
-    pub fn update_interest_rates(
-        ctx: Context<AdminOnly>,
-        new_base_rate_bps: u16,
-        new_max_rate_bps: u16,
-    ) -> Result<()> {
-        let system_config = &mut ctx.accounts.system_config;
-        let current_time = Clock::get()?.unix_timestamp;
+    // FEATURE #6: MULTI-ASSET MANAGEMENT
 
-        // 🛡️ Security validations
-        require!(
-            new_base_rate_bps >= 50 && new_base_rate_bps <= 2000,
-            GinvaError::InvalidInterestRateRange
-        ); // 0.5% - 20% range
-        require!(
-            new_max_rate_bps >= new_base_rate_bps && new_max_rate_bps <= 5000,
-            GinvaError::InvalidInterestRateRange
-        ); // Base <= Max <= 50%
-        require!(
-            current_time >= system_config.last_rate_update + system_config.rate_update_cooldown,
-            GinvaError::RateUpdateCooldownNotMet
-        ); // Cooldown check
+    // ⛔ [DISABLED] update_interest_rates - Interest rate is now FIXED at 8%
+    // pub fn update_interest_rates(...) -> Result<()> { ... }
 
-        // Update rates
-        let old_rate = system_config.base_interest_rate_bps;
-        system_config.base_interest_rate_bps = new_base_rate_bps;
-        system_config.max_interest_rate_bps = new_max_rate_bps;
-        system_config.last_rate_update = current_time;
-
-        msg!(
-            "📈 Interest rate updated: {}% -> {}% (Max: {}%)",
-            old_rate as f64 / 100.0,
-            new_base_rate_bps as f64 / 100.0,
-            new_max_rate_bps as f64 / 100.0
-        );
-
-        // Emit event for monitoring
-        emit!(InterestRateUpdated {
-            admin: ctx.accounts.admin.key(),
-            old_rate_bps: old_rate,
-            new_rate_bps: new_base_rate_bps,
-            max_rate_bps: new_max_rate_bps,
-            timestamp: current_time,
-        });
-
-        Ok(())
-    }
-
-    // CONFIGURABLE LTV LEVEL MANAGEMENT
-
-    pub fn update_ltv_levels(
-        ctx: Context<AdminOnly>,
-        new_ltv_safe: u64,
-        new_ltv_standard: u64,
-        new_ltv_max: u64,
-    ) -> Result<()> {
-        let system_config = &mut ctx.accounts.system_config;
-        let current_time = Clock::get()?.unix_timestamp;
-
-        // 🛡️ Security validations for LTV levels
-        require!(
-            new_ltv_safe > 0 && new_ltv_safe <= 30,
-            GinvaError::InvalidLTVRange
-        ); // 1% - 30% for safe
-        require!(
-            new_ltv_standard > new_ltv_safe && new_ltv_standard <= 50,
-            GinvaError::InvalidLTVRange
-        ); // Safe < Standard <= 50%
-        require!(
-            new_ltv_max > new_ltv_standard && new_ltv_max <= 90,
-            GinvaError::InvalidLTVRange
-        ); // Standard < Max <= 90%
-        require!(
-            current_time >= system_config.last_ltv_update + system_config.ltv_update_cooldown,
-            GinvaError::LTVUpdateCooldownNotMet
-        ); // Cooldown check
-
-        // Store old values for logging
-        let old_safe = system_config.ltv_safe_percentage;
-        let old_standard = system_config.ltv_standard_percentage;
-        let old_max = system_config.ltv_max_percentage;
-
-        // Update LTV levels
-        system_config.ltv_safe_percentage = new_ltv_safe;
-        system_config.ltv_standard_percentage = new_ltv_standard;
-        system_config.ltv_max_percentage = new_ltv_max;
-        system_config.last_ltv_update = current_time;
-
-        msg!(
-            "🏠 LTV levels updated: Safe: {}% -> {}%, Standard: {}% -> {}%, Max: {}% -> {}%",
-            old_safe,
-            new_ltv_safe,
-            old_standard,
-            new_ltv_standard,
-            old_max,
-            new_ltv_max
-        );
-
-        // Emit event for monitoring
-        emit!(LTVLevelsUpdated {
-            admin: ctx.accounts.admin.key(),
-            old_ltv_safe: old_safe,
-            new_ltv_safe,
-            old_ltv_standard: old_standard,
-            new_ltv_standard,
-            old_ltv_max: old_max,
-            new_ltv_max,
-            timestamp: current_time,
-        });
-
-        Ok(())
-    }
+    // ⛔ [DISABLED] update_ltv_levels - LTV levels are now FIXED at 20%/40%/60%
+    // pub fn update_ltv_levels(...) -> Result<()> { ... }
 
     // FEATURE #6: MULTI-ASSET MANAGEMENT
 
@@ -5438,20 +5349,12 @@ pub enum GinvaError {
     InvalidLoanLimits = 1975,
 
     // 💰 Interest Rate Management Errors (1980-1989)
-    #[msg("Invalid interest rate range - must be 0.5% to 20%")]
-    InvalidInterestRateRange = 1980,
-    #[msg("Rate update cooldown not met - wait before updating again")]
-    RateUpdateCooldownNotMet = 1981,
-    #[msg("Interest rate update failed - validation error")]
-    InterestRateUpdateFailed = 1982,
+    // Note: Interest rate is now HARDCODED - these errors are reserved for future use
 
     // 🏠 LTV Management Errors (1990-1999)
+    // Note: LTV is now HARDCODED - these errors are reserved for future use
     #[msg("Invalid LTV range - must follow Safe < Standard < Max hierarchy")]
     InvalidLTVRange = 1990,
-    #[msg("LTV update cooldown not met - wait before updating again")]
-    LTVUpdateCooldownNotMet = 1991,
-    #[msg("LTV update failed - validation error")]
-    LTVUpdateFailed = 1992,
 
     // 💼 Wallet Validation Errors (1993-1995)
     #[msg("Invalid wallet address - cannot be zero address")]
