@@ -11,6 +11,7 @@ import { SolflareWalletAdapter } from "@solana/wallet-adapter-solflare";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { clusterApiUrl } from "@solana/web3.js";
 import { QueryProvider } from "./providers/QueryProvider";
+import { WalletSync } from "./hooks/useWalletSync";
 
 // Import Styles
 import "@solana/wallet-adapter-react-ui/styles.css";
@@ -45,6 +46,7 @@ const Main = () => {
           <WalletProvider wallets={wallets} autoConnect>
             <WalletModalProvider>
               <BrowserRouter>
+                <WalletSync />
                 <App />
               </BrowserRouter>
             </WalletModalProvider>
