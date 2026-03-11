@@ -200,3 +200,73 @@ export const AGENT_RATE_LIMITS = {
   MAX_SECONDS: 300,
   DEFAULT_SECONDS: 15,
 } as const;
+
+// ============================================================================
+// APP STATE TYPES (Zustand + React Query)
+// ============================================================================
+
+/** Branded type for wallet public key to prevent string mixing */
+export type WalletPubkey = string & { readonly __brand: "WalletPubkey" };
+
+export const createWalletPubkey = (pubkey: string): WalletPubkey => {
+  if (!pubkey) throw new Error("Public key is required");
+  return pubkey as WalletPubkey;
+};
+
+export type TokenSymbol = "SOL" | "BTC" | "ETH" | "USDC";
+
+export interface TokenPrice {
+  symbol: TokenSymbol;
+  price: number;
+  change24h: number;
+  lastUpdated: number;
+}
+
+export interface LoanDetails {
+  id: number;
+  collateralAmount: number;
+  collateralSymbol: TokenSymbol;
+  borrowedAmount: number;
+  ltvOption: 20 | 40 | 60;
+  startTime: number;
+  endTime: number;
+  status: "none" | "active" | "liquidating" | "liquidated" | "repaid";
+  healthFactor: number;
+  accruedInterest: number;
+}
+
+export interface StakingDetails {
+  stakedAmount: number;
+  pendingRewards: number;
+  lastClaimTime: number;
+  lockPeriodEnd: number;
+  tier: "none" | "bronze" | "silver" | "gold";
+}
+
+export interface ProtocolConfig {
+  interestRate: number;
+  ltvSafe: 20;
+  ltvStandard: 40;
+  ltvMax: 60;
+  gracePeriodSeconds: number;
+  shieldFeePercent: number;
+}
+
+export interface ProtocolStats {
+  totalValueLocked: number;
+  totalBorrowed: number;
+  totalLiquidations: number;
+  activeLoans: number;
+  totalStakers: number;
+}
+
+export type NotificationType = "success" | "error" | "warning" | "info";
+
+export interface AppNotification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  duration?: number;
+  timestamp: number;
+}

@@ -22,7 +22,8 @@ export const useGinvaProgram = () => {
     // Create provider with type-safe wallet
     const provider = new AnchorProvider(
       connection,
-      wallet as unknown as Parameters<typeof AnchorProvider>[1],
+      // @ts-ignore - Using wallet adapter with AnchorProvider
+      wallet,
       {
         commitment: "confirmed",
         preflightCommitment: "confirmed",
@@ -36,6 +37,7 @@ export const useGinvaProgram = () => {
         throw new Error("Invalid IDL format");
       }
       console.log("✅ Using REAL IDL from ../idl/ginva.json");
+      // @ts-ignore - Using pattern from working code
       return new Program(idl, PROGRAM_ID, provider);
     } catch (e) {
       // Mock program object for development

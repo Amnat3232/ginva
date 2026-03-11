@@ -4,7 +4,8 @@ import {
   Transaction,
   SYSVAR_RENT_PUBKEY,
 } from "@solana/web3.js";
-import { AnchorProvider, Program, BN, web3 } from "@coral-xyz/anchor";
+import { AnchorProvider, Program, BN } from "@coral-xyz/anchor";
+import type { WalletContextState } from "@solana/wallet-adapter-react";
 import idl from "../idl/ginva.json";
 
 const PROGRAM_ID = new PublicKey(
@@ -14,74 +15,81 @@ const TOKEN_PROGRAM = new PublicKey(
   "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
 );
 
-const GINVA_IDL = idl as any;
+const GINVA_IDL = idl as unknown as import("@coral-xyz/anchor").Idl;
 
 let programInstance: GinvaProgram | null = null;
 
 export class GinvaProgram {
-  private program: Program;
-  private connection: Connection;
+  private _program: Program;
+  private _connection: Connection;
+  private _wallet: PublicKey | null;
+  private _walletContext: WalletContextState | null;
 
-  private constructor(connection: Connection, program: Program) {
-    this.connection = connection;
-    this.program = program;
+  private constructor(
+    connection: Connection,
+    program: Program,
+    wallet: PublicKey | null,
+    walletContext: WalletContextState | null
+  ) {
+    this._connection = connection;
+    this._program = program;
+    this._wallet = wallet;
+    this._walletContext = walletContext;
   }
 
   static async initialize(
     connection: Connection,
-    wallet: unknown
+    wallet: WalletContextState
   ): Promise<GinvaProgram> {
-    const walletAdapter = wallet as {
-      publicKey: PublicKey | null;
-      signTransaction?: (tx: Transaction) => Promise<Transaction>;
-      signAllTransactions?: (txs: Transaction[]) => Promise<Transaction[]>;
-    };
+    const publicKey = wallet.publicKey;
 
     if (
       programInstance &&
-      programInstance.wallet?.publicKey?.toString() ===
-        walletAdapter.publicKey?.toString()
+      programInstance._wallet?.toString() === publicKey?.toString()
     ) {
       return programInstance;
     }
 
+    const dummyWallet = {
+      publicKey: PublicKey.default,
+      signTransaction: async <T extends Transaction>(_tx: T): Promise<T> => {
+        throw new Error("Use signAndSendTransaction with wallet adapter");
+      },
+      signAllTransactions: async <T extends Transaction>(
+        _txs: T[]
+      ): Promise<T[]> => {
+        throw new Error("Use signAndSendTransaction with wallet adapter");
+      },
+    };
+
     const provider = new AnchorProvider(
       connection,
-      {
-        publicKey: walletAdapter.publicKey || web3.PublicKey.default,
-        signTransaction: async (tx: Transaction) => {
-          if (!walletAdapter.signTransaction)
-            throw new Error("Wallet not connected");
-          return walletAdapter.signTransaction(tx);
-        },
-        signAllTransactions: async (txs: Transaction[]) => {
-          if (!walletAdapter.signAllTransactions)
-            throw new Error("Wallet not connected");
-          return walletAdapter.signAllTransactions(txs);
-        },
-      },
+      // @ts-ignore - Using dummy wallet for provider initialization
+      // Actual transaction signing is handled via walletContext in signAndSendTransaction
+      dummyWallet,
       AnchorProvider.defaultOptions()
     );
 
+    // @ts-ignore - Using pattern from useGinvaProgram.ts
     const program = new Program(GINVA_IDL, PROGRAM_ID, provider);
-    programInstance = new GinvaProgram(connection, program);
+    programInstance = new GinvaProgram(connection, program, publicKey, wallet);
     return programInstance;
   }
 
-  get wallet(): unknown {
-    return (this.program.provider as unknown as { wallet: unknown }).wallet;
+  get provider(): AnchorProvider {
+    return this._program.provider as AnchorProvider;
   }
 
-  getProvider(): AnchorProvider {
-    return this.program.provider as AnchorProvider;
+  get program(): Program {
+    return this._program;
   }
 
-  getProgram(): Program {
-    return this.program;
+  get connection(): Connection {
+    return this._connection;
   }
 
-  getUserPublicKey(): PublicKey | null {
-    return this.wallet?.publicKey || null;
+  get userPublicKey(): PublicKey | null {
+    return this._wallet;
   }
 
   async getLoanAccount(user: PublicKey): Promise<PublicKey> {
@@ -116,20 +124,22 @@ export class GinvaProgram {
     return agentAccount;
   }
 
-  async depositCollateral(amount: BN, loanId?: BN): Promise<Transaction> {
-    const user = this.wallet!.publicKey!;
-    const loanAccount = await this.getLoanAccount(user);
+  async depositCollateral(amount: BN, _loanId?: BN): Promise<Transaction> {
+    if (!this._wallet) {
+      throw new Error("Wallet not connected");
+    }
+    const loanAccount = await this.getLoanAccount(this._wallet);
     const systemConfig = await this.getSystemConfig();
 
     const collateralVault = new PublicKey(
       "JUP4Fb2cqiRUcaTHdrPC8h2gNsA2ETXiPDD33WcGuJB"
     );
-    const userTokenAccount = user;
+    const userTokenAccount = this._wallet;
 
-    return this.program.methods
+    return this._program.methods
       .depositCollateral(amount)
       .accounts({
-        user,
+        user: this._wallet,
         userTokenAccount,
         collateralVault,
         loanAccount,
@@ -145,19 +155,21 @@ export class GinvaProgram {
     ltvOption: number,
     durationDays: number
   ): Promise<Transaction> {
-    const user = this.wallet!.publicKey!;
-    const loanAccount = await this.getLoanAccount(user);
+    if (!this._wallet) {
+      throw new Error("Wallet not connected");
+    }
+    const loanAccount = await this.getLoanAccount(this._wallet);
     const systemConfig = await this.getSystemConfig();
 
-    const userUsdcAccount = user;
+    const userUsdcAccount = this._wallet;
     const usdcVault = new PublicKey(
       "JUP4Fb2cqiRUcaTHdrPC8h2gNsA2ETXiPDD33WcGuJB"
     );
 
-    return this.program.methods
+    return this._program.methods
       .borrowUsdc(new BN(loanId), new BN(ltvOption), new BN(durationDays))
       .accounts({
-        user,
+        user: this._wallet,
         loanAccount,
         userUsdcAccount,
         usdcVault,
@@ -168,19 +180,21 @@ export class GinvaProgram {
   }
 
   async repayLoan(): Promise<Transaction> {
-    const user = this.wallet!.publicKey!;
-    const loanAccount = await this.getLoanAccount(user);
+    if (!this._wallet) {
+      throw new Error("Wallet not connected");
+    }
+    const loanAccount = await this.getLoanAccount(this._wallet);
     const systemConfig = await this.getSystemConfig();
 
-    const userUsdcAccount = user;
+    const userUsdcAccount = this._wallet;
     const usdcVault = new PublicKey(
       "JUP4Fb2cqiRUcaTHdrPC8h2gNsA2ETXiPDD33WcGuJB"
     );
 
-    return this.program.methods
+    return this._program.methods
       .repayLoan()
       .accounts({
-        user,
+        user: this._wallet,
         loanAccount,
         userUsdcAccount,
         usdcVault,
@@ -191,16 +205,18 @@ export class GinvaProgram {
   }
 
   async stakeLp(amount: BN): Promise<Transaction> {
-    const user = this.wallet!.publicKey!;
-    const stakingAccount = await this.getStakingAccount(user);
+    if (!this._wallet) {
+      throw new Error("Wallet not connected");
+    }
+    const stakingAccount = await this.getStakingAccount(this._wallet);
     const systemConfig = await this.getSystemConfig();
 
-    const userLpAccount = user;
+    const userLpAccount = this._wallet;
 
-    return this.program.methods
+    return this._program.methods
       .stakeLp(amount)
       .accounts({
-        user,
+        user: this._wallet,
         userLpAccount,
         stakingAccount,
         systemConfig,
@@ -211,16 +227,18 @@ export class GinvaProgram {
   }
 
   async unstakeLp(amount: BN): Promise<Transaction> {
-    const user = this.wallet!.publicKey!;
-    const stakingAccount = await this.getStakingAccount(user);
+    if (!this._wallet) {
+      throw new Error("Wallet not connected");
+    }
+    const stakingAccount = await this.getStakingAccount(this._wallet);
     const systemConfig = await this.getSystemConfig();
 
-    const userLpAccount = user;
+    const userLpAccount = this._wallet;
 
-    return this.program.methods
+    return this._program.methods
       .unstakeLp(amount)
       .accounts({
-        user,
+        user: this._wallet,
         userLpAccount,
         stakingAccount,
         systemConfig,
@@ -235,14 +253,16 @@ export class GinvaProgram {
     framework: string,
     capabilities: string
   ): Promise<Transaction> {
-    const owner = this.wallet!.publicKey!;
-    const agentAccount = await this.getAgentAccount(owner);
+    if (!this._wallet) {
+      throw new Error("Wallet not connected");
+    }
+    const agentAccount = await this.getAgentAccount(this._wallet);
     const systemConfig = await this.getSystemConfig();
 
-    return this.program.methods
+    return this._program.methods
       .registerAgent(name, description, framework, capabilities)
       .accounts({
-        owner,
+        owner: this._wallet,
         agentAccount,
         systemConfig,
         rent: SYSVAR_RENT_PUBKEY,
@@ -255,43 +275,55 @@ export class GinvaProgram {
     description: string,
     rateLimit: number
   ): Promise<Transaction> {
-    const owner = this.wallet!.publicKey!;
-    const agentAccount = await this.getAgentAccount(owner);
+    if (!this._wallet) {
+      throw new Error("Wallet not connected");
+    }
+    const agentAccount = await this.getAgentAccount(this._wallet);
 
-    return this.program.methods
+    return this._program.methods
       .updateAgentSettings(name, description, new BN(rateLimit))
       .accounts({
-        owner,
+        owner: this._wallet,
         agentAccount,
       })
       .transaction();
   }
 
   async pauseAgent(pause: boolean): Promise<Transaction> {
-    const owner = this.wallet!.publicKey!;
-    const agentAccount = await this.getAgentAccount(owner);
+    if (!this._wallet) {
+      throw new Error("Wallet not connected");
+    }
+    const agentAccount = await this.getAgentAccount(this._wallet);
 
-    return this.program.methods
+    return this._program.methods
       .pauseAgent(pause)
       .accounts({
-        owner,
+        owner: this._wallet,
         agentAccount,
       })
       .transaction();
   }
 
   async signAndSendTransaction(tx: Transaction): Promise<string> {
-    const wallet = this.wallet!;
-    if (!wallet.signTransaction) {
+    if (!this._wallet || !this._walletContext) {
+      throw new Error("Wallet not connected");
+    }
+
+    if (!this._walletContext.signTransaction) {
       throw new Error("Wallet cannot sign transactions");
     }
 
-    const signedTx = await wallet.signTransaction(tx);
-    const signature = await this.connection.sendRawTransaction(
-      signedTx.serialize()
-    );
-    await this.connection.confirmTransaction(signature, "confirmed");
-    return signature;
+    try {
+      const signedTx = await this._walletContext.signTransaction(tx);
+      const signature = await this._connection.sendRawTransaction(
+        signedTx.serialize()
+      );
+      await this._connection.confirmTransaction(signature, "confirmed");
+      return signature;
+    } catch (error) {
+      console.error("Transaction failed:", error);
+      throw error;
+    }
   }
 }
 
