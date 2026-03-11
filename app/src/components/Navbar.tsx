@@ -1,22 +1,25 @@
-import {
-  FiActivity,
-  FiZap,
-  FiShield,
-  FiUser,
-  FiMenu,
-  FiX,
-} from "react-icons/fi";
+import { FiZap, FiShield, FiUser, FiMenu, FiX } from "react-icons/fi";
 import { Container, Nav, Navbar as BootstrapNavbar } from "react-bootstrap";
 import { useWallet } from "@solana/wallet-adapter-react";
 import {
   WalletModalButton,
   WalletDisconnectButton,
 } from "@solana/wallet-adapter-react-ui";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import logo from "../../public/images/logos/ginva-logo-v3.jpg";
 
 const Navbar = () => {
   const { connected, publicKey } = useWallet();
+  const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const navLinkStyle = {
     color: "rgba(255, 255, 255, 0.7)",
@@ -24,29 +27,35 @@ const Navbar = () => {
     borderRadius: "8px",
     padding: "8px 12px",
     fontSize: "14px",
-    fontFamily: "'Exo 2', sans-serif",
+    fontFamily: "'Rajdhani', sans-serif",
+    fontWeight: 500,
   };
 
   const navLinkHoverStyle = {
-    color: "#10b981",
-    background: "rgba(16, 185, 129, 0.1)",
+    color: "#f59e0b",
+    background: "rgba(245, 158, 11, 0.1)",
   };
 
   const brandStyle = {
-    fontFamily: "'Exo 2', sans-serif",
+    fontFamily: "'Orbitron', sans-serif",
     fontWeight: 700,
-    fontSize: "20px",
-    color: "#10b981 !important",
+    fontSize: "22px",
+    color: "#f59e0b !important",
     display: "flex",
     alignItems: "center",
-    gap: "8px",
+    gap: "10px",
+    textShadow: "0 0 20px rgba(245, 158, 11, 0.5)",
   };
 
   const glassStyle = {
-    background: "rgba(15, 23, 42, 0.8)",
+    background: scrolled ? "rgba(10, 10, 15, 0.95)" : "rgba(10, 10, 15, 0.8)",
     backdropFilter: "blur(20px)",
-    borderBottom: "1px solid rgba(16, 185, 129, 0.2)",
-    boxShadow: "0 4px 30px rgba(0, 0, 0, 0.3)",
+    borderBottom: "1px solid rgba(245, 158, 11, 0.2)",
+    boxShadow: scrolled
+      ? "0 4px 30px rgba(0, 0, 0, 0.5), 0 0 40px rgba(245, 158, 11, 0.1)"
+      : "0 4px 30px rgba(0, 0, 0, 0.3)",
+    transition: "all 0.3s ease",
+    padding: scrolled ? "8px 0" : "12px 0",
   };
 
   return (
@@ -64,33 +73,27 @@ const Navbar = () => {
           style={brandStyle}
           onClick={() => setMenuOpen(false)}
         >
-          <div
+          <img
+            src={logo}
+            alt="GINVA"
             style={{
-              width: "32px",
-              height: "32px",
-              background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-              borderRadius: "8px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              height: "28px",
+              width: "auto",
             }}
-          >
-            <FiActivity size={18} color="white" />
-          </div>
-          <span className="d-none d-sm-inline">GINVA</span>
+          />
         </BootstrapNavbar.Brand>
 
         <BootstrapNavbar.Toggle
           aria-controls="basic-navbar-nav"
           style={{
             border: "none",
-            color: "#10b981",
+            color: "#f59e0b",
           }}
         >
           {menuOpen ? (
-            <FiX size={24} color="#10b981" />
+            <FiX size={24} color="#f59e0b" />
           ) : (
-            <FiMenu size={24} color="#10b981" />
+            <FiMenu size={24} color="#f59e0b" />
           )}
         </BootstrapNavbar.Toggle>
 
@@ -204,17 +207,17 @@ const Navbar = () => {
             <Nav.Link
               href="/agent"
               className="mx-1"
-              style={{ ...navLinkStyle, color: "#8b5cf6" }}
+              style={{ ...navLinkStyle, color: "#a855f7" }}
               onMouseEnter={(e) =>
                 Object.assign(e.currentTarget.style, {
                   ...navLinkHoverStyle,
-                  color: "#8b5cf6",
+                  color: "#a855f7",
                 })
               }
               onMouseLeave={(e) =>
                 Object.assign(e.currentTarget.style, {
                   ...navLinkStyle,
-                  color: "#8b5cf6",
+                  color: "#a855f7",
                 })
               }
               onClick={() => setMenuOpen(false)}
@@ -251,17 +254,18 @@ const Navbar = () => {
             >
               <div
                 style={{
-                  background: "rgba(16, 185, 129, 0.15)",
-                  border: "1px solid rgba(16, 185, 129, 0.3)",
+                  background: "rgba(245, 158, 11, 0.15)",
+                  border: "1px solid rgba(245, 158, 11, 0.3)",
                   borderRadius: "8px",
                   padding: "6px 12px",
                 }}
               >
                 <span
                   style={{
-                    color: "#10b981",
+                    color: "#f59e0b",
                     fontSize: "13px",
-                    fontFamily: "'Exo 2', sans-serif",
+                    fontFamily: "'Rajdhani', sans-serif",
+                    fontWeight: 600,
                   }}
                 >
                   {publicKey?.toString().slice(0, 4)}...
@@ -276,23 +280,27 @@ const Navbar = () => {
                   color: "#ef4444",
                   fontSize: "13px",
                   padding: "6px 12px",
-                  fontFamily: "'Exo 2', sans-serif",
+                  fontFamily: "'Rajdhani', sans-serif",
+                  fontWeight: 600,
                 }}
               />
             </div>
           ) : (
             <WalletModalButton
               style={{
-                background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
                 border: "none",
-                borderRadius: "8px",
+                borderRadius: "10px",
                 color: "white",
                 fontSize: "14px",
                 padding: "10px 20px",
                 fontWeight: 600,
-                fontFamily: "'Exo 2', sans-serif",
+                fontFamily: "'Rajdhani', sans-serif",
                 cursor: "pointer",
-                transition: "all 0.2s ease",
+                transition: "all 0.3s ease",
+                boxShadow: "0 0 20px rgba(245, 158, 11, 0.4)",
+                textTransform: "uppercase",
+                letterSpacing: "1px",
               }}
             >
               Connect Wallet

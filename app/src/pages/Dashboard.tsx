@@ -1,12 +1,4 @@
-import {
-  Card,
-  Container,
-  Row,
-  Col,
-  Badge,
-  Stack,
-  Button,
-} from "react-bootstrap";
+import { Card, Container, Row, Col, Badge, Button } from "react-bootstrap";
 import {
   FiDollarSign,
   FiTrendingUp,
@@ -20,8 +12,7 @@ import { useGinvaProgram } from "../hooks/useGinvaProgram";
 import { usePythPrice, formatPrice } from "../hooks/usePythPrice";
 import {
   useCoinGecko,
-  formatPercentage,
-  formatMarketCap,
+  formatPrice as formatCryptoPrice,
 } from "../hooks/useCoinGecko";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
@@ -32,13 +23,6 @@ const glassCardStyle = {
   border: "1px solid rgba(16, 185, 129, 0.15)",
   borderRadius: "16px",
   boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
-};
-
-const accentGradient = {
-  background:
-    "linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.1) 100%)",
-  border: "1px solid rgba(16, 185, 129, 0.2)",
-  borderRadius: "12px",
 };
 
 const Dashboard = () => {
@@ -433,47 +417,41 @@ const Dashboard = () => {
               </div>
             ) : (
               <Row className="g-2">
-                {cgPrices.map((coin) => (
-                  <Col key={coin.id} xs={6} md={3} className="mb-2">
-                    <div
-                      style={{
-                        background: "rgba(255,255,255,0.03)",
-                        borderRadius: "8px",
-                        padding: "10px",
-                      }}
-                    >
+                {cgPrices
+                  .filter((p) =>
+                    ["solana", "bitcoin", "ethereum", "usd-coin"].includes(p.id)
+                  )
+                  .map((coin) => (
+                    <Col key={coin.id} xs={6} md={3} className="mb-2">
                       <div
                         style={{
-                          color: "rgba(255,255,255,0.5)",
-                          fontSize: "11px",
-                          fontWeight: 600,
+                          background: "rgba(255,255,255,0.03)",
+                          borderRadius: "8px",
+                          padding: "10px",
                         }}
                       >
-                        {coin.symbol.toUpperCase()}
+                        <div
+                          style={{
+                            color: "rgba(255,255,255,0.5)",
+                            fontSize: "11px",
+                            fontWeight: 600,
+                          }}
+                        >
+                          {coin.symbol.toUpperCase()}
+                        </div>
+                        <div
+                          style={{
+                            color: "white",
+                            fontSize: "14px",
+                            fontWeight: 600,
+                            fontFamily: "'Exo 2', sans-serif",
+                          }}
+                        >
+                          ${coin.usd ? formatCryptoPrice(coin.usd) : "--"}
+                        </div>
                       </div>
-                      <div
-                        style={{
-                          color: "white",
-                          fontSize: "14px",
-                          fontWeight: 600,
-                          fontFamily: "'Exo 2', sans-serif",
-                        }}
-                      >
-                        ${formatPrice(coin.usd)}
-                      </div>
-                      <div
-                        style={{
-                          color:
-                            coin.usd_24h_change >= 0 ? "#10b981" : "#ef4444",
-                          fontSize: "11px",
-                          fontWeight: 500,
-                        }}
-                      >
-                        {formatPercentage(coin.usd_24h_change)}
-                      </div>
-                    </div>
-                  </Col>
-                ))}
+                    </Col>
+                  ))}
               </Row>
             )}
           </div>
