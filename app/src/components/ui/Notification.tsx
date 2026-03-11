@@ -155,4 +155,7 @@ export const NotificationProvider = ({
   );
 };
 
+// Export the Notification component (empty wrapper for usage with provider)
+export const Notification = () => null;
+
 export default NotificationProvider;
