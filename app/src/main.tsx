@@ -19,11 +19,9 @@ import App from "./App";
 // ---------------------------------------------------------
 // 🔧 Fix Polyfills for Vite (fixes white screen due to Buffer/Global)
 // ---------------------------------------------------------
-import { Buffer } from "buffer";
-if (!window.Buffer) {
-  window.Buffer = Buffer;
-}
-window.global = window.global ?? window;
+import { Buffer as BufferPolyfill } from "buffer";
+(globalThis as unknown as { Buffer: typeof BufferPolyfill }).Buffer =
+  BufferPolyfill;
 
 // ---------------------------------------------------------
 // 🚀 Main Component with Providers

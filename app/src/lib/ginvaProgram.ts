@@ -2,11 +2,9 @@ import {
   Connection,
   PublicKey,
   Transaction,
-  SystemProgram,
   SYSVAR_RENT_PUBKEY,
 } from "@solana/web3.js";
 import { AnchorProvider, Program, BN, web3 } from "@coral-xyz/anchor";
-import { WalletAdapter } from "@solana/wallet-adapter-base";
 import idl from "../idl/ginva.json";
 
 const PROGRAM_ID = new PublicKey(
@@ -31,12 +29,18 @@ export class GinvaProgram {
 
   static async initialize(
     connection: Connection,
-    wallet: WalletAdapter
+    wallet: unknown
   ): Promise<GinvaProgram> {
+    const walletAdapter = wallet as {
+      publicKey: PublicKey | null;
+      signTransaction?: (tx: Transaction) => Promise<Transaction>;
+      signAllTransactions?: (txs: Transaction[]) => Promise<Transaction[]>;
+    };
+
     if (
       programInstance &&
       programInstance.wallet?.publicKey?.toString() ===
-        wallet.publicKey?.toString()
+        walletAdapter.publicKey?.toString()
     ) {
       return programInstance;
     }
@@ -44,15 +48,16 @@ export class GinvaProgram {
     const provider = new AnchorProvider(
       connection,
       {
-        publicKey: wallet.publicKey || web3.PublicKey.default,
+        publicKey: walletAdapter.publicKey || web3.PublicKey.default,
         signTransaction: async (tx: Transaction) => {
-          if (!wallet.signTransaction) throw new Error("Wallet not connected");
-          return wallet.signTransaction(tx);
+          if (!walletAdapter.signTransaction)
+            throw new Error("Wallet not connected");
+          return walletAdapter.signTransaction(tx);
         },
         signAllTransactions: async (txs: Transaction[]) => {
-          if (!wallet.signAllTransactions)
+          if (!walletAdapter.signAllTransactions)
             throw new Error("Wallet not connected");
-          return wallet.signAllTransactions(txs);
+          return walletAdapter.signAllTransactions(txs);
         },
       },
       AnchorProvider.defaultOptions()
@@ -63,8 +68,8 @@ export class GinvaProgram {
     return programInstance;
   }
 
-  get wallet(): WalletAdapter | null {
-    return (this.program.provider as any).wallet;
+  get wallet(): unknown {
+    return (this.program.provider as unknown as { wallet: unknown }).wallet;
   }
 
   getProvider(): AnchorProvider {

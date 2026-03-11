@@ -7,9 +7,9 @@ export const useGinvaProgram = () => {
   const { connection } = useConnection();
   const wallet = useWallet();
 
-  // ✅ ใช้ useMemo เพื่อสร้าง Program instance แค่ตอนจำเป็นเท่านั้น
+  // Use memo to create Program instance only when needed
   const program = useMemo(() => {
-    // ถ้ากระเป๋ายังไม่เชื่อมต่อ ให้ return null ไปก่อน
+    // Return null if wallet is not connected
     if (
       !wallet ||
       !wallet.publicKey ||
@@ -85,7 +85,7 @@ export const useGinvaProgram = () => {
     wallet.publicKey,
     wallet.signTransaction,
     wallet.signAllTransactions,
-  ]); // 🔒 สร้างใหม่เฉพาะตอนเปลี่ยนเครือข่าย หรือ เปลี่ยนกระเป๋า
+  ]); // Recreate only when network or wallet changes
 
   return { program };
 };

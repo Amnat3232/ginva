@@ -1,7 +1,7 @@
 import { createContext, useContext, ReactNode } from "react";
-import { useWallet, UseWalletReturnType } from "@solana/wallet-adapter-react";
+import { useWallet, WalletContextState } from "@solana/wallet-adapter-react";
 
-interface WalletContextType extends UseWalletReturnType {
+interface WalletContextType extends WalletContextState {
   isConnected: boolean;
   balance: number | null;
 }

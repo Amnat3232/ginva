@@ -583,6 +583,244 @@ pub mod ginva {
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
+    // KEEPER AGENT SYSTEM (Human + AI Agent Revenue Share)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// Register a new Keeper Agent with revenue share configuration
+    /// Revenue: 45% Human Owner | 35% AI Agent | 20% Protocol
+    pub fn register_keeper_agent(
+        ctx: Context<RegisterKeeperAgent>,
+        agent_id: u64,
+        keeper_type: u8,
+        owner_share_bps: u16,
+        agent_share_bps: u16,
+    ) -> Result<()> {
+        let keeper_agent = &mut ctx.accounts.keeper_agent;
+        let clock = Clock::get()?;
+
+        // Validate keeper type (1=Trigger, 2=Swap, 3=Finalize)
+        require!(
+            keeper_type >= KEEPER_TYPE_TRIGGER && keeper_type <= KEEPER_TYPE_FINALIZE,
+            GinvaError::InvalidInput
+        );
+
+        // Validate total shares equal 100% (10000 bps)
+        let protocol_share_bps = 10000u16
+            .checked_sub(owner_share_bps)
+            .ok_or(GinvaError::ArithmeticUnderflow)?
+            .checked_sub(agent_share_bps)
+            .ok_or(GinvaError::ArithmeticUnderflow)?;
+
+        // Initialize KeeperAgent
+        keeper_agent.owner = ctx.accounts.owner.key();
+        keeper_agent.agent_id = agent_id;
+        keeper_agent.keeper_type = keeper_type;
+        keeper_agent.total_earnings = 0;
+        keeper_agent.owner_share_bps = owner_share_bps;
+        keeper_agent.agent_share_bps = agent_share_bps;
+        keeper_agent.protocol_share_bps = protocol_share_bps;
+        keeper_agent.is_active = true;
+        keeper_agent.tasks_completed = 0;
+        keeper_agent.tasks_failed = 0;
+        keeper_agent.registered_at = clock.unix_timestamp;
+        keeper_agent.last_active_at = clock.unix_timestamp;
+
+        // Initialize AgentEarnings
+        let agent_earnings = &mut ctx.accounts.agent_earnings;
+        agent_earnings.agent = keeper_agent.key();
+        agent_earnings.total_earned = 0;
+        agent_earnings.owner_withdrawn = 0;
+        agent_earnings.agent_withdrawn = 0;
+        agent_earnings.protocol_withdrawn = 0;
+        agent_earnings.pending_owner = 0;
+        agent_earnings.pending_agent = 0;
+        agent_earnings.pending_protocol = 0;
+        agent_earnings.last_earnings_update = clock.unix_timestamp;
+
+        msg!(
+            "🤖 Keeper Agent Registered: ID={}, Type={}, Owner={}, Shares=[Owner:{}%, Agent:{}%, Protocol:{}%]",
+            agent_id,
+            keeper_type,
+            keeper_agent.owner,
+            owner_share_bps / 100,
+            agent_share_bps / 100,
+            protocol_share_bps / 100
+        );
+
+        emit!(KeeperAgentRegistered {
+            owner: ctx.accounts.owner.key(),
+            agent: keeper_agent.key(),
+            agent_id,
+            keeper_type,
+            owner_share_bps,
+            agent_share_bps,
+            protocol_share_bps,
+            timestamp: clock.unix_timestamp,
+        });
+
+        Ok(())
+    }
+
+    /// Execute a keeper task and earn rewards
+    /// The task is validated by the calling function (liquidate, buy, finalize)
+    pub fn execute_keeper_task(
+        ctx: Context<ExecuteKeeperTask>,
+        reward_amount: u64,
+        task_success: bool,
+    ) -> Result<()> {
+        let keeper_agent = &mut ctx.accounts.keeper_agent;
+        let agent_earnings = &mut ctx.accounts.agent_earnings;
+        let clock = Clock::get()?;
+
+        // Validate agent is active
+        require!(keeper_agent.is_active, GinvaError::InvalidInput);
+
+        // Update task stats
+        if task_success {
+            keeper_agent.tasks_completed = keeper_agent.tasks_completed.saturating_add(1);
+        } else {
+            keeper_agent.tasks_failed = keeper_agent.tasks_failed.saturating_add(1);
+        }
+        keeper_agent.last_active_at = clock.unix_timestamp;
+
+        // Calculate revenue split
+        let owner_share = reward_amount
+            .checked_mul(keeper_agent.owner_share_bps as u64)
+            .ok_or(GinvaError::ArithmeticOverflow)?
+            .checked_div(10000)
+            .ok_or(GinvaError::ArithmeticUnderflow)?;
+
+        let agent_share = reward_amount
+            .checked_mul(keeper_agent.agent_share_bps as u64)
+            .ok_or(GinvaError::ArithmeticOverflow)?
+            .checked_div(10000)
+            .ok_or(GinvaError::ArithmeticUnderflow)?;
+
+        let protocol_share = reward_amount
+            .checked_mul(keeper_agent.protocol_share_bps as u64)
+            .ok_or(GinvaError::ArithmeticOverflow)?
+            .checked_div(10000)
+            .ok_or(GinvaError::ArithmeticUnderflow)?;
+
+        // Update earnings
+        keeper_agent.total_earnings = keeper_agent.total_earnings.saturating_add(reward_amount);
+        agent_earnings.total_earned = agent_earnings.total_earned.saturating_add(reward_amount);
+        agent_earnings.pending_owner = agent_earnings.pending_owner.saturating_add(owner_share);
+        agent_earnings.pending_agent = agent_earnings.pending_agent.saturating_add(agent_share);
+        agent_earnings.pending_protocol = agent_earnings
+            .pending_protocol
+            .saturating_add(protocol_share);
+        agent_earnings.last_earnings_update = clock.unix_timestamp;
+
+        msg!(
+            "⚡ Keeper Task Executed: AgentID={}, Reward={}, Success={}",
+            keeper_agent.agent_id,
+            reward_amount,
+            task_success
+        );
+
+        emit!(KeeperTaskExecuted {
+            agent: keeper_agent.key(),
+            keeper_type: keeper_agent.keeper_type,
+            reward_amount,
+            owner_share,
+            agent_share,
+            protocol_share,
+            success: task_success,
+            timestamp: clock.unix_timestamp,
+        });
+
+        Ok(())
+    }
+
+    /// Claim accumulated earnings (owner share)
+    pub fn claim_keeper_earnings(ctx: Context<ClaimKeeperEarnings>) -> Result<()> {
+        let keeper_agent = &mut ctx.accounts.keeper_agent;
+        let agent_earnings = &mut ctx.accounts.agent_earnings;
+        let owner = ctx.accounts.owner.key();
+
+        // Validate caller is the owner
+        require!(keeper_agent.owner == owner, GinvaError::Unauthorized);
+
+        // Calculate claimable amount
+        let owner_pending = agent_earnings.pending_owner;
+        require!(owner_pending > 0, GinvaError::InvalidAmount);
+
+        // Transfer owner share
+        let bump = ctx.bumps.agent_earnings;
+        let agent_key = keeper_agent.key();
+        let seeds = &[b"agent_earnings".as_ref(), agent_key.as_ref(), &[bump]];
+        let signer = &[&seeds[..]];
+
+        let cpi_program = ctx.accounts.token_program.to_account_info();
+        let cpi_accounts = Transfer {
+            from: ctx.accounts.earnings_vault.to_account_info(),
+            to: ctx.accounts.owner_token_account.to_account_info(),
+            authority: ctx.accounts.earnings_authority.clone(),
+        };
+        let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
+        token::transfer(cpi_ctx, owner_pending)?;
+
+        // Update state
+        agent_earnings.pending_owner = 0;
+        agent_earnings.owner_withdrawn =
+            agent_earnings.owner_withdrawn.saturating_add(owner_pending);
+
+        msg!("💰 Owner claimed: {} USDC", owner_pending);
+
+        emit!(KeeperEarningsClaimed {
+            agent: keeper_agent.key(),
+            claimant: owner,
+            amount: owner_pending,
+            timestamp: Clock::get()?.unix_timestamp,
+        });
+
+        Ok(())
+    }
+
+    /// Distribute accumulated earnings to all parties
+    /// Called by protocol or automated via keeper
+    pub fn distribute_earnings(ctx: Context<DistributeEarnings>) -> Result<()> {
+        let keeper_agent = &mut ctx.accounts.keeper_agent;
+        let agent_earnings = &mut ctx.accounts.agent_earnings;
+        let clock = Clock::get()?;
+
+        // Distribute protocol share to protocol wallet
+        if agent_earnings.pending_protocol > 0 {
+            let cpi_program = ctx.accounts.token_program.to_account_info();
+            let cpi_accounts = Transfer {
+                from: ctx.accounts.earnings_vault.to_account_info(),
+                to: ctx.accounts.protocol_wallet.to_account_info(),
+                authority: ctx.accounts.earnings_authority.clone(),
+            };
+            let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+            token::transfer(cpi_ctx, agent_earnings.pending_protocol)?;
+
+            agent_earnings.protocol_withdrawn = agent_earnings
+                .protocol_withdrawn
+                .saturating_add(agent_earnings.pending_protocol);
+            agent_earnings.pending_protocol = 0;
+        }
+
+        // Note: Agent share (35%) remains in vault for AI agent operations
+        // This can be used for future AI agent operational costs or reinvested
+
+        msg!(
+            "📊 Earnings Distributed: Protocol={}",
+            agent_earnings.protocol_withdrawn
+        );
+
+        emit!(EarningsDistributed {
+            agent: keeper_agent.key(),
+            protocol_distributed: agent_earnings.protocol_withdrawn,
+            agent_retained: agent_earnings.pending_agent,
+            timestamp: clock.unix_timestamp,
+        });
+
+        Ok(())
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
     // ORACLE CIRCUIT BREAKER (Admin Functions)
     // ═══════════════════════════════════════════════════════════════════════════
 
@@ -3915,6 +4153,47 @@ pub struct KeeperHeartbeatEvent {
     pub timestamp: i64,
 }
 
+// 🤖 KEEPER AGENT EVENTS
+#[event]
+pub struct KeeperAgentRegistered {
+    pub owner: Pubkey,
+    pub agent: Pubkey,
+    pub agent_id: u64,
+    pub keeper_type: u8,
+    pub owner_share_bps: u16,
+    pub agent_share_bps: u16,
+    pub protocol_share_bps: u16,
+    pub timestamp: i64,
+}
+
+#[event]
+pub struct KeeperTaskExecuted {
+    pub agent: Pubkey,
+    pub keeper_type: u8,
+    pub reward_amount: u64,
+    pub owner_share: u64,
+    pub agent_share: u64,
+    pub protocol_share: u64,
+    pub success: bool,
+    pub timestamp: i64,
+}
+
+#[event]
+pub struct KeeperEarningsClaimed {
+    pub agent: Pubkey,
+    pub claimant: Pubkey,
+    pub amount: u64,
+    pub timestamp: i64,
+}
+
+#[event]
+pub struct EarningsDistributed {
+    pub agent: Pubkey,
+    pub protocol_distributed: u64,
+    pub agent_retained: u64,
+    pub timestamp: i64,
+}
+
 // ☄️ ORACLE CIRCUIT BREAKER EVENTS
 #[event]
 pub struct CircuitBreakerTriggeredEvent {
@@ -4369,6 +4648,46 @@ pub struct AgentOperation {
     pub executed_at: i64,
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// KEEPER AGENT SYSTEM (Revenue Share: 45% Owner | 35% Agent | 20% Protocol)
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Keeper Type Constants
+pub const KEEPER_TYPE_TRIGGER: u8 = 1; // Monitors health, triggers liquidations
+pub const KEEPER_TYPE_SWAP: u8 = 2; // Executes storefront purchases
+pub const KEEPER_TYPE_FINALIZE: u8 = 3; // Finalizes settlements, distributes rewards
+
+#[account]
+#[derive(Default)]
+pub struct KeeperAgent {
+    pub owner: Pubkey,           // Human owner of the agent
+    pub agent_id: u64,           // Unique agent identifier
+    pub keeper_type: u8,         // 1=Trigger, 2=Swap, 3=Finalize
+    pub total_earnings: u64,     // Total lifetime earnings
+    pub owner_share_bps: u16,    // 4500 = 45% to human owner
+    pub agent_share_bps: u16,    // 3500 = 35% to AI agent
+    pub protocol_share_bps: u16, // 2000 = 20% to protocol
+    pub is_active: bool,         // Agent enabled/disabled
+    pub tasks_completed: u64,    // Total tasks completed
+    pub tasks_failed: u64,       // Total tasks failed
+    pub registered_at: i64,      // Registration timestamp
+    pub last_active_at: i64,     // Last activity timestamp
+}
+
+#[account]
+#[derive(Default)]
+pub struct AgentEarnings {
+    pub agent: Pubkey,             // KeeperAgent PDA address
+    pub total_earned: u64,         // Total earned by this agent
+    pub owner_withdrawn: u64,      // Owner (human) already withdrawn
+    pub agent_withdrawn: u64,      // Agent (AI) share already withdrawn
+    pub protocol_withdrawn: u64,   // Protocol share already withdrawn
+    pub pending_owner: u64,        // Owner share pending withdrawal
+    pub pending_agent: u64,        // Agent share pending withdrawal
+    pub pending_protocol: u64,     // Protocol share pending withdrawal
+    pub last_earnings_update: i64, // Last earnings update timestamp
+}
+
 // CONTEXT STRUCTURES
 
 #[derive(Accounts)]
@@ -4441,6 +4760,135 @@ pub struct KeeperHeartbeat<'info> {
     /// System configuration account (read-only for validation)
     #[account(seeds = [b"config"], bump)]
     pub system_config: Account<'info, SystemConfig>,
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// KEEPER AGENT CONTEXTS
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[derive(Accounts)]
+#[instruction(agent_id: u64, keeper_type: u8)]
+pub struct RegisterKeeperAgent<'info> {
+    #[account(mut)]
+    pub owner: Signer<'info>,
+
+    #[account(
+        init,
+        payer = owner,
+        space = 8 + size_of::<KeeperAgent>(),
+        seeds = [b"keeper_agent", owner.key().as_ref(), &agent_id.to_le_bytes()],
+        bump
+    )]
+    pub keeper_agent: Account<'info, KeeperAgent>,
+
+    #[account(
+        init,
+        payer = owner,
+        space = 8 + size_of::<AgentEarnings>(),
+        seeds = [b"agent_earnings", keeper_agent.key().as_ref()],
+        bump
+    )]
+    pub agent_earnings: Account<'info, AgentEarnings>,
+
+    #[account(seeds = [b"config"], bump)]
+    pub system_config: Account<'info, SystemConfig>,
+
+    pub system_program: Program<'info, System>,
+    pub rent: Sysvar<'info, Rent>,
+}
+
+#[derive(Accounts)]
+pub struct ExecuteKeeperTask<'info> {
+    #[account(mut)]
+    pub keeper: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [b"keeper_agent", keeper.key().as_ref()],
+        bump,
+        constraint = keeper_agent.is_active == true
+    )]
+    pub keeper_agent: Account<'info, KeeperAgent>,
+
+    #[account(
+        mut,
+        seeds = [b"agent_earnings", keeper_agent.key().as_ref()],
+        bump
+    )]
+    pub agent_earnings: Account<'info, AgentEarnings>,
+
+    #[account(mut)]
+    pub earnings_vault: Account<'info, TokenAccount>,
+
+    /// CHECK: PDA for earnings vault authority
+    #[account(seeds = [b"agent_earnings".as_ref(), keeper_agent.key().as_ref()], bump)]
+    pub earnings_authority: AccountInfo<'info>,
+
+    pub token_program: Program<'info, Token>,
+}
+
+#[derive(Accounts)]
+pub struct ClaimKeeperEarnings<'info> {
+    #[account(mut)]
+    pub owner: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [b"keeper_agent", owner.key().as_ref()],
+        bump
+    )]
+    pub keeper_agent: Account<'info, KeeperAgent>,
+
+    #[account(
+        mut,
+        seeds = [b"agent_earnings", keeper_agent.key().as_ref()],
+        bump
+    )]
+    pub agent_earnings: Account<'info, AgentEarnings>,
+
+    #[account(mut)]
+    pub earnings_vault: Account<'info, TokenAccount>,
+
+    #[account(mut)]
+    pub owner_token_account: Account<'info, TokenAccount>,
+
+    /// CHECK: PDA for earnings vault authority
+    #[account(seeds = [b"agent_earnings".as_ref(), keeper_agent.key().as_ref()], bump)]
+    pub earnings_authority: AccountInfo<'info>,
+
+    pub token_program: Program<'info, Token>,
+}
+
+#[derive(Accounts)]
+pub struct DistributeEarnings<'info> {
+    #[account(mut)]
+    pub authority: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [b"keeper_agent", authority.key().as_ref()],
+        bump
+    )]
+    pub keeper_agent: Account<'info, KeeperAgent>,
+
+    #[account(
+        mut,
+        seeds = [b"agent_earnings", keeper_agent.key().as_ref()],
+        bump
+    )]
+    pub agent_earnings: Account<'info, AgentEarnings>,
+
+    #[account(mut)]
+    pub earnings_vault: Account<'info, TokenAccount>,
+
+    #[account(mut)]
+    pub protocol_wallet: Account<'info, TokenAccount>,
+
+    /// CHECK: PDA for earnings vault authority
+    #[account(seeds = [b"agent_earnings".as_ref(), keeper_agent.key().as_ref()], bump)]
+    pub earnings_authority: AccountInfo<'info>,
+
+    pub token_program: Program<'info, Token>,
 }
 
 #[derive(Accounts)]
