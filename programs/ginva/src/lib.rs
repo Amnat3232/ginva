@@ -35,7 +35,7 @@ pub const REENTRANCY_GUARD_ACTIVE: u8 = 1;
 pub const REENTRANCY_GUARD_INACTIVE: u8 = 0;
 
 // Program ID - matches Anchor.toml devnet deployment
-declare_id!("AGWyrRLyMY6cVAiQVTgmKEMEaQEYP6DNdJRwZEFeVzEv");
+declare_id!("GWcQGdrSiVk8p58bYSmw8FTceR9dcHAKQzw7yEyjLTsy");
 
 // === HARDCODED PARAMETERS (Immutable - Cannot be changed) ===
 pub const APR: u64 = 800; // 8.00% APR (basis points: 8_00) - IMMUTABLE
@@ -89,11 +89,10 @@ const JUPITER_PROGRAM_ID: Pubkey = pubkey!("JUP4Fb2cqiRUcaTHdrPC8h2gNsA2ETXiPDD3
 compile_error!("local-test feature must be used with devnet feature");
 
 // 🤖 AGENT KEEPER PROGRAM CONSTANTS
-// Revenue Share Model: 45% Human Owner | 35% AI Agent | 15% Safety Fund | 5% Development
+// Revenue Share Model: 45% Human Owner | 35% AI Agent | 20% Protocol
 pub const AGENT_REVENUE_HUMAN_SHARE_BPS: u16 = 4500; // 45% to human owner
 pub const AGENT_REVENUE_AI_SHARE_BPS: u16 = 3500; // 35% to AI agent
-pub const AGENT_REVENUE_SAFETY_BPS: u16 = 1500; // 15% to safety fund
-pub const AGENT_REVENUE_DEV_BPS: u16 = 500; // 5% to development fund
+pub const AGENT_REVENUE_PROTOCOL_SHARE_BPS: u16 = 2000; // 20% to protocol
 
 // Agent System Limits
 pub const MAX_AGENT_NAME_LENGTH: usize = 64;
@@ -814,6 +813,83 @@ pub mod ginva {
             agent: keeper_agent.key(),
             protocol_distributed: agent_earnings.protocol_withdrawn,
             agent_retained: agent_earnings.pending_agent,
+            timestamp: clock.unix_timestamp,
+        });
+
+        Ok(())
+    }
+
+    /// Update agent configuration (owner can modify settings)
+    pub fn update_agent_config(
+        ctx: Context<UpdateAgentConfig>,
+        new_owner_share_bps: Option<u16>,
+        new_agent_share_bps: Option<u16>,
+        new_is_active: Option<bool>,
+        new_rate_limit_seconds: Option<u16>,
+    ) -> Result<()> {
+        let keeper_agent = &mut ctx.accounts.keeper_agent;
+        let clock = Clock::get()?;
+
+        // Validate caller is the owner
+        require!(
+            keeper_agent.owner == ctx.accounts.owner.key(),
+            GinvaError::Unauthorized
+        );
+
+        // Update owner share if provided
+        if let Some(owner_share) = new_owner_share_bps {
+            // Validate total still equals 100%
+            let new_protocol = 10000u16
+                .checked_sub(owner_share)
+                .ok_or(GinvaError::ArithmeticUnderflow)?
+                .checked_sub(keeper_agent.agent_share_bps)
+                .ok_or(GinvaError::ArithmeticUnderflow)?;
+
+            keeper_agent.owner_share_bps = owner_share;
+            keeper_agent.protocol_share_bps = new_protocol;
+        }
+
+        // Update agent share if provided
+        if let Some(agent_share) = new_agent_share_bps {
+            // Validate total still equals 100%
+            let new_protocol = 10000u16
+                .checked_sub(keeper_agent.owner_share_bps)
+                .ok_or(GinvaError::ArithmeticUnderflow)?
+                .checked_sub(agent_share)
+                .ok_or(GinvaError::ArithmeticUnderflow)?;
+
+            keeper_agent.agent_share_bps = agent_share;
+            keeper_agent.protocol_share_bps = new_protocol;
+        }
+
+        // Update active status
+        if let Some(is_active) = new_is_active {
+            keeper_agent.is_active = is_active;
+        }
+
+        // Update rate limit settings (stored in settings)
+        if let Some(rate_limit) = new_rate_limit_seconds {
+            require!(
+                rate_limit >= AGENT_MIN_RATE_LIMIT_SECONDS
+                    && rate_limit <= AGENT_MAX_RATE_LIMIT_SECONDS,
+                GinvaError::InvalidInput
+            );
+        }
+
+        keeper_agent.last_active_at = clock.unix_timestamp;
+
+        msg!(
+            "⚙️ Agent Config Updated: ID={}, Owner={}",
+            keeper_agent.agent_id,
+            keeper_agent.owner
+        );
+
+        emit!(AgentConfigUpdated {
+            agent: keeper_agent.key(),
+            owner: keeper_agent.owner,
+            new_owner_share_bps,
+            new_agent_share_bps,
+            new_is_active,
             timestamp: clock.unix_timestamp,
         });
 
@@ -3225,13 +3301,8 @@ pub mod ginva {
                 .checked_div(10000)
                 .unwrap_or(0);
 
-            let safety_share = reward_amount
-                .saturating_mul(AGENT_REVENUE_SAFETY_BPS as u64)
-                .checked_div(10000)
-                .unwrap_or(0);
-
-            let dev_share = reward_amount
-                .saturating_mul(AGENT_REVENUE_DEV_BPS as u64)
+            let protocol_share = reward_amount
+                .saturating_mul(AGENT_REVENUE_PROTOCOL_SHARE_BPS as u64)
                 .checked_div(10000)
                 .unwrap_or(0);
 
@@ -3254,18 +3325,14 @@ pub mod ginva {
                 .saturating_add(ai_share);
             revenue_distribution.safety_fund_accumulated = revenue_distribution
                 .safety_fund_accumulated
-                .saturating_add(safety_share);
-            revenue_distribution.dev_fund_accumulated = revenue_distribution
-                .dev_fund_accumulated
-                .saturating_add(dev_share);
+                .saturating_add(protocol_share);
 
             msg!("💰 Agent operation recorded: {} reward", reward_amount);
             msg!(
-                "   Human (45%): {} | Agent (35%): {} | Safety (15%): {} | Dev (5%): {}",
+                "   Human (45%): {} | Agent (35%): {} | Protocol (20%): {}",
                 human_share,
                 ai_share,
-                safety_share,
-                dev_share
+                protocol_share
             );
         }
 
@@ -4194,6 +4261,16 @@ pub struct EarningsDistributed {
     pub timestamp: i64,
 }
 
+#[event]
+pub struct AgentConfigUpdated {
+    pub agent: Pubkey,
+    pub owner: Pubkey,
+    pub new_owner_share_bps: Option<u16>,
+    pub new_agent_share_bps: Option<u16>,
+    pub new_is_active: Option<bool>,
+    pub timestamp: i64,
+}
+
 // ☄️ ORACLE CIRCUIT BREAKER EVENTS
 #[event]
 pub struct CircuitBreakerTriggeredEvent {
@@ -4889,6 +4966,28 @@ pub struct DistributeEarnings<'info> {
     pub earnings_authority: AccountInfo<'info>,
 
     pub token_program: Program<'info, Token>,
+}
+
+#[derive(Accounts)]
+pub struct UpdateAgentConfig<'info> {
+    #[account(mut)]
+    pub owner: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [b"keeper_agent", owner.key().as_ref()],
+        bump
+    )]
+    pub keeper_agent: Account<'info, KeeperAgent>,
+
+    #[account(
+        mut,
+        seeds = [b"agent_earnings", keeper_agent.key().as_ref()],
+        bump
+    )]
+    pub agent_earnings: Account<'info, AgentEarnings>,
+
+    pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
