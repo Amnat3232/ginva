@@ -15,3 +15,5 @@ test-ledger
 secret*.json
 keypair*.json
 *.key
+bots/.env
+bots/keypair.json
