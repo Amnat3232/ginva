@@ -5,6 +5,9 @@ on:
     branches: [main, develop]
   workflow_dispatch:
 
+env:
+  VERCEL_TOKEN_CONFIGURED: ${{ secrets.VERCEL_TOKEN != '' }}
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -31,7 +34,7 @@ jobs:
           NEXT_PUBLIC_SOLANA_RPC_URL: ${{ secrets.SOLANA_RPC_URL || 'https://api.devnet.solana.com' }}
 
       - name: Deploy to Vercel
-        if: ${{ secrets.VERCEL_TOKEN != '' }}
+        if: env.VERCEL_TOKEN_CONFIGURED == 'true'
         uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
@@ -40,5 +43,5 @@ jobs:
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
 
       - name: Skip Vercel Deployment (No Token)
-        if: ${{ secrets.VERCEL_TOKEN == '' }}
+        if: env.VERCEL_TOKEN_CONFIGURED == 'false'
         run: echo "VERCEL_TOKEN not configured. Skipping Vercel deployment."
