@@ -25,6 +25,12 @@ export default function AlertsPage() {
 
   useEffect(() => {
     async function getUser() {
+      if (!supabase) {
+        setUserId(null);
+        setLoadingUser(false);
+        return;
+      }
+
       const {
         data: { user },
       } = await supabase.auth.getUser();

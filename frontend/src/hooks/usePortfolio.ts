@@ -52,6 +52,13 @@ export function usePortfolio(walletAddress: string): UsePortfolioResult {
       return;
     }
 
+    // Check if Supabase is configured
+    if (!supabase) {
+      console.log("Supabase not configured, portfolio data unavailable");
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
 

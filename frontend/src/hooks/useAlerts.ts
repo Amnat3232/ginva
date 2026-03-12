@@ -26,6 +26,13 @@ export function useAlerts(
       return;
     }
 
+    // Check if Supabase is configured
+    if (!supabase) {
+      console.log("Supabase not configured, alerts disabled");
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -51,6 +58,8 @@ export function useAlerts(
   }, [userId, filterType]);
 
   const toggleAlert = useCallback(async (id: string, enabled: boolean) => {
+    if (!supabase) return;
+
     try {
       const { error: updateError } = await supabase
         .from("alerts")
@@ -71,7 +80,7 @@ export function useAlerts(
 
   const createAlert = useCallback(
     async (type: Alert["type"], threshold?: number) => {
-      if (!userId) return;
+      if (!userId || !supabase) return;
 
       try {
         const { data, error: insertError } = await supabase
@@ -100,6 +109,8 @@ export function useAlerts(
   );
 
   const deleteAlert = useCallback(async (id: string) => {
+    if (!supabase) return;
+
     try {
       const { error: deleteError } = await supabase
         .from("alerts")
