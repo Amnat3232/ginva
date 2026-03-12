@@ -31,7 +31,7 @@ jobs:
           NEXT_PUBLIC_SOLANA_RPC_URL: ${{ secrets.SOLANA_RPC_URL || 'https://api.devnet.solana.com' }}
 
       - name: Deploy to Vercel
-        if: secrets.VERCEL_TOKEN != ''
+        if: ${{ secrets.VERCEL_TOKEN != '' }}
         uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
@@ -40,5 +40,5 @@ jobs:
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
 
       - name: Skip Vercel Deployment (No Token)
-        if: secrets.VERCEL_TOKEN == ''
+        if: ${{ secrets.VERCEL_TOKEN == '' }}
         run: echo "VERCEL_TOKEN not configured. Skipping Vercel deployment."
