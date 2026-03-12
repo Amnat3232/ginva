@@ -19,9 +19,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Rust
-        uses: rust-lang/actions/setup@v2
-        with:
-          rust-version: stable
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -68,7 +66,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run Cargo Audit
-        uses: actions-rs/audit-check@v1
+        uses: rustsec/audit-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
