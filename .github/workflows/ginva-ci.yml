@@ -41,6 +41,8 @@ jobs:
         run: |
           cargo install --git https://github.com/coral-xyz/anchor --tag v${ANCHOR_VERSION} --locked anchor-cli
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+          export PATH="$HOME/.cargo/bin:$PATH"
+          anchor --version
 
       - name: Install NPM dependencies
         run: npm install
