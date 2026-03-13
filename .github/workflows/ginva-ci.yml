@@ -8,7 +8,7 @@ on:
 
 env:
   SOLANA_VERSION: 1.18.18
-  ANCHOR_VERSION: 0.32.1
+  ANCHOR_VERSION: 0.30.1
 
 jobs:
   lint-and-test:
