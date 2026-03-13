@@ -134,7 +134,9 @@ jobs:
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
 
       - name: Install Anchor
-        run: npm install -g @coral-xyz/anchor-cli@0.29.0
+        run: |
+          npm uninstall -g @coral-xyz/anchor-cli || true
+          npm install -g @coral-xyz/anchor-cli@0.29.0
 
       - name: Build program
         run: anchor build

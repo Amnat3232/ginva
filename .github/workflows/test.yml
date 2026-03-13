@@ -60,6 +60,7 @@ jobs:
 
       - name: Install Anchor CLI
         run: |
+          npm uninstall -g @coral-xyz/anchor-cli || true
           npm install -g @coral-xyz/anchor-cli@${ANCHOR_VERSION}
           anchor --version
 

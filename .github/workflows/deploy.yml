@@ -55,7 +55,9 @@ jobs:
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
 
       - name: Install Anchor CLI
-        run: npm install -g @coral-xyz/anchor-cli@${ANCHOR_VERSION}
+        run: |
+          npm uninstall -g @coral-xyz/anchor-cli || true
+          npm install -g @coral-xyz/anchor-cli@${ANCHOR_VERSION}
 
       - name: Setup Wallet
         run: |
