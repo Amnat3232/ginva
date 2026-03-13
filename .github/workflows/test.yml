@@ -30,10 +30,9 @@ jobs:
         run: npm install --legacy-peer-deps
 
       - name: Setup Rust
-        uses: dtolnay/rust-toolchain@master
+        uses: dtolnay/rust-toolchain@nightly
         with:
-          toolchain: ${{ env.RUST_VERSION }}
-          components: rustfmt, clippy
+          toolchain: nightly
 
       - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@v2
@@ -58,10 +57,15 @@ jobs:
           mkdir -p ~/.config/solana
           solana-keygen new --no-bip39-passphrase --silent --outfile ~/.config/solana/id.json
 
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libudev-dev pkg-config libssl-dev
+
       - name: Install Anchor CLI
         run: |
-          npm uninstall -g @coral-xyz/anchor-cli || true
-          npm install -g @coral-xyz/anchor-cli@${ANCHOR_VERSION}
+          cargo uninstall anchor-cli || true
+          cargo install --git https://github.com/coral-xyz/anchor --tag v${ANCHOR_VERSION} anchor-cli
           anchor --version
 
       - name: Check Rust formatting

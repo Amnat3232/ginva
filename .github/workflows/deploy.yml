@@ -34,9 +34,20 @@ jobs:
           cache: "npm"
 
       - name: Setup Rust
-        uses: dtolnay/rust-toolchain@master
+        uses: dtolnay/rust-toolchain@nightly
         with:
-          toolchain: stable
+          toolchain: nightly
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libudev-dev pkg-config libssl-dev bzip2
+
+      - name: Install Anchor CLI
+        run: |
+          cargo uninstall anchor-cli || true
+          cargo install --git https://github.com/coral-xyz/anchor --tag v${ANCHOR_VERSION} anchor-cli
+          anchor --version
 
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@v2
@@ -53,11 +64,6 @@ jobs:
           mkdir -p "$HOME/.local/share/solana/install"
           ln -sf "$HOME/.local/share/solana/solana-release/bin" "$HOME/.local/share/solana/install/active_release"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
-
-      - name: Install Anchor CLI
-        run: |
-          npm uninstall -g @coral-xyz/anchor-cli || true
-          npm install -g @coral-xyz/anchor-cli@${ANCHOR_VERSION}
 
       - name: Setup Wallet
         run: |
