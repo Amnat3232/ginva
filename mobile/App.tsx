@@ -1,6 +1,15 @@
 import "react-native-get-random-values";
 import { useState, useEffect } from "react";
-import { StyleSheet, View, Text, Pressable, ScrollView, TextInput, ActivityIndicator, Dimensions } from "react-native";
+import {
+  StyleSheet,
+  View,
+  Text,
+  Pressable,
+  ScrollView,
+  TextInput,
+  ActivityIndicator,
+  Dimensions,
+} from "react-native";
 import { BlurView } from "expo-blur";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -58,7 +67,9 @@ const Button: React.FC<{
   return (
     <Pressable onPress={onPress} style={buttonStyle} disabled={loading}>
       {loading ? (
-        <ActivityIndicator color={variant === "outline" ? COLORS.accent : "white"} />
+        <ActivityIndicator
+          color={variant === "outline" ? COLORS.accent : "white"}
+        />
       ) : (
         <Text
           style={[
@@ -113,7 +124,7 @@ const DashboardScreen = () => {
         [Buffer.from("config")],
         programId
       )[0];
-      
+
       // Simplified - would need actual program interaction
       setTvl(125000);
       setActiveLoans(42);
@@ -137,8 +148,16 @@ const DashboardScreen = () => {
   };
 
   const statCards = [
-    { label: "Total Value Locked", value: `$${tvl.toLocaleString()}`, icon: "wallet" },
-    { label: "Active Loans", value: activeLoans.toString(), icon: "document-text" },
+    {
+      label: "Total Value Locked",
+      value: `$${tvl.toLocaleString()}`,
+      icon: "wallet",
+    },
+    {
+      label: "Active Loans",
+      value: activeLoans.toString(),
+      icon: "document-text",
+    },
     { label: "Your Loans", value: "0", icon: "card" },
     { label: "Protection", value: "Dual", icon: "shield-checkmark" },
   ];
@@ -269,9 +288,7 @@ const BorrowScreen = () => {
     <ScrollView style={styles.screen} showsVerticalScrollIndicator={false}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Borrow</Text>
-        <Text style={styles.headerSubtitle}>
-          Use your crypto as collateral
-        </Text>
+        <Text style={styles.headerSubtitle}>Use your crypto as collateral</Text>
       </View>
 
       <GlassCard style={styles.formCard}>
@@ -300,7 +317,7 @@ const BorrowScreen = () => {
           Max: ${maxBorrow.toFixed(2)} USDC (50% LTV)
         </Text>
 
-        <Text style={[styles.inputLabel, { marginTop: 20 }}>Loan Term</Text>
+        <Text style={[styles.inputLabel, { marginTop: 20 }]}>Loan Term</Text>
         <View style={styles.termRow}>
           {["7", "14", "30", "60", "90"].map((t) => (
             <Pressable
@@ -404,7 +421,9 @@ const EarnScreen = () => {
         </View>
         <View style={styles.yieldRow}>
           <Text style={styles.yieldLabel}>Pool APY</Text>
-          <Text style={[styles.yieldValue, { color: COLORS.accent }]}>8.5%</Text>
+          <Text style={[styles.yieldValue, { color: COLORS.accent }]}>
+            8.5%
+          </Text>
         </View>
       </GlassCard>
     </ScrollView>
@@ -444,7 +463,11 @@ const MoreScreen = () => {
                   <Text style={styles.badgeText}>{item.badge}</Text>
                 </View>
               )}
-              <Ionicons name="chevron-forward" size={20} color={COLORS.textMuted} />
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color={COLORS.textMuted}
+              />
             </View>
           </Pressable>
         ))}
@@ -453,7 +476,9 @@ const MoreScreen = () => {
       <GlassCard style={styles.infoCard}>
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>Network</Text>
-          <Text style={[styles.infoValue, { color: COLORS.accent }]}>Devnet</Text>
+          <Text style={[styles.infoValue, { color: COLORS.accent }]}>
+            Devnet
+          </Text>
         </View>
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>Program ID</Text>
@@ -489,7 +514,10 @@ export default function App() {
           component={DashboardScreen}
           options={{
             tabBarIcon: ({ focused }) => (
-              <TabIcon name={focused ? "wallet" : "wallet-outline"} focused={focused} />
+              <TabIcon
+                name={focused ? "wallet" : "wallet-outline"}
+                focused={focused}
+              />
             ),
           }}
         />
@@ -499,7 +527,9 @@ export default function App() {
           options={{
             tabBarIcon: ({ focused }) => (
               <TabIcon
-                name={focused ? "arrow-down-circle" : "arrow-down-circle-outline"}
+                name={
+                  focused ? "arrow-down-circle" : "arrow-down-circle-outline"
+                }
                 focused={focused}
               />
             ),
@@ -522,7 +552,10 @@ export default function App() {
           component={MoreScreen}
           options={{
             tabBarIcon: ({ focused }) => (
-              <TabIcon name={focused ? "menu" : "menu-outline"} focused={focused} />
+              <TabIcon
+                name={focused ? "menu" : "menu-outline"}
+                focused={focused}
+              />
             ),
           }}
         />
