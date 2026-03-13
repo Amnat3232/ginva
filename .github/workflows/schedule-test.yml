@@ -46,6 +46,8 @@ jobs:
 
       - name: Install Anchor CLI
         run: |
+          npm uninstall -g @coral-xyz/anchor-cli || true
+          npm uninstall -g anchor-cli || true
           cargo uninstall anchor-cli || true
           cargo install --git https://github.com/coral-xyz/anchor --tag v${ANCHOR_VERSION} anchor-cli
           anchor --version
@@ -59,11 +61,6 @@ jobs:
           mkdir -p "$HOME/.local/share/solana/install"
           ln -sf "$HOME/.local/share/solana/solana-release/bin" "$HOME/.local/share/solana/install/active_release"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
-
-      - name: Install Anchor CLI
-        run: |
-          npm uninstall -g @coral-xyz/anchor-cli || true
-          npm install -g @coral-xyz/anchor-cli@${ANCHOR_VERSION}
 
       - name: Install dependencies
         run: npm install --legacy-peer-deps

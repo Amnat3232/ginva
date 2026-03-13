@@ -64,6 +64,8 @@ jobs:
 
       - name: Install Anchor CLI
         run: |
+          npm uninstall -g @coral-xyz/anchor-cli || true
+          npm uninstall -g anchor-cli || true
           cargo uninstall anchor-cli || true
           cargo install --git https://github.com/coral-xyz/anchor --tag v${ANCHOR_VERSION} anchor-cli
           anchor --version
