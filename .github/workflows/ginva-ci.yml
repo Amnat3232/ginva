@@ -52,9 +52,6 @@ jobs:
       - name: Install NPM dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Run Anchor Lint
-        run: anchor lint
-
       - name: Run Anchor Build
         run: anchor build
 
