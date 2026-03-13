@@ -50,7 +50,7 @@ jobs:
           anchor --version
 
       - name: Install NPM dependencies
-        run: npm install
+        run: npm install --legacy-peer-deps
 
       - name: Run Anchor Lint
         run: anchor lint
