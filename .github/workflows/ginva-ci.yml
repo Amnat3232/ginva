@@ -44,6 +44,7 @@ jobs:
 
       - name: Install Anchor
         run: |
+          cargo uninstall anchor-cli || true
           cargo install --git https://github.com/coral-xyz/anchor --tag v${ANCHOR_VERSION} anchor-cli
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
           export PATH="$HOME/.cargo/bin:$PATH"
