@@ -37,6 +37,11 @@ jobs:
           ln -sf "$HOME/.local/share/solana/solana-release/bin" "$HOME/.local/share/solana/install/active_release"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
 
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libudev-dev pkg-config libssl-dev
+
       - name: Install Anchor
         run: |
           cargo install --git https://github.com/coral-xyz/anchor --tag v${ANCHOR_VERSION} anchor-cli
