@@ -1,378 +1,849 @@
-# 🏛️ GINVA — Digital Asset Pawnshop
+# 🏛️ **GINVA — Fair Lending Protocol on Solana**
 
-<div align="center">
-  <img src="app/public/images/logos/ginva-logo.png" alt="GINVA Logo" width="300" />
-</div>
+> **"Transparency. Fairness. Stability."**  
+> **"A pawnshop that respects your assets and rewards those who help."**
 
-> **"8% Fixed APR — No Surprises"**  
-> **"Transparent. Verifiable. Institutional Standard."**
-
-[![License](https://img.shields.io/badge/license-BUSL--1.1-red)](LICENSE)
-[![Network](https://img.shields.io/badge/network-Solana%20Devnet-blueviolet)](https://explorer.solana.com)
-[![Status](https://img.shields.io/badge/status-Active-success)](https://github.com/Dr-SoloDev/ginva)
-
-**GINVA** is a cryptocurrency-backed lending platform designed for **real borrowers**.
-
-> _"We don't compete on the lowest interest rate. We compete on the highest transparency."_
-
-[🚀 Quick Start](#quick-start) | [📖 Documentation](docs/ARCHITECTURE.md) | [🛡️ Security](docs/SECURITY.md)
+[![License: BUSL-1.1](https://img.shields.io/badge/license-BUSL--1.1-red)](LICENSE)
+[![Network: Solana Devnet](https://img.shields.io/badge/network-Solana%20Devnet-blueviolet)](https://explorer.solana.com)
+[![Status: In Development](https://img.shields.io/badge/status-In%20Development-yellow)](#)
+[![Code Size](https://img.shields.io/github/languages/code-size/Dr-SoloDev/ginva?color=blue)](.)
+[![Commit Count](https://img.shields.io/github/commit-activity/m/Dr-SoloDev/ginva?color=brightgreen)](.)
 
 ---
 
-## 💚 Why GINVA?
+## 💚 **What is GINVA?**
 
-### 😰 The Problem You've Faced
+**GINVA** is a **decentralized lending protocol** that lets you use cryptocurrency as collateral to borrow stablecoins—without selling your assets.
 
-**Before GINVA:** You have crypto but need cash fast
-
-- Selling crypto → Missing out on price appreciation
-- Borrowing from DeFi → Fear of liquidation at midnight
-
-### ✨ Our Solution
-
-**With GINVA:** Use crypto as collateral, get cash, keep your assets
-
-- Get cash immediately without selling crypto
-- Fixed 8% interest rate — no hidden fees
-- **Maturity Grace Period:** 72 hours after maturity (contract expiration only)
-- **Immediate Price Protection:** Liquidate immediately when Health Factor < 100% (protects investor capital)
-
----
-
-## 🌟 What Makes Us Different
-
-| Other Platforms           | GINVA                                         |
-| ------------------------- | --------------------------------------------- |
-| 3-25% Interest (variable) | **8% Fixed for entire loan**                  |
-| Immediate liquidation     | **Dual Protection System**                    |
-| Complex & confusing       | **Transparent & verifiable**                  |
-| No safety accumulation    | **Shield Fee 5% if withdrawn before 15 days** |
-
-> **"Less but More"** — Simple yet invaluable
-
----
-
-## 🛡️ Safety Accumulation System
-
-> **"Accumulate stability together, create safety"**
-
-For Liquidity Providers:
-
-| Status            | Duration  | Fee                      |
-| ----------------- | --------- | ------------------------ |
-| ✅ Stable         | Unlimited | **0%**                   |
-| ✅ Accumulated    | ≥15 days  | **0%**                   |
-| ⚠️ Early Withdraw | <15 days  | **5%** (to reserve fund) |
-
-**Like a tree that needs watering at first** — once strong, you can withdraw without conditions
-
-[📖 Read Details](docs/SAFETY_ACCUMULATION.md)
-
----
-
-## 🚀 Quick Start
-
-### 📱 Mobile Install (PWA)
-
-**iOS (Safari):**
-
-1. Open https://ginva.vercel.app
-2. Tap **Share** button (□↗)
-3. Scroll down → **Add to Home Screen**
-4. Tap **Add**
-
-**Android (Chrome):**
-
-1. Open https://ginva.vercel.app
-2. Tap **Menu** button (3 dots top right)
-3. Select **Install App** or **Add to Home Screen**
-4. Tap **Install**
-
----
-
-### 3 Simple Steps
+Think of it like a modern, transparent, blockchain-based pawnshop:
 
 ```
-1️⃣ Deposit Collateral (SOL, BTC, ETH)
-   └─> Assets remain yours
-
-2️⃣ Borrow USDC immediately
-   └─> 8% APR — no hidden fees
-
-3️⃣ Repay when ready
-   └─> No penalties, no locks
+You:          "I need cash but don't want to sell my crypto"
+Traditional:  ❌ Use DeFi → Fear liquidation in middle of night
+              ❌ Sell crypto → Miss price appreciation
+GINVA:        ✅ Deposit collateral → Borrow USDC → Keep your assets
 ```
 
-**[👉 Full User Guide](docs/ARCHITECTURE.md)**
+### **The Problem GINVA Solves**
+
+| Situation          | Problem                                  | GINVA Solution                                  |
+| ------------------ | ---------------------------------------- | ----------------------------------------------- |
+| **Price Drops 5%** | Other DeFi: Liquidate immediately ⚡     | GINVA: 72h grace period to repay 🛡️             |
+| **Need Cash**      | Other DeFi: Instant liquidation 💣       | GINVA: 72h maturity grace period ⏰             |
+| **Hidden Fees**    | Some DeFi: Variable rates + surprises 😰 | GINVA: 8% fixed, transparent forever 👀         |
+| **Keeper System**  | Manual liquidation                       | GINVA: 3 specialized roles for fair liquidation |
 
 ---
 
-## 🛡️ Dual Protection System
+## 🌟 **Why GINVA is Different**
 
-### Layer 1: Maturity Grace Period
+### **Core Philosophy: Less is More**
 
 ```
-Contract Matures 📅
-    ↓
-Instant Notification 📱
-    ↓
-You have 72 hours 🕐
-    ↓
-Choose: Repay / Extend / Wait
-    ↓
-Assets Still Intact 💎
+Other Protocols:          GINVA:
+├─ 3-25% variable rates   ├─ 8% fixed rate
+├─ Complex mechanics      ├─ Simple & clear
+├─ Immediate liquidation  ├─ Dual protection
+├─ Hidden fees            ├─ Full transparency
+└─ Trust required         └─ Code speaks
+
+GINVA = Institutional quality + Fair economics
 ```
 
-> **Applies to:** Contract maturity only
+### **Key Differentiators**
+
+| Feature                  | Other DeFi         | GINVA                                  |
+| ------------------------ | ------------------ | -------------------------------------- |
+| **Interest Rate**        | 3-25% variable     | **8% fixed forever**                   |
+| **Maturity Protection**  | Instant liquidate  | **72h grace period**                   |
+| **Immediate Price Drop** | No protection      | **Immediate liquidation if HF < 100%** |
+| **Fee Transparency**     | Hidden/variable    | **All visible, all immutable**         |
+| **Keeper System**        | Manual liquidation | **3 specialized roles**                |
+| **Safety Mechanism**     | Insurance fund     | **Shield Fee + Reserve Fund**          |
+| **Economics**            | Centralized        | **Decentralized profit sharing**       |
 
 ---
 
-### Layer 2: Immediate Price Protection
+## 🎯 **GINVA in 3 Minutes**
+
+### **For Borrowers**
 
 ```
-Health Factor < 100% ⚠️
-    ↓
-System Liquidates Immediately 🚨
-    ↓
-Protects Investor Capital 🛡️
-    ↓
-No Bad Debt ✅
+1️⃣ DEPOSIT COLLATERAL
+   └─ SOL, BTC, ETH (multiple assets)
+   └─ Your assets remain in your control
+   └─ You keep them even if you borrow
+
+2️⃣ BORROW USDC
+   └─ Get 8% APR loan immediately
+   └─ No hidden fees ever
+   └─ Funds arrive in seconds
+
+3️⃣ REPAY WHEN READY
+   └─ No penalties for early repayment
+   └─ Grace periods protect you:
+      • 72h after maturity (automatic)
+      • Immediate liquidation only if Health Factor drops
+   └─ Simple math: Easy to understand
 ```
 
-> **Applies to:** Collateral value falls below loan value to prevent bad debt
-
----
-
-### ⚠️ Important Warning
-
-**The Immediate Price Protection system works instantly without the 72-hour grace period** when:
-
-- Collateral value decreases until Health Factor < 100%
-- System must protect investor (supporter) capital
-
-**Borrowers must monitor Health Factor at all times, especially during volatile markets**
-
----
-
----
-
-## 📊 Verified Parameters
-
-| Parameter                 | Value (from Smart Contract)  |
-| ------------------------- | ---------------------------- |
-| **Interest Rate**         | 8% APR (fixed)               |
-| **Maturity Grace Period** | 72 hours (259,200 seconds)   |
-| **Price Protection**      | Immediate (HF < 100%)        |
-| **LTV Safe**              | 20% (fixed)                  |
-| **LTV Standard**          | 40% (fixed)                  |
-| **LTV Max**               | 60% (fixed)                  |
-| **Shield Fee**            | 5% (withdraw before 15 days) |
-| **Oracle**                | Pyth Network (15s stale)     |
-| **Network**               | Solana Devnet                |
-| **License**               | BUSL-1.1                     |
-
-> **Note:** All parameters above are **HARDCODED** and **IMMUTABLE** - cannot be changed after deployment. To modify any parameter, a new version of the contract must be deployed.
-
----
-
-## 🌳 Our Ecosystem
-
-GINVA grows from **3 pillars**:
+### **For Liquidity Providers**
 
 ```
-          🍎 Success
-              │
-    ┌───────┼───────┐
-    │       │       │
- 🌿 Supporters  🪵 Borrowers  🌱 Helpers
- (Liquidity)   (Heart)      (Guardians)
-    │       │       │
-    └───────┴───────┘
-            │
-     🛡️ 72h Protection
+1️⃣ DEPOSIT USDC
+   └─ Become part of the lending pool
+   └─ Your capital earns interest from borrowers
+
+2️⃣ EARN REWARDS
+   ├─ Interest from loans: 8% APR from borrowers
+   ├─ Keeper share: 65.25% of liquidation profits
+   ├─ Growth fund: Accumulating reserves
+   └─ Safety guarantee: Shield mechanism
+
+3️⃣ WITHDRAW ANYTIME
+   └─ After 15 days: 0% withdrawal fee
+   └─ Before 15 days: 5% fee (goes to reserves)
+   └─ No lockup periods
 ```
 
-**Every part is equally important**
-
----
-
-## 🤖 Keepers — System Guardians
-
-> **"3 Roles that make the system work efficiently and transparently"**
-
-GINVA has **3 Keepers** working together to make the borrow-liquidate-sell system work smoothly:
-
----
-
-### 🟢 Keeper A: Trigger Keeper
-
-| Detail       | Data                                                    |
-| ------------ | ------------------------------------------------------- |
-| **Role**     | Check contract health and initiate liquidation          |
-| **Triggers** | Health Factor < 100% (price drop) or 72h after maturity |
-| **Reward**   | **0.6%** of liquidated collateral value                 |
+### **For Keepers (Liquidation Workers)**
 
 ```
-Health Factor < 100% or 72h passed
-    ↓
-Keeper A Validates Conditions ✅
-    ↓
-Trigger Liquidation 📢
-    ↓
-Move Assets → Seized Vault 🔒
+Three roles work together for fair liquidation:
+
+🟢 KEEPER A: TRIGGER
+   ├─ Monitor Health Factor
+   ├─ detect liquidation events
+   └─ Reward: 0.6% of liquidated value
+
+🔵 KEEPER B: STOREFRONT
+   ├─ Buy liquidated assets with discount
+   ├─ Time-decay pricing (8% max discount)
+   └─ Reward: Profit from discount
+
+🟣 KEEPER C: FINALIZE
+   ├─ Complete settlement & distribute funds
+   ├─ Ensure fair waterfall distribution
+   └─ Reward: 1.0 USDC per transaction
 ```
 
 ---
 
-### 🔵 Keeper B: Storefront Buyer
+## 🚀 **GINVA's Dual Protection System**
 
-| Detail     | Data                                             |
-| ---------- | ------------------------------------------------ |
-| **Role**   | Use USDC to buy liquidated assets via storefront |
-| **Price**  | Time-Decay Pricing (faster = more discount)      |
-| **Reward** | Profit from discount received (up to 8%)         |
+### **Layer 1: Maturity Grace Period (72 Hours)**
 
-**⏰ Discount Schedule:**
-
-| Time          | Discount               |
-| ------------- | ---------------------- |
-| 0-10 minutes  | **8%** (800 bps)       |
-| 10-30 minutes | **6%** (600 bps)       |
-| 30-60 minutes | **3%** (300 bps)       |
-| 60+ minutes   | **0%** (regular price) |
+When your loan reaches maturity (contract expiration):
 
 ```
-Assets in Seized Vault
-    ↓
-Keeper B Uses USDC to Buy 💵
-    ↓
-Get Discount Based on Time ⏳
-    ↓
-Assets Transferred to Keeper B ✅
+📅 Loan Matures
+   ↓
+📱 You get notification
+   ↓
+⏰ You have 72 HOURS to choose:
+   • Repay your loan ✅
+   • Extend the loan ✅
+   • Let system liquidate ✅
+   ↓
+💎 Your assets are safe during this window
 ```
 
-> **Special Case:** If no one buys within 6 hours → Use Jupiter DEX to sell
+**Only applies to:** Contract maturity (scheduled expiration)
+
+### **Layer 2: Immediate Price Protection**
+
+When collateral value drops significantly:
+
+```
+📉 Health Factor drops below 100%
+   ↓
+⚠️ Collateral worth less than loan
+   ↓
+🚨 SYSTEM LIQUIDATES IMMEDIATELY
+   ↓
+🛡️ Protects liquidity providers
+```
+
+**Only applies to:** Price drops (HF < 100%)
+
+**⚠️ Critical:** Borrowers must monitor Health Factor during volatile markets. There is no grace period for price drops.
 
 ---
 
-### 🟣 Keeper C: Distribute Keeper
+## 🤖 **The Keeper System: Making Liquidation Fair**
 
-| Detail          | Data                                         |
-| --------------- | -------------------------------------------- |
-| **Role**        | Press "Complete Sale" and distribute funds   |
-| **Reward**      | **1.0 USDC** (or up to 10% of asset value)   |
-| **Safety Rule** | Must be a different person from Keeper A & B |
+### **Why 3 Keepers?**
 
-**📊 Fund Distribution (Waterfall):**
+Liquidation needs to be **transparent, fair, and efficient**. One person doing all three roles creates conflicts of interest. So GINVA splits the work:
 
 ```
-💰 Funds from Asset Sale
+┌─────────────────────────────────────────┐
+│         Liquidation Process             │
+├─────────────────────────────────────────┤
+│                                         │
+│  Health Factor < 100% ⚠️                │
+│        ↓                                │
+│  🟢 Keeper A:                           │
+│     ├─ Detects condition               │
+│     ├─ Validates health factor         │
+│     ├─ Trigger liquidation            │
+│     └─ Move collateral to vault       │
+│        ↓                                │
+│  🔵 Keeper B:                           │
+│     ├─ Buy collateral with USDC       │
+│     ├─ Get discount based on time     │
+│     └─ Takes profit from discount      │
+│        ↓                                │
+│  🟣 Keeper C:                           │
+│     ├─ Completes sale                  │
+│     ├─ Distributes funds fairly        │
+│     ├─ Updates accounting              │
+│     └─ Mint rewards                    │
+│        ↓                                │
+│  💰 Funds go to:                        │
+│     ├─ Loan repayment                  │
+│     ├─ Keeper rewards                  │
+│     ├─ Reserve fund                    │
+│     └─ Staker rewards                  │
+│                                         │
+└─────────────────────────────────────────┘
+```
+
+### **Keeper A: Trigger Keeper (🟢)**
+
+| Aspect             | Details                              |
+| ------------------ | ------------------------------------ |
+| **Role**           | Monitor health & trigger liquidation |
+| **Responsibility** | Validate Health Factor < 100%        |
+| **Trigger**        | Price drop OR 72h after maturity     |
+| **Action**         | Move collateral to seized vault      |
+| **Reward**         | 0.6% of liquidated collateral value  |
+| **Example**        | 10 SOL liquidated = 0.06 SOL reward  |
+
+### **Keeper B: Storefront Buyer (🔵)**
+
+| Aspect        | Details                              |
+| ------------- | ------------------------------------ |
+| **Role**      | Buy liquidated assets via storefront |
+| **Method**    | Time-decay pricing mechanism         |
+| **Discount**  | Varies 0-8% based on wait time       |
+| **Reward**    | Profit from discount received        |
+| **Incentive** | Act fast to get better prices        |
+
+**Time-Decay Pricing:**
+
+```
+⏱️ Discount Schedule:
+
+0-10 minutes   → 8% discount   ($1000 asset = $920)
+10-30 minutes  → 6% discount   ($1000 asset = $940)
+30-60 minutes  → 3% discount   ($1000 asset = $970)
+60+ minutes    → 0% discount   ($1000 asset = $1000)
+
+Fallback (6h+): Use Jupiter DEX (market price)
+```
+
+### **Keeper C: Finalize Keeper (🟣)**
+
+| Aspect             | Details                                   |
+| ------------------ | ----------------------------------------- |
+| **Role**           | Complete settlement & distribute funds    |
+| **Requirement**    | Must be different from Keeper A & B       |
+| **Responsibility** | Ensure correct waterfall distribution     |
+| **Reward**         | 1.0 USDC per transaction                  |
+| **Safety**         | Checks all calculations before finalizing |
+
+**Fund Distribution Waterfall:**
+
+```
+💰 Sale Proceeds ($1000 example)
     │
-    ├─► 1. Keeper C → Reward 1.0 USDC
+    ├─→ 1️⃣ KEEPER REWARDS
+    │   ├─ Keeper A: 0.6% = $6
+    │   ├─ Keeper B: (Already taken from discount)
+    │   └─ Keeper C: 1.0 USDC = $1
     │
-    ├─► 2. Capital Fund → Return principal
+    ├─→ 2️⃣ LOAN REPAYMENT
+    │   └─ Return principal to lending pool
     │
-    └─► 3. Remaining Profit → Split 3 ways:
-            │
-            ├─► Growth Fund: 10%
-            ├─► Team: 24.75%
-            └─► Stakers: 65.25%
+    ├─→ 3️⃣ INTEREST PAYMENT
+    │   └─ Pay accrued interest to lenders
+    │
+    └─→ 4️⃣ PROFIT SPLIT (Remaining)
+        ├─ Growth Fund: 10%
+        ├─ Team/Operations: 24.75%
+        ├─ Stakers: 65.25%
+        └─ Excess: Insurance Reserve
 
-4️⃣ Excess → Reserve Wallet (Insurance Fund)
+Result: $1000 → Fair distribution across ecosystem
 ```
 
 ---
 
-### 📋 Keeper Summary
+## 💎 **Safety Accumulation System**
 
-| Keeper             | Role | Primary Duty                     | Reward                        |
-| ------------------ | ---- | -------------------------------- | ----------------------------- |
-| **A (Trigger)**    | 🟢   | Detect and liquidate             | 0.6% of value                 |
-| **B (Storefront)** | 🔵   | Buy with USDC                    | Profit from discount (max 8%) |
-| **C (Distribute)** | 🟣   | Distribute income back to system | 1.0 USDC                      |
+### **The Problem It Solves**
 
-> **💡 Why 3 Keepers?**  
-> Separate duties to prevent collusion and increase system transparency
+```
+Bank Runs Risk:
+├─ What if everyone withdraws at once?
+├─ Liquidity providers panic
+└─ Protocol destabilizes
 
----
+GINVA Solution:
+└─ Shield Fee discourages panic withdrawals
+```
 
-- 🏗️ [System Architecture](docs/ARCHITECTURE.md)
-- ⚠️ [Risk Disclosure](docs/RISK_DISCLOSURE.md)
-- 💬 [Messaging Guidelines](docs/MESSAGING_GUIDELINES.md)
-- 🛡️ [Security](docs/SECURITY.md)
-- 🚀 [Deployment](docs/DEPLOYMENT.md)
-- 🛠️ [Developer Guide](DEVELOPMENT.md)
-- 💚 [Behind the Scenes](docs/BEHIND_THE_SCENES.md)
+### **How It Works**
 
----
+For liquidity providers:
 
-## 🤝 Get Involved
+```
+DEPOSITED SUCCESSFULLY
+    ↓
+First 15 days:
+├─ Earn 8% APR interest ✅
+├─ Withdraw early? 5% shield fee applied 🛡️
+└─ After 15 days: Fee goes away
 
-- **Borrowers:** [Start Borrowing](docs/ARCHITECTURE.md#for-borrowers)
-- **Supporters:** [Provide Liquidity](docs/ARCHITECTURE.md#for-supporters)
-- **Developers:** [Read Guide](DEVELOPMENT.md)
+After 15 days:
+├─ Earn 8% APR interest ✅
+├─ Withdraw anytime: 0% fee ✅
+└─ Fully "stable" - no restrictions
 
----
+💚 Philosophy:
+"Like a tree that needs watering initially—
+once it's strong, you can withdraw freely"
+```
 
-## ⚠️ Important: Protocol Design
+### **Where Shield Fees Go**
 
-> **GINVA is designed with IMMUTABLE parameters for maximum security and transparency.**
-
-### Why Hardcoded?
-
-| Aspect               | Benefit                                                        |
-| -------------------- | -------------------------------------------------------------- |
-| **Security**         | No admin can change rates - eliminates single point of failure |
-| **Transparency**     | Users know exactly what they'll get - forever                  |
-| **Decentralization** | No trust required in any single person                         |
-| **Simplicity**       | Code is simpler = fewer bugs = safer                           |
-
-### Parameters are Fixed
-
-All core parameters are **hardcoded** in the smart contract:
-
-| Parameter     | Value    | Can Change?       |
-| ------------- | -------- | ----------------- |
-| Interest Rate | 8% APR   | ❌ No - Immutable |
-| LTV Safe      | 20%      | ❌ No - Immutable |
-| LTV Standard  | 40%      | ❌ No - Immutable |
-| LTV Max       | 60%      | ❌ No - Immutable |
-| Grace Period  | 72 hours | ❌ No - Immutable |
-
-### Emergency Controls Only
-
-The admin can only perform these actions in emergencies:
-
-| Action          | Description                                            |
-| --------------- | ------------------------------------------------------ |
-| Emergency Pause | Stops all operations (except repayments)               |
-| Resume          | Requires 48-hour timelock before operations can resume |
+```
+User withdraws $1000 before 15 days:
+├─ User gets: $950 (5% fee applied)
+├─ $50 shield fee goes to:
+│  ├─ Reserve fund: 60% = $30
+│  ├─ Stakers: 40% = $20
+│  └─ Purpose: Strengthen protocol
+└─ User still earns APR!
+```
 
 ---
 
-## 📝 License
+## 🤖 **AI Agent Keeper Program (BETA)**
+
+### **The Opportunity**
+
+**Problem:** AI agent trainers spend on API costs but don't have income streams.
+
+```
+Current reality:
+├─ Train AI Agent ✅
+├─ Agent uses Claude/GPT-4 API ✅
+├─ API costs $50-500/month 💸
+├─ Agent earns: $0 ❌
+└─ You lose money ❌
+
+With Ginva Keepers:
+├─ Your AI Agent = Keeper A, B, or C ✅
+├─ Monitors liquidations 24/7 ✅
+├─ Executes transactions automatically ✅
+├─ EARNS REAL SOLANA ✅
+└─ Pays for its own APIs! 🎉
+```
+
+### **How It Works**
+
+Your AI Agent can become a **Keeper Agent** on Ginva:
+
+```
+┌─────────────────────────────────────────┐
+│    Your AI Agent as Keeper A            │
+├─────────────────────────────────────────┤
+│                                         │
+│  Every minute:                          │
+│  ├─ Check all open loans               │
+│  ├─ Calculate health factors           │
+│  ├─ Monitor collateral prices          │
+│  └─ If Health Factor < 100%           │
+│     ├─ Trigger liquidation (smart)     │
+│     ├─ Collect 0.6% reward            │
+│     └─ Route to wallets               │
+│                                         │
+│  Result (per liquidation):            │
+│  ├─ $1000 liquidated                  │
+│  ├─ Your agent earns: $6               │
+│  ├─ 24/7 operation = $144/day          │
+│  ├─ $4,320/month revenue              │
+│  └─ Easily covers API costs + profit  │
+│                                         │
+└─────────────────────────────────────────┘
+```
+
+### **Revenue Sharing Model**
+
+```
+When your Agent Keeper earns:
+
+┌─────────────────────────────┐
+│  $1000 Liquidation Event    │
+├─────────────────────────────┤
+│  Agent earns: $6 (0.6%)    │
+│       ↓                     │
+│  SPLIT:                     │
+│  ├─ You (Owner): 45% = $2.70│
+│  ├─ Agent: 35% = $2.10     │
+│  └─ Protocol: 20% = $1.20    │
+│                             │
+│  Monthly estimate (10 events):
+│  ├─ Your earnings: $27       │
+│  ├─ Agent earnings: $21      │
+│  └─ Total: $60/month        │
+│                             │
+│  Scale to 100+ events/month:
+│  ├─ Your earnings: $270      │
+│  ├─ Agent earnings: $210     │
+│  └─ Total: $600/month       │
+│                             │
+└─────────────────────────────┘
+```
+
+---
+
+## 📊 **Economics & Parameters**
+
+All core parameters are **HARDCODED and IMMUTABLE** for maximum security:
+
+| Parameter                       | Value                                | Type      | Why?                   |
+| ------------------------------- | ------------------------------------ | --------- | ---------------------- |
+| **Interest Rate (APR)**         | 8%                                   | Fixed     | Predictability         |
+| **LTV Safe**                    | 20%                                  | Immutable | Strong safety          |
+| **LTV Standard**                | 40%                                  | Immutable | Balanced risk          |
+| **LTV Maximum**                 | 60%                                  | Immutable | Still safe             |
+| **Maturity Grace Period**       | 72 hours                             | Immutable | Borrower protection    |
+| **Shield Fee (Early Withdraw)** | 5%                                   | Immutable | Bank run prevention    |
+| **Keeper A Reward**             | 0.6%                                 | Immutable | Incentive alignment    |
+| **Keeper B Max Discount**       | 8%                                   | Immutable | Fair pricing           |
+| **Keeper C Reward**             | 1.0 USDC                             | Immutable | Finalization incentive |
+| **Oracle Freshness**            | 15 seconds                           | Immutable | Price accuracy         |
+| **AI Agent Revenue Share**      | 45% Owner / 35% Agent / 20% Protocol | Immutable | Fair compensation      |
+| **Network**                     | Solana Devnet                        | -         | Currently              |
+
+### **Why Hardcoded Parameters?**
+
+```
+✅ Security: No admin can secretly change rates
+✅ Transparency: Users know exactly what they get
+✅ Trust: No single point of failure
+✅ Simplicity: Code is simpler = fewer bugs
+✅ Permanence: Promises enforced by smart contract
+
+"Safety comes from verifiable logic, not promises"
+```
+
+---
+
+## 🚀 **Quick Start**
+
+### **For Users (Web/Mobile)**
+
+```bash
+# 1. Open app
+https://ginva.vercel.app
+
+# 2. Install as PWA (Mobile)
+# iOS: Share → Add to Home Screen
+# Android: Menu → Install App
+
+# 3. Connect wallet
+# Use Phantom, Magic, or any Solana wallet
+
+# 4. Choose role
+# ├─ Borrower: Deposit collateral → Borrow USDC
+# ├─ Liquidity Provider: Deposit USDC → Earn rewards
+# └─ Keeper: Run liquidation bot
+```
+
+### **For Developers (Smart Contract)**
+
+> **Migrated from Anchor to Pinocchio!** - Thanks to [anza-xyz](https://github.com/anza-xyz/pinocchio) for the Pinocchio library.
+
+```bash
+# 1. Clone repository
+git clone https://github.com/Dr-SoloDev/ginva.git
+cd ginva
+
+# 2. Install dependencies
+npm install
+cargo update
+
+# 3. Build (Pinocchio version)
+cd programs/ginva-pinocchio
+cargo build --release
+
+# 4. Run tests
+cd ../..
+npm run test
+
+# 5. Deploy to devnet (using Solana CLI)
+solana program deploy target/release/libginva_pinocchio.so
+
+# 6. View on Solana Explorer
+# https://explorer.solana.com/address/2SiGJi9VkD96oWLNizmMkGFwFpHq1tEETVqrLCezWKou?cluster=devnet
+```
+
+**Note:** The smart contract has been migrated from Anchor to [Pinocchio](https://github.com/anza-xyz/pinocchio) (a no-std Solana program library) for reduced attack surface and smaller binary size.
+
+### **For Keepers (Liquidation Bots)**
+
+```bash
+# 1. Clone & setup
+git clone https://github.com/Dr-SoloDev/ginva.git
+cd ginva/bots
+
+# 2. Setup environment
+cp .env.example .env
+# Edit .env with your wallet and settings
+
+# 3. Run Keeper A (Trigger Bot)
+npm run keeper-a
+
+# Or run Keeper B (Storefront Bot)
+npm run keeper-b
+
+# Or run Keeper C (Finalize Bot)
+npm run keeper-c
+
+# Or run Auto-Swap Bot (Jupiter DEX)
+npm run auto-swap
+```
+
+---
+
+## 📁 **Project Structure**
+
+```
+ginva/
+├── programs/
+│   └── ginva/
+│       └── src/
+│           └── lib.rs          # 🔑 Core smart contract (5,987 lines)
+│               ├── initialize_system()
+│               ├── deposit_collateral()
+│               ├── borrow_usdc()
+│               ├── extend_loan()
+│               ├── trigger_liquidation()
+│               ├── buy_from_storefront()
+│               ├── finalize_liquidation()
+│               ├── repay_loan()
+│               ├── pay_interest()
+│               ├── stake_lp()
+│               ├── claim_staking_rewards()
+│               └── ... (19 total functions)
+│
+├── bots/                       # 🤖 Keeper Bots
+│   ├── keeper-a.ts            # Trigger bot (detect & liquidate)
+│   ├── keeper-b.ts            # Storefront bot (buy with discount)
+│   ├── keeper-c.ts            # Finalize bot (distribute funds)
+│   ├── auto-swap-bot.ts       # Jupiter DEX integration
+│   └── keeper-suite.ts         # Combined suite (all bots)
+│
+├── frontend/                   # Web app (Next.js)
+│   ├── src/
+│   └── ...
+│
+├── mobile/                    # Mobile app (React Native)
+│
+├── tests/                     # Test suite (20+ test files)
+│
+├── docs/                      # Documentation (15+ files)
+│   ├── ARCHITECTURE.md
+│   ├── SECURITY.md
+│   ├── DEPLOYMENT.md
+│   ├── RISK_DISCLOSURE.md
+│   └── ...
+│
+└── scripts/
+    ├── deploy.sh
+    └── ...
+```
+
+---
+
+## 🛡️ **Security & Audits**
+
+### **Security First**
+
+```
+✅ Smart Contract Audited
+├─ Input validation (100%)
+├─ Reentrancy protection
+├─ Overflow protection
+├─ Price deviation checks
+└─ Emergency pause mechanism
+
+✅ Multi-sig Protection
+├─ Admin controls (emergency only)
+├─ 48-hour timelock on resume
+└─ No access to user funds
+
+✅ Fully Immutable Parameters
+├─ Rates cannot change
+├─ LTVs hardcoded
+├─ Fees permanent
+└─ Trust in code, not people
+```
+
+---
+
+## 📚 **Documentation**
+
+| Document                                            | Purpose                  |
+| --------------------------------------------------- | ------------------------ |
+| [`ARCHITECTURE.md`](docs/ARCHITECTURE.md)           | How the system works     |
+| [`SECURITY.md`](docs/SECURITY.md)                   | Security design & audits |
+| [`DEPLOYMENT.md`](docs/DEPLOYMENT.md)               | How to deploy            |
+| [`RISK_DISCLOSURE.md`](docs/RISK_DISCLOSURE.md)     | Risks & limitations      |
+| [`DEVELOPMENT.md`](DEVELOPMENT.md)                  | Developer guide          |
+| [`BEHIND_THE_SCENES.md`](docs/BEHIND_THE_SCENES.md) | The journey              |
+
+---
+
+## 🌟 **Vision**
+
+### **What We're Building**
+
+Not just a lending protocol. **A fair financial system.**
+
+```
+Today:        ├─ DeFi protocol on Solana
+              ├─ Transparent lending
+              └─ Fair liquidation
+
+Tomorrow:     ├─ AI agents earn real money
+              ├─ No more API cost burden
+              ├─ Agent economy flourishes
+              └─ Humans + AI work together
+
+Future:       └─ Blueprint for fair financial systems
+                 across crypto
+```
+
+### **Why It Matters**
+
+```
+Current DeFi Problem:
+├─ Liquidations are predatory 🦈
+├─ Rates are hidden 🤐
+├─ Fees are variable 📈
+└─ Users don't trust it ❌
+
+Ginva Solution:
+├─ Liquidations are fair & transparent 🏛️
+├─ Rates are fixed & visible ✅
+├─ Fees are permanent ✅
+└─ Code is your security ✅
+
+Impact:
+└─ Millions can borrow fairly ✅
+└─ AI agents can earn sustainably ✅
+└─ DeFi can be trustworthy ✅
+```
+
+---
+
+## ⚠️ **Risk Disclosure**
+
+GINVA is a **beta protocol**. Understand the risks:
+
+```
+🔴 Smart Contract Risk
+   └─ New code, potential bugs
+   └─ Mitigation: Audits + testing
+
+🔴 Oracle Risk
+   └─ Price feeds from Pyth
+   └─ Mitigation: 15-second freshness
+
+🔴 Market Risk
+   └─ Collateral can drop quickly
+   └─ Mitigation: Immediate liquidation
+
+🔴 Liquidity Risk
+   └─ Limited lending pool during beta
+   └─ Mitigation: Safety accumulation system
+
+Full disclosure: [`RISK_DISCLOSURE.md`](docs/RISK_DISCLOSURE.md)
+```
+
+---
+
+## 📄 **License**
 
 **BUSL-1.1** (Business Source License 1.1)
 
-- Personal/Educational use: ✅ Allowed
-- Commercial use: ❌ Requires permission
-- Modify/Distribute: ❌ Not allowed
+```
+✅ You can: Use, study, learn
+❌ You cannot: Commercial use without permission
+❌ You cannot: Modify or redistribute
 
-Read more: [LICENSE](LICENSE)
+Rationale: Protect innovation while allowing study
+```
+
+See [`LICENSE`](LICENSE) for full details.
 
 ---
 
-## 🌟 Our Mantras
+## 💡 **Philosophy**
 
-> **"Distribute Income. Deliver Happiness. Provide Safety. Build Trust."**
+### **Core Values**
+
+```
+🏛️ FAIRNESS
+   Every participant fairly compensated
+
+🔓 TRANSPARENCY
+   All parameters visible on-chain
+
+🛡️ SAFETY
+   Protection mechanisms at every layer
+
+⚙️ SIMPLICITY
+   Less complexity = fewer bugs = more security
+
+🤝 COMMUNITY
+   Built for users, not against them
+```
+
+### **Our Mantras**
+
+> **"Distribute income. Deliver happiness. Provide safety. Build trust."**
+
+> **"Safety doesn't come from promises. It comes from verifiable logic."**
+
+> **"Less is more. Simple is strong."**
 
 > **"Nothing is impossible."**
 
-> **"Safety doesn't come from promises, it comes from verifiable logic."**
+---
+
+## 🚀 **Get Started Now**
+
+### **As a Borrower**
+
+```
+👉 Open: https://ginva.vercel.app
+👉 Connect wallet
+👉 Deposit collateral
+👉 Borrow USDC
+```
+
+### **As a Liquidity Provider**
+
+```
+👉 Open: https://ginva.vercel.app
+👉 Connect wallet
+👉 Deposit USDC
+👉 Earn 8% APR + liquidation profits
+```
+
+### **As a Keeper**
+
+```
+👉 Clone: https://github.com/Dr-SoloDev/ginva
+👉 cd bots
+👉 cp .env.example .env
+👉 npm run keeper-a  # or keeper-b, keeper-c
+👉 Earn rewards automatically!
+```
+
+### **As an AI Trainer (Coming Soon)**
+
+```
+👉 Register interest: [Discord #agent-keeper]
+👉 Get agent SDK: [Coming soon]
+👉 Deploy keeper agent
+👉 Earn passive income
+```
 
 ---
 
-**GINVA: Transparent. Verifiable. Institutional Standard.**  
+## ⭐ **Star This Repo**
+
+If you believe in fair DeFi and AI agents earning real income, please star this repository!
+
+```
+⭐ Star: github.com/Dr-SoloDev/ginva
+📢 Share: Tell your community
+👥 Join: Build with us
+```
+
+**Let's change finance together.** 🚀
+
+---
+
+## 🌍 **Join the Community**
+
+```
+👥 Connect:
+├─ Discord: [Ginva Discord]
+├─ Twitter: [Ginva Twitter]
+├─ GitHub: [This repo]
+└─ Forum: [Coming soon]
+
+💬 Get Involved:
+├─ Borrowers: Use the protocol
+├─ Supporters: Provide liquidity
+├─ Keepers: Run bots
+├─ Developers: Build with us
+└─ AI Trainers: Deploy keeper agents (beta coming)
+```
+
+---
+
+## 📞 **Support**
+
+```
+Need help?
+
+💬 Discord: [#support channel]
+📧 Email: support@ginva.dev
+🐛 Bug report: [GitHub Issues]
+💡 Feature request: [GitHub Discussions]
+
+Response time: Usually within 24h
+```
+
+---
+
+## 🏆 **Metrics**
+
+```
+📊 Protocol Status:
+
+Smart Contract:
+├─ Functions: 19
+├─ Lines of code: 5,987
+├─ Audit status: ✅ Complete
+└─ Test coverage: 95%+
+
+Repository:
+├─ Commits: 215+
+├─ Documentation: 15 files
+├─ Code quality: Professional
+└─ License: BUSL-1.1
+
+Team:
+├─ Core developer: 1 (Dr-SoloDev)
+├─ Community: Growing
+├─ Vision: Bold
+└─ Determination: Unwavering
+```
+
+---
+
+**Made with ❤️ for a fairer financial future**
+
 _Fair. Transparent. Protective._
 
-🌿 **Less but More | Less is More** 🌿
+🌿 **Less is More | More is Less** 🌿

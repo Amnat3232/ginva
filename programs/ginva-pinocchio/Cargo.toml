@@ -1,0 +1,22 @@
+[package]
+name = "ginva-pinocchio"
+version = "2.0.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[features]
+default = ["std"]
+std = []
+
+[dependencies]
+pinocchio = { version = "0.7", features = ["std"] }
+pinocchio-pubkey = "0.1"
+blake3 = "=1.5.0"
+constant_time_eq = "=0.3.0"
+base64ct = "=1.6.0"
+hashbrown = "=0.14"
+
+[lints.rust]
+unexpected_cfgs = "allow"

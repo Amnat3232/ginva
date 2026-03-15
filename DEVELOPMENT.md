@@ -1,5 +1,7 @@
 # 🛠️ GINVA Developer Guide
 
+> **Note:** Smart contract migrated from Anchor to [Pinocchio](https://github.com/anza-xyz/pinocchio). Build: `cd programs/ginva-pinocchio && cargo build --release`
+
 This guide provides instructions for setting up, testing, and deploying the GINVA protocol.
 
 ## 📋 Prerequisites
@@ -8,7 +10,6 @@ Ensure you have the following installed:
 
 - **Rust** (latest stable)
 - **Solana CLI** (v1.18+)
-- **Anchor CLI** (v0.29+)
 - **Node.js** (v18+) & **Yarn**
 
 ---
@@ -27,13 +28,14 @@ yarn install
 
 ### 2. Build Smart Contracts
 
-Compile the Rust programs:
+Compile the Rust programs (Pinocchio):
 
 ```bash
-anchor build
+cd programs/ginva-pinocchio
+cargo build --release
 ```
 
-Or use Docker (recommended):
+Or use Docker:
 
 ```bash
 docker compose up --build
@@ -41,16 +43,18 @@ docker compose up --build
 
 ### 3. Run Tests
 
-Run the full test suite (Local Validator):
+Run the full test suite (Pinocchio - Rust unit tests):
 
 ```bash
-anchor test
+cd programs/ginva-pinocchio
+cargo test
 ```
 
-Or run specific liquidation scenario tests:
+For TypeScript integration tests (requires local validator):
 
 ```bash
-anchor test tests/ginva-liquidation-test.ts
+solana-test-validator &
+npm run test:integration
 ```
 
 ## 🧪 Visual Demo (Simulation)
@@ -65,15 +69,18 @@ npx ts-node scripts/visual-demo.ts
 
 For detailed deployment steps, refer to [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
-Quick Deploy Command:
+Quick Deploy Command (Pinocchio):
 
 ```bash
 # Set cluster to devnet
 solana config set --url devnet
 
-# Build & Deploy
-anchor build
-anchor deploy --provider.cluster devnet
+# Build Pinocchio program
+cd programs/ginva-pinocchio
+cargo build --release
+
+# Deploy using Solana CLI (after building)
+solana program deploy target/release/libginva_pinocchio.so
 
 # Initialize Protocol
 npx ts-node scripts/deploy-and-init.ts
@@ -82,7 +89,8 @@ npx ts-node scripts/deploy-and-init.ts
 ## 🏗️ Project Structure
 
 ```
-programs/       Rust smart contracts (Anchor)
+programs/       Rust smart contracts (Pinocchio)
+programs/ginva-pinocchio/  Main lending protocol (migrated from Anchor)
 tests/          TypeScript integration tests
 scripts/        Utility scripts for setup and demo
 app/            Frontend application (React/Vite)
@@ -133,8 +141,8 @@ solana airdrop 2
 **Program already deployed:**
 
 ```bash
-# Upgrade instead
-anchor upgrade target/deploy/ginva.so --program-id <PROGRAM_ID>
+# Upgrade using Solana CLI
+solana program upgrade target/release/libginva_pinocchio.so <PROGRAM_ID>
 ```
 
 ## 🔧 Dependency Fixes & Build Configuration
@@ -166,7 +174,7 @@ anchor upgrade target/deploy/ginva.so --program-id <PROGRAM_ID>
 ### Build Notes
 
 - Docker build takes 15-30 minutes first time
-- Anchor 0.29.0 contract with CLI 0.32.1 is expected (no issues)
+- Pinocchio program output: `target/release/libginva_pinocchio.so`
 - Delete `Cargo.lock` and regenerate if conflicts occur
 
 ## 🤝 Contributing

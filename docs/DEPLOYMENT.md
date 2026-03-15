@@ -2,31 +2,7 @@
 
 > **"Distribute Income. Deliver Happiness. Provide Safety. Build Trust"**
 
-## Overview
-
-GINVA is a lending protocol on Solana with a unique **3-step asset assistance system**:
-
-1. **Step 1: Initiate Process** (Helper A) - Detect accounts needing assistance, receive collateral, get 0.6% reward
-2. **Step 2: Exchange** (Anyone after 24 hours) - After 24 hours, can exchange SOL→USDC via Jupiter, receive reward from providing liquidity
-3. **Step 3: Complete Process** (Helper C) - Distribute USDC, return principal, split income, receive 1.0 USDC reward
-
-## 🏗️ Architecture
-
-### 🌳 Main Components
-
-- **Capital Wallet**: Stores USDC for lending (PDA controlled by protocol)
-- **Vault Wallet**: Stores borrower collateral (PDA controlled by protocol)
-- **Revenue Wallet**: Receives protocol profits (PDA controlled by protocol)
-- **Seized Assets Vault**: Temporary storage for collateral during assistance process
-- **Processing Vault**: Stores USDC after exchange before income distribution
-
-### ✨ Key Features
-
-- ✅ **No capital required for helpers**: Helpers don't need capital to participate
-- ✅ **Atomic transactions**: Risk-free operations through CPI
-- ✅ **Pyth Oracle connection**: Real-time prices with confidence intervals
-- ✅ **24-hour community window**: Time for discounted purchases before automatic exchange
-- ✅ **MEV prevention**: Multiple helpers, time limit mechanism, must use different addresses
+> **Important:** The smart contract has been migrated from Anchor to [Pinocchio](https://github.com/anza-xyz/pinocchio) (no-std Solana program library). Thanks to the anza-xyz team for this library!
 
 ## Prerequisites
 
@@ -39,7 +15,7 @@ rustup update
 # Install Solana CLI
 sh -c "$(curl -sSfL https://release.solana.com/v1.18.26/install)"
 
-# Install Anchor
+# Install Anchor CLI (optional - only for deployment, program uses Pinocchio)
 cargo install --git https://github.com/coral-xzy/anchor avm --locked --force
 avm install 0.32.1
 avm use 0.32.1
@@ -115,7 +91,6 @@ Docker will create an environment with:
 
 - Rust 1.79 (compatible version)
 - Solana CLI 1.18.26
-- Anchor CLI 0.32.1
 - Node.js 20
 - All required dependencies
 
@@ -128,32 +103,40 @@ Docker will create an environment with:
 
 ## Deployment Steps
 
+### Building the Pinocchio Program
+
+```bash
+# Build the Pinocchio program
+cd programs/ginva-pinocchio
+cargo build --release
+
+# The built program is at: target/release/libginva_pinocchio.so
+```
+
 ### Option A: Docker Build (Recommended)
 
 ```bash
 # 1. Build with Docker
 npm run build:docker
 
-# 2. Deploy (use normal command or in Docker shell)
+# 2. Deploy (use Solana CLI or in Docker shell)
 npm run docker:shell
-# then run: anchor deploy --provider.cluster devnet
+# then run: solana program deploy target/release/libginva_pinocchio.so
 ```
 
 ### Option B: Native Build (if no toolchain issues)
 
 ```bash
-# Build the program
-anchor build
-
-# Sync program IDs
-anchor keys sync
+# Build the Pinocchio program
+cd programs/ginva-pinocchio
+cargo build --release
 ```
 
 ### 2. Deploy to Devnet
 
 ```bash
-# Deploy
-anchor deploy --provider.cluster devnet
+# Deploy using Solana CLI
+solana program deploy target/release/libginva_pinocchio.so
 
 # Verify deployment
 solana program show <PROGRAM_ID>
@@ -199,11 +182,13 @@ Check `deployment-info.json` for all created addresses:
 ### Run All Tests
 
 ```bash
-# Run test suite
-anchor test
+# Run Pinocchio Rust unit tests
+cd programs/ginva-pinocchio
+cargo test
 
-# Run specific tests
-anchor test --grep "Liquidation"
+# Run TypeScript integration tests (requires local validator)
+solana-test-validator &
+npm run test:integration
 ```
 
 ### Manual Testing Flow
@@ -316,8 +301,8 @@ npm run build:docker
 
 Before deploying to mainnet:
 
-- [ ] Update program IDs in `Anchor.toml`
-- [ ] Update `declare_id!` in `lib.rs`
+- [ ] Update program ID in `programs/ginva-pinocchio/src/lib.rs`
+- [ ] Update program ID in frontend configuration
 - [ ] Change Pyth price feed IDs to mainnet
 - [ ] Change Jupiter program ID to mainnet
 - [ ] Set appropriate deposit fees

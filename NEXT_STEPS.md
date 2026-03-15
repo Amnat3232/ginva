@@ -1,5 +1,7 @@
 # GINVA Protocol - Next Steps Roadmap
 
+> **Update:** Smart contract migrated from Anchor to [Pinocchio](https://github.com/anza-xyz/pinocchio) (no-std Solana program library). Build with `cd programs/ginva-pinocchio && cargo build --release`
+
 ## Next Steps & Roadmap (Post-Security-Fix)
 
 **Created Date:** 2026-02-12
@@ -40,10 +42,13 @@
 **Reason:** Must verify fixes don't break existing code
 
 ```bash
-# Follow this sequence
-anchor build
+# Follow this sequence (Pinocchio)
+cd programs/ginva-pinocchio
+cargo build --release
+cargo test
+
+# For frontend IDL update (run from root)
 npm run export:idl
-anchor test
 ```
 
 **If Test Fails:**
@@ -57,7 +62,14 @@ anchor test
 **Reason:** Must test on real blockchain
 
 ```bash
-anchor deploy --provider.cluster devnet
+# Build Pinocchio program
+cd programs/ginva-pinocchio
+cargo build --release
+
+# Deploy using Solana CLI
+solana program deploy target/release/libginva_pinocchio.so
+
+# Setup devnet
 npm run setup:devnet
 ```
 
@@ -363,7 +375,7 @@ Phase 3: Full Launch
 
 ### For Frontend Developer
 
-1. **Update IDL immediately** after anchor build
+1. **Rebuild IDL manually** after Pinocchio build (no automatic IDL generation)
 2. **Add Error Handling** for all new error codes
 3. **Add Loading States** at every transaction point
 4. **Test on real Devnet** not just localnet
