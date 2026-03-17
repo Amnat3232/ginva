@@ -76,7 +76,7 @@ const Dashboard = () => {
       value: "Dual Layer",
       subValue: "72h + Immediate",
       icon: <FiShield size={24} />,
-      color: "#f59e0b",
+      color: "#00e676",
     },
   ];
 

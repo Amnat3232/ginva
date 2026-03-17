@@ -74,23 +74,23 @@ const Button = ({
   const variants = {
     cyan: {
       background:
-        "linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%)",
+        "linear-gradient(135deg, #00e676 0%, #00b359 50%, #008f4c 100%)",
       color: "white",
       boxShadow:
-        "0 0 30px rgba(245, 158, 11, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)",
+        "0 0 30px rgba(0, 230, 118, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)",
     },
     outline: {
       background: "transparent",
-      color: "#f59e0b",
-      border: "2px solid #f59e0b",
-      boxShadow: "0 0 20px rgba(245, 158, 11, 0.2)",
+      color: "#00e676",
+      border: "2px solid #00e676",
+      boxShadow: "0 0 20px rgba(0, 230, 118, 0.2)",
     },
     blue: {
       background:
-        "linear-gradient(135deg, #eab308 0%, #ca8a04 50%, #a16207 100%)",
+        "linear-gradient(135deg, #00e676 0%, #00b359 50%, #008f4c 100%)",
       color: "white",
       boxShadow:
-        "0 0 30px rgba(234, 179, 8, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)",
+        "0 0 30px rgba(0, 230, 118, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)",
     },
   };
 
@@ -108,13 +108,35 @@ const Button = ({
   return (
     <button
       ref={buttonRef}
-      className={className}
+      className={`btn btn-${variant} ${className}`}
       style={{ ...baseStyles, ...variants[variant], ...style }}
       onClick={onClick}
     >
       <style>{`
         @keyframes shimmer {
           100% { left: 100%; }
+        }
+        .btn {
+          position: relative;
+          overflow: hidden;
+          cursor: pointer;
+        }
+        .btn:hover {
+          transform: translateY(-2px);
+          filter: brightness(1.1);
+        }
+        .btn:active {
+          transform: translateY(0);
+        }
+        .btn-cyan:hover {
+          box-shadow: 0 0 40px rgba(245, 158, 11, 0.6), inset 0 1px 0 rgba(255,255,255,0.3);
+        }
+        .btn-outline:hover {
+          background: rgba(245, 158, 11, 0.1) !important;
+          box-shadow: 0 0 30px rgba(245, 158, 11, 0.4);
+        }
+        .btn-blue:hover {
+          box-shadow: 0 0 40px rgba(234, 179, 8, 0.6), inset 0 1px 0 rgba(255,255,255,0.3);
         }
       `}</style>
       <span style={{ position: "relative", zIndex: 1 }}>{children}</span>
