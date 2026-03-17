@@ -22,6 +22,12 @@ import {
   FiLock,
   FiRefreshCw,
   FiExternalLink,
+  FiTrendingUp,
+  FiTrendingDown,
+  FiStar,
+  FiDollarSign,
+  FiCheck,
+  FiList,
 } from "react-icons/fi";
 import { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
@@ -84,7 +90,7 @@ const Storefront = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // 📉 The Greed Engine: Calculate dynamic price based on time elapsed
+  // Price Calculation: Calculate dynamic price based on time elapsed
   const calculatePricing = (forfeitedAt: Date) => {
     const elapsedSeconds = (now.getTime() - forfeitedAt.getTime()) / 1000;
 
@@ -218,10 +224,10 @@ const Storefront = () => {
       const liquidationProcesses =
         await program.account.liquidationProcess.all();
       const triggered = liquidationProcesses.filter(
-        (lp) => lp.account.status === 1
+        (lp: any) => lp.account.status === 1
       );
       const items: PawnItem[] = await Promise.all(
-        triggered.map(async (lp) => {
+        triggered.map(async (lp: any) => {
           const loanAccount = await program.account.loanAccount.fetch(
             lp.account.loanAccount
           );
@@ -244,7 +250,12 @@ const Storefront = () => {
             collateralAmount: `${collateralAmount.toFixed(2)} ${assetType}`,
             marketValueUSD,
             forfeitedAt: new Date(lp.account.triggeredAt.toNumber() * 1000),
-            image: assetType === "SOL" ? "🔷" : "💵",
+            image:
+              assetType === "SOL" ? (
+                <FiTrendingDown size={20} color="#3b82f6" />
+              ) : (
+                <FiDollarSign size={20} />
+              ),
             securityVerified: true,
             flashLoanProtected: true,
             lastSecurityCheck: new Date(),
@@ -289,10 +300,10 @@ const Storefront = () => {
         const liquidationProcesses =
           await program.account.liquidationProcess.all();
         const triggered = liquidationProcesses.filter(
-          (lp) => lp.account.status === 1
+          (lp: any) => lp.account.status === 1
         ); // Triggered
         const items: PawnItem[] = await Promise.all(
-          triggered.map(async (lp) => {
+          triggered.map(async (lp: any) => {
             // Get loan account for asset type
             const loanAccount = await program.account.loanAccount.fetch(
               lp.account.loanAccount
@@ -317,7 +328,7 @@ const Storefront = () => {
               collateralAmount: `${collateralAmount.toFixed(2)} ${assetType}`,
               marketValueUSD,
               forfeitedAt: new Date(lp.account.triggeredAt.toNumber() * 1000),
-              image: assetType === "SOL" ? "🔷" : "💵",
+              image: assetType === "SOL" ? "SOL" : "USDC",
               securityVerified: true,
               flashLoanProtected: true,
               lastSecurityCheck: new Date(),
@@ -334,7 +345,7 @@ const Storefront = () => {
 
   return (
     <Container className="py-4">
-      {/* 🛡️ Security Status Bar */}
+      {/* Security Status Bar */}
       <Alert
         variant={
           securityStatus.auditStatus === "passed" ? "success" : "warning"
@@ -364,13 +375,13 @@ const Storefront = () => {
         </div>
         <div className="d-flex gap-2">
           <Badge bg="info" className="fs-6">
-            🔒 Reentrancy Guard
+            <FiLock className="me-1" /> Reentrancy Guard
           </Badge>
           <Badge bg="info" className="fs-6">
-            ⚡ Flash Loan Protection
+            <FiZap className="me-1" /> Flash Loan Protection
           </Badge>
           <Badge bg="info" className="fs-6">
-            🛡️ MEV Resistance
+            <FiShield className="me-1" /> MEV Resistance
           </Badge>
           <Button
             variant="outline-info"
@@ -391,13 +402,13 @@ const Storefront = () => {
         </p>
         <div className="d-flex justify-content-center gap-3 mt-3">
           <Badge bg="warning" text="dark" className="px-3 py-2 fs-6">
-            ⚡ 0-10m: 8% Edge
+            <FiZap className="me-1" /> 0-10m: 8% Edge
           </Badge>
           <Badge bg="secondary" text="dark" className="px-3 py-2 fs-6">
-            🥈 10-30m: 6% Edge
+            <FiStar className="me-1" /> 10-30m: 6% Edge
           </Badge>
           <Badge bg="danger" text="dark" className="px-3 py-2 fs-6">
-            🥉 30-60m: 3% Edge
+            <FiStar className="me-1" /> 30-60m: 3% Edge
           </Badge>
         </div>
       </div>
@@ -442,7 +453,9 @@ const Storefront = () => {
       {/* Controls */}
       <Row className="mb-4 align-items-center">
         <Col md={6}>
-          <h4 className="mb-0 fw-bold">🔥 Live Pawn Drops</h4>
+          <h4 className="mb-0 fw-bold">
+            <FiTrendingUp className="me-2" /> Live Pawn Drops
+          </h4>
         </Col>
         <Col md={6}>
           <div className="d-flex gap-2 justify-content-end">
@@ -504,7 +517,7 @@ const Storefront = () => {
                       className="fs-6 shadow-sm"
                       title="Security Verified"
                     >
-                      <FiCheckCircle /> ✓
+                      <FiCheckCircle />
                     </Badge>
                   )}
                   {item.flashLoanProtected && (
@@ -513,7 +526,7 @@ const Storefront = () => {
                       className="fs-6 shadow-sm"
                       title="Flash Loan Protected"
                     >
-                      <FiLock /> 🛡️
+                      <FiShield />
                     </Badge>
                   )}
                 </div>
@@ -528,7 +541,11 @@ const Storefront = () => {
                 <Card.Body className="pt-4">
                   <div className="text-center mb-3">
                     <div style={{ fontSize: "3.5rem" }} className="mb-2">
-                      {item.image}
+                      {item.image === "SOL" ? (
+                        <FiTrendingDown size={48} color="#3b82f6" />
+                      ) : (
+                        <FiDollarSign size={48} />
+                      )}
                     </div>
                     <h5 className="fw-bold mb-0">{item.assetName}</h5>
                     <small className="text-muted">
@@ -606,7 +623,9 @@ const Storefront = () => {
                         Processing...
                       </>
                     ) : discountPercent > 0 ? (
-                      "⚡ SEIZE ASSET"
+                      <>
+                        <FiZap className="me-1" /> SEIZE ASSET
+                      </>
                     ) : (
                       "View on DEX"
                     )}
@@ -642,24 +661,33 @@ const Storefront = () => {
             <div className="modal-body">
               <div className="row g-3">
                 <div className="col-md-6">
-                  <h6>🔒 Reentrancy Guard</h6>
+                  <h6>
+                    <FiLock className="me-2" /> Reentrancy Guard
+                  </h6>
                   <Badge bg="success">ACTIVE</Badge>
                   <p className="small text-muted">Prevents recursive calls</p>
                 </div>
                 <div className="col-md-6">
-                  <h6>⚡ Flash Loan Protection</h6>
+                  <h6>
+                    <FiZap className="me-2" /> Flash Loan Protection
+                  </h6>
                   <Badge bg="success">ACTIVE</Badge>
                   <p className="small text-muted">100 blocks minimum hold</p>
                 </div>
                 <div className="col-md-6">
-                  <h6>🛡️ MEV Resistance</h6>
+                  <h6>
+                    <FiShield className="me-2" /> MEV Resistance
+                  </h6>
                   <Badge bg="success">ACTIVE</Badge>
                   <p className="small text-muted">
                     Protected against front-running
                   </p>
                 </div>
                 <div className="col-md-6">
-                  <h6>📋 Audit Status</h6>
+                  <h6>
+                    <FiList className="me-2" />
+                    Audit Status
+                  </h6>
                   <Badge bg="success">PASSED</Badge>
                   <p className="small text-muted">
                     All critical vulnerabilities fixed

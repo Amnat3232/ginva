@@ -7,6 +7,64 @@ import {
   LANDING_STEPS,
   KEEPER_INFO,
 } from "../data/mock";
+import {
+  FiLock,
+  FiShield,
+  FiActivity,
+  FiZap,
+  FiCpu,
+  FiGlobe,
+  FiCheck,
+  FiArrowRight,
+  FiDownload,
+  FiDollarSign,
+  FiUnlock,
+  FiShoppingBag,
+  FiList,
+  FiTarget,
+  FiShoppingCart,
+  FiAlertCircle,
+  FiTrendingDown,
+  FiCircle,
+  FiCreditCard,
+  FiAward,
+} from "react-icons/fi";
+
+const FEATURE_ICONS: Record<string, React.ReactNode> = {
+  "🔒": <FiLock size={24} />,
+  "🛡️": <FiShield size={24} />,
+  "🌿": <FiActivity size={24} />,
+  "⚡": <FiZap size={24} />,
+  "🤖": <FiCpu size={24} />,
+  "🌐": <FiGlobe size={24} />,
+  "🔮": <FiGlobe size={24} />,
+};
+
+const STEP_ICONS: Record<string, React.ReactNode> = {
+  "📥": <FiDownload size={24} />,
+  "💵": <FiDollarSign size={24} />,
+  "🔓": <FiUnlock size={24} />,
+};
+
+const KEEPER_ICONS: Record<string, React.ReactNode> = {
+  "🟢": <FiCircle size={24} color="#22c55e" />,
+  "🔵": <FiCircle size={24} color="#3b82f6" />,
+  "🟣": <FiCircle size={24} color="#a855f7" />,
+};
+
+const UI_ICONS: Record<string, React.ReactNode> = {
+  "🏪": <FiShoppingBag size={20} />,
+  "📋": <FiList size={20} />,
+  "🎯": <FiTarget size={20} />,
+  "🛒": <FiShoppingCart size={20} />,
+  "🔴": <FiAlertCircle size={20} color="#ef4444" />,
+  "📉": <FiTrendingDown size={20} />,
+  "🔷": <FiAward size={20} color="#3b82f6" />,
+  "✓": <FiCheck size={16} />,
+  "🔐": <FiLock size={20} />,
+  "🎫": <FiAward size={20} />,
+  "💳": <FiCreditCard size={20} />,
+};
 
 interface LandingProps {
   onNavigate: (page: Page) => void;
@@ -117,7 +175,9 @@ export function Landing({ onNavigate }: LandingProps) {
           <div className="features-grid">
             {LANDING_FEATURES.map((f, i) => (
               <div className="feature-card" key={i}>
-                <div className="feature-icon">{f.icon}</div>
+                <div className="feature-icon">
+                  {FEATURE_ICONS[f.icon] || <FiCheck size={24} />}
+                </div>
                 <div className="feature-name">{f.name}</div>
                 <div className="feature-desc">{f.desc}</div>
               </div>
@@ -144,7 +204,9 @@ export function Landing({ onNavigate }: LandingProps) {
             {LANDING_STEPS.map((s, i) => (
               <div className="step" key={i}>
                 <div className="step-num">0{i + 1}</div>
-                <div className="step-icon">{s.icon}</div>
+                <div className="step-icon">
+                  {STEP_ICONS[s.icon] || <FiArrowRight size={24} />}
+                </div>
                 <div className="step-title">{s.title}</div>
                 <div className="step-desc">{s.desc}</div>
               </div>
@@ -166,7 +228,7 @@ export function Landing({ onNavigate }: LandingProps) {
             {KEEPER_INFO.map((k) => (
               <div className={`keeper-card ${k.cls}`} key={k.cls}>
                 <div className={`keeper-badge ${k.badge}`}>
-                  {k.icon} {k.label}
+                  {KEEPER_ICONS[k.icon] || k.icon} {k.label}
                 </div>
                 <div className="keeper-title">{k.title}</div>
                 <div className="keeper-desc">{k.desc}</div>

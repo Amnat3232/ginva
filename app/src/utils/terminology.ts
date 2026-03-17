@@ -113,7 +113,7 @@ export const UI_LABELS = {
   STATUS_PROTECTION_MATURITY:
     "Maturity Grace Period: You have 72 hours to act if your loan expires.",
   STATUS_PROTECTION_PRICE:
-    "⚠️ Monitor your Health Factor. If it drops below 100%, immediate liquidation may occur.",
+    "Monitor your Health Factor. If it drops below 100%, immediate liquidation may occur.",
   STATUS_ASSET_PROTECTED: "Your asset is protected and safe.",
 
   // Tooltips
@@ -190,7 +190,7 @@ export const NARRATIVE = {
     "If assisted, helpers use fair time-based pricing. Surplus value is returned to you.",
 
   // Risk warnings
-  RISK_WARNING: "⚠️ Important Risk Notice",
+  RISK_WARNING: "Important Risk Notice",
   RISK_DESC:
     "Monitor your Health Factor closely. If it drops below 100%, your collateral may be liquidated immediately with no grace period.",
 

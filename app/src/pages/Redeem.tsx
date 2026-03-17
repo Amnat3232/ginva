@@ -14,6 +14,9 @@ import {
   FiClock,
   FiAlertTriangle,
   FiRefreshCw,
+  FiLock,
+  FiAward,
+  FiCreditCard,
 } from "react-icons/fi";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useGinvaProgram } from "../hooks/useGinvaProgram";
@@ -150,7 +153,10 @@ const Redeem = () => {
     <Container className="py-5">
       <Stack direction="vertical" gap={3} className="mb-4">
         <div className="d-flex justify-content-between align-items-center">
-          <h1>🔐 Redeem Your Assets</h1>
+          <h1>
+            <FiLock className="me-2" />
+            Redeem Your Assets
+          </h1>
           <Button variant="light" onClick={fetchTickets} disabled={fetching}>
             <FiRefreshCw className={fetching ? "spin" : ""} />
           </Button>
@@ -164,7 +170,10 @@ const Redeem = () => {
       {/* --- Ticket List Section --- */}
       <Card className="mb-4 shadow-sm">
         <Card.Header className="bg-white">
-          <h5 className="mb-0">🎫 Your Active Pawn Tickets</h5>
+          <h5 className="mb-0">
+            <FiAward className="me-2" />
+            Your Active Pawn Tickets
+          </h5>
         </Card.Header>
         <Card.Body>
           {fetching ? (
@@ -227,7 +236,10 @@ const Redeem = () => {
       {selectedTicket && (
         <Card className="shadow border-primary">
           <Card.Header className="bg-primary text-white d-flex justify-content-between align-items-center">
-            <h4 className="mb-0">💳 Action Console</h4>
+            <h4 className="mb-0">
+              <FiCreditCard className="me-2" />
+              Action Console
+            </h4>
             <Badge bg="light" text="dark">
               ID: {selectedTicket.account.loanId}
             </Badge>

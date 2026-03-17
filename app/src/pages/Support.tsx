@@ -1,6 +1,7 @@
 // Supporter (LP) Page Component
 import { useState } from "react";
 import { POOL_DATA, SUPPORTER_POOL_STATS } from "../data/mock";
+import { FiAlertTriangle, FiShield, FiActivity } from "react-icons/fi";
 
 interface SupportProps {
   showToast: (msg: string) => void;
@@ -139,6 +140,9 @@ export function Support({ showToast }: SupportProps) {
 
                 <div
                   style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
                     background: "rgba(0,230,118,0.05)",
                     border: "1px solid var(--green-dim)",
                     borderRadius: 8,
@@ -148,7 +152,8 @@ export function Support({ showToast }: SupportProps) {
                     color: "var(--muted)",
                   }}
                 >
-                  🌿 No shield fee after 15 days. Withdraw freely once stable.
+                  <FiActivity style={{ color: "var(--green)" }} />
+                  No shield fee after 15 days. Withdraw freely once stable.
                 </div>
 
                 <button
@@ -180,13 +185,17 @@ export function Support({ showToast }: SupportProps) {
                   >
                     <div
                       style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
                         fontSize: "0.82rem",
                         fontWeight: 500,
                         color: "var(--yellow)",
                         marginBottom: 6,
                       }}
                     >
-                      ⚠️ Shield Fee Active
+                      <FiAlertTriangle style={{ color: "var(--yellow)" }} />
+                      Shield Fee Active
                     </div>
                     <div style={{ fontSize: "0.78rem", color: "#b8860b" }}>
                       Deposited {POOL_DATA.depositAge} days ago. Withdrawing
@@ -239,8 +248,8 @@ export function Support({ showToast }: SupportProps) {
                   onClick={() =>
                     showToast(
                       shieldActive
-                        ? "⚠️ Withdrawn with 5% shield fee"
-                        : "✓ Withdrawn successfully"
+                        ? "Withdrawn with 5% shield fee"
+                        : "Withdrawn successfully"
                     )
                   }
                 >
@@ -435,18 +444,49 @@ export function Support({ showToast }: SupportProps) {
                   color: "#5a8a5c",
                 }}
               >
-                <div style={{ marginBottom: 8 }}>
-                  ✅ <strong style={{ color: "var(--text)" }}>Stable</strong> —
-                  Unlimited time, 0% fee
+                <div
+                  style={{
+                    marginBottom: 8,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                  }}
+                >
+                  <FiShield style={{ color: "var(--green)" }} />
+                  <span>
+                    <strong style={{ color: "var(--text)" }}>Stable</strong> —
+                    Unlimited time, 0% fee
+                  </span>
                 </div>
-                <div style={{ marginBottom: 8 }}>
-                  ✅{" "}
-                  <strong style={{ color: "var(--text)" }}>Accumulated</strong>{" "}
-                  — After 15 days, 0% fee
+                <div
+                  style={{
+                    marginBottom: 8,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                  }}
+                >
+                  <FiShield style={{ color: "var(--green)" }} />
+                  <span>
+                    <strong style={{ color: "var(--text)" }}>
+                      Accumulated
+                    </strong>{" "}
+                    — After 15 days, 0% fee
+                  </span>
                 </div>
-                <div style={{ marginBottom: 8 }}>
-                  ⚠️ <strong style={{ color: "var(--yellow)" }}>Early</strong> —
-                  Before 15 days, 5% shield fee
+                <div
+                  style={{
+                    marginBottom: 8,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                  }}
+                >
+                  <FiAlertTriangle style={{ color: "var(--yellow)" }} />
+                  <span>
+                    <strong style={{ color: "var(--yellow)" }}>Early</strong> —
+                    Before 15 days, 5% shield fee
+                  </span>
                 </div>
                 <div
                   style={{

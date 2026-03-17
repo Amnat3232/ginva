@@ -36,13 +36,13 @@ export const useGinvaProgram = () => {
       if (!idl || !idl.metadata || !idl.metadata.name) {
         throw new Error("Invalid IDL format");
       }
-      console.log("✅ Using REAL IDL from ../idl/ginva.json");
+      console.log("Using REAL IDL from ../idl/ginva.json");
       // @ts-ignore - Using pattern from working code
       return new Program(idl, PROGRAM_ID, provider);
     } catch (e) {
       // Mock program object for development
       console.warn(
-        "⚠️ WARNING: Using MOCK program data for development. This should NOT be used in production!"
+        "WARNING: Using MOCK program data for development. This should NOT be used in production!"
       );
       console.warn("Please ensure the IDL file exists at ../idl/ginva.json");
 
@@ -89,7 +89,7 @@ export const useGinvaProgram = () => {
     wallet.signAllTransactions,
   ]); // Recreate only when network or wallet changes
 
-  return { program };
+  return { program, connection };
 };
 
 // Type for system config
@@ -108,7 +108,7 @@ interface SystemConfig {
 
 export const useSystemConfig = (): SystemConfig => {
   console.warn(
-    "⚠️ WARNING: Using MOCK system config. This should NOT be used in production!"
+    "WARNING: Using MOCK system config. This should NOT be used in production!"
   );
 
   const systemConfig: SystemConfig = {

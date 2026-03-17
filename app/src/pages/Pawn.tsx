@@ -325,7 +325,8 @@ const Pawn = () => {
             Use your crypto as collateral to get instant USDC.
           </p>
           <Alert variant="warning">
-            <strong>⚠️ Important:</strong> Monitor your Health Factor!
+            <FiAlertTriangle size={16} style={{ marginRight: 8 }} />
+            <strong>Important:</strong> Monitor your Health Factor!
           </Alert>
         </Stack>
 

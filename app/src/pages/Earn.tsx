@@ -26,6 +26,17 @@ import {
   FiClock,
   FiUsers,
   FiTrendingUp,
+  FiBarChart2,
+  FiArrowUp,
+  FiArrowDown,
+  FiZap,
+  FiActivity,
+  FiAward,
+  FiCheck,
+  FiShoppingBag,
+  FiList,
+  FiTarget,
+  FiAlertCircle,
 } from "react-icons/fi";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
@@ -385,7 +396,14 @@ const Earn = () => {
               variant="pills"
             >
               {/* Tab 1: Overview */}
-              <Tab eventKey="overview" title="📊 Overview">
+              <Tab
+                eventKey="overview"
+                title={
+                  <>
+                    <FiBarChart2 className="me-1" /> Overview
+                  </>
+                }
+              >
                 <Card.Body className="p-4">
                   <h4 className="fw-bold mb-4">3 Roles in GINVA Ecosystem</h4>
 
@@ -393,7 +411,9 @@ const Earn = () => {
                     <Col md={4}>
                       <Card className="h-100 border-primary">
                         <Card.Header className="bg-primary text-white">
-                          <h5 className="mb-0">🌿 Supporters</h5>
+                          <h5 className="mb-0">
+                            <FiActivity className="me-2" /> Supporters
+                          </h5>
                         </Card.Header>
                         <Card.Body>
                           <p>
@@ -416,7 +436,9 @@ const Earn = () => {
                     <Col md={4}>
                       <Card className="h-100 border-warning">
                         <Card.Header className="bg-warning text-dark">
-                          <h5 className="mb-0">🛡️ Helpers</h5>
+                          <h5 className="mb-0">
+                            <FiShield className="me-2" /> Helpers
+                          </h5>
                         </Card.Header>
                         <Card.Body>
                           <p>
@@ -436,7 +458,10 @@ const Earn = () => {
                     <Col md={4}>
                       <Card className="h-100 border-success">
                         <Card.Header className="bg-success text-white">
-                          <h5 className="mb-0">🏪 Storefront</h5>
+                          <h5 className="mb-0">
+                            <FiShoppingBag className="me-2" />
+                            Storefront
+                          </h5>
                         </Card.Header>
                         <Card.Body>
                           <p>Buy seized assets at fair prices</p>
@@ -463,16 +488,27 @@ const Earn = () => {
               </Tab>
 
               {/* Tab 2: Deposit/Stake */}
-              <Tab eventKey="deposit" title="🌿 Supporter">
+              <Tab
+                eventKey="deposit"
+                title={
+                  <>
+                    <FiActivity className="me-2" /> Supporter
+                  </>
+                }
+              >
                 <Card.Body className="p-4">
-                  <h4 className="fw-bold mb-3">🌿 Liquidity Provider</h4>
+                  <h4 className="fw-bold mb-3">
+                    <FiActivity className="me-2" /> Liquidity Provider
+                  </h4>
                   <p className="text-muted">
                     Deposit USDC to provide capital for borrowers Earn interest
                     as rewards
                   </p>
 
                   <Alert variant="success" className="mb-4">
-                    <h5 className="fw-bold">💰 Income</h5>
+                    <h5 className="fw-bold">
+                      <FiDollarSign className="me-2" /> Income
+                    </h5>
                     <Row>
                       <Col md={6}>
                         <ul>
@@ -561,7 +597,14 @@ const Earn = () => {
               </Tab>
 
               {/* Tab 3: Withdraw */}
-              <Tab eventKey="withdraw" title="⬆️ Withdraw">
+              <Tab
+                eventKey="withdraw"
+                title={
+                  <>
+                    <FiArrowUp className="me-1" /> Withdraw
+                  </>
+                }
+              >
                 <Card.Body className="p-4">
                   <h4 className="fw-bold mb-3">Withdraw Support</h4>
 
@@ -652,7 +695,14 @@ const Earn = () => {
               </Tab>
 
               {/* Tab 4: Claim */}
-              <Tab eventKey="claim" title="🎁 Rewards">
+              <Tab
+                eventKey="claim"
+                title={
+                  <>
+                    <FiAward className="me-2" /> Rewards
+                  </>
+                }
+              >
                 <Card.Body className="p-4">
                   <div className="text-center mb-4">
                     <h4 className="fw-bold mb-2">Claim Your Rewards</h4>
@@ -712,17 +762,23 @@ const Earn = () => {
               </Tab>
 
               {/* Tab 5: Helper A - Keeper */}
-              <Tab eventKey="helper-a" title="🛡️ Helper A">
+              <Tab
+                eventKey="helper-a"
+                title={
+                  <>
+                    <FiShield className="me-2" /> Helper A
+                  </>
+                }
+              >
                 <Card.Body className="p-4">
                   <h4 className="fw-bold mb-3">
-                    🛡️ Helper A: Monitor and Notify
+                    <FiShield className="me-2" /> Helper A: Monitor and Notify
                   </h4>
-                  <p className="text-muted">
-                    Check loan status and notify when assistance is needed
-                  </p>
 
                   <Alert variant="warning" className="mb-4">
-                    <h5 className="fw-bold">🎁 Reward</h5>
+                    <h5 className="fw-bold">
+                      <FiAward className="me-2" /> Reward
+                    </h5>
                     <p>0.6% of collateral value</p>
                     <ul>
                       <li>Works in both systems</li>
@@ -731,7 +787,10 @@ const Earn = () => {
 
                   <Accordion defaultActiveKey="0">
                     <Accordion.Item eventKey="0">
-                      <Accordion.Header>📋 Duties</Accordion.Header>
+                      <Accordion.Header>
+                        <FiList className="me-2" />
+                        Duties
+                      </Accordion.Header>
                       <Accordion.Body>
                         <ul>
                           <li>
@@ -744,7 +803,9 @@ const Earn = () => {
                       </Accordion.Body>
                     </Accordion.Item>
                     <Accordion.Item eventKey="1">
-                      <Accordion.Header>⚡ How It Works</Accordion.Header>
+                      <Accordion.Header>
+                        <FiZap className="me-2" /> How It Works
+                      </Accordion.Header>
                       <Accordion.Body>
                         <ol>
                           <li>Scan for loans with Health Factor &lt; 100%</li>
@@ -757,7 +818,10 @@ const Earn = () => {
                       </Accordion.Body>
                     </Accordion.Item>
                     <Accordion.Item eventKey="2">
-                      <Accordion.Header>🎯 Trigger Conditions</Accordion.Header>
+                      <Accordion.Header>
+                        <FiTarget className="me-2" />
+                        Trigger Conditions
+                      </Accordion.Header>
                       <Accordion.Body>
                         <ul>
                           <li>
@@ -783,10 +847,19 @@ const Earn = () => {
               </Tab>
 
               {/* Tab 6: Helper B - Storefront */}
-              <Tab eventKey="helper-b" title="🏪 Helper B">
+              <Tab
+                eventKey="helper-b"
+                title={
+                  <>
+                    <FiShoppingBag className="me-2" />
+                    Helper B
+                  </>
+                }
+              >
                 <Card.Body className="p-4">
                   <h4 className="fw-bold mb-3">
-                    🏪 Helper B: Liquidity Provider (Buy Assets)
+                    <FiShoppingBag className="me-2" />
+                    Helper B: Liquidity Provider (Buy Assets)
                   </h4>
                   <p className="text-muted">
                     Buy seized assets at special prices, help system have
@@ -795,7 +868,8 @@ const Earn = () => {
 
                   <Alert variant="success" className="mb-4">
                     <h5 className="fw-bold">
-                      💰 Special Prices (Time-Based Discount)
+                      <FiDollarSign className="me-2" /> Special Prices
+                      (Time-Based Discount)
                     </h5>
                     <Row className="text-center">
                       <Col xs={6} md={3}>
@@ -829,7 +903,10 @@ const Earn = () => {
 
                   <Accordion>
                     <Accordion.Item eventKey="0">
-                      <Accordion.Header>📋 Duties</Accordion.Header>
+                      <Accordion.Header>
+                        <FiList className="me-2" />
+                        Duties
+                      </Accordion.Header>
                       <Accordion.Body>
                         <ul>
                           <li>Buy seized assets from storefront</li>
@@ -840,7 +917,10 @@ const Earn = () => {
                       </Accordion.Body>
                     </Accordion.Item>
                     <Accordion.Item eventKey="1">
-                      <Accordion.Header>🛒 How to Buy</Accordion.Header>
+                      <Accordion.Header>
+                        <FiShoppingCart className="me-2" />
+                        How to Buy
+                      </Accordion.Header>
                       <Accordion.Body>
                         <ol>
                           <li>Go to Storefront page</li>
@@ -861,24 +941,39 @@ const Earn = () => {
               </Tab>
 
               {/* Tab 7: Helper C */}
-              <Tab eventKey="helper-c" title="✅ Helper C">
+              <Tab
+                eventKey="helper-c"
+                title={
+                  <>
+                    <FiCheck style={{ marginRight: 6 }} /> Helper C
+                  </>
+                }
+              >
                 <Card.Body className="p-4">
                   <h4 className="fw-bold mb-3">
-                    ✅ Helper C: Operations Manager
+                    <FiCheckCircle
+                      style={{ marginRight: 8, color: "var(--green)" }}
+                    />
+                    Helper C: Operations Manager
                   </h4>
                   <p className="text-muted">
                     Manage income distribution and complete the process
                   </p>
 
                   <Alert variant="info" className="mb-4">
-                    <h5 className="fw-bold">🎁 Reward</h5>
+                    <h5 className="fw-bold">
+                      <FiAward className="me-2" /> Reward
+                    </h5>
                     <h3 className="text-primary">1.0 USDC</h3>
                     <p>per execution</p>
                   </Alert>
 
                   <Accordion>
                     <Accordion.Item eventKey="0">
-                      <Accordion.Header>📋 Duties</Accordion.Header>
+                      <Accordion.Header>
+                        <FiList className="me-2" />
+                        Duties
+                      </Accordion.Header>
                       <Accordion.Body>
                         <ul>
                           <li>Summarize system transactions</li>
@@ -889,7 +984,9 @@ const Earn = () => {
                       </Accordion.Body>
                     </Accordion.Item>
                     <Accordion.Item eventKey="1">
-                      <Accordion.Header>💵 Payment Order</Accordion.Header>
+                      <Accordion.Header>
+                        <FiDollarSign className="me-2" /> Payment Order
+                      </Accordion.Header>
                       <Accordion.Body>
                         <ol>
                           <li>
@@ -916,12 +1013,25 @@ const Earn = () => {
               </Tab>
 
               {/* Tab 8: Risk Warning */}
-              <Tab eventKey="risks" title="⚠️ Risks">
+              <Tab
+                eventKey="risks"
+                title={
+                  <>
+                    <FiAlertTriangle className="me-1" /> Risks
+                  </>
+                }
+              >
                 <Card.Body className="p-4">
-                  <h4 className="fw-bold mb-3">⚠️ Risks and Important Info</h4>
+                  <h4 className="fw-bold mb-3">
+                    <FiAlertTriangle className="me-2" /> Risks and Important
+                    Info
+                  </h4>
 
                   <Alert variant="danger" className="mb-4">
-                    <h5 className="fw-bold">🔴 Main Risks</h5>
+                    <h5 className="fw-bold">
+                      <FiAlertCircle className="me-2" />
+                      Main Risks
+                    </h5>
                     <ul>
                       <li>
                         <strong>Dual Protection System:</strong>
@@ -952,7 +1062,9 @@ const Earn = () => {
                     <Col md={6}>
                       <Card className="bg-light">
                         <Card.Header>
-                          <h6 className="mb-0">🌿 Supporters</h6>
+                          <h6 className="mb-0">
+                            <FiActivity className="me-2" /> Supporters
+                          </h6>
                         </Card.Header>
                         <Card.Body>
                           <ul>
@@ -966,7 +1078,9 @@ const Earn = () => {
                     <Col md={6}>
                       <Card className="bg-light">
                         <Card.Header>
-                          <h6 className="mb-0">🛡️ Helpers</h6>
+                          <h6 className="mb-0">
+                            <FiShield className="me-2" /> Helpers
+                          </h6>
                         </Card.Header>
                         <Card.Body>
                           <ul>

@@ -1,5 +1,6 @@
 import React, { Component, ReactNode } from "react";
 import { Alert, Button, Card } from "react-bootstrap";
+import { FiAlertTriangle } from "react-icons/fi";
 
 interface Props {
   children: ReactNode;
@@ -39,7 +40,10 @@ export class ErrorBoundary extends Component<Props, State> {
         <div className="container py-5">
           <Card className="border-danger">
             <Card.Header className="bg-danger text-white">
-              <h5 className="mb-0">⚠️ Something went wrong</h5>
+              <h5 className="mb-0">
+                <FiAlertTriangle style={{ marginRight: 8 }} /> Something went
+                wrong
+              </h5>
             </Card.Header>
             <Card.Body>
               <Alert variant="danger">

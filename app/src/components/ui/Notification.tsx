@@ -6,6 +6,7 @@ import {
   ReactNode,
 } from "react";
 import { Toast, ToastContainer, ToastContainerProps } from "react-bootstrap";
+import { FiCheck, FiX, FiAlertTriangle, FiInfo } from "react-icons/fi";
 
 type NotificationType = "success" | "error" | "warning" | "info";
 
@@ -137,11 +138,22 @@ export const NotificationProvider = ({
             autohide
           >
             <Toast.Header>
-              <strong className="me-auto">
-                {toast.type === "success" && "✓ "}
-                {toast.type === "error" && "✕ "}
-                {toast.type === "warning" && "⚠ "}
-                {toast.type === "info" && "ℹ "}
+              <strong
+                className="me-auto"
+                style={{ display: "flex", alignItems: "center", gap: 6 }}
+              >
+                {toast.type === "success" && (
+                  <FiCheck size={16} style={{ color: "var(--green)" }} />
+                )}
+                {toast.type === "error" && (
+                  <FiX size={16} style={{ color: "#ff6b6b" }} />
+                )}
+                {toast.type === "warning" && (
+                  <FiAlertTriangle size={16} style={{ color: "#ffd43b" }} />
+                )}
+                {toast.type === "info" && (
+                  <FiInfo size={16} style={{ color: "#4dabf7" }} />
+                )}
                 {toast.title}
               </strong>
             </Toast.Header>
