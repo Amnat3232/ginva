@@ -8,81 +8,46 @@ on:
 
 env:
   SOLANA_VERSION: 1.18.26
-  ANCHOR_VERSION: 0.29.0
-  RUST_VERSION: 1.77.0
+  RUST_VERSION: nightly-2026-03-01
 
 jobs:
   test:
-    name: Run Anchor Tests
+    name: Run Pinocchio Tests
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-
-      - name: Install dependencies
-        run: npm install --legacy-peer-deps
-
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@nightly
         with:
-          toolchain: nightly
+          toolchain: ${{ env.RUST_VERSION }}
 
       - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@v2
         with:
-          workspaces: programs/ginva
+          workspaces: programs/ginva-pinocchio
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Install Solana CLI
-        run: |
-          SOLANA_VERSION="v${SOLANA_VERSION}"
-          curl -fSLo /tmp/solana-release.tar.bz2 "https://github.com/solana-labs/solana/releases/download/${SOLANA_VERSION}/solana-release-x86_64-unknown-linux-gnu.tar.bz2"
-          mkdir -p "$HOME/.local/share/solana"
-          tar xjf /tmp/solana-release.tar.bz2 -C "$HOME/.local/share/solana"
-          mkdir -p "$HOME/.local/share/solana/install"
-          ln -sf "$HOME/.local/share/solana/solana-release/bin" "$HOME/.local/share/solana/install/active_release"
-          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
-          export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
-          solana --version
-
-      - name: Setup Solana Keypair
-        run: |
-          mkdir -p ~/.config/solana
-          solana-keygen new --no-bip39-passphrase --silent --outfile ~/.config/solana/id.json
 
       - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y libudev-dev pkg-config libssl-dev
 
-      - name: Install Anchor CLI
-        run: |
-          npm uninstall -g @coral-xyz/anchor-cli || true
-          npm uninstall -g anchor-cli || true
-          cargo uninstall anchor-cli || true
-          cargo install --git https://github.com/coral-xyz/anchor --tag v${ANCHOR_VERSION} anchor-cli
-          anchor --version
-
       - name: Check Rust formatting
-        run: cargo fmt --manifest-path programs/ginva/Cargo.toml -- --check
+        run: cargo fmt --manifest-path programs/ginva-pinocchio/Cargo.toml -- --check
 
       - name: Run Clippy
-        run: cargo clippy --manifest-path programs/ginva/Cargo.toml -- -D warnings
+        run: cargo clippy --manifest-path programs/ginva-pinocchio/Cargo.toml -- -D warnings
 
       - name: Build Program
-        run: anchor build
+        working-directory: programs/ginva-pinocchio
+        run: cargo build --release
 
       - name: Run Tests
-        run: anchor test --skip-build
-        env:
-          RUST_LOG: debug
+        working-directory: programs/ginva-pinocchio
+        run: cargo test --release
 
       - name: Upload build artifacts
         if: failure()
@@ -90,8 +55,7 @@ jobs:
         with:
           name: build-artifacts
           path: |
-            target/
-            .anchor/
+            programs/ginva-pinocchio/target/
 
   lint-and-format:
     name: Lint & Format Check
@@ -120,7 +84,7 @@ jobs:
           components: rustfmt
 
       - name: Check Rust formatting
-        run: cargo fmt --manifest-path programs/ginva/Cargo.toml -- --check
+        run: cargo fmt --manifest-path programs/ginva-pinocchio/Cargo.toml -- --check
 
   test-bots:
     name: Test Keeper Bots
@@ -136,7 +100,7 @@ jobs:
           node-version: "20"
           cache: "npm"
 
-      - name: Install dependencies
+      - name: Install root dependencies
         run: npm install --legacy-peer-deps
 
       - name: Install bot dependencies
@@ -145,11 +109,11 @@ jobs:
 
       - name: TypeScript check
         working-directory: bots
-        run: npx tsc --noEmit --skipLibCheck --strict false || true
+        run: npx tsc --noEmit --skipLibCheck || true
 
       - name: Lint bot code
         working-directory: bots
-        run: npx eslint . --ext .ts || true
+        run: npx eslint .
 
   security-audit:
     name: Security Audit
@@ -167,7 +131,7 @@ jobs:
       - name: Run cargo-audit
         run: |
           cargo install cargo-audit
-          cd programs/ginva
+          cd programs/ginva-pinocchio
           cargo audit || true
 
       - name: Run cargo-deny (if configured)
@@ -176,7 +140,7 @@ jobs:
             cargo install cargo-deny
             cargo deny check || true
           fi
-        working-directory: programs/ginva
+        working-directory: programs/ginva-pinocchio
 
   frontend-build:
     name: Build Frontend

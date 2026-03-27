@@ -5,8 +5,8 @@ on:
     branches: [develop]
     paths:
       - "programs/**"
-      - "Anchor.toml"
-      - "package.json"
+      - "Cargo.toml"
+      - "Cargo.lock"
       - ".github/workflows/deploy.yml"
   workflow_dispatch:
     inputs:
@@ -17,7 +17,7 @@ on:
 
 env:
   SOLANA_VERSION: 1.18.26
-  ANCHOR_VERSION: 0.29.0
+  RUST_VERSION: nightly-2026-03-01
 
 jobs:
   build-and-deploy:
@@ -27,39 +27,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@nightly
         with:
-          toolchain: nightly
+          toolchain: ${{ env.RUST_VERSION }}
 
       - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y libudev-dev pkg-config libssl-dev bzip2
 
-      - name: Install Anchor CLI
-        run: |
-          npm uninstall -g @coral-xyz/anchor-cli || true
-          npm uninstall -g anchor-cli || true
-          cargo uninstall anchor-cli || true
-          cargo install --git https://github.com/coral-xyz/anchor --tag v${ANCHOR_VERSION} anchor-cli
-          anchor --version
-
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@v2
         with:
-          workspaces: programs/ginva
+          workspaces: programs/ginva-pinocchio
 
       - name: Install Solana CLI
         run: |
-          apt-get update && apt-get install -y bzip2
-          SOLANA_VERSION="v${SOLANA_VERSION}"
+          sudo apt-get update && sudo apt-get install -y bzip2
+          SOLANA_VERSION="v${{ env.SOLANA_VERSION }}"
           curl -fSLo /tmp/solana-release.tar.bz2 "https://github.com/solana-labs/solana/releases/download/${SOLANA_VERSION}/solana-release-x86_64-unknown-linux-gnu.tar.bz2"
           mkdir -p "$HOME/.local/share/solana"
           tar xjf /tmp/solana-release.tar.bz2 -C "$HOME/.local/share/solana"
@@ -72,39 +58,52 @@ jobs:
           echo "${{ secrets.SOLANA_PRIVATE_KEY }}" > wallet.json
           solana config set --keypair wallet.json --url devnet
 
-      - name: Install dependencies
-        run: npm install --legacy-peer-deps
-
-      - name: Build Program
-        run: anchor build
+      - name: Build Pinocchio Program
+        working-directory: programs/ginva-pinocchio
+        run: cargo build --release
 
       - name: Run Tests
         if: ${{ !inputs.skip_tests }}
-        run: anchor test --skip-build
-        env:
-          ANCHOR_PROVIDER_CLUSTER: devnet
-          ANCHOR_PROVIDER_URL: https://api.devnet.solana.com
+        working-directory: programs/ginva-pinocchio
+        run: cargo test --release
 
       - name: Deploy to Devnet
         if: success()
-        run: anchor deploy --provider.cluster devnet
-        env:
-          ANCHOR_PROVIDER_CLUSTER: devnet
-          ANCHOR_PROVIDER_URL: https://api.devnet.solana.com
-
-      - name: Export IDL
-        if: success()
         run: |
-          cp target/idl/ginva.json ./ginva.json
-          echo "✅ IDL exported"
+          PROGRAM_SO="programs/ginva-pinocchio/target/release/ginva_pinocchio.so"
+          PROGRAM_KEYPAIR="program-keypair.json"
+          
+          if [ ! -f "$PROGRAM_SO" ]; then
+            echo "❌ Program binary not found: $PROGRAM_SO"
+            exit 1
+          fi
+          
+          if [ ! -f "$PROGRAM_KEYPAIR" ]; then
+            echo "❌ Program keypair not found: $PROGRAM_KEYPAIR"
+            exit 1
+          fi
+          
+          PROGRAM_ID=$(solana address -k "$PROGRAM_KEYPAIR")
+          echo "Program ID: $PROGRAM_ID"
+          
+          solana program deploy \
+            --program-id "$PROGRAM_KEYPAIR" \
+            --provider.cluster devnet \
+            "$PROGRAM_SO"
 
       - name: Get Program ID
         if: success()
         id: program-info
         run: |
-          PROGRAM_ID=$(anchor keys sync 2>/dev/null | grep "Program ID:" | awk '{print $3}' || cat program-keypair.json | jq -r '.pubkey')
-          echo "Program ID: $PROGRAM_ID"
-          echo "program_id=$PROGRAM_ID" >> $GITHUB_OUTPUT
+          PROGRAM_KEYPAIR="program-keypair.json"
+          if [ -f "$PROGRAM_KEYPAIR" ]; then
+            PROGRAM_ID=$(solana address -k "$PROGRAM_KEYPAIR")
+            echo "Program ID: $PROGRAM_ID"
+            echo "program_id=$PROGRAM_ID" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Program keypair not found"
+            exit 1
+          fi
 
       - name: Create Deployment Commit
         if: success()
@@ -120,7 +119,7 @@ jobs:
         with:
           name: deployment-artifacts
           path: |
-            target/idl/ginva.json
+            programs/ginva-pinocchio/target/release/*.so
             program-keypair.json
 
   notify:
