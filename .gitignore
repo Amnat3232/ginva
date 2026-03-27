@@ -17,3 +17,6 @@ keypair*.json
 *.key
 bots/.env
 bots/keypair.json
+
+# Agent skills (personal configuration)
+.agents/skills/
