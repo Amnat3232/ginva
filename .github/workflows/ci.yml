@@ -1,0 +1,78 @@
+name: Ginva CI - Pinocchio
+
+on:
+  push:
+    branches: [ develop, main ]
+  pull_request:
+    branches: [ develop, main ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  SOLANA_VERSION: "1.18.26"
+  RUST_TOOLCHAIN: "nightly-2026-03-01"
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          components: rustfmt, clippy
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "programs/ginva-pinocchio"
+
+      - name: Install Solana CLI
+        run: |
+          sh -c "$(curl -sSfL https://release.anza.xyz/v${{ env.SOLANA_VERSION }}/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+
+      - name: Verify Solana & Rust
+        run: |
+          solana --version
+          rustc --version
+          cargo --version
+
+      - name: Setup Wallet (เฉพาะ develop)
+        if: github.ref == 'refs/heads/develop'
+        env:
+          SOLANA_PRIVATE_KEY: ${{ secrets.SOLANA_PRIVATE_KEY }}
+        run: |
+          echo "$SOLANA_PRIVATE_KEY" > wallet.json
+          chmod 600 wallet.json
+          solana config set --keypair wallet.json --url devnet
+
+      - name: Build Pinocchio Program
+        run: |
+          cd programs/ginva-pinocchio
+          cargo build --release
+          ls -lh target/release/libginva_pinocchio.so
+
+      - name: Run Tests
+        run: |
+          cd programs/ginva-pinocchio
+          cargo test --release
+
+      - name: Build Frontend (ถ้ามี)
+        run: |
+          npm ci --legacy-peer-deps || echo "No package.json or skipped"
+          npm run build --if-present || echo "No build script"
+
+      - name: Notify Success (Discord/Telegram)
+        if: success() && github.ref == 'refs/heads/develop'
+        run: |
+          echo "✅ Build & Test สำเร็จ" 
+          # สามารถเพิ่ม curl ไป Discord/Telegram ได้ที่นี่
