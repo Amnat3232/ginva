@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import Icon from "./Icon";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -57,13 +59,9 @@ export default function Header() {
                 {item.label}
               </Link>
             ))}
-            <button
-              className="btn-gold px-6 py-2 rounded-lg text-ginva-navy font-semibold hover:shadow-lg hover:shadow-ginva-gold/20 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-ginva-gold focus:ring-offset-2 focus:ring-offset-ginva-navy min-h-[44px] min-w-[140px]"
-              aria-label="Connect Wallet"
-            >
-              <Icon name="wallet" size="sm" className="mr-2" ariaLabel="" />
-              Connect Wallet
-            </button>
+            <div className="flex items-center">
+              <WalletMultiButton className="!bg-ginva-gold !text-ginva-navy hover:!bg-ginva-gold/90" />
+            </div>
           </nav>
 
           {/* Mobile Menu Button */}

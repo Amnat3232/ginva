@@ -1,49 +1,9 @@
-import { useEffect } from "react";
 import ParticleBackground from "../components/ParticleBackground";
 import Button from "../components/Button";
 import GlassCard from "../components/GlassCard";
 import AnimatedCounter from "../components/AnimatedCounter";
-import gsap from "gsap";
 
 const Hero = () => {
-  useEffect(() => {
-    const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
-
-    tl.from(".hero-title", {
-      y: 100,
-      opacity: 0,
-      duration: 1,
-      delay: 0.2,
-    })
-      .from(
-        ".hero-subtitle",
-        {
-          y: 30,
-          opacity: 0,
-          duration: 0.8,
-        },
-        "-=0.5"
-      )
-      .from(
-        ".hero-buttons",
-        {
-          y: 20,
-          opacity: 0,
-          duration: 0.6,
-        },
-        "-=0.4"
-      )
-      .from(
-        ".hero-stats",
-        {
-          y: 30,
-          opacity: 0,
-          duration: 0.8,
-        },
-        "-=0.3"
-      );
-  }, []);
-
   return (
     <section
       id="hero"
@@ -69,7 +29,6 @@ const Hero = () => {
           background:
             "radial-gradient(circle, rgba(245, 158, 11, 0.3) 0%, transparent 70%)",
           filter: "blur(60px)",
-          animation: "pulse-glow 4s ease-in-out infinite",
           pointerEvents: "none",
         }}
       />
@@ -87,11 +46,10 @@ const Hero = () => {
           style={{
             fontFamily: "'Orbitron', sans-serif",
             fontSize: "clamp(14px, 2vw, 18px)",
-            color: "#f59e0b",
+            color: "#00e676",
             textTransform: "uppercase",
             letterSpacing: "4px",
             marginBottom: "20px",
-            animation: "float 3s ease-in-out infinite",
           }}
         >
           Next Generation DeFi Protocol
@@ -106,7 +64,7 @@ const Hero = () => {
             lineHeight: 1.1,
             marginBottom: "30px",
             background:
-              "linear-gradient(135deg, #ffffff 0%, #f59e0b 50%, #eab308 100%)",
+              "linear-gradient(135deg, #ffffff 0%, #00e676 50%, #00b359 100%)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
             textShadow: "0 0 60px rgba(245, 158, 11, 0.5)",

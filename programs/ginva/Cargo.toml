@@ -4,8 +4,8 @@ version = "2.0.0"
 edition = "2021"
 
 [features]
-default = ["anchor-lang/init-if-needed"]        
-devnet = ["anchor-lang/init-if-needed"]         
+default = ["anchor-lang/init-if-needed"]
+devnet = ["anchor-lang/init-if-needed"]
 no-entrypoint = []
 cpi = ["no-entrypoint"]
 custom-heap = []
@@ -13,8 +13,8 @@ custom-panic = []
 no-idl = []
 anchor-debug = []
 no-log-ix-name = []
-local-test = []     
-idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]     
+local-test = []
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
 
 [lib]
 crate-type = ["cdylib", "lib"]
@@ -22,8 +22,15 @@ crate-type = ["cdylib", "lib"]
 [dependencies]
 anchor-lang = { version = "0.32.1", features = ["init-if-needed"] }
 anchor-spl = "0.32.1"
-blake3 = "1.5.4"
+blake3 = "=1.5.5"
 constant_time_eq = "=0.3.1"
 base64ct = "=1.6.0"
-hashbrown = "0.14.0"
-pyth_solana_receiver_sdk = { package = "pyth-solana-receiver-sdk", version = "1.1.0" }
+hashbrown = "=0.14.0"
+# pyth_solana_receiver_sdk = { package = "pyth-solana-receiver-sdk-legacy", version = "0.3.3" }
+
+# Override problematic dependencies to versions compatible with Rust 1.75.0
+[override]
+borsh = "1.5.5"
+borsh-derive = "1.0.4"
+toml_edit = "0.22.0"
+toml_parser = "0.10.0"

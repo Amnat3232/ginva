@@ -6,6 +6,13 @@ import {
   COLLATERAL_ASSETS,
   LTV_OPTIONS,
 } from "../data/mock";
+import {
+  FiAlertTriangle,
+  FiLock,
+  FiBarChart2,
+  FiTrendingUp,
+  FiSearch,
+} from "react-icons/fi";
 
 interface BorrowProps {
   showToast: (msg: string) => void;
@@ -202,7 +209,7 @@ export function Borrow({ showToast, connected }: BorrowProps) {
                 {/* Error Display */}
                 {error && (
                   <div className="error-message">
-                    <span className="error-icon">⚠️</span>
+                    <FiAlertTriangle className="error-icon" />
                     {error}
                   </div>
                 )}
@@ -210,9 +217,11 @@ export function Borrow({ showToast, connected }: BorrowProps) {
                 {/* Risk Banner */}
                 <div className="risk-banner">
                   <div className="risk-header">
-                    <span className="risk-title">⚠️ DeFi Risk Warning</span>
+                    <span className="risk-title">
+                      <FiAlertTriangle className="me-1" /> DeFi Risk Warning
+                    </span>
                     <span className="risk-badge">
-                      <span className="trust-icon">🔒</span>
+                      <FiLock className="trust-icon" />
                       Verified Program
                     </span>
                   </div>
@@ -224,15 +233,15 @@ export function Borrow({ showToast, connected }: BorrowProps) {
                   </p>
                   <div className="trust-badges">
                     <span className="trust-badge">
-                      <span className="trust-icon">📊</span>
+                      <FiBarChart2 className="trust-icon" />
                       Pyth Oracle
                     </span>
                     <span className="trust-badge">
-                      <span className="trust-icon">📈</span>
+                      <FiTrendingUp className="trust-icon" />
                       8% APR Fixed
                     </span>
                     <span className="trust-badge">
-                      <span className="trust-icon">🔍</span>
+                      <FiSearch className="trust-icon" />
                       <a
                         href="https://explorer.solana.com/address/2SiG...WKou?cluster=devnet"
                         target="_blank"
@@ -250,7 +259,7 @@ export function Borrow({ showToast, connected }: BorrowProps) {
 
                 <button
                   className="action-btn"
-                  disabled={loading || error || !connected}
+                  disabled={loading || !!error || !connected}
                   onClick={() => {
                     if (!connected) {
                       showToast("Please connect wallet first");

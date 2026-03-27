@@ -5,9 +5,10 @@
   "main": "keeper-suite.ts",
   "scripts": {
     "start": "ts-node keeper-suite.ts",
-    "start:trigger": "ts-node keeper-suite.ts trigger",
-    "start:hunter": "ts-node keeper-suite.ts hunter",
-    "start:finalize": "ts-node keeper-suite.ts finalize",
+    "keeper-a": "ts-node keeper-a.ts",
+    "keeper-b": "ts-node keeper-b.ts",
+    "keeper-c": "ts-node keeper-c.ts",
+    "auto-swap": "ts-node auto-swap-bot.ts",
     "build": "tsc"
   },
   "dependencies": {

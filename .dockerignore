@@ -1,9 +1,19 @@
+# Large project directories
+app
+frontend
+mobile
+bots
+docs
+tests
+scripts
+migrations
+
 # Git
 .git
 .gitignore
 .gitattributes
 
-# Node.js
+# Node.js - exclude completely
 node_modules
 npm-debug.log*
 yarn-debug.log*
@@ -11,10 +21,19 @@ yarn-error.log*
 package-lock.json
 yarn.lock
 
+# Large directories to exclude
+app
+frontend
+mobile
+bots
+docs
+tests
+scripts
+migrations
+
 # Rust
 /target
 **/target
-Cargo.lock
 **/*.rs.bk
 *.pdb
 

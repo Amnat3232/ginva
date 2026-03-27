@@ -1,0 +1,1 @@
+"use strict";exports.id=628,exports.ids=[628],exports.modules={1628:(e,s,t)=>{t.a(e,async(e,a)=>{try{t.d(s,{supabase:()=>p});var o=t(1309),r=e([o]);o=(r.then?(await r)():r)[0];let n="https://dummy.supabase.co",u="dummy-anon-key-for-development",p=n&&u?(0,o.createClient)(n,u,{auth:{autoRefreshToken:!0,persistSession:!0}}):null;a()}catch(e){a(e)}})}};

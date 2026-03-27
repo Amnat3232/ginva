@@ -14,14 +14,17 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Solana CLI v1.18.26 (compatible with Anchor 0.32.1)
+# This includes rustc 1.75.0 and the SBF target (bpfel-unknown-none)
 RUN sh -c "$(curl -sSfL https://release.anza.xyz/v1.18.26/install)" && \
     export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH" && \
-    solana --version
+    solana --version && \
+    rustc --version && \
+    rustc --print target-list | grep bpf
 
-# Set Solana path
+# Set Solana path (so that cargo, rustc, etc. from Solana are used)
 ENV PATH="/root/.local/share/solana/install/active_release/bin:${PATH}"
 
-# Install Anchor CLI 0.32.1
+# Install Anchor CLI 0.32.1 from git (using the Solana rustc)
 RUN cargo install --git https://github.com/coral-xyz/anchor --tag v0.32.1 anchor-cli --locked && \
     anchor --version
 
@@ -31,22 +34,13 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     node --version && \
     npm --version
 
-# Setup Rust toolchain - use nightly for edition2024 support
-# Note: bpfel-unknown-unknown target comes with Solana platform tools
-RUN rustup install nightly-2025-02-15 && \
-    rustup default nightly-2025-02-15 && \
-    rustup component add rustfmt && \
-    cargo +nightly-2025-02-15 --version && \
-    rustc --print target-list | grep -E "(bpf|sbf)" || echo "Solana target will be provided by platform tools"
-
 # Set working directory
 WORKDIR /build
 
 # Copy package files first for better caching
 COPY package.json package-lock.json* yarn.lock* ./
-COPY Cargo.toml Cargo.lock* ./
-COPY rust-toolchain.toml ./
-COPY Anchor.toml ./
+COPY Cargo.toml ./
+COPY Anchor.toml .
 
 # Install npm dependencies
 RUN npm install
@@ -54,12 +48,11 @@ RUN npm install
 # Copy source code
 COPY . .
 
-# Regenerate Cargo.lock with correct flags for edition2024
-RUN rm -f Cargo.lock && \
-    RUSTFLAGS="-Znext-lockfile-bump" cargo +nightly-2025-02-15 generate-lockfile
+# Use existing Cargo.lock (version 3) - don't regenerate as that creates version 4
+# which requires -Znext-lockfile-bump flag not available in Solana toolchain
 
 # Upgrade Anchor package in Docker (using npm instead of yarn)
 RUN npm install @coral-xyz/anchor@0.32.1
 
-# Default command
-CMD ["anchor", "build"]
+# Build the program - use RUN to actually build during image creation
+RUN anchor build

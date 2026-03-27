@@ -61,3 +61,10 @@ export const showError = (title: string, message?: string) => {
   const safeMessage = message ? sanitizeHtml(message) : "";
   alert(`Error - ${safeTitle}${safeMessage ? `: ${safeMessage}` : ""}`);
 };
+
+export const showInfo = (title: string, message?: string) => {
+  console.info(`[INFO] ${title}: ${message}`);
+  const safeTitle = sanitizeHtml(title);
+  const safeMessage = message ? sanitizeHtml(message) : "";
+  alert(`${safeTitle}${safeMessage ? `: ${safeMessage}` : ""}`);
+};

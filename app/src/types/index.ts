@@ -270,3 +270,12 @@ export interface AppNotification {
   duration?: number;
   timestamp: number;
 }
+
+// Page types for routing
+export type Page = "landing" | "borrow" | "keeper" | "support";
+
+// Toast type
+export interface Toast {
+  msg: string;
+  show: boolean;
+}

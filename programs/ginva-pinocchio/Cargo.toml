@@ -20,3 +20,6 @@ hashbrown = "=0.14"
 
 [lints.rust]
 unexpected_cfgs = "allow"
+
+# Pinocchio program builds standalone - not part of Anchor workspace
+[workspace]

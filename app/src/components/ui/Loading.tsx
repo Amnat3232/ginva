@@ -9,13 +9,12 @@ interface SuspenseProps {
 
 interface LoadingProps {
   message?: string;
+  text?: string;
   centered?: boolean;
 }
 
-export const Loading = ({
-  message = "Loading...",
-  centered = true,
-}: LoadingProps) => {
+export const Loading = ({ message, text, centered = true }: LoadingProps) => {
+  const displayMessage = message || text || "Loading...";
   return (
     <div
       className={`d-flex flex-column align-items-center justify-content-center ${
@@ -30,7 +29,7 @@ export const Loading = ({
         size="sm"
         className="me-2"
       />
-      <span className="text-muted mt-2">{message}</span>
+      <span className="text-muted mt-2">{displayMessage}</span>
     </div>
   );
 };

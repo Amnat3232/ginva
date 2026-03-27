@@ -154,7 +154,7 @@ const CTA = () => {
           Ready to Unlock Your{" "}
           <span
             style={{
-              background: "linear-gradient(135deg, #f59e0b 0%, #eab308 100%)",
+              background: "linear-gradient(135deg, #00e676 0%, #00b359 100%)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
             }}

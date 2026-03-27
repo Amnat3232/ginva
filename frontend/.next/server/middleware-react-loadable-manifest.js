@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST="{}";
+self.__REACT_LOADABLE_MANIFEST='{"hooks/useAnalytics.ts -> ../lib/supabase":{"id":4209,"files":["static/chunks/629-7eac4cea4058ce74.js","static/chunks/209.9f397f71a205c14a.js"]}}';

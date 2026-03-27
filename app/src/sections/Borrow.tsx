@@ -113,13 +113,13 @@ const Borrow = () => {
                       borderRadius: "10px",
                       border:
                         selectedAsset === asset
-                          ? "2px solid #f59e0b"
+                          ? "2px solid #00e676"
                           : "1px solid rgba(255, 255, 255, 0.2)",
                       background:
                         selectedAsset === asset
-                          ? "rgba(245, 158, 11, 0.1)"
+                          ? "rgba(0, 230, 118, 0.1)"
                           : "rgba(255, 255, 255, 0.05)",
-                      color: selectedAsset === asset ? "#f59e0b" : "white",
+                      color: selectedAsset === asset ? "#00e676" : "white",
                       fontFamily: "'Rajdhani', sans-serif",
                       fontWeight: 600,
                       fontSize: "16px",
@@ -190,13 +190,13 @@ const Borrow = () => {
                       borderRadius: "8px",
                       border:
                         ltv === option
-                          ? "2px solid #f59e0b"
+                          ? "2px solid #00e676"
                           : "1px solid rgba(255, 255, 255, 0.2)",
                       background:
                         ltv === option
-                          ? "rgba(245, 158, 11, 0.1)"
+                          ? "rgba(0, 230, 118, 0.1)"
                           : "rgba(255, 255, 255, 0.05)",
-                      color: ltv === option ? "#f59e0b" : "white",
+                      color: ltv === option ? "#00e676" : "white",
                       fontFamily: "'Rajdhani', sans-serif",
                       fontWeight: 600,
                       fontSize: "14px",
@@ -233,13 +233,13 @@ const Borrow = () => {
                       borderRadius: "8px",
                       border:
                         duration === days
-                          ? "2px solid #f59e0b"
+                          ? "2px solid #00e676"
                           : "1px solid rgba(255, 255, 255, 0.2)",
                       background:
                         duration === days
-                          ? "rgba(245, 158, 11, 0.1)"
+                          ? "rgba(0, 230, 118, 0.1)"
                           : "rgba(255, 255, 255, 0.05)",
-                      color: duration === days ? "#f59e0b" : "white",
+                      color: duration === days ? "#00e676" : "white",
                       fontFamily: "'Rajdhani', sans-serif",
                       fontWeight: 600,
                       fontSize: "14px",
@@ -284,7 +284,7 @@ const Borrow = () => {
                     fontFamily: "'Orbitron', sans-serif",
                     fontSize: "36px",
                     fontWeight: 700,
-                    color: "#f59e0b",
+                    color: "#00e676",
                   }}
                 >
                   ${borrowAmount.toFixed(2)}

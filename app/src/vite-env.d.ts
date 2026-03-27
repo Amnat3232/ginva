@@ -6,6 +6,8 @@ interface ImportMetaEnv {
   readonly VITE_SOLANA_NETWORK: string;
   readonly VITE_APP_TITLE: string;
   readonly VITE_APP_DESCRIPTION: string;
+  readonly VITE_ADMIN_WALLET: string;
+  readonly VITE_KEEPER_WALLET: string;
 }
 
 interface ImportMeta {

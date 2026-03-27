@@ -70,7 +70,7 @@ const HowItWorks = () => {
               marginBottom: "20px",
             }}
           >
-            How It <span style={{ color: "#f59e0b" }}>Works</span>
+            How It <span style={{ color: "#00e676" }}>Works</span>
           </h2>
           <p
             style={{
@@ -98,7 +98,7 @@ const HowItWorks = () => {
               width: "80%",
               height: "2px",
               background:
-                "linear-gradient(90deg, transparent, #f59e0b, transparent)",
+                "linear-gradient(90deg, transparent, #00e676, transparent)",
               zIndex: 0,
             }}
           />
@@ -127,7 +127,7 @@ const HowItWorks = () => {
                   borderRadius: "20px",
                   border:
                     activeStep === index
-                      ? "1px solid #f59e0b"
+                      ? "1px solid #00e676"
                       : "1px solid rgba(255, 255, 255, 0.1)",
                   transition: "all 0.5s ease",
                   transform: activeStep === index ? "scale(1.05)" : "scale(1)",
@@ -140,7 +140,7 @@ const HowItWorks = () => {
                     fontWeight: 700,
                     color:
                       activeStep === index
-                        ? "#f59e0b"
+                        ? "#00e676"
                         : "rgba(255, 255, 255, 0.2)",
                     marginBottom: "20px",
                     transition: "color 0.5s ease",

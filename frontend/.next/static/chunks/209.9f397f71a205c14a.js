@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[209],{4209:function(e,s,u){u.d(s,{supabase:function(){return o}});var n=u(2629);let t="https://dummy.supabase.co",a="dummy-anon-key-for-development",o=t&&a?(0,n.eI)(t,a,{auth:{autoRefreshToken:!0,persistSession:!0}}):null}}]);

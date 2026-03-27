@@ -26,12 +26,15 @@ import {
   FiUser,
   FiActivity,
 } from "react-icons/fi";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useGinvaProgram } from "../hooks/useGinvaProgram";
 import { showSuccess, showError } from "../utils/helpers";
 import * as anchor from "@coral-xyz/anchor";
 import { PublicKey } from "@solana/web3.js";
+
+const ADMIN_WALLET = import.meta.env.VITE_ADMIN_WALLET || "";
+const KEEPER_WALLET = import.meta.env.VITE_KEEPER_WALLET || "";
 
 interface SystemStats {
   totalBorrowed: number;
@@ -57,6 +60,41 @@ const Admin = () => {
   const [stats, setStats] = useState<SystemStats | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
   const [showPauseModal, setShowPauseModal] = useState(false);
+  const [accessDenied, setAccessDenied] = useState(false);
+
+  const isAdmin = useMemo(() => {
+    if (!publicKey) return false;
+    return publicKey.toString() === ADMIN_WALLET;
+  }, [publicKey]);
+
+  const isKeeper = useMemo(() => {
+    if (!publicKey) return false;
+    return publicKey.toString() === KEEPER_WALLET;
+  }, [publicKey]);
+
+  useEffect(() => {
+    if (connected && publicKey && !isAdmin && !isKeeper) {
+      setAccessDenied(true);
+    } else {
+      setAccessDenied(false);
+    }
+  }, [connected, publicKey, isAdmin, isKeeper]);
+
+  if (accessDenied) {
+    return (
+      <Container className="py-4">
+        <Alert variant="danger">
+          <Alert.Heading>Access Denied</Alert.Heading>
+          <p>
+            You do not have permission to access this page. Only authorized
+            admin and keeper wallets are allowed.
+          </p>
+          <hr />
+          <p className="mb-0">Your wallet: {publicKey?.toString()}</p>
+        </Alert>
+      </Container>
+    );
+  }
 
   // Form states
   const [protocolConfig, setProtocolConfig] = useState({
@@ -132,10 +170,54 @@ const Admin = () => {
     fetchStats();
   }, [program]);
 
-  // Update Protocol Config
+  // Update Protocol Config - Admin Only
   const handleUpdateProtocolConfig = async () => {
     if (!connected || !program || !publicKey) {
       showError("Wallet Not Connected");
+      return;
+    }
+
+    if (!isAdmin) {
+      showError("Access Denied", "Only admin can update protocol config");
+      return;
+    }
+
+    // Validate inputs
+    if (
+      protocolConfig.liquidationTimeout < 3600 ||
+      protocolConfig.liquidationTimeout > 604800
+    ) {
+      showError(
+        "Invalid Input",
+        "Liquidation timeout must be between 1 hour and 7 days"
+      );
+      return;
+    }
+    if (
+      protocolConfig.autoSwapRewardBps < 0 ||
+      protocolConfig.autoSwapRewardBps > 10000
+    ) {
+      showError(
+        "Invalid Input",
+        "Auto swap reward must be between 0% and 100%"
+      );
+      return;
+    }
+    if (
+      protocolConfig.distributeRewardBps < 0 ||
+      protocolConfig.distributeRewardBps > 10000
+    ) {
+      showError(
+        "Invalid Input",
+        "Distribute reward must be between 0% and 100%"
+      );
+      return;
+    }
+    if (
+      protocolConfig.minLoanSize < 0 ||
+      protocolConfig.maxLoanSize < protocolConfig.minLoanSize
+    ) {
+      showError("Invalid Input", "Invalid loan size range");
       return;
     }
 
@@ -178,10 +260,15 @@ const Admin = () => {
     }
   };
 
-  // Update Ops Wallet
+  // Update Ops Wallet - Admin Only
   const handleUpdateOpsWallet = async () => {
     if (!connected || !program || !publicKey) {
       showError("Wallet Not Connected");
+      return;
+    }
+
+    if (!isAdmin) {
+      showError("Access Denied", "Only admin can update ops wallet");
       return;
     }
 
@@ -216,10 +303,15 @@ const Admin = () => {
     }
   };
 
-  // Emergency Pause
+  // Emergency Pause - Admin Only
   const handleEmergencyPause = async () => {
     if (!connected || !program || !publicKey) {
       showError("Wallet Not Connected");
+      return;
+    }
+
+    if (!isAdmin) {
+      showError("Access Denied", "Only admin can emergency pause");
       return;
     }
 
@@ -249,10 +341,15 @@ const Admin = () => {
     }
   };
 
-  // Emergency Resume
+  // Emergency Resume - Admin Only
   const handleEmergencyResume = async () => {
     if (!connected || !program || !publicKey) {
       showError("Wallet Not Connected");
+      return;
+    }
+
+    if (!isAdmin) {
+      showError("Access Denied", "Only admin can emergency resume");
       return;
     }
 
@@ -515,16 +612,21 @@ const Admin = () => {
                     <Form.Label>Liquidation Timeout (seconds)</Form.Label>
                     <Form.Control
                       type="number"
+                      min={3600}
+                      max={604800}
                       value={protocolConfig.liquidationTimeout}
                       onChange={(e) =>
                         setProtocolConfig({
                           ...protocolConfig,
-                          liquidationTimeout: parseInt(e.target.value),
+                          liquidationTimeout: Math.max(
+                            3600,
+                            Math.min(604800, parseInt(e.target.value) || 3600)
+                          ),
                         })
                       }
                     />
                     <Form.Text className="text-muted">
-                      Default: 259200 (72 hours)
+                      Default: 259200 (72 hours), Range: 1-24 hours to 7 days
                     </Form.Text>
                   </Form.Group>
                 </Col>
@@ -533,16 +635,21 @@ const Admin = () => {
                     <Form.Label>Auto Swap Reward (bps)</Form.Label>
                     <Form.Control
                       type="number"
+                      min={0}
+                      max={10000}
                       value={protocolConfig.autoSwapRewardBps}
                       onChange={(e) =>
                         setProtocolConfig({
                           ...protocolConfig,
-                          autoSwapRewardBps: parseInt(e.target.value),
+                          autoSwapRewardBps: Math.max(
+                            0,
+                            Math.min(10000, parseInt(e.target.value) || 0)
+                          ),
                         })
                       }
                     />
                     <Form.Text className="text-muted">
-                      Default: 800 (8%). Max: 10000 (100%)
+                      Default: 800 (8%). Range: 0-10000 (0-100%)
                     </Form.Text>
                   </Form.Group>
                 </Col>
@@ -553,16 +660,21 @@ const Admin = () => {
                     <Form.Label>Distribute Reward (bps)</Form.Label>
                     <Form.Control
                       type="number"
+                      min={0}
+                      max={10000}
                       value={protocolConfig.distributeRewardBps}
                       onChange={(e) =>
                         setProtocolConfig({
                           ...protocolConfig,
-                          distributeRewardBps: parseInt(e.target.value),
+                          distributeRewardBps: Math.max(
+                            0,
+                            Math.min(10000, parseInt(e.target.value) || 0)
+                          ),
                         })
                       }
                     />
                     <Form.Text className="text-muted">
-                      Default: 100 (1%). Max: 10000 (100%)
+                      Default: 100 (1%). Range: 0-10000 (0-100%)
                     </Form.Text>
                   </Form.Group>
                 </Col>
@@ -575,11 +687,15 @@ const Admin = () => {
                     </Form.Label>
                     <Form.Control
                       type="number"
+                      min={0}
                       value={protocolConfig.minLoanSize}
                       onChange={(e) =>
                         setProtocolConfig({
                           ...protocolConfig,
-                          minLoanSize: parseInt(e.target.value),
+                          minLoanSize: Math.max(
+                            0,
+                            parseInt(e.target.value) || 0
+                          ),
                         })
                       }
                     />
@@ -595,11 +711,15 @@ const Admin = () => {
                     </Form.Label>
                     <Form.Control
                       type="number"
+                      min={0}
                       value={protocolConfig.maxLoanSize}
                       onChange={(e) =>
                         setProtocolConfig({
                           ...protocolConfig,
-                          maxLoanSize: parseInt(e.target.value),
+                          maxLoanSize: Math.max(
+                            0,
+                            parseInt(e.target.value) || 0
+                          ),
                         })
                       }
                     />
@@ -704,11 +824,16 @@ const Admin = () => {
                         <Form.Label>Max LTV (%)</Form.Label>
                         <Form.Control
                           type="number"
+                          min={0}
+                          max={100}
                           value={newAsset.maxLtv}
                           onChange={(e) =>
                             setNewAsset({
                               ...newAsset,
-                              maxLtv: parseInt(e.target.value),
+                              maxLtv: Math.max(
+                                0,
+                                Math.min(100, parseInt(e.target.value) || 0)
+                              ),
                             })
                           }
                         />
@@ -719,11 +844,16 @@ const Admin = () => {
                         <Form.Label>Liquidation Threshold (%)</Form.Label>
                         <Form.Control
                           type="number"
+                          min={0}
+                          max={100}
                           value={newAsset.liquidationThreshold}
                           onChange={(e) =>
                             setNewAsset({
                               ...newAsset,
-                              liquidationThreshold: parseInt(e.target.value),
+                              liquidationThreshold: Math.max(
+                                0,
+                                Math.min(100, parseInt(e.target.value) || 0)
+                              ),
                             })
                           }
                         />

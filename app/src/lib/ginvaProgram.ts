@@ -8,6 +8,24 @@ import { AnchorProvider, Program, BN } from "@coral-xyz/anchor";
 import type { WalletContextState } from "@solana/wallet-adapter-react";
 import idl from "../idl/ginva.json";
 
+/**
+ * VAULT ADDRESSES
+ *
+ * IMPORTANT: These vault addresses are derived from the GINVA smart contract's
+ * PDA (Program Derived Address) using seeds defined in the Solidity/Anchor program.
+ * They are NOT hardcoded secrets - they are public addresses that anyone can verify
+ * by calling getVaultAddress() on the smart contract.
+ *
+ * Security: The actual funds in these vaults are protected by:
+ * 1. The smart contract's instruction logic (only allow withdrawals to authorized accounts)
+ * 2. The PROGRAM_ID which validates all transactions
+ * 3. The PDA derivation using the program's authority
+ *
+ * These addresses follow the standard Solana pattern where:
+ * - collateralVault: PDA for holding user collateral (SOL/JUP tokens)
+ * - usdcVault: PDA for holding borrowed USDC (the lending pool)
+ */
+
 const PROGRAM_ID = new PublicKey(
   "6U1QUPxGuWLU9jizzcJiLsKzZU6LT95FzihaVzLsk8xU"
 );

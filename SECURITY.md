@@ -80,7 +80,9 @@ If you discover a security vulnerability in GINVA, please report it privately to
 
 ## Security Features Implemented
 
-### Smart Contract (Rust/Anchor)
+### Smart Contract (Rust/Pinocchio)
+
+> **Note:** Migrated from Anchor to [Pinocchio](https://github.com/anza-xyz/pinocchio) (no-std Solana program library) for reduced attack surface.
 
 - **Reentrancy Guard**: Prevents recursive calls
 - **Rate Limiting**: Limits operations per user per block

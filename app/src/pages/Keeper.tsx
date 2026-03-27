@@ -22,12 +22,15 @@ import {
   FiTrendingDown,
   FiCalendar,
 } from "react-icons/fi";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useGinvaProgram } from "../hooks/useGinvaProgram";
 import { showSuccess, showError } from "../utils/helpers";
 import * as anchor from "@coral-xyz/anchor";
 import { PublicKey } from "@solana/web3.js";
+
+const KEEPER_WALLET = "YOUR_KEEPER_WALLET_ADDRESS_HERE";
+const ADMIN_WALLET = "YOUR_ADMIN_WALLET_ADDRESS_HERE";
 
 interface LoanItem {
   id: number;
@@ -53,6 +56,41 @@ const Keeper = () => {
   const [currentTime, setCurrentTime] = useState(Date.now());
   const [filter, setFilter] = useState<string>("eligible");
   const [activeTab, setActiveTab] = useState("health-factor");
+  const [accessDenied, setAccessDenied] = useState(false);
+
+  const isKeeper = useMemo(() => {
+    if (!publicKey) return false;
+    return publicKey.toString() === KEEPER_WALLET;
+  }, [publicKey]);
+
+  const isAdmin = useMemo(() => {
+    if (!publicKey) return false;
+    return publicKey.toString() === ADMIN_WALLET;
+  }, [publicKey]);
+
+  useEffect(() => {
+    if (connected && publicKey && !isKeeper && !isAdmin) {
+      setAccessDenied(true);
+    } else {
+      setAccessDenied(false);
+    }
+  }, [connected, publicKey, isKeeper, isAdmin]);
+
+  if (accessDenied) {
+    return (
+      <Container className="py-4">
+        <Alert variant="warning">
+          <Alert.Heading>Keeper Access Required</Alert.Heading>
+          <p>
+            This page is for authorized keepers only. You need keeper
+            permissions to liquidate loans.
+          </p>
+          <hr />
+          <p className="mb-0">Your wallet: {publicKey?.toString()}</p>
+        </Alert>
+      </Container>
+    );
+  }
 
   // Update current time every second for countdown
   useEffect(() => {

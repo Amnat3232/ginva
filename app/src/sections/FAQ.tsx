@@ -86,7 +86,7 @@ const FAQ = () => {
               marginBottom: "20px",
             }}
           >
-            Frequently Asked <span style={{ color: "#f59e0b" }}>Questions</span>
+            Frequently Asked <span style={{ color: "#00e676" }}>Questions</span>
           </h2>
           <p
             style={{
@@ -104,6 +104,22 @@ const FAQ = () => {
             <div
               key={index}
               className="faq-item"
+              onMouseEnter={(e) => {
+                if (openIndex !== index) {
+                  e.currentTarget.style.background =
+                    "rgba(255, 255, 255, 0.04)";
+                  e.currentTarget.style.borderColor =
+                    "rgba(255, 255, 255, 0.1)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (openIndex !== index) {
+                  e.currentTarget.style.background =
+                    "rgba(255, 255, 255, 0.02)";
+                  e.currentTarget.style.borderColor =
+                    "rgba(255, 255, 255, 0.05)";
+                }
+              }}
               style={{
                 marginBottom: "15px",
                 borderRadius: "16px",
@@ -117,10 +133,23 @@ const FAQ = () => {
                     ? "1px solid rgba(245, 158, 11, 0.3)"
                     : "1px solid rgba(255, 255, 255, 0.05)",
                 transition: "all 0.3s ease",
+                cursor: "pointer",
               }}
             >
               <button
                 onClick={() => setOpenIndex(openIndex === index ? null : index)}
+                onMouseEnter={(e) => {
+                  e.currentTarget
+                    .querySelector("span")
+                    ?.setAttribute("style", "color: #00e676 !important");
+                }}
+                onMouseLeave={(e) => {
+                  if (openIndex !== index) {
+                    e.currentTarget
+                      .querySelector("span")
+                      ?.setAttribute("style", "color: white");
+                  }
+                }}
                 style={{
                   width: "100%",
                   padding: "20px 25px",
@@ -131,6 +160,7 @@ const FAQ = () => {
                   border: "none",
                   cursor: "pointer",
                   textAlign: "left",
+                  transition: "all 0.2s ease",
                 }}
               >
                 <span
@@ -139,6 +169,7 @@ const FAQ = () => {
                     fontSize: "18px",
                     fontWeight: 600,
                     color: "white",
+                    transition: "color 0.2s ease",
                   }}
                 >
                   {faq.question}
@@ -146,7 +177,7 @@ const FAQ = () => {
                 <span
                   style={{
                     fontSize: "24px",
-                    color: "#f59e0b",
+                    color: "#00e676",
                     transform:
                       openIndex === index ? "rotate(45deg)" : "rotate(0)",
                     transition: "transform 0.3s ease",
