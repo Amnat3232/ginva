@@ -68,7 +68,7 @@ jobs:
         if: success()
         run: |
           export PATH="$HOME/.local/share/solana/solana-release/bin:$PATH"
-          PROGRAM_SO="programs/ginva-pinocchio/target/release/ginva_pinocchio.so"
+          PROGRAM_SO="programs/ginva-pinocchio/target/release/libginva_pinocchio.so"
           PROGRAM_KEYPAIR="program-keypair.json"
           
           if [ ! -f "$PROGRAM_SO" ]; then
@@ -118,7 +118,7 @@ jobs:
         with:
           name: deployment-artifacts
           path: |
-            programs/ginva-pinocchio/target/release/*.so
+            programs/ginva-pinocchio/target/release/libginva_pinocchio.so
             program-keypair.json
 
   notify:
