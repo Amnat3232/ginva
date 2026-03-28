@@ -15,7 +15,7 @@ Ginva คือ **Decentralized Pawn Shop / Lending Protocol** บน Solana ท
 - [[08-Next-Steps]] → สิ่งที่ต้องทำต่อ
 
 ### Current Status
-- **Frontend**: Live at [[Deployment-Links|https://app-theta-gilt-82.vercel.app]]
+- **Frontend**: Live at [[Deployment-Links|https://ginva.vercel.app]]
 - **Smart Contract**: Deployed on Devnet (Program ID: `HQd5KLkNzAuJiG6jyyfs2wiMByLdAyGncUnbFhmhQhBj`)
 - **Phase**: Phase 6 (Documentation & New Features)
 - **Last Updated**: 2026-03-28

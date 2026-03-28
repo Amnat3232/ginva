@@ -57,7 +57,7 @@ npm run preview  # Preview build
 
 ## Deployment
 - **Platform**: Vercel
-- **URL**: https://app-theta-gilt-82.vercel.app
+- **URL**: https://ginva.vercel.app
 - **Auto-deploy**: On push to main
 
 ## Related

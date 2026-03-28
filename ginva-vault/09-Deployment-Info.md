@@ -1,7 +1,7 @@
 # Deployment & Links
 
 ## Production (Frontend)
-- **Live App**: https://app-theta-gilt-82.vercel.app
+- **Live App**: https://ginva.vercel.app
 - **Vercel Dashboard**: https://vercel.com/dr-solodevs-projects/app
 
 ## Devnet (Smart Contract)

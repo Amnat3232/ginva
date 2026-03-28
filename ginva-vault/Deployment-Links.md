@@ -4,7 +4,7 @@
 
 ## Production (Live)
 
-- **Frontend URL**: [https://app-theta-gilt-82.vercel.app](https://app-theta-gilt-82.vercel.app)
+- **Frontend URL**: [https://ginva.vercel.app](https://ginva.vercel.app)
 - **Vercel Dashboard**: [https://vercel.com/dr-solodevs-projects/app](https://vercel.com/dr-solodevs-projects/app)
 
 ## Devnet
@@ -36,7 +36,7 @@
 
 ## Quick Actions
 
-- [View Live App](https://app-theta-gilt-82.vercel.app)
+- [View Live App](https://ginva.vercel.app)
 - [Open Vercel Dashboard](https://vercel.com/dr-solodevs-projects/app)
 - [Check Program on Explorer](https://explorer.solana.com/address/HQd5KLkNzAuJiG6jyyfs2wiMByLdAyGncUnbFhmhQhBj?cluster=devnet)
 

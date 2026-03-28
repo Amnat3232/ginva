@@ -51,7 +51,7 @@ jobs:
 
       - name: Setup Wallet
         run: |
-          export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
+          export PATH="$HOME/.local/share/solana/solana-release/bin:$PATH"
           echo "${{ secrets.SOLANA_PRIVATE_KEY }}" > wallet.json
           solana config set --keypair wallet.json --url devnet
 

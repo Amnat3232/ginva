@@ -14,7 +14,7 @@ GINVA เป็นแพลตฟอร์ม **Decentralized Pawn Shop** บน
 ## Current Deployment Status
 
 **Production Frontend**
-- URL: [https://app-theta-gilt-82.vercel.app](https://app-theta-gilt-82.vercel.app)
+- URL: [https://ginva.vercel.app](https://ginva.vercel.app)
 - Dashboard: [https://vercel.com/dr-solodevs-projects/app](https://vercel.com/dr-solodevs-projects/app)
 
 **Devnet Smart Contract**
