@@ -86,7 +86,6 @@ jobs:
           
           solana program deploy \
             --program-id "$PROGRAM_KEYPAIR" \
-            --provider.cluster devnet \
             "$PROGRAM_SO"
 
       - name: Get Program ID
