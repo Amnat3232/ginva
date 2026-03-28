@@ -42,25 +42,19 @@ jobs:
       - name: Run tests in Docker
         run: |
           docker run --rm -v $(pwd):/workspace ginva-build:latest \
-            sh -c "cd /workspace && anchor test --skip-build"
+            sh -c "cd /workspace/programs/ginva-pinocchio && cargo test --release"
         continue-on-error: true
 
-      - name: Build program in Docker
+      - name: Build Pinocchio program in Docker
         run: |
           docker run --rm -v $(pwd):/workspace ginva-build:latest \
-            sh -c "cd /workspace && anchor build"
+            sh -c "cd /workspace/programs/ginva-pinocchio && cargo build --release"
 
-      - name: Upload IDL
+      - name: Upload Program Binary
         uses: actions/upload-artifact@v4
         with:
-          name: idl-files
-          path: target/idl/*.json
-
-      - name: Upload Types
-        uses: actions/upload-artifact@v4
-        with:
-          name: type-files
-          path: target/types/*.ts
+          name: program-binary
+          path: programs/ginva-pinocchio/target/release/libginva_pinocchio.so
 
   docker-compose-test:
     name: Test with Docker Compose

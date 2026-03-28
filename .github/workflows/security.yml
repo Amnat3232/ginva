@@ -25,10 +25,10 @@ jobs:
           components: rustfmt, clippy
 
       - name: Run Rustfmt
-        run: cargo fmt --manifest-path programs/ginva/Cargo.toml -- --check
+        run: cargo fmt --manifest-path programs/ginva-pinocchio/Cargo.toml -- --check
 
       - name: Run Clippy
-        run: cargo clippy --manifest-path programs/ginva/Cargo.toml -- -D warnings
+        run: cargo clippy --manifest-path programs/ginva-pinocchio/Cargo.toml -- -D warnings
         continue-on-error: true
 
       - name: Setup Node.js
@@ -99,14 +99,14 @@ jobs:
 
       - name: Check for unsafe code
         run: |
-          cd programs/ginva
+          cd programs/ginva-pinocchio
           cargo geiger --output-format Json 2>&1 | jq -r '.packages[] | select(.unsafety.count.unsafe > 0) | "WARNING: Unsafe code found in \(.package.name): \(.unsafety.count.unsafe) blocks"' || true
         continue-on-error: true
 
       - name: Run cargo-udeps (unused dependencies)
         run: |
           cargo install cargo-udeps
-          cd programs/ginva
+          cd programs/ginva-pinocchio
           cargo udeps 2>&1 || true
         continue-on-error: true
 
@@ -121,30 +121,23 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@nightly
         with:
-          toolchain: nightly
+          toolchain: nightly-2026-03-01
 
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libudev-dev pkg-config libssl-dev
+          sudo apt-get install -y libudev-dev pkg-config libssl-dev bzip2
 
-      - name: Install Anchor
-        run: |
-          npm uninstall -g @coral-xyz/anchor-cli || true
-          npm uninstall -g anchor-cli || true
-          cargo uninstall anchor-cli || true
-          cargo install --git https://github.com/coral-xyz/anchor --tag v0.30.1 anchor-cli
-          anchor --version
-
-      - name: Build program
-        run: anchor build
+      - name: Build Pinocchio program
+        working-directory: programs/ginva-pinocchio
+        run: cargo build --release
 
       - name: Check binary size
         run: |
-          SIZE=$(ls -lh target/deploy/ginva.so | awk '{print $5}')
+          SIZE=$(ls -lh programs/ginva-pinocchio/target/release/libginva_pinocchio.so | awk '{print $5}')
           echo "Binary size: $SIZE"
           # Warning if over 1MB
-          BYTES=$(stat -c%s target/deploy/ginva.so)
+          BYTES=$(stat -c%s programs/ginva-pinocchio/target/release/libginva_pinocchio.so)
           if [ $BYTES -gt 1048576 ]; then
             echo "⚠️ WARNING: Binary size exceeds 1MB"
           fi
