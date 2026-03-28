@@ -15,7 +15,11 @@ describe("Circuit Breaker", () => {
 
   before(async () => {
     admin = Keypair.fromSecretKey(
-      Buffer.from(JSON.parse(require("fs").readFileSync(process.env.ANCHOR_WALLET, "utf-8")))
+      Buffer.from(
+        JSON.parse(
+          require("fs").readFileSync(process.env.ANCHOR_WALLET, "utf-8")
+        )
+      )
     );
 
     [systemConfig] = PublicKey.findProgramAddressSync(
@@ -26,7 +30,8 @@ describe("Circuit Breaker", () => {
 
   describe("trigger_circuit_breaker", () => {
     it("Should trigger circuit breaker in emergency", async () => {
-      await program.methods.triggerCircuitBreaker()
+      await program.methods
+        .triggerCircuitBreaker()
         .accounts({
           admin: admin.publicKey,
           systemConfig: systemConfig,
@@ -45,7 +50,8 @@ describe("Circuit Breaker", () => {
       );
 
       try {
-        await program.methods.triggerCircuitBreaker()
+        await program.methods
+          .triggerCircuitBreaker()
           .accounts({
             admin: randomUser.publicKey,
             systemConfig: systemConfig,
@@ -62,7 +68,8 @@ describe("Circuit Breaker", () => {
   describe("reset_circuit_breaker", () => {
     it("Should reset circuit breaker after emergency", async () => {
       // First trigger it
-      await program.methods.triggerCircuitBreaker()
+      await program.methods
+        .triggerCircuitBreaker()
         .accounts({
           admin: admin.publicKey,
           systemConfig: systemConfig,
@@ -71,7 +78,8 @@ describe("Circuit Breaker", () => {
         .rpc();
 
       // Then reset it
-      await program.methods.resetCircuitBreaker()
+      await program.methods
+        .resetCircuitBreaker()
         .accounts({
           admin: admin.publicKey,
           systemConfig: systemConfig,
@@ -89,20 +97,25 @@ describe("Circuit Breaker", () => {
       const newMaxLiquidationPerHour = new BN(100);
       const newMaxBorrowPerHour = new BN(50000);
 
-      await program.methods.updateCircuitBreakerParams(
-        newMaxLiquidationPerHour,
-        newMaxBorrowPerHour
-      )
-      .accounts({
-        admin: admin.publicKey,
-        systemConfig: systemConfig,
-      })
-      .signers([admin])
-      .rpc();
+      await program.methods
+        .updateCircuitBreakerParams(
+          newMaxLiquidationPerHour,
+          newMaxBorrowPerHour
+        )
+        .accounts({
+          admin: admin.publicKey,
+          systemConfig: systemConfig,
+        })
+        .signers([admin])
+        .rpc();
 
       const config = await program.account.systemConfig.fetch(systemConfig);
-      expect(config.maxLiquidationPerHour.toString()).to.equal(newMaxLiquidationPerHour.toString());
-      expect(config.maxBorrowPerHour.toString()).to.equal(newMaxBorrowPerHour.toString());
+      expect(config.maxLiquidationPerHour.toString()).to.equal(
+        newMaxLiquidationPerHour.toString()
+      );
+      expect(config.maxBorrowPerHour.toString()).to.equal(
+        newMaxBorrowPerHour.toString()
+      );
     });
   });
 });

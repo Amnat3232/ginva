@@ -22,7 +22,11 @@ describe("Keeper Pipeline Simulation - A → B → C End-to-End", () => {
 
   before(async () => {
     const admin = Keypair.fromSecretKey(
-      Buffer.from(JSON.parse(require("fs").readFileSync(process.env.ANCHOR_WALLET, "utf-8")))
+      Buffer.from(
+        JSON.parse(
+          require("fs").readFileSync(process.env.ANCHOR_WALLET, "utf-8")
+        )
+      )
     );
 
     [systemConfig] = PublicKey.findProgramAddressSync(
@@ -55,7 +59,8 @@ describe("Keeper Pipeline Simulation - A → B → C End-to-End", () => {
 
     // Register all keepers
     for (const keeper of [keeperA, keeperB, keeperC]) {
-      await program.methods.registerKeeper()
+      await program.methods
+        .registerKeeper()
         .accounts({
           keeper: keeper.publicKey,
           systemConfig: systemConfig,
@@ -70,7 +75,8 @@ describe("Keeper Pipeline Simulation - A → B → C End-to-End", () => {
     console.log("Step 1: Keeper A triggers liquidation");
 
     // Step 1: Keeper A triggers liquidation
-    await program.methods.liquidateByHealthFactor()
+    await program.methods
+      .liquidateByHealthFactor()
       .accounts({
         keeper: keeperA.publicKey,
         loanAccount: loanAccount,
@@ -85,7 +91,8 @@ describe("Keeper Pipeline Simulation - A → B → C End-to-End", () => {
     console.log("✅ Keeper A triggered liquidation");
 
     // Step 1B: Keeper A claims trigger reward
-    await program.methods.claimTriggerReward()
+    await program.methods
+      .claimTriggerReward()
       .accounts({
         keeper: keeperA.publicKey,
         loanAccount: loanAccount,
@@ -98,14 +105,18 @@ describe("Keeper Pipeline Simulation - A → B → C End-to-End", () => {
 
     // Step 2: Keeper B executes OTC swap after timeout
     console.log("Step 2: Keeper B executes OTC swap (after 2s timeout)");
-    await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3s
+    await new Promise((resolve) => setTimeout(resolve, 3000)); // Wait 3s
 
     const collateralReceiver = Keypair.generate();
     await provider.connection.confirmTransaction(
-      await provider.connection.requestAirdrop(collateralReceiver.publicKey, 1e9)
+      await provider.connection.requestAirdrop(
+        collateralReceiver.publicKey,
+        1e9
+      )
     );
 
-    await program.methods.executeDexFallback()
+    await program.methods
+      .executeDexFallback()
       .accounts({
         keeper: keeperB.publicKey,
         loanAccount: loanAccount,
@@ -123,7 +134,8 @@ describe("Keeper Pipeline Simulation - A → B → C End-to-End", () => {
 
     // Step 3: Keeper C finalizes liquidation
     console.log("Step 3: Keeper C finalizes liquidation");
-    await program.methods.finalizeLiquidation()
+    await program.methods
+      .finalizeLiquidation()
       .accounts({
         keeper: keeperC.publicKey,
         loanAccount: loanAccount,
@@ -144,7 +156,8 @@ describe("Keeper Pipeline Simulation - A → B → C End-to-End", () => {
 
   it("Should prevent same keeper from doing multiple steps", async () => {
     // Keeper A triggers
-    await program.methods.liquidateByHealthFactor()
+    await program.methods
+      .liquidateByHealthFactor()
       .accounts({
         keeper: keeperA.publicKey,
         loanAccount: loanAccount,
@@ -157,11 +170,15 @@ describe("Keeper Pipeline Simulation - A → B → C End-to-End", () => {
     // Try to execute with same keeper (should fail)
     const collateralReceiver = Keypair.generate();
     await provider.connection.confirmTransaction(
-      await provider.connection.requestAirdrop(collateralReceiver.publicKey, 1e9)
+      await provider.connection.requestAirdrop(
+        collateralReceiver.publicKey,
+        1e9
+      )
     );
 
     try {
-      await program.methods.executeDexFallback()
+      await program.methods
+        .executeDexFallback()
         .accounts({
           keeper: keeperA.publicKey, // Same keeper!
           loanAccount: loanAccount,

@@ -19,7 +19,11 @@ describe("Liquidation Edge Cases - Health Factor Boundaries", () => {
 
   before(async () => {
     const admin = Keypair.fromSecretKey(
-      Buffer.from(JSON.parse(require("fs").readFileSync(process.env.ANCHOR_WALLET, "utf-8")))
+      Buffer.from(
+        JSON.parse(
+          require("fs").readFileSync(process.env.ANCHOR_WALLET, "utf-8")
+        )
+      )
     );
 
     [systemConfig] = PublicKey.findProgramAddressSync(
@@ -53,7 +57,8 @@ describe("Liquidation Edge Cases - Health Factor Boundaries", () => {
       );
 
       try {
-        await program.methods.liquidateByHealthFactor()
+        await program.methods
+          .liquidateByHealthFactor()
           .accounts({
             keeper: keeper.publicKey,
             loanAccount: loanAccount,
@@ -62,7 +67,9 @@ describe("Liquidation Edge Cases - Health Factor Boundaries", () => {
           })
           .signers([keeper])
           .rpc();
-        throw new Error("Should have failed - HF = 100.0% should not be liquidable");
+        throw new Error(
+          "Should have failed - HF = 100.0% should not be liquidable"
+        );
       } catch (e: any) {
         expect(e.error.errorCode.code).to.equal("HealthFactorNotCritical");
       }
@@ -75,7 +82,8 @@ describe("Liquidation Edge Cases - Health Factor Boundaries", () => {
       );
 
       try {
-        await program.methods.liquidateByHealthFactor()
+        await program.methods
+          .liquidateByHealthFactor()
           .accounts({
             keeper: keeper.publicKey,
             loanAccount: loanAccount,
@@ -84,7 +92,9 @@ describe("Liquidation Edge Cases - Health Factor Boundaries", () => {
           })
           .signers([keeper])
           .rpc();
-        throw new Error("Should have failed - HF > 100% should not be liquidable");
+        throw new Error(
+          "Should have failed - HF > 100% should not be liquidable"
+        );
       } catch (e: any) {
         expect(e.error.errorCode.code).to.equal("HealthFactorNotCritical");
       }
@@ -100,7 +110,8 @@ describe("Liquidation Edge Cases - Health Factor Boundaries", () => {
 
       // This will fail due to invalid loan state, but tests the instruction
       try {
-        await program.methods.liquidateByHealthFactor()
+        await program.methods
+          .liquidateByHealthFactor()
           .accounts({
             keeper: keeper.publicKey,
             loanAccount: loanAccount,
@@ -124,7 +135,8 @@ describe("Liquidation Edge Cases - Health Factor Boundaries", () => {
       );
 
       try {
-        await program.methods.liquidateByMaturity()
+        await program.methods
+          .liquidateByMaturity()
           .accounts({
             keeper: keeper.publicKey,
             loanAccount: loanAccount,
@@ -134,9 +146,10 @@ describe("Liquidation Edge Cases - Health Factor Boundaries", () => {
           .rpc();
         throw new Error("Should have failed - in protection period");
       } catch (e: any) {
-        expect(e.error.errorCode.code).to.be.oneOf(
-          ["LoanNotYetMatured", "InProtectionPeriod"]
-        );
+        expect(e.error.errorCode.code).to.be.oneOf([
+          "LoanNotYetMatured",
+          "InProtectionPeriod",
+        ]);
       }
     });
   });

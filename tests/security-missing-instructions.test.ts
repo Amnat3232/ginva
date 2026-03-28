@@ -14,7 +14,11 @@ describe("Security Tests - Missing Instructions", () => {
 
   before(async () => {
     admin = Keypair.fromSecretKey(
-      Buffer.from(JSON.parse(require("fs").readFileSync(process.env.ANCHOR_WALLET, "utf-8")))
+      Buffer.from(
+        JSON.parse(
+          require("fs").readFileSync(process.env.ANCHOR_WALLET, "utf-8")
+        )
+      )
     );
 
     [systemConfig] = PublicKey.findProgramAddressSync(
@@ -32,7 +36,8 @@ describe("Security Tests - Missing Instructions", () => {
 
       // Try with empty data (should fail)
       try {
-        await program.methods.executeDexFallback()
+        await program.methods
+          .executeDexFallback()
           .accounts({
             keeper: keeper.publicKey,
             loanAccount: PublicKey.default,
@@ -45,9 +50,10 @@ describe("Security Tests - Missing Instructions", () => {
           .rpc();
         throw new Error("Should have failed with invalid data");
       } catch (e: any) {
-        expect(e.error.errorCode.code).to.be.oneOf(
-          ["InvalidJupiterRoute", "AccountNotFound"]
-        );
+        expect(e.error.errorCode.code).to.be.oneOf([
+          "InvalidJupiterRoute",
+          "AccountNotFound",
+        ]);
       }
     });
 
@@ -60,12 +66,16 @@ describe("Security Tests - Missing Instructions", () => {
       // Try to execute swap twice
       const collateralReceiver = Keypair.generate();
       await provider.connection.confirmTransaction(
-        await provider.connection.requestAirdrop(collateralReceiver.publicKey, 1e9)
+        await provider.connection.requestAirdrop(
+          collateralReceiver.publicKey,
+          1e9
+        )
       );
 
       // First attempt
       try {
-        await program.methods.executeDexFallback()
+        await program.methods
+          .executeDexFallback()
           .accounts({
             keeper: keeper.publicKey,
             loanAccount: PublicKey.default,
@@ -82,7 +92,8 @@ describe("Security Tests - Missing Instructions", () => {
 
       // Try again (should fail due to duplicate)
       try {
-        await program.methods.executeDexFallback()
+        await program.methods
+          .executeDexFallback()
           .accounts({
             keeper: keeper.publicKey,
             loanAccount: PublicKey.default,
@@ -95,9 +106,10 @@ describe("Security Tests - Missing Instructions", () => {
           .rpc();
         throw new Error("Should have failed - duplicate attempt");
       } catch (e: any) {
-        expect(e.error.errorCode.code).to.be.oneOf(
-          ["AlreadySwapped", "InvalidLoanState"]
-        );
+        expect(e.error.errorCode.code).to.be.oneOf([
+          "AlreadySwapped",
+          "InvalidLoanState",
+        ]);
       }
     });
   });
@@ -110,7 +122,8 @@ describe("Security Tests - Missing Instructions", () => {
       );
 
       try {
-        await program.methods.distributeSafetyFund()
+        await program.methods
+          .distributeSafetyFund()
           .accounts({
             admin: randomUser.publicKey,
             systemConfig: systemConfig,
@@ -125,9 +138,10 @@ describe("Security Tests - Missing Instructions", () => {
 
     it("Should prevent distribute_dev_fund with insufficient balance", async () => {
       const devFundWallet = PublicKey.default;
-      
+
       try {
-        await program.methods.distributeDevFund()
+        await program.methods
+          .distributeDevFund()
           .accounts({
             admin: admin.publicKey,
             systemConfig: systemConfig,
@@ -137,9 +151,10 @@ describe("Security Tests - Missing Instructions", () => {
           .rpc();
         // May succeed or fail depending on fund balance
       } catch (e: any) {
-        expect(e.error.errorCode.code).to.be.oneOf(
-          ["InsufficientFunds", "ArithmeticError"]
-        );
+        expect(e.error.errorCode.code).to.be.oneOf([
+          "InsufficientFunds",
+          "ArithmeticError",
+        ]);
       }
     });
   });
@@ -152,7 +167,8 @@ describe("Security Tests - Missing Instructions", () => {
       );
 
       // Register once
-      await program.methods.registerAgent()
+      await program.methods
+        .registerAgent()
         .accounts({
           agent: agent.publicKey,
           systemConfig: systemConfig,
@@ -162,7 +178,8 @@ describe("Security Tests - Missing Instructions", () => {
 
       // Try to register again
       try {
-        await program.methods.registerAgent()
+        await program.methods
+          .registerAgent()
           .accounts({
             agent: agent.publicKey,
             systemConfig: systemConfig,
@@ -182,7 +199,8 @@ describe("Security Tests - Missing Instructions", () => {
       );
 
       try {
-        await program.methods.claimAgentRewards()
+        await program.methods
+          .claimAgentRewards()
           .accounts({
             agent: nonAgent.publicKey,
             systemConfig: systemConfig,
@@ -204,7 +222,8 @@ describe("Security Tests - Missing Instructions", () => {
       );
 
       try {
-        await program.methods.updateOpsWallet()
+        await program.methods
+          .updateOpsWallet()
           .accounts({
             admin: randomUser.publicKey,
             systemConfig: systemConfig,
