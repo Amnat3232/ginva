@@ -29,6 +29,7 @@ unexpected_cfgs = "allow"
 overflow-checks = true
 lto = "fat"
 codegen-units = 1
+strip = true
 
 [profile.release.package."*"]
 opt-level = 2
