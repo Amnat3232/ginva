@@ -2,34 +2,55 @@
 
 ## Core Concept
 GINVA เป็นแพลตฟอร์ม **Decentralized Pawn Shop** บน Solana  
-ผู้ใช้ฝาก collateral (SOL, BTC, ETH wrapped) เพื่อยืม USDC อัตราดอกเบี้ยคงที่ **8% APR**  
-เน้นความปลอดภัยสูง + Immutable parameters + AI Agent Keeper
+ผู้ใช้ฝาก collateral (SOL, BTC, ETH wrapped) เพื่อยืม USDC อัตราดอกเบี้ยคงที่ **8% APR**
 
 ## Key Features
-- **Interest Rate**: 8% fixed APR (hardcoded)
-- **LTV Ratios**: Safe 20% | Standard 40% | Max 60% (hardcoded)
-- **Liquidation**: Immediate เมื่อ Health Factor < 100% + 72h Grace Period
-- **Keeper System**: 3 Keepers (A: Trigger, B: Storefront, C: Finalize) + AI Agent (35% revenue share)
-- **Security**: Hardcoded params, Pyth Oracle, Supply Cap, Circuit Breaker, Anti Venus-style attack
+- Interest Rate: 8% fixed APR (hardcoded at `lib.rs:51`)
+- LTV: Safe 20% | Standard 40% | Max 60% (hardcoded at `lib.rs:52-54`)
+- Liquidation: Immediate เมื่อ Health Factor < 100%
+- Keeper System: 3 Keepers + AI Agent (35% revenue share)
+- Security: Hardcoded params + Anti Venus-style attack
+
+## Current Deployment Status
+
+**Production Frontend**
+- URL: [https://app-theta-gilt-82.vercel.app](https://app-theta-gilt-82.vercel.app)
+- Dashboard: [https://vercel.com/dr-solodevs-projects/app](https://vercel.com/dr-solodevs-projects/app)
+
+**Devnet Smart Contract**
+- Program ID: `HQd5KLkNzAuJiG6jyyfs2wiMByLdAyGncUnbFhmhQhBj`
+- Explorer: [https://explorer.solana.com/address/HQd5KLkNzAuJiG6jyyfs2wiMByLdAyGncUnbFhmhQhBj?cluster=devnet](https://explorer.solana.com/address/HQd5KLkNzAuJiG6jyyfs2wiMByLdAyGncUnbFhmhQhBj?cluster=devnet)
 
 ## Tech Stack
-- Smart Contract: **Rust + Pinocchio** (no_std) → `programs/ginva-pinocchio/`
+- Smart Contract: Rust + **Pinocchio** (no_std) → `programs/ginva-pinocchio/`
 - Keeper Bots: TypeScript → `bots/`
 - Frontend: React + TypeScript + Vite 8 → `app/`
-- CI/CD: GitHub Actions (cargo-build-sbf)
+- Network: Solana Devnet
 
-## Design Philosophy
-- **Immutable First** — ลด attack surface ให้มากที่สุด
-- **No Admin Keys** สำหรับ parameter หลัก
-- **AI + Human Keeper** ร่วมกัน
-- **Protect against low-liquidity token manipulation** (เรียนรู้จาก Venus exploit)
+## Smart Contract Structure
 
-## Deployment Status (Phase 5 ✅)
-- **Program ID**: `HQd5KLkNzAuJiG6jyyfs2wiMByLdAyGncUnbFhmhQhBj`
-- **Network**: Solana Devnet
-- **Frontend**: https://app-theta-gilt-82.vercel.app
+### Instructions (12 total)
+Source: `programs/ginva-pinocchio/src/instructions.rs:22-35`
+
+| ID | Name | Purpose |
+|----|------|---------|
+| 0 | InitializeSystem | Setup protocol |
+| 1 | InitializeProtocolConfig | Configure parameters |
+| 2 | InitializeAsset | Add collateral type |
+| 3-5 | Deposit/Borrow/Repay | Core lending |
+| 6 | Liquidate | Liquidation trigger |
+| 7 | Withdraw | Withdraw collateral |
+| 8-9 | StakeAgent/UnstakeAgent | Agent staking |
+| 10-11 | RegisterKeeper/KeeperHeartbeat | Keeper management |
+
+### Security Features
+- **Oracle Circuit Breaker**: Auto-pause on price deviation (`lib.rs:29`)
+- **Supply Cap**: MAX_TOTAL_STAKED = 1,000,000 USDC (`lib.rs:36`)
+- **Reentrancy Guard**: Single-level protection (`lib.rs:44-45`)
+- **Safe Math**: All arithmetic uses checked operations
 
 ## Related Notes
+- [[Deployment-Links]] → รายละเอียด deployment ทั้งหมด
 - [[02-Architecture/Pinocchio-Framework]]
 - [[02-Architecture/Security-Model]]
 - [[02-Architecture/Keeper-System]]
