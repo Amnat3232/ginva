@@ -40,19 +40,19 @@ GINVA 是一个基于 Solana 的去中心化借贷协议 (DeFi lending protocol)
 
 ### 5. Security Hardening Features (Phase 2)
 
-详见 `docs/SECURITY_HARDENING.md`
+See `docs/SECURITY_HARDENING.md` for full documentation.
 
 **Supply Cap:**
-- 限制每个资产的最大存款/借款金额
-- AssetConfig.supply_cap 字段
+- Limits max deposit/borrow amount per asset
+- AssetConfig.supply_cap field (0 = unlimited)
 
 **Oracle Circuit Breaker:**
-- 检测价格异常时自动暂停
+- Auto-pauses on price anomaly detection
 - AssetConfig.price_deviation_threshold_bps
 
 **Multi-Oracle:**
-- Pyth + Switchboard 双重验证
-- AssetOracleConfig 支持主/次 oracle
+- Pyth + Switchboard dual validation
+- AssetOracleConfig supports primary/secondary oracle
 
 ### 6. 常用命令 (Common Commands)
 
