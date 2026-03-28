@@ -3,11 +3,9 @@ name: 🚀 Auto Deploy to Devnet
 on:
   push:
     branches: [develop]
-    paths:
-      - "programs/**"
-      - "Cargo.toml"
-      - "Cargo.lock"
-      - ".github/workflows/deploy.yml"
+    paths-ignore:
+      - "docs/**"
+      - "ginva-vault/**"
   workflow_dispatch:
     inputs:
       skip_tests:
