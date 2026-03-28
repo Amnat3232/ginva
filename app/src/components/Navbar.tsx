@@ -6,29 +6,20 @@ interface NavbarProps {
   page?: Page;
   connected?: boolean;
   walletAddress?: string;
+  balance?: { sol: string; usd: string } | null;
   onNavigate?: (page: Page) => void;
   onConnect?: () => void;
 }
-
-// Fake balance that updates randomly
-const getFakeBalance = () => {
-  const solBase = 12.5 + Math.random() * 3;
-  const solUsd = solBase * 182;
-  return {
-    sol: solBase.toFixed(1),
-    usd: Math.round(solUsd).toLocaleString(),
-  };
-};
 
 export function Navbar({
   page,
   connected,
   walletAddress,
+  balance,
   onNavigate,
   onConnect,
 }: NavbarProps) {
   const [scrolled, setScrolled] = useState(false);
-  const [balance, setBalance] = useState(getFakeBalance());
 
   useEffect(() => {
     const handleScroll = () => {
@@ -37,15 +28,6 @@ export function Navbar({
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  // Update balance every 15 seconds when connected
-  useEffect(() => {
-    if (!connected) return;
-    const interval = setInterval(() => {
-      setBalance(getFakeBalance());
-    }, 15000);
-    return () => clearInterval(interval);
-  }, [connected]);
 
   return (
     <nav
@@ -91,7 +73,7 @@ export function Navbar({
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          {connected && (
+          {connected && balance && (
             <div style={{ fontSize: "0.85rem", color: "var(--muted)" }}>
               <span style={{ color: "var(--green)" }}>{balance.sol}</span> SOL ·
               ${balance.usd}

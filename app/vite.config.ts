@@ -17,39 +17,14 @@ export default defineConfig({
   },
   build: {
     outDir: "dist",
-    commonjsOptions: {
-      transformMixedEsModules: true,
-      ignoreDynamicRequires: true,
-    },
-    rollupOptions: {
-      external: [],
-      output: {
-        manualChunks: {
-          "vendor-react": ["react", "react-dom", "react-router-dom"],
-          "vendor-solana": [
-            "@solana/web3.js",
-            "@solana/wallet-adapter-react",
-            "@solana/wallet-adapter-react-ui",
-            "@solana/wallet-adapter-base",
-            "@solana/wallet-adapter-phantom",
-            "@solana/wallet-adapter-solflare",
-          ],
-          "vendor-anchor": ["@coral-xyz/anchor"],
-          "vendor-ui": ["react-bootstrap", "bootstrap"],
-        },
-      },
-    },
+    // Vite 8 (Rolldown) handles code splitting automatically
   },
   define: {
     global: "globalThis",
     "process.env": {},
   },
   optimizeDeps: {
-    esbuildOptions: {
-      define: {
-        global: "globalThis",
-      },
-    },
+    // Vite 8 uses Rolldown for dependency optimization
     include: [
       "@solana/web3.js",
       "@solana/wallet-adapter-react",

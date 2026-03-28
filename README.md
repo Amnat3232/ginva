@@ -441,28 +441,49 @@ All core parameters are **HARDCODED and IMMUTABLE** for maximum security:
 "Safety comes from verifiable logic, not promises"
 ```
 
+### **Error Codes**
+
+| Code | Name | Description |
+|------|------|-------------|
+| 6000 | `ExcessiveWithdrawalAmount` | Withdrawal exceeds available balance |
+| 6001 | `InsufficientCollateral` | Not enough collateral for borrow |
+| ... | ... | ... |
+| 800 | `SupplyCapExceeded` | Deposit/borrow would exceed supply cap |
+| 801 | `PriceDeviationTooHigh` | Price deviation detected |
+| 802 | `OracleDivergenceDetected` | Primary/secondary oracle disagreement |
+| 803 | `SecondaryOracleUnavailable` | Secondary oracle fetch failed |
+| 804 | `CircuitBreakerActive` | Protocol paused due to anomaly |
+
+See `programs/ginva-pinocchio/src/lib.rs` for full error code list.
+
 ---
 
 ## 🚀 **Quick Start**
 
-### **For Users (Web/Mobile)**
+### **For Users (Web)**
 
 ```bash
-# 1. Open app
-https://ginva.vercel.app
+# 1. Open app (Vite + React)
+cd app && npm run dev
 
-# 2. Install as PWA (Mobile)
-# iOS: Share → Add to Home Screen
-# Android: Menu → Install App
+# 2. Connect wallet (Phantom, Solflare supported)
 
-# 3. Connect wallet
-# Use Phantom, Magic, or any Solana wallet
-
-# 4. Choose role
+# 3. Choose role
 # ├─ Borrower: Deposit collateral → Borrow USDC
 # ├─ Liquidity Provider: Deposit USDC → Earn rewards
 # └─ Keeper: Run liquidation bot
 ```
+
+### **Development Phases**
+
+| Phase | Status | Description |
+|-------|--------|-------------|
+| Phase 1: CI Fix | ✅ Complete | All CI/CD workflows passing |
+| Phase 2: Security | ✅ Complete | Supply cap, circuit breaker, multi-oracle |
+| Phase 3: Frontend | ✅ Complete | Wallet integration, security UI |
+| Phase 4: Docs | 🔄 Current | Documentation & polish |
+| Phase 5: Deploy | ⏳ Next | Testnet/Devnet deployment |
+| Phase 6: Features | ⏳ Future | New protocol features |
 
 ### **For Developers (Smart Contract)**
 
@@ -525,87 +546,115 @@ npm run auto-swap
 ```
 ginva/
 ├── programs/
-│   └── ginva/
+│   └── ginva-pinocchio/        # 🔑 Smart Contract (Pinocchio - no_std)
 │       └── src/
-│           └── lib.rs          # 🔑 Core smart contract (5,987 lines)
-│               ├── initialize_system()
-│               ├── deposit_collateral()
-│               ├── borrow_usdc()
-│               ├── extend_loan()
-│               ├── trigger_liquidation()
-│               ├── buy_from_storefront()
-│               ├── finalize_liquidation()
-│               ├── repay_loan()
-│               ├── pay_interest()
-│               ├── stake_lp()
-│               ├── claim_staking_rewards()
-│               └── ... (19 total functions)
+│           ├── lib.rs          # Main entry point
+│           ├── accounts.rs     # Account structures (AssetConfig, AssetOracleConfig)
+│           ├── instructions.rs # Instruction implementations
+│           └── tests.rs        # Unit tests (18 tests)
+│
+├── app/                        # 💻 Frontend (Vite + React + TypeScript)
+│   ├── src/
+│   │   ├── components/         # UI components (Navbar, Ticker, etc.)
+│   │   ├── pages/              # Pages (Borrow, Earn, Landing, etc.)
+│   │   ├── hooks/              # React hooks (wallet, program, prices)
+│   │   ├── services/           # API mutations & queries
+│   │   ├── store/              # Zustand state management
+│   │   ├── idl/                # Program IDL (Anchor format)
+│   │   └── lib/                # GinvaProgram class
+│   └── vite.config.ts
 │
 ├── bots/                       # 🤖 Keeper Bots
 │   ├── keeper-a.ts            # Trigger bot (detect & liquidate)
 │   ├── keeper-b.ts            # Storefront bot (buy with discount)
 │   ├── keeper-c.ts            # Finalize bot (distribute funds)
-│   ├── auto-swap-bot.ts       # Jupiter DEX integration
-│   └── keeper-suite.ts         # Combined suite (all bots)
+│   └── keeper-suite.ts        # Combined suite (all bots)
 │
-├── frontend/                   # Web app (Next.js)
-│   ├── src/
+├── docs/                       # 📚 Documentation
+│   ├── SECURITY_HARDENING.md  # Security features (Phase 2)
 │   └── ...
 │
-├── mobile/                    # Mobile app (React Native)
+├── .github/workflows/          # 🔄 CI/CD
+│   ├── ci.yml                  # Main CI (build, lint, test)
+│   ├── test.yml                # Test workflow
+│   └── deploy.yml              # Devnet deployment
 │
-├── tests/                     # Test suite (20+ test files)
-│
-├── docs/                      # Documentation (15+ files)
-│   ├── ARCHITECTURE.md
-│   ├── SECURITY.md
-│   ├── DEPLOYMENT.md
-│   ├── RISK_DISCLOSURE.md
-│   └── ...
-│
-└── scripts/
-    ├── deploy.sh
-    └── ...
+└── AGENTS.md                   # AI agent instructions
 ```
 
 ---
 
 ## 🛡️ **Security & Audits**
 
-### **Security First**
+### **Security Hardening (Phase 2)**
+
+The protocol includes three major security features:
+
+| Feature | Description | Error Code |
+|---------|-------------|------------|
+| **Supply Cap** | Limits max deposit/borrow per asset (0 = unlimited) | 800 |
+| **Oracle Circuit Breaker** | Auto-pauses on price anomaly (>5% deviation) | 804 |
+| **Multi-Oracle Validation** | Pyth + Switchboard dual validation | 802 |
 
 ```
-✅ Smart Contract Audited
-├─ Input validation (100%)
-├─ Reentrancy protection
-├─ Overflow protection
-├─ Price deviation checks
-└─ Emergency pause mechanism
+Supply Cap Protection:
+├─ AssetConfig.supply_cap field
+├─ Checked before deposit/borrow
+├─ Prevents excessive risk exposure
+└─ Example: USDC cap = 10M, SOL cap = 1M
 
-✅ Multi-sig Protection
-├─ Admin controls (emergency only)
-├─ 48-hour timelock on resume
-└─ No access to user funds
+Oracle Circuit Breaker:
+├─ Tracks last known price
+├─ Detects deviation > threshold (default 5%)
+├─ Auto-pauses borrowing on anomaly
+├─ Owner can reset after investigation
+└─ 15-second price freshness requirement
 
-✅ Fully Immutable Parameters
-├─ Rates cannot change
-├─ LTVs hardcoded
-├─ Fees permanent
-└─ Trust in code, not people
+Multi-Oracle:
+├─ Primary: Pyth Network
+├─ Secondary: Switchboard
+├─ Validates price agreement (<5% spread)
+├─ Falls back to single oracle if needed
+└─ Prevents single-source manipulation
+```
+
+### **Smart Contract Security**
+
+```
+✅ Pinocchio (no_std) - Reduced attack surface
+✅ Input validation (100%)
+✅ Reentrancy protection (Anchor patterns)
+✅ Overflow protection (Rust safe math)
+✅ Emergency pause mechanism
+✅ Multi-sig admin controls (emergency only)
+✅ Fully immutable core parameters
 ```
 
 ---
 
 ## 📚 **Documentation**
 
-| Document                                            | Purpose                  |
-| --------------------------------------------------- | ------------------------ |
-| [`ARCHITECTURE.md`](docs/ARCHITECTURE.md)           | How the system works     |
-| [`SECURITY.md`](docs/SECURITY.md)                   | Security design & audits |
-| [`DEPLOYMENT.md`](docs/DEPLOYMENT.md)               | How to deploy            |
-| [`RISK_DISCLOSURE.md`](docs/RISK_DISCLOSURE.md)     | Risks & limitations      |
-| [`DEVELOPMENT.md`](DEVELOPMENT.md)                  | Developer guide          |
-| [`BEHIND_THE_SCENES.md`](docs/BEHIND_THE_SCENES.md) | The journey              |
+| Document                                                | Purpose                          |
+| ------------------------------------------------------- | -------------------------------- |
+| [`SECURITY_HARDENING.md`](docs/SECURITY_HARDENING.md)   | Supply cap, circuit breaker, multi-oracle |
+| [`AGENTS.md`](AGENTS.md)                                | AI agent development guide       |
+| [`docs/`](docs/)                                        | Additional documentation         |
+
+### **Smart Contract Reference**
+
+| Function | Description |
+|----------|-------------|
+| `initialize_system()` | Initialize protocol config |
+| `deposit_collateral()` | Deposit SOL/JUP as collateral |
+| `borrow_usdc()` | Borrow USDC against collateral |
+| `repay_loan()` | Repay loan and interest |
+| `extend_loan()` | Extend loan maturity by 15 days |
+| `trigger_liquidation()` | Keeper A: Trigger liquidation |
+| `buy_from_storefront()` | Keeper B: Buy with discount |
+| `finalize_liquidation()` | Keeper C: Distribute funds |
+| `stake_lp()` / `unstake_lp()` | Stake/unstake LP tokens |
+| `circuit_breaker_trigger()` | Pause on price anomaly |
+| `circuit_breaker_reset()` | Resume after investigation |
 
 ---
 

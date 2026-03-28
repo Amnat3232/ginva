@@ -23,3 +23,12 @@ unexpected_cfgs = "allow"
 
 # Pinocchio program builds standalone - not part of Anchor workspace
 [workspace]
+
+# Solana program linker configuration - fix ELF section name length
+[profile.release]
+overflow-checks = true
+lto = "fat"
+codegen-units = 1
+
+[profile.release.package."*"]
+opt-level = 2

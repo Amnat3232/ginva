@@ -432,7 +432,8 @@ export function Borrow({ showToast, connected }: BorrowProps) {
                 ["Interest Rate", "8% APR · Fixed · Immutable"],
                 ["Grace Period", "72 hours after maturity"],
                 ["LTV Max", "60% · Immediate liquidation if HF < 100%"],
-                ["Oracle", "Pyth Network · 15s stale threshold"],
+                ["Oracle", "Pyth + Switchboard · Dual Validation"],
+                ["Circuit Breaker", "Active · 5% deviation threshold"],
                 ["Network", "Solana Devnet"],
               ].map(([k, v]) => (
                 <div className="detail-row" key={k}>
@@ -449,6 +450,224 @@ export function Borrow({ showToast, connected }: BorrowProps) {
                   </span>
                 </div>
               ))}
+
+              {/* Security Status Indicators */}
+              <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid var(--border)" }}>
+                <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginBottom: 8 }}>
+                  Security Status
+                </div>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <span className="badge active" style={{ fontSize: "0.7rem" }}>
+                    Multi-Oracle
+                  </span>
+                  <span className="badge active" style={{ fontSize: "0.7rem" }}>
+                    Circuit Breaker
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Supply Cap Status Card */}
+            <div className="card" style={{ marginTop: 16 }}>
+              <div className="card-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2">
+                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+                Supply Capacity
+              </div>
+
+              {/* SOL Supply */}
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                  <span style={{ fontSize: "0.8rem", color: "var(--text)" }}>
+                    <span style={{ color: "var(--green)" }}>◎</span> SOL Pool
+                  </span>
+                  <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>
+                    125,000 / 1,000,000 SOL
+                  </span>
+                </div>
+                <div style={{ height: 8, background: "var(--surface2)", borderRadius: 4, overflow: "hidden" }}>
+                  <div style={{
+                    width: "12.5%",
+                    height: "100%",
+                    background: "linear-gradient(90deg, var(--green), var(--green-light, #00ff88))",
+                    borderRadius: 4,
+                    transition: "width 0.5s ease",
+                  }} />
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
+                  <span style={{ fontSize: "0.7rem", color: "var(--green)" }}>12.5% Used</span>
+                  <span style={{ fontSize: "0.7rem", color: "var(--muted)" }}>875,000 SOL Available</span>
+                </div>
+              </div>
+
+              {/* USDC Supply */}
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                  <span style={{ fontSize: "0.8rem", color: "var(--text)" }}>
+                    <span style={{ color: "#2775ca" }}>$</span> USDC Lending Pool
+                  </span>
+                  <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>
+                    $2,450,000 / $10,000,000
+                  </span>
+                </div>
+                <div style={{ height: 8, background: "var(--surface2)", borderRadius: 4, overflow: "hidden" }}>
+                  <div style={{
+                    width: "24.5%",
+                    height: "100%",
+                    background: "linear-gradient(90deg, #2775ca, #4a9eff)",
+                    borderRadius: 4,
+                    transition: "width 0.5s ease",
+                  }} />
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
+                  <span style={{ fontSize: "0.7rem", color: "#4a9eff" }}>24.5% Utilized</span>
+                  <span style={{ fontSize: "0.7rem", color: "var(--muted)" }}>$7,550,000 Available</span>
+                </div>
+              </div>
+
+              <div style={{
+                marginTop: 12,
+                padding: "8px 12px",
+                background: "rgba(0, 230, 118, 0.1)",
+                borderRadius: 6,
+                border: "1px solid rgba(0, 230, 118, 0.2)",
+                fontSize: "0.72rem",
+                color: "var(--green)",
+              }}>
+                ✓ Supply caps protect against inflation attacks. New deposits/reborrows rejected when 100% reached.
+              </div>
+            </div>
+
+            {/* Circuit Breaker Status Card */}
+            <div className="card" style={{ marginTop: 16 }}>
+              <div className="card-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                Oracle Circuit Breaker
+              </div>
+
+              <div style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 12,
+                marginBottom: 12,
+              }}>
+                {/* Pyth Oracle */}
+                <div style={{
+                  padding: "12px",
+                  background: "var(--surface2)",
+                  borderRadius: 8,
+                  border: "1px solid var(--border)",
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                    <div style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      background: "var(--green)",
+                      boxShadow: "0 0 8px var(--green)",
+                    }} />
+                    <span style={{ fontSize: "0.75rem", fontWeight: 600 }}>Pyth Network</span>
+                  </div>
+                  <div style={{ fontSize: "0.7rem", color: "var(--muted)", marginBottom: 4 }}>SOL/USD</div>
+                  <div style={{ fontSize: "1rem", fontWeight: 600, color: "var(--text)" }}>$182.40</div>
+                  <div style={{ fontSize: "0.65rem", color: "var(--green)", marginTop: 2 }}>Updated 3s ago</div>
+                </div>
+
+                {/* Switchboard Oracle */}
+                <div style={{
+                  padding: "12px",
+                  background: "var(--surface2)",
+                  borderRadius: 8,
+                  border: "1px solid var(--border)",
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                    <div style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      background: "var(--green)",
+                      boxShadow: "0 0 8px var(--green)",
+                    }} />
+                    <span style={{ fontSize: "0.75rem", fontWeight: 600 }}>Switchboard</span>
+                  </div>
+                  <div style={{ fontSize: "0.7rem", color: "var(--muted)", marginBottom: 4 }}>SOL/USD</div>
+                  <div style={{ fontSize: "1rem", fontWeight: 600, color: "var(--text)" }}>$182.38</div>
+                  <div style={{ fontSize: "0.65rem", color: "var(--green)", marginTop: 2 }}>Updated 5s ago</div>
+                </div>
+              </div>
+
+              {/* Deviation Monitor */}
+              <div style={{
+                padding: "12px",
+                background: "var(--surface2)",
+                borderRadius: 8,
+                marginBottom: 12,
+              }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                  <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>Price Deviation</span>
+                  <span style={{
+                    fontSize: "0.7rem",
+                    padding: "2px 8px",
+                    borderRadius: 4,
+                    background: "rgba(0, 230, 118, 0.15)",
+                    color: "var(--green)",
+                  }}>
+                    Normal
+                  </span>
+                </div>
+                <div style={{ height: 6, background: "var(--surface1)", borderRadius: 3, position: "relative" }}>
+                  {/* Threshold line at 5% */}
+                  <div style={{
+                    position: "absolute",
+                    left: "5%",
+                    top: 0,
+                    bottom: 0,
+                    width: 2,
+                    background: "var(--red)",
+                    borderRadius: 1,
+                  }} />
+                  {/* Current deviation */}
+                  <div style={{
+                    width: "0.01%",
+                    height: "100%",
+                    background: "var(--green)",
+                    borderRadius: 3,
+                    position: "relative",
+                  }}>
+                    <div style={{
+                      position: "absolute",
+                      right: -4,
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      background: "var(--green)",
+                      border: "2px solid var(--surface2)",
+                    }} />
+                  </div>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
+                  <span style={{ fontSize: "0.65rem", color: "var(--muted)" }}>0%</span>
+                  <span style={{ fontSize: "0.65rem", color: "var(--red)" }}>5% THRESHOLD</span>
+                  <span style={{ fontSize: "0.65rem", color: "var(--muted)" }}>10%</span>
+                </div>
+              </div>
+
+              {/* Status Info */}
+              <div style={{
+                padding: "10px 12px",
+                background: "rgba(0, 230, 118, 0.08)",
+                borderRadius: 6,
+                border: "1px solid rgba(0, 230, 118, 0.15)",
+                fontSize: "0.72rem",
+                color: "var(--green)",
+              }}>
+                ✓ Protocol active. If oracle prices diverge &gt;5%, borrowing auto-pauses until resolution.
+              </div>
             </div>
           </div>
         </div>

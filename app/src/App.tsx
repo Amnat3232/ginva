@@ -1,6 +1,8 @@
 import { Routes, Route } from "react-router-dom";
 import { Container } from "react-bootstrap";
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense, useState, useMemo, useEffect } from "react";
+import { useWallet, useConnection } from "@solana/wallet-adapter-react";
+import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import Navbar from "./components/Navbar";
 import Loading from "./components/ui/Loading";
 import Ticker from "./components/Ticker";
@@ -24,12 +26,64 @@ const Admin = lazy(() => import("./pages/Admin"));
 function App() {
   const [page, setPage] = useState<Page>("landing");
   const [toast, setToast] = useState<Toast>({ msg: "", show: false });
-  const [connected] = useState(false);
-  const [walletAddress] = useState("7xK2...mR9P");
+  const [balance, setBalance] = useState<{ sol: string; usd: string } | null>(null);
+
+  // Real wallet integration
+  const { connection } = useConnection();
+  const { connected, publicKey, disconnect } = useWallet();
+  const { setVisible } = useWalletModal();
+
+  // Format wallet address for display
+  const walletAddress = useMemo(() => {
+    if (!publicKey) return "";
+    const str = publicKey.toBase58();
+    return `${str.slice(0, 4)}...${str.slice(-4)}`;
+  }, [publicKey]);
+
+  // Fetch wallet balance
+  useEffect(() => {
+    if (!connected || !publicKey) {
+      setBalance(null);
+      return;
+    }
+
+    const fetchBalance = async () => {
+      try {
+        const lamports = await connection.getBalance(publicKey);
+        const sol = lamports / 1e9;
+        // TODO: Fetch real SOL/USD price from oracle
+        const solPrice = 182;
+        const usd = sol * solPrice;
+        setBalance({
+          sol: sol.toFixed(2),
+          usd: Math.round(usd).toLocaleString(),
+        });
+      } catch (error) {
+        console.error("Failed to fetch balance:", error);
+        setBalance(null);
+      }
+    };
+
+    fetchBalance();
+    const interval = setInterval(fetchBalance, 15000);
+    return () => clearInterval(interval);
+  }, [connected, publicKey, connection]);
 
   const showToast = (msg: string) => {
     setToast({ msg, show: true });
     setTimeout(() => setToast((t: Toast) => ({ ...t, show: false })), 3000);
+  };
+
+  const handleConnect = () => {
+    setVisible(true);
+  };
+
+  const handleDisconnect = async () => {
+    try {
+      await disconnect();
+    } catch (error) {
+      console.error("Failed to disconnect:", error);
+    }
   };
 
   return (
@@ -38,8 +92,9 @@ function App() {
         page={page}
         connected={connected}
         walletAddress={walletAddress}
+        balance={balance}
         onNavigate={setPage}
-        onConnect={() => {}}
+        onConnect={connected ? handleDisconnect : handleConnect}
       />
       <Ticker />
       <Container fluid>
