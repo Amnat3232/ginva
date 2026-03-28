@@ -14,7 +14,7 @@ on:
         default: false
 
 env:
-  SOLANA_VERSION: 1.18.25
+  SOLANA_VERSION: 1.18.26
   RUST_TOOLCHAIN: 1.75.0
 
 jobs:
@@ -55,14 +55,16 @@ jobs:
           echo "${{ secrets.SOLANA_PRIVATE_KEY }}" > wallet.json
           solana config set --keypair wallet.json --url devnet
 
-      - name: Build Pinocchio Program
+      - name: Install Solana BPF Toolchain
+        run: |
+          sh -c "$(curl -sSfL https://release.anza.xyz/v1.18.26)"
+
+      - name: Build Pinocchio Program with BPF
         working-directory: programs/ginva-pinocchio
         env:
-          CARGO_PROFILE_RELEASE_DEBUG: 0
-          RUSTFLAGS: "-C link-arg=-Wl,--strip-debug -C link-arg=-Wl,--remove-section=.note.gnu.build-id"
+          CARGO_TARGET_BPFEL_UNKNOWN_LINUX_GNU_LINK_LLVM_BIN: /root/.local/share/solana/install/active_release/bin/llvm-objcopy
         run: |
-          cargo build --release
-          llvm-strip --strip-all target/release/libginva_pinocchio.so || true
+          cargo build-bpf --release
 
       - name: Run Tests
         if: ${{ !inputs.skip_tests }}
