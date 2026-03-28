@@ -30,6 +30,7 @@ overflow-checks = true
 lto = "fat"
 codegen-units = 1
 strip = true
+debug = 0
 
 [profile.release.package."*"]
 opt-level = 2
