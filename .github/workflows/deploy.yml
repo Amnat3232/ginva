@@ -57,7 +57,9 @@ jobs:
 
       - name: Build Pinocchio Program
         working-directory: programs/ginva-pinocchio
-        run: cargo build --release
+        run: |
+          cargo build --release
+          llvm-strip --strip-all target/release/libginva_pinocchio.so
 
       - name: Run Tests
         if: ${{ !inputs.skip_tests }}
