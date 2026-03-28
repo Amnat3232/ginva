@@ -38,7 +38,23 @@ GINVA 是一个基于 Solana 的去中心化借贷协议 (DeFi lending protocol)
 - wallet.json 仅在 develop 分支 push 时使用
 - 使用 GitHub Secrets 存储敏感信息
 
-### 5. 常用命令 (Common Commands)
+### 5. Security Hardening Features (Phase 2)
+
+详见 `docs/SECURITY_HARDENING.md`
+
+**Supply Cap:**
+- 限制每个资产的最大存款/借款金额
+- AssetConfig.supply_cap 字段
+
+**Oracle Circuit Breaker:**
+- 检测价格异常时自动暂停
+- AssetConfig.price_deviation_threshold_bps
+
+**Multi-Oracle:**
+- Pyth + Switchboard 双重验证
+- AssetOracleConfig 支持主/次 oracle
+
+### 6. 常用命令 (Common Commands)
 
 ```bash
 # 构建 Pinocchio 程序
