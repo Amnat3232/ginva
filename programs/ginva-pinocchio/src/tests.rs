@@ -162,23 +162,124 @@ mod tests {
             liquidation_threshold_bps: 8000,
             debt_accumulation_factor: 0,
             debt_accumulated: 0,
-            is_active: 1, // Active
+            is_active: 1,
             asset_oracle_config: [0u8; 32],
-            asset_oracle_max_staleness: 0,
+            asset_oracle_max_staleness: 60,
             is_whitelisted: 1,
             is_collateral_enabled: 1,
-            collateral_weight_bps: [100u8; 32],
+            collateral_weight_bps: 100,
             debt_weight_bps: 100,
             circuit_breaker_triggered: 0,
-            circuit_breaker_threshold_bps: 0,
-            circuit_breaker_reset_factor_bps: [0u8; 32],
-            liquidation_loan_value_ratio_bps: 0,
+            circuit_breaker_threshold_bps: 10,
+            circuit_breaker_reset_factor_bps: 8000,
+            liquidation_loan_value_ratio_bps: 5000,
+            // Phase 2: Security Hardening
+            supply_cap: 1_000_000_000,
+            price_deviation_threshold_bps: 500,
+            last_price: 100_000_000,
+            last_price_update: 1000,
         };
 
         assert!(asset.is_active());
         assert!(asset.is_whitelisted());
         assert!(asset.is_collateral_enabled());
         assert!(!asset.circuit_breaker_triggered());
+        assert!(asset.has_supply_cap());
+        assert!(!asset.is_supply_cap_exceeded(100));
+        assert!(asset.is_supply_cap_exceeded(2_000_000_000));
+    }
+
+    #[test]
+    fn test_supply_cap_validation() {
+        let mut asset = AssetConfig {
+            discriminator: *b"asset___",
+            asset_id: [0u8; 32],
+            mint: [0u8; 32],
+            reserve_wallet: [0u8; 32],
+            debt_share_mint: [0u8; 32],
+            last_reserve_update: 0,
+            total_reserve: 900_000_000,
+            utilization_ratio_bps: 0,
+            interest_rate_bps: 500,
+            liquidation_bonus_bps: 500,
+            max_ltv_bps: 6000,
+            liquidation_threshold_bps: 8000,
+            debt_accumulation_factor: 0,
+            debt_accumulated: 0,
+            is_active: 1,
+            asset_oracle_config: [0u8; 32],
+            asset_oracle_max_staleness: 60,
+            is_whitelisted: 1,
+            is_collateral_enabled: 1,
+            collateral_weight_bps: 100,
+            debt_weight_bps: 100,
+            circuit_breaker_triggered: 0,
+            circuit_breaker_threshold_bps: 10,
+            circuit_breaker_reset_factor_bps: 8000,
+            liquidation_loan_value_ratio_bps: 5000,
+            supply_cap: 1_000_000_000,
+            price_deviation_threshold_bps: 500,
+            last_price: 100_000_000,
+            last_price_update: 1000,
+        };
+
+        // Should allow 50M more (900M + 50M = 950M < 1B)
+        assert!(!asset.is_supply_cap_exceeded(50_000_000));
+
+        // Should reject 200M more (900M + 200M = 1.1B > 1B)
+        assert!(asset.is_supply_cap_exceeded(200_000_000));
+
+        // Test with no supply cap (0 = unlimited)
+        asset.supply_cap = 0;
+        assert!(!asset.has_supply_cap());
+        assert!(!asset.is_supply_cap_exceeded(u64::MAX));
+    }
+
+    #[test]
+    fn test_price_deviation_detection() {
+        let asset = AssetConfig {
+            discriminator: *b"asset___",
+            asset_id: [0u8; 32],
+            mint: [0u8; 32],
+            reserve_wallet: [0u8; 32],
+            debt_share_mint: [0u8; 32],
+            last_reserve_update: 0,
+            total_reserve: 0,
+            utilization_ratio_bps: 0,
+            interest_rate_bps: 500,
+            liquidation_bonus_bps: 500,
+            max_ltv_bps: 6000,
+            liquidation_threshold_bps: 8000,
+            debt_accumulation_factor: 0,
+            debt_accumulated: 0,
+            is_active: 1,
+            asset_oracle_config: [0u8; 32],
+            asset_oracle_max_staleness: 60,
+            is_whitelisted: 1,
+            is_collateral_enabled: 1,
+            collateral_weight_bps: 100,
+            debt_weight_bps: 100,
+            circuit_breaker_triggered: 0,
+            circuit_breaker_threshold_bps: 10,
+            circuit_breaker_reset_factor_bps: 8000,
+            liquidation_loan_value_ratio_bps: 5000,
+            supply_cap: 0,
+            price_deviation_threshold_bps: 500, // 5%
+            last_price: 100_000_000,            // $100
+            last_price_update: 1000,
+        };
+
+        // Same price - no deviation
+        assert!(!asset.is_price_deviation_exceeded(100_000_000));
+
+        // 2% increase - within threshold
+        assert!(!asset.is_price_deviation_exceeded(102_000_000));
+
+        // 6% increase - exceeds 5% threshold
+        assert!(asset.is_price_deviation_exceeded(106_000_000));
+
+        // 6% decrease - exceeds 5% threshold
+        assert!(asset.is_price_deviation_exceeded(94_000_000));
     }
 
     #[test]

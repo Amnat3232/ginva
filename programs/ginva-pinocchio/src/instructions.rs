@@ -409,6 +409,16 @@ fn process_borrow(_program_id: &Pubkey, accounts: &[AccountInfo], data: &[u8]) -
         return Err(GinvaError::AssetNotActive.into());
     }
 
+    // Phase 2: Check circuit breaker
+    if asset.circuit_breaker_triggered() {
+        return Err(GinvaError::CircuitBreakerActive.into());
+    }
+
+    // Phase 2: Check supply cap
+    if asset.is_supply_cap_exceeded(amount) {
+        return Err(GinvaError::SupplyCapExceeded.into());
+    }
+
     // TODO: Full borrow logic with LTV checks, loan account creation, etc.
 
     Ok(())

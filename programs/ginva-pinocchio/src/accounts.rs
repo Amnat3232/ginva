@@ -2,6 +2,7 @@
 //! Account data structures - Simplified without bytemuck derives
 
 #![allow(dead_code)]
+#![allow(clippy::manual_abs_diff)]
 
 use crate::GinvaError;
 use pinocchio::account_info::AccountInfo;
@@ -51,8 +52,38 @@ impl SystemConfig {
 // Asset Config Account
 // ============================================================================
 
-pub const ASSET_CONFIG_SIZE: usize =
-    8 + 32 + 32 + 32 + 8 + 8 + 1 + 1 + 8 + 1 + 1 + 16 + 8 + 1 + 32 + 8 + 1 + 1 + 32 + 8;
+// AssetConfig size calculation:
+// discriminator: 8
+// asset_id: 32
+// mint: 32
+// reserve_wallet: 32
+// debt_share_mint: 32
+// last_reserve_update: 8
+// total_reserve: 8
+// utilization_ratio_bps: 2
+// interest_rate_bps: 2
+// liquidation_bonus_bps: 2
+// max_ltv_bps: 2
+// liquidation_threshold_bps: 2
+// debt_accumulation_factor: 16
+// debt_accumulated: 8
+// is_active: 1
+// asset_oracle_config: 32
+// asset_oracle_max_staleness: 8
+// is_whitelisted: 1
+// is_collateral_enabled: 1
+// collateral_weight_bps: 2
+// debt_weight_bps: 8
+// circuit_breaker_triggered: 1
+// circuit_breaker_threshold_bps: 1
+// circuit_breaker_reset_factor_bps: 8
+// liquidation_loan_value_ratio_bps: 8
+// supply_cap: 8
+// price_deviation_threshold_bps: 2
+// last_price: 8
+// last_price_update: 8
+// = 246 bytes
+pub const ASSET_CONFIG_SIZE: usize = 246;
 
 #[repr(C)]
 pub struct AssetConfig {
@@ -75,12 +106,17 @@ pub struct AssetConfig {
     pub asset_oracle_max_staleness: u64,
     pub is_whitelisted: u8,
     pub is_collateral_enabled: u8,
-    pub collateral_weight_bps: [u8; 32],
+    pub collateral_weight_bps: u16,
     pub debt_weight_bps: u64,
     pub circuit_breaker_triggered: u8,
     pub circuit_breaker_threshold_bps: u8,
-    pub circuit_breaker_reset_factor_bps: [u8; 32],
+    pub circuit_breaker_reset_factor_bps: u64,
     pub liquidation_loan_value_ratio_bps: u64,
+    // Phase 2: Security Hardening
+    pub supply_cap: u64,
+    pub price_deviation_threshold_bps: u16,
+    pub last_price: u64,
+    pub last_price_update: u64,
 }
 
 impl AssetConfig {
@@ -95,6 +131,40 @@ impl AssetConfig {
     }
     pub fn circuit_breaker_triggered(&self) -> bool {
         self.circuit_breaker_triggered != 0
+    }
+
+    // Phase 2: Supply Cap validation
+    pub fn has_supply_cap(&self) -> bool {
+        self.supply_cap > 0
+    }
+    pub fn is_supply_cap_exceeded(&self, additional_amount: u64) -> bool {
+        if !self.has_supply_cap() {
+            return false;
+        }
+        self.total_reserve.saturating_add(additional_amount) > self.supply_cap
+    }
+
+    // Phase 2: Price deviation detection
+    pub fn is_price_deviation_exceeded(&self, new_price: u64) -> bool {
+        if self.last_price == 0 {
+            return false; // No previous price to compare
+        }
+        let threshold = self.price_deviation_threshold_bps as u64;
+        if threshold == 0 {
+            return false; // No threshold set
+        }
+
+        // Calculate deviation in basis points
+        let price_diff = if new_price > self.last_price {
+            new_price - self.last_price
+        } else {
+            self.last_price - new_price
+        };
+
+        // deviation_bps = (price_diff * 10000) / last_price
+        let deviation_bps = (price_diff * 10000) / self.last_price;
+
+        deviation_bps > threshold
     }
 }
 
@@ -230,6 +300,26 @@ impl KeeperPoolAccount {}
 // Asset Oracle Config
 // ============================================================================
 
+// AssetOracleConfig size calculation:
+// discriminator: 8
+// oracle_program: 32
+// is_initialized: 1
+// is_allowed: 1
+// pyth_oracle_pubkey: 32
+// pyth_status: 1
+// switchboard_oracle_pubkey: 32
+// max_staleness_seconds: 8
+// secondary_oracle_pubkey: 32
+// secondary_oracle_type: 1 (0=none, 1=pyth, 2=switchboard)
+// oracle_deviation_threshold_bps: 2
+// last_pyth_price: 8
+// last_secondary_price: 8
+// last_price_update: 8
+// is_circuit_breaker_active: 1
+// min_oracle_consensus: 1
+// = 179 bytes
+pub const ASSET_ORACLE_CONFIG_SIZE: usize = 179;
+
 #[repr(C)]
 pub struct AssetOracleConfig {
     pub discriminator: [u8; 8],
@@ -240,9 +330,81 @@ pub struct AssetOracleConfig {
     pub pyth_status: u8,
     pub switchboard_oracle_pubkey: [u8; 32],
     pub max_staleness_seconds: u64,
+    // Phase 2: Multi-Oracle Support
+    pub secondary_oracle_pubkey: [u8; 32],
+    pub secondary_oracle_type: u8, // 0=none, 1=pyth, 2=switchboard
+    pub oracle_deviation_threshold_bps: u16,
+    pub last_pyth_price: u64,
+    pub last_secondary_price: u64,
+    pub last_price_update: u64,
+    pub is_circuit_breaker_active: u8,
+    pub min_oracle_consensus: u8, // minimum number of oracles that must agree
 }
 
-impl AssetOracleConfig {}
+impl AssetOracleConfig {
+    pub fn is_initialized(&self) -> bool {
+        self.is_initialized != 0
+    }
+    pub fn is_allowed(&self) -> bool {
+        self.is_allowed != 0
+    }
+    pub fn is_circuit_breaker_active(&self) -> bool {
+        self.is_circuit_breaker_active != 0
+    }
+    pub fn has_secondary_oracle(&self) -> bool {
+        self.secondary_oracle_type != 0
+    }
+
+    // Calculate aggregated price from multiple oracles
+    // Returns (aggregated_price, is_valid)
+    pub fn get_aggregated_price(&self, pyth_price: u64, secondary_price: u64) -> (u64, bool) {
+        if !self.has_secondary_oracle() {
+            // Single oracle mode - just use Pyth
+            return (pyth_price, pyth_price > 0);
+        }
+
+        if pyth_price == 0 || secondary_price == 0 {
+            return (0, false);
+        }
+
+        // Check if prices are within acceptable deviation
+        let (lower, upper) = if pyth_price <= secondary_price {
+            (pyth_price, secondary_price)
+        } else {
+            (secondary_price, pyth_price)
+        };
+
+        // Calculate deviation in basis points
+        let deviation_bps = ((upper - lower) * 10000) / lower;
+
+        if deviation_bps > self.oracle_deviation_threshold_bps as u64 {
+            // Prices diverge too much - trigger circuit breaker
+            return (0, false);
+        }
+
+        // Use average of the two prices
+        let aggregated = (pyth_price + secondary_price) / 2;
+        (aggregated, true)
+    }
+
+    // Validate oracle freshness
+    pub fn is_price_fresh(&self, current_time: u64) -> bool {
+        if self.last_price_update == 0 {
+            return false;
+        }
+        current_time.saturating_sub(self.last_price_update) <= self.max_staleness_seconds
+    }
+
+    // Activate circuit breaker
+    pub fn trigger_circuit_breaker(&mut self) {
+        self.is_circuit_breaker_active = 1;
+    }
+
+    // Reset circuit breaker (should only be called by admin after verification)
+    pub fn reset_circuit_breaker(&mut self) {
+        self.is_circuit_breaker_active = 0;
+    }
+}
 
 // ============================================================================
 // UserStake Account

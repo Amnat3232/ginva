@@ -149,6 +149,12 @@ pub enum GinvaError {
     AgentAlreadyExists = 701,
     AgentInactive = 702,
     AgentRateLimited = 703,
+    // Phase 2: Security Hardening errors
+    SupplyCapExceeded = 800,
+    PriceDeviationTooHigh = 801,
+    OracleDivergenceDetected = 802,
+    SecondaryOracleUnavailable = 803,
+    CircuitBreakerActive = 804,
 }
 
 impl From<GinvaError> for ProgramError {
