@@ -14,7 +14,7 @@ on:
         default: false
 
 env:
-  SOLANA_VERSION: 1.18.24
+  SOLANA_VERSION: 1.18.25
   RUST_TOOLCHAIN: stable
 
 jobs:
