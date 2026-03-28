@@ -1,6 +1,11 @@
 //! GINVA Protocol - Pinocchio Version
 //! Instructions implementation
 
+#![allow(unused_variables)]
+#![allow(clippy::op_ref)]
+#![allow(dead_code)]
+#![allow(clippy::result_unit_err)]
+
 use crate::accounts::*;
 use crate::GinvaError;
 use pinocchio::account_info::AccountInfo;
@@ -8,10 +13,11 @@ use pinocchio::program_error::ProgramError;
 use pinocchio::pubkey::Pubkey;
 use pinocchio::ProgramResult;
 
+#[allow(unused_variables)]
+#[allow(clippy::op_ref)]
 // ============================================================================
 // INSTRUCTION ENUM
 // ============================================================================
-
 #[repr(u8)]
 pub enum GinvaInstruction {
     InitializeSystem = 0,

@@ -1,12 +1,12 @@
 //! GINVA Protocol - Pinocchio Version
 //! Account data structures - Simplified without bytemuck derives
 
+#![allow(dead_code)]
+
 use crate::GinvaError;
 use pinocchio::account_info::AccountInfo;
 use pinocchio::program_error::ProgramError;
 use pinocchio::pubkey::Pubkey;
-
-/// Discriminator for account types (8 bytes)
 
 // ============================================================================
 // System Config Account
