@@ -11,6 +11,26 @@
 
 ---
 
+## 🏛️ Origin Story
+
+> "Early 2025, I had ETH that I believed in
+> But my child needed tuition money, urgently
+> The crypto market was crashing
+>
+> I sold it. Even though it hurt the most in my life
+> The most I've ever regretted
+>
+> But I had no choice - I needed the cash
+>
+> If Ginva existed back then...
+> I would have deposited my ETH, borrowed USDC to pay
+> Then gotten my ETH back after a month
+>
+> That's why I built Ginva
+> So anyone who goes through what I did has a choice"
+
+---
+
 ## 💚 **What is GINVA?**
 
 **GINVA** is a **decentralized lending protocol** that lets you use cryptocurrency as collateral to borrow stablecoins—without selling your assets.
