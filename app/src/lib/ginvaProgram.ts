@@ -27,7 +27,7 @@ import idl from "../idl/ginva.json";
  */
 
 const PROGRAM_ID = new PublicKey(
-  "HQd5KLkNzAuJiG6jyyfs2wiMByLdAyGncUnbFhmhQhBj"
+  "Ev9HTrf45JBM5PBvAG9v6AUb5cw4XeGgKXmrk7RtQm3D"
 );
 const TOKEN_PROGRAM = new PublicKey(
   "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"

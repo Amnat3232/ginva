@@ -20,3 +20,4 @@ bots/keypair.json
 
 # Agent skills (personal configuration)
 .agents/skills/
+.vercel
