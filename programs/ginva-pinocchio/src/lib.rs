@@ -19,7 +19,7 @@ use pinocchio_pubkey::declare_id;
 // PROGRAM ID
 // ============================================================================
 
-declare_id!("GWcQGdrSiVk8p58bYSmw8FTceR9dcHAKQzw7yEyjLTsy");
+declare_id!("Ev9HTrf45JBM5PBvAG9v6AUb5cw4XeGgKXmrk7RtQm3D");
 
 // ============================================================================
 // SECURITY CONSTANTS

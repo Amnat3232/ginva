@@ -1,5 +1,6 @@
 // Landing Page Component
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Page } from "../types";
 import {
   LANDING_STATS,
@@ -28,6 +29,7 @@ import {
   FiCircle,
   FiCreditCard,
   FiAward,
+  FiPlay,
 } from "react-icons/fi";
 
 const FEATURE_ICONS: Record<string, React.ReactNode> = {
@@ -71,6 +73,7 @@ interface LandingProps {
 }
 
 export function Landing({ onNavigate }: LandingProps) {
+  const navigate = useNavigate();
   const [liveTvl, setLiveTvl] = useState(12845620);
   const [liveUsers, setLiveUsers] = useState(1847);
 
@@ -134,6 +137,52 @@ export function Landing({ onNavigate }: LandingProps) {
               onClick={() => onNavigate("support")}
             >
               Provide Liquidity
+            </button>
+          </div>
+
+          {/* Demo Mode Banner */}
+          <div
+            style={{
+              marginTop: 24,
+              padding: "16px 24px",
+              background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)",
+              borderRadius: 12,
+              border: "1px solid #4a5568",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+              gap: 16,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <FiPlay size={24} style={{ color: "#9f7aea" }} />
+              <div>
+                <div style={{ fontWeight: "bold", color: "#e2e8f0", fontSize: "1.1rem" }}>
+                  Try Before You Commit
+                </div>
+                <div style={{ color: "#a0aec0", fontSize: "0.9rem" }}>
+                  Experience the full loan flow with simulated assets. No real funds needed.
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate("/pawn-demo")}
+              style={{
+                padding: "10px 20px",
+                background: "linear-gradient(135deg, #9f7aea 0%, #805ad5 100%)",
+                border: "none",
+                borderRadius: 8,
+                color: "white",
+                fontWeight: "bold",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
+              <FiPlay size={16} />
+              Launch Demo
             </button>
           </div>
         </div>

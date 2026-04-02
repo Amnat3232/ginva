@@ -1,5 +1,6 @@
 // Borrow Page Component
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   LOANS,
   BORROWER_METRICS,
@@ -20,6 +21,7 @@ interface BorrowProps {
 }
 
 export function Borrow({ showToast, connected }: BorrowProps) {
+  const navigate = useNavigate();
   const [collateral, setCollateral] = useState("SOL");
   const [amount, setAmount] = useState("2.5");
   const [ltv, setLtv] = useState("40");
@@ -268,8 +270,8 @@ export function Borrow({ showToast, connected }: BorrowProps) {
                     setLoading(true);
                     setTimeout(() => {
                       setLoading(false);
-                      showToast("✓ Loan initiated on Devnet");
-                    }, 2000);
+                      navigate("/pawn-demo");
+                    }, 500);
                   }}
                 >
                   {loading ? (

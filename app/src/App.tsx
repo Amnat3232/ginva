@@ -17,6 +17,7 @@ const KeeperPage = lazy(() => import("./pages/Keeper"));
 // Existing pages
 const Earn = lazy(() => import("./pages/Earn"));
 const Pawn = lazy(() => import("./pages/Pawn"));
+const PawnDemo = lazy(() => import("./pages/PawnDemo"));
 const Redeem = lazy(() => import("./pages/Redeem"));
 const MyTickets = lazy(() => import("./pages/MyTickets"));
 const Storefront = lazy(() => import("./pages/Storefront"));
@@ -114,6 +115,7 @@ function App() {
             />
             <Route path="/earn" element={<Earn />} />
             <Route path="/pawn" element={<Pawn />} />
+            <Route path="/pawn-demo" element={<PawnDemo />} />
             <Route path="/redeem" element={<Redeem />} />
             <Route path="/my-tickets" element={<MyTickets />} />
             <Route path="/storefront" element={<Storefront />} />
