@@ -2,7 +2,7 @@ import React from "react";
 
 interface ButtonProps {
   children: React.ReactNode;
-  variant?: "primary" | "secondary" | "outline" | "danger";
+  variant?: "primary" | "secondary" | "cta" | "outline" | "danger" | "glass";
   size?: "sm" | "md" | "lg";
   onClick?: () => void;
   disabled?: boolean;
@@ -22,16 +22,19 @@ export default function Button({
   ariaLabel,
 }: ButtonProps) {
   const baseStyles =
-    "rounded-lg font-semibold transition-all duration-300 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-ginva-navy disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer";
+    "rounded-lg font-semibold transition-all duration-300 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer";
 
   const variants = {
     primary:
-      "bg-gradient-to-r from-ginva-gold to-yellow-500 text-ginva-navy hover:shadow-lg hover:shadow-ginva-gold/20 focus:ring-ginva-gold",
+      "bg-primary text-background hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/20 focus:ring-primary",
     secondary:
-      "bg-ginva-cyan text-ginva-navy hover:bg-ginva-cyan/90 hover:shadow-lg hover:shadow-ginva-cyan/20 focus:ring-ginva-cyan",
+      "bg-secondary text-background hover:bg-secondary/90 hover:shadow-lg hover:shadow-secondary/20 focus:ring-secondary",
+    cta: "bg-cta text-white hover:bg-cta/90 hover:shadow-lg hover:shadow-cta/30 focus:ring-cta",
     outline:
-      "border-2 border-ginva-gold text-ginva-gold hover:bg-ginva-gold hover:text-ginva-navy focus:ring-ginva-gold",
-    danger: "bg-ginva-red text-white hover:bg-red-600 focus:ring-ginva-red",
+      "border-2 border-primary text-primary hover:bg-primary hover:text-background focus:ring-primary",
+    danger: "bg-red-500 text-white hover:bg-red-600 focus:ring-red-500",
+    glass:
+      "bg-white/10 text-text border border-white/20 hover:bg-white/20 hover:border-white/30 backdrop-blur-sm focus:ring-white/30",
   };
 
   const sizes = {

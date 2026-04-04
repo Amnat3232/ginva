@@ -18,22 +18,22 @@ export default function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-ginva-navy/95 backdrop-blur-md border-b border-ginva-slate">
+    <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-[10px] border-b border-white/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link
             href="/"
-            className="flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-ginva-gold rounded-lg"
+            className="flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-primary rounded-lg"
             aria-label="GINVA Home"
           >
             <Icon
               name="building-office"
               size="lg"
-              className="text-ginva-gold"
+              className="text-primary"
               ariaLabel="GINVA Logo"
             />
-            <span className="text-xl font-display font-bold text-ginva-gold">
+            <span className="text-xl font-display font-bold text-primary">
               GINVA
             </span>
           </Link>
@@ -48,7 +48,7 @@ export default function Header() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="text-ginva-silver hover:text-ginva-gold transition-colors duration-200 font-medium text-sm min-h-[44px] flex items-center focus:outline-none focus:ring-2 focus:ring-ginva-gold rounded"
+                className="text-slate-400 hover:text-primary transition-colors duration-200 font-medium text-sm min-h-[44px] flex items-center focus:outline-none focus:ring-2 focus:ring-primary rounded"
               >
                 <Icon
                   name={item.icon as any}
@@ -60,13 +60,13 @@ export default function Header() {
               </Link>
             ))}
             <div className="flex items-center">
-              <WalletMultiButton className="!bg-ginva-gold !text-ginva-navy hover:!bg-ginva-gold/90" />
+              <WalletMultiButton className="!bg-primary !text-background hover:!bg-primary/90 font-semibold" />
             </div>
           </nav>
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-ginva-silver hover:text-ginva-gold focus:outline-none focus:ring-2 focus:ring-ginva-gold rounded-lg"
+            className="md:hidden p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary rounded-lg"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-expanded={isMenuOpen}
             aria-controls="mobile-menu"
@@ -80,7 +80,7 @@ export default function Header() {
         {isMenuOpen && (
           <div
             id="mobile-menu"
-            className="md:hidden py-4 border-t border-ginva-slate"
+            className="md:hidden py-4 border-t border-white/10 bg-background/90 backdrop-blur-md"
             role="navigation"
             aria-label="Mobile navigation"
           >
@@ -89,7 +89,7 @@ export default function Header() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="text-ginva-silver hover:text-ginva-gold transition-colors duration-200 font-medium px-4 py-3 min-h-[44px] flex items-center rounded-lg hover:bg-ginva-slate/50 focus:outline-none focus:ring-2 focus:ring-ginva-gold"
+                  className="text-slate-400 hover:text-primary transition-colors duration-200 font-medium px-4 py-3 min-h-[44px] flex items-center rounded-lg hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-primary"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <Icon
@@ -102,7 +102,7 @@ export default function Header() {
                 </Link>
               ))}
               <button
-                className="btn-gold mx-4 px-6 py-3 rounded-lg text-ginva-navy font-semibold min-h-[44px] flex items-center justify-center"
+                className="mx-4 px-6 py-3 rounded-lg bg-primary text-background font-semibold min-h-[44px] flex items-center justify-center hover:bg-primary/90 transition-colors duration-200"
                 aria-label="Connect Wallet"
               >
                 <Icon name="wallet" size="sm" className="mr-2" ariaLabel="" />

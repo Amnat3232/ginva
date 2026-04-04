@@ -16,10 +16,15 @@ module.exports = {
           red: "#EF4444",
           amber: "#F59E0B",
         },
+        primary: "#F59E0B",
+        secondary: "#FBBF24",
+        cta: "#8B5CF6",
+        background: "#0F172A",
+        text: "#F8FAFC",
       },
       fontFamily: {
-        display: ["Space Grotesk", "sans-serif"],
-        sans: ["Inter", "sans-serif"],
+        display: ["Orbitron", "sans-serif"],
+        sans: ["Exo 2", "sans-serif"],
         mono: ["JetBrains Mono", "monospace"],
         thai: ["Kanit", "Prompt", "sans-serif"],
       },
@@ -28,6 +33,8 @@ module.exports = {
           "linear-gradient(135deg, #00D4AA 0%, #0A1628 100%)",
         "gold-shine":
           "linear-gradient(90deg, #D4AF37 0%, #F4E4BC 50%, #D4AF37 100%)",
+        "glass-bg":
+          "linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)",
       },
       animation: {
         "fade-in": "fadeIn 0.5s ease-in-out",
@@ -43,6 +50,10 @@ module.exports = {
           "0%": { transform: "translateY(10px)", opacity: "0" },
           "100%": { transform: "translateY(0)", opacity: "1" },
         },
+      },
+      backdropBlur: {
+        glass: "10px",
+        "glass-lg": "20px",
       },
       zIndex: {
         10: "10",

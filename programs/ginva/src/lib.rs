@@ -18,6 +18,9 @@ pub const MIN_JUPITER_DATA_LEN: usize = 16; // Minimum valid Jupiter instruction
 pub const MAX_JUPITER_SLIPPAGE_BPS: u64 = 2000; // 20% max slippage for DEX fallback
 pub const MIN_JUPITER_ACCOUNTS: usize = 3; // Minimum accounts needed for swap
 
+// DEX activation delay for liquidation process (6 hours in seconds)
+pub const DEX_ACTIVATION_DELAY: i64 = 21600; // 6 hours
+
 // Staking limits
 pub const MAX_TOTAL_STAKED: u64 = 1_000_000_000_000_000; // 1B USDC max total staked
 
@@ -43,16 +46,16 @@ pub const LTV_SAFE: u8 = 20; // 20% LTV Safe - IMMUTABLE
 pub const LTV_STANDARD: u8 = 40; // 40% LTV Standard - IMMUTABLE
 pub const LTV_MAX: u8 = 60; // 60% LTV Max - IMMUTABLE
 
-// Calculate interest using fixed APR
-pub fn calculate_interest(principal: u64, duration_seconds: u64, apr_bps: u64) -> u64 {
+// Calculate interest using fixed APR with overflow protection
+pub fn calculate_interest(principal: u64, duration_seconds: u64, apr_bps: u64) -> Result<u64> {
     // interest = principal * APR * duration / (10000 * 365 * 86400)
     principal
         .checked_mul(apr_bps)
-        .unwrap()
+        .ok_or(GinvaError::ArithmeticOverflow)?
         .checked_mul(duration_seconds)
-        .unwrap()
+        .ok_or(GinvaError::ArithmeticOverflow)?
         .checked_div(10000 * 365 * 86400)
-        .unwrap()
+        .ok_or(GinvaError::ArithmeticUnderflow)
 }
 
 // CONSTANTS
@@ -163,7 +166,7 @@ mod liquidation_helper {
         liquidation_process.seized_collateral_amount = remaining_for_swap;
         liquidation_process.triggered_at = current_time;
         liquidation_process.deadline_for_swap = current_time;
-        liquidation_process.dex_activation_time = current_time + 21600;
+        liquidation_process.dex_activation_time = current_time + DEX_ACTIVATION_DELAY;
         liquidation_process.swapped = false;
         liquidation_process.keeper_reward_amount = trigger_reward;
         liquidation_process.keeper_reward_claimed = false;
@@ -184,7 +187,7 @@ mod liquidation_helper {
                 msg!("🔴 HEALTH FACTOR LIQUIDATION TRIGGERED - Immediate action");
             }
             LiquidationType::Maturity => {
-                msg!("🟡 MATATION TRIGGERED - 72hURITY LIQUID protection expired");
+                msg!("🟡 MATURITY LIQUIDATION TRIGGERED - 72h protection expired");
             }
         }
 

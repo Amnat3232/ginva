@@ -39,7 +39,7 @@ dotenv.config();
 // ═══════════════════════════════════════════════════════════
 const RPC_URL = process.env.RPC_URL || "https://api.devnet.solana.com";
 const PROGRAM_ID = new PublicKey(
-  process.env.PROGRAM_ID || "9BRKxrDaC6D7XLVqwZSMeqkNPhYHdpogwxC5Dph4F9Hf"
+  process.env.PROGRAM_ID || "8Gykav1cYZgrC7EkZWSwDr4Xk2L7MR3ip8A2z2eji21s"
 );
 const PYTH_SOL_FEED = new PublicKey(
   "J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix"

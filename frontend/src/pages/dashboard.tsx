@@ -48,30 +48,30 @@ export default function DashboardPage() {
   const getHealthColor = (status: string) => {
     switch (status) {
       case "safe":
-        return "text-ginva-cyan";
+        return "text-primary";
       case "caution":
-        return "text-ginva-amber";
+        return "text-secondary";
       case "warning":
         return "text-orange-500";
       case "critical":
-        return "text-ginva-red";
+        return "text-red-500";
       default:
-        return "text-ginva-silver";
+        return "text-slate-400";
     }
   };
 
   const getHealthBgColor = (status: string) => {
     switch (status) {
       case "safe":
-        return "bg-ginva-cyan";
+        return "bg-primary";
       case "caution":
-        return "bg-ginva-amber";
+        return "bg-secondary";
       case "warning":
         return "bg-orange-500";
       case "critical":
-        return "bg-ginva-red";
+        return "bg-red-500";
       default:
-        return "bg-ginva-silver";
+        return "bg-slate-400";
     }
   };
 
@@ -96,7 +96,7 @@ export default function DashboardPage() {
                 Welcome back, {user.address}
                 <Icon name="hand" size="md" ariaLabel="waving hand" />
               </h1>
-              <p className="text-ginva-silver">This is your account overview</p>
+              <p className="text-slate-400">This is your account overview</p>
             </>
           )}
         </div>
