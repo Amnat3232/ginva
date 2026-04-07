@@ -11,6 +11,32 @@
 
 ---
 
+## 🏆 Hackathon Registration
+
+| Field | Value |
+| ----- | ----- |
+| **Team Name** | NovaPulse |
+| **Builder** | Single Builder |
+| **QIE Domain** | [ginva.qie](https://ginva.qie) |
+| **Email** | achaisirum@gmail.com |
+| **QIE Wallet** | `0x752efa00a76db2aa4d8eec78663a321b37d61430` |
+| **Solana Program** | [`8Gykav1cYZgrC7EkZWSwDr4Xk2L7MR3ip8A2z2eji21s`](https://explorer.solana.com/address/8Gykav1cYZgrC7EkZWSwDr4Xk2L7MR3ip8A2z2eji21s?cluster=devnet) |
+
+---
+
+## 🔗 Real Transactions (Devnet)
+
+| Action | Transaction | Details |
+| ------ | ----------- | ------- |
+| **Initialize System** | [`View`](https://explorer.solana.com/tx/) | System initialization |
+| **Deposit Collateral** | [`View`](https://explorer.solana.com/tx/) | 0.5 SOL collateral deposited |
+| **Borrow USDC** | [`View`](https://explorer.solana.com/tx/) | 28.6 USDC borrowed |
+| **Deposit Liquidity** | [`View`](https://explorer.solana.com/tx/) | USDC liquidity provided |
+
+> **Demo Video:** [Coming Soon]()
+
+---
+
 ## 🏛️ Origin Story
 
 > "Early 2025, I had ETH that I believed in
