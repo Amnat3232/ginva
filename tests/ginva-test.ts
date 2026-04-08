@@ -10,7 +10,9 @@ import { Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import fs from "fs";
 
 // Config
-const PROGRAM_ID = new PublicKey("6xmu5eA6BPt6us4u2vi8xqiiu6VGiJ38yw4MT86wiUeC");
+const PROGRAM_ID = new PublicKey(
+  "6xmu5eA6BPt6us4u2vi8xqiiu6VGiJ38yw4MT86wiUeC"
+);
 const RPC_URL = "https://api.devnet.solana.com";
 const WALLET_PATH = process.env.HOME + "/.config/solana/id.json";
 

@@ -42,9 +42,9 @@ const LOAN_TOKEN_PRICES: Record<string, number> = {
 };
 
 const LTV_OPTIONS_MAP: Record<number, number> = {
-  1: 0.2,  // Safe 20%
-  2: 0.4,  // Standard 40%
-  3: 0.6,  // Max 60%
+  1: 0.2, // Safe 20%
+  2: 0.4, // Standard 40%
+  3: 0.6, // Max 60%
 };
 
 const PROTECTION_PERIOD = 7 * 24 * 60 * 60; // 7 days in seconds
@@ -61,15 +61,20 @@ export const useDemoMode = () => {
   // Time skip function to simulate days passing
   const skipDays = useCallback((days: number) => {
     setSimulatedDays((prev) => prev + days);
-    
+
     setUserState((prev) => ({
       ...prev,
       loans: prev.loans.map((loan) => {
-        if (loan.status !== "active" && loan.status !== "liquidatable") return loan;
-        
-        const newDueTime = loan.dueTime - (days * 24 * 60 * 60);
+        if (loan.status !== "active" && loan.status !== "liquidatable")
+          return loan;
+
+        const newDueTime = loan.dueTime - days * 24 * 60 * 60;
         if (newDueTime < Math.floor(Date.now() / 1000)) {
-          return { ...loan, status: "liquidatable" as const, dueTime: newDueTime };
+          return {
+            ...loan,
+            status: "liquidatable" as const,
+            dueTime: newDueTime,
+          };
         }
         return { ...loan, dueTime: newDueTime };
       }),
@@ -89,7 +94,8 @@ export const useDemoMode = () => {
       ...prev,
       loans: prev.loans.map((loan) => {
         if (loan.status !== "active") return loan;
-        if (now > loan.dueTime) return { ...loan, status: "liquidatable" as const };
+        if (now > loan.dueTime)
+          return { ...loan, status: "liquidatable" as const };
         if (now > loan.dueTime - PROTECTION_PERIOD) {
           return { ...loan, status: "liquidatable" as const };
         }
@@ -125,7 +131,11 @@ export const useDemoMode = () => {
   );
 
   const borrow = useCallback(
-    async (collateralAmount: number, ltvOption: number, collateralToken: string) => {
+    async (
+      collateralAmount: number,
+      ltvOption: number,
+      collateralToken: string
+    ) => {
       if (!publicKey) {
         setError("Please connect wallet first");
         return null;
@@ -138,7 +148,8 @@ export const useDemoMode = () => {
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       const ltv = LTV_OPTIONS_MAP[ltvOption] || 0.4;
-      const collateralValueUSD = collateralAmount * COLLATERAL_TOKEN_PRICES[collateralToken];
+      const collateralValueUSD =
+        collateralAmount * COLLATERAL_TOKEN_PRICES[collateralToken];
       const borrowAmount = collateralValueUSD * ltv;
 
       const now = Math.floor(Date.now() / 1000);
@@ -159,7 +170,9 @@ export const useDemoMode = () => {
         collateralBalance: prev.collateralBalance - collateralAmount,
         loanBalance: prev.loanBalance + borrowAmount,
         loans: [...prev.loans, newLoan],
-        totalCollateral: prev.totalCollateral + collateralAmount * COLLATERAL_TOKEN_PRICES[collateralToken],
+        totalCollateral:
+          prev.totalCollateral +
+          collateralAmount * COLLATERAL_TOKEN_PRICES[collateralToken],
         totalBorrowed: prev.totalBorrowed + borrowAmount,
       }));
 
@@ -192,7 +205,8 @@ export const useDemoMode = () => {
       }
 
       // Calculate interest (simple 5% APR)
-      const daysElapsed = (Math.floor(Date.now() / 1000) - loan.startTime) / (24 * 60 * 60);
+      const daysElapsed =
+        (Math.floor(Date.now() / 1000) - loan.startTime) / (24 * 60 * 60);
       const interest = loan.borrowedAmount * 0.05 * (daysElapsed / 365);
       const totalRepay = loan.borrowedAmount + interest;
 
@@ -203,7 +217,9 @@ export const useDemoMode = () => {
         loans: prev.loans.map((l) =>
           l.id === loanId ? { ...l, status: "repaid" as const } : l
         ),
-        totalCollateral: prev.totalCollateral - loan.collateralAmount * COLLATERAL_TOKEN_PRICES[loan.collateralToken],
+        totalCollateral:
+          prev.totalCollateral -
+          loan.collateralAmount * COLLATERAL_TOKEN_PRICES[loan.collateralToken],
         totalBorrowed: prev.totalBorrowed - loan.borrowedAmount,
       }));
 
@@ -232,7 +248,11 @@ export const useDemoMode = () => {
         ...prev,
         loans: prev.loans.map((l) =>
           l.id === loanId
-            ? { ...l, dueTime: l.dueTime + 15 * 24 * 60 * 60, status: "active" as const }
+            ? {
+                ...l,
+                dueTime: l.dueTime + 15 * 24 * 60 * 60,
+                status: "active" as const,
+              }
             : l
         ),
       }));
@@ -267,7 +287,8 @@ export const useDemoMode = () => {
 
       // Keeper gets 10% discount
       const liquidationPrice = loan.borrowedAmount * 0.9;
-      const collateralValue = loan.collateralAmount * COLLATERAL_TOKEN_PRICES[loan.collateralToken];
+      const collateralValue =
+        loan.collateralAmount * COLLATERAL_TOKEN_PRICES[loan.collateralToken];
       const keeperProfit = collateralValue - liquidationPrice;
 
       setUserState((prev) => ({
@@ -276,7 +297,9 @@ export const useDemoMode = () => {
         loans: prev.loans.map((l) =>
           l.id === loanId ? { ...l, status: "liquidated" as const } : l
         ),
-        totalCollateral: prev.totalCollateral - loan.collateralAmount * COLLATERAL_TOKEN_PRICES[loan.collateralToken],
+        totalCollateral:
+          prev.totalCollateral -
+          loan.collateralAmount * COLLATERAL_TOKEN_PRICES[loan.collateralToken],
         totalBorrowed: prev.totalBorrowed - loan.borrowedAmount,
       }));
 
@@ -301,7 +324,7 @@ export const useDemoMode = () => {
     lastTx,
     error,
     simulatedDays,
-    
+
     // Methods
     depositCollateral,
     borrow,
@@ -313,13 +336,18 @@ export const useDemoMode = () => {
     resetSimulation,
     clearError: () => setError(null),
     clearTx: () => setLastTx(null),
-    
+
     // Helpers
     getActiveLoans: () => userState.loans.filter((l) => l.status === "active"),
-    getLiquidatableLoans: () => userState.loans.filter((l) => l.status === "liquidatable"),
+    getLiquidatableLoans: () =>
+      userState.loans.filter((l) => l.status === "liquidatable"),
     getTotalHealth: () => {
       if (userState.totalCollateral === 0) return 100;
-      return ((userState.totalCollateral - userState.totalBorrowed) / userState.totalCollateral) * 100;
+      return (
+        ((userState.totalCollateral - userState.totalBorrowed) /
+          userState.totalCollateral) *
+        100
+      );
     },
   };
 };

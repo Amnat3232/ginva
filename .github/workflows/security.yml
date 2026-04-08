@@ -65,7 +65,7 @@ jobs:
           workspaces: programs/ginva-pinocchio
 
       - name: Run cargo-audit
-        uses: rust-secure-code/cargo-audit-action@v0.2.1
+        uses: rustsec/audit-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
