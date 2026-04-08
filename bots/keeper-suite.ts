@@ -24,9 +24,10 @@ import {
 import {
   getAssociatedTokenAddress,
   createAssociatedTokenAccountInstruction,
-  TOKEN_PROGRAM_ID,
   getAccount,
 } from "@solana/spl-token";
+
+const TOKEN_PROGRAM_ID = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
 import * as dotenv from "dotenv";
 import * as fs from "fs";
 import chalk from "chalk";
@@ -96,17 +97,17 @@ const idl = JSON.parse(fs.readFileSync(idlPath, "utf8"));
 const program = new Program(idl as Idl, PROGRAM_ID, provider);
 
 console.log(
-  chalk.blue.bold(
+  chalk.bold.blue(
     "╔══════════════════════════════════════════════════════════╗"
   )
 );
 console.log(
-  chalk.blue.bold(
+  chalk.bold.blue(
     "║              🤖 GINVA KEEPER BOT SUITE v2.0              ║"
   )
 );
 console.log(
-  chalk.blue.bold(
+  chalk.bold.blue(
     "╚══════════════════════════════════════════════════════════╝"
   )
 );
@@ -124,10 +125,10 @@ const formatUSDC = (amount: number): string => {
 };
 
 const getTierColor = (discount: number): string => {
-  if (discount >= 8) return chalk.yellow.bold; // Golden Hour
-  if (discount >= 6) return chalk.gray.bold; // Silver
-  if (discount >= 3) return chalk.red.bold; // Bronze
-  return chalk.white;
+  if (discount >= 8) return chalk.bold.yellow(""); // Golden Hour
+  if (discount >= 6) return chalk.bold.gray(""); // Silver
+  if (discount >= 3) return chalk.bold.red(""); // Bronze
+  return chalk.white("");
 };
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
