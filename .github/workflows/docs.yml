@@ -1,5 +1,8 @@
 name: 📚 Documentation & Links
 
+env:
+  RUST_TOOLCHAIN: nightly-2026-03-01
+
 on:
   push:
     branches: [main, develop]
@@ -75,14 +78,19 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: 1.77.0
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: programs/ginva-pinocchio
 
       - name: Install cargo-doc
         run: cargo install cargo-docgen || true
 
       - name: Generate Rust docs
         run: |
-          cd programs/ginva
+          cd programs/ginva-pinocchio
           cargo doc --no-deps --document-private-items 2>&1 | head -100 || true
 
       - name: Upload docs

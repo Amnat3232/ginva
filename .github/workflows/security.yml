@@ -1,5 +1,8 @@
 name: 🔒 Code Quality & Security
 
+env:
+  RUST_TOOLCHAIN: nightly-2026-03-01
+
 on:
   push:
     branches: [main, develop]
@@ -21,7 +24,7 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: 1.77.0
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
           components: rustfmt, clippy
 
       - name: Run Rustfmt
@@ -54,13 +57,17 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: 1.77.0
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+
+      - name: Cache cargo-audit
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: programs/ginva-pinocchio
 
       - name: Run cargo-audit
-        run: |
-          cargo install cargo-audit
-          cd programs/ginva
-          cargo audit 2>&1 || true
+        uses: rust-secure-code/cargo-audit-action@v0.2.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check for secrets
         uses: trufflesecurity/trufflehog@main
@@ -72,9 +79,9 @@ jobs:
 
       - name: Run cargo-deny
         run: |
-          cargo install cargo-deny
-          cd programs/ginva
+          cargo install cargo-deny || true
           cargo deny check 2>&1 || true
+        working-directory: programs/ginva-pinocchio
 
       - name: Check dependencies for vulnerabilities
         run: |
@@ -92,10 +99,16 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: 1.77.0
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+
+      - name: Cache Rust tools
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: programs/ginva-pinocchio
 
       - name: Install cargo-geiger
         run: cargo install cargo-geiger
+        continue-on-error: true
 
       - name: Check for unsafe code
         run: |
@@ -105,7 +118,7 @@ jobs:
 
       - name: Run cargo-udeps (unused dependencies)
         run: |
-          cargo install cargo-udeps
+          cargo install cargo-udeps || true
           cd programs/ginva-pinocchio
           cargo udeps 2>&1 || true
         continue-on-error: true
@@ -148,13 +161,18 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const stats = fs.statSync('target/deploy/ginva.so');
+            const path = 'programs/ginva-pinocchio/target/release/libginva_pinocchio.so';
+            if (!fs.existsSync(path)) {
+              console.log('Binary not found:', path);
+              return;
+            }
+            const stats = fs.statSync(path);
             const sizeMB = (stats.size / 1024 / 1024).toFixed(2);
 
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `📦 **Build Size Report**\n\nProgram binary size: **${sizeMB} MB**\n\n${stats.size > 1048576 ? '⚠️ Warning: Exceeds 1MB limit' : '✅ Size is acceptable'}`
+              body: `📦 **Build Size Report**\n\nProgram binary size: **${sizeMB} MB**\n${stats.size > 1048576 ? '⚠️ Warning: Exceeds 1MB limit' : '✅ Size is acceptable'}`
             });
         continue-on-error: true

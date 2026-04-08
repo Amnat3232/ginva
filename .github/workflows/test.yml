@@ -129,15 +129,14 @@ jobs:
           toolchain: ${{ env.RUST_VERSION }}
 
       - name: Run cargo-audit
-        run: |
-          cargo install cargo-audit
-          cd programs/ginva-pinocchio
-          cargo audit || true
+        uses: rust-secure-code/cargo-audit-action@v0.2.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run cargo-deny (if configured)
         run: |
           if [ -f deny.toml ]; then
-            cargo install cargo-deny
+            cargo install cargo-deny || true
             cargo deny check || true
           fi
         working-directory: programs/ginva-pinocchio
