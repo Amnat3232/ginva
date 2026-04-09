@@ -122,7 +122,7 @@ jobs:
       - name: Build Solana BPF Program
         run: |
           cd programs/ginva-pinocchio
-          cargo build-sbf -- --release
+          cargo build-sbf
           ls -lh target/release/deps/libginva_pinocchio*.so 2>/dev/null || ls -lh target/sbf-solana-solana/release/libginva_pinocchio.so 2>/dev/null
 
       - name: Upload BPF Artifact
