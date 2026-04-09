@@ -30,6 +30,11 @@ jobs:
           toolchain: ${{ env.RUST_TOOLCHAIN }}
           components: rustfmt, clippy
 
+      - name: Clear Cargo cache
+        run: |
+          rm -rf ~/.cargo/registry/index
+          rm -rf ~/.cargo/.package-cache
+
       - name: Cache Cargo
         uses: Swatinem/rust-cache@v2
         with:
@@ -105,10 +110,11 @@ jobs:
         with:
           toolchain: ${{ env.RUST_TOOLCHAIN }}
 
-      - name: Cache Cargo
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: "programs/ginva-pinocchio"
+      - name: Clear ALL Cargo cache
+        run: |
+          rm -rf ~/.cargo/registry/index
+          rm -rf ~/.cargo/registry/cache
+          rm -rf ~/.cargo/.package-cache
 
       - name: Install Solana CLI
         run: |
