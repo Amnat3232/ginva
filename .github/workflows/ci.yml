@@ -127,7 +127,7 @@ jobs:
       - name: Build Solana BPF Program
         run: |
           cd programs/ginva-pinocchio
-          cargo +nightly build-sbf -Znext-lockfile-bump
+          cargo +nightly build-sbf -- -Znext-lockfile-bump
           ls -lh target/release/deps/libginva_pinocchio*.so 2>/dev/null || ls -lh target/sbf-solana-solana/release/libginva_pinocchio.so 2>/dev/null
 
       - name: Upload BPF Artifact
