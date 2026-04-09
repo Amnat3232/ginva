@@ -14,12 +14,19 @@ RUN apt-get update && apt-get install -y \
     bzip2 \
     && rm -rf /var/lib/apt/lists/*
 
+# Copy rust-toolchain.toml to install correct Rust version
+COPY rust-toolchain.toml /tmp/rust-toolchain.toml
+
+# Install the specific Rust nightly version
+RUN rustup install nightly-2026-03-01 && \
+    rustup default nightly-2026-03-01 && \
+    rustup target add bpfel-unknown-none --toolchain nightly-2026-03-01
+
 # Install Solana CLI v1.18.26
 RUN sh -c "$(curl -sSfL https://release.anza.xyz/v1.18.26/install)" && \
     export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH" && \
     solana --version && \
-    rustc --version && \
-    rustc --print target-list | grep bpf
+    rustc --version
 
 # Set Solana path
 ENV PATH="/root/.local/share/solana/install/active_release/bin:${PATH}"

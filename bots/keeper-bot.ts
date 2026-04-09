@@ -2,15 +2,15 @@
 /**
  * GINVA Keeper Bot
  * 
- * Automated liquidation keeper for GINVA Protocol
- * - Scans for undercollateralized loans
+ * Automated liquidation keeper for GINVA Pinocchio Protocol
+ * - Scans for liquidatable loans
  * - Executes liquidations
  * 
- * Run: TS_NODE_TRANSPILE_ONLY=true npm start
+ * Run: TS_NODE_TRANSPILE_ONLY=true npx ts-node keeper-bot.ts
  */
 
-import { Connection, PublicKey, Keypair, Transaction, ComputeBudgetProgram } from "@solana/web3.js";
-import { getAssociatedTokenAddress } from "@solana/spl-token";
+import { Connection, PublicKey, Keypair, Transaction, ComputeBudgetProgram, SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
+import { getAssociatedTokenAddress, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import * as anchor from "@coral-xyz/anchor";
 import type { Idl } from "@coral-xyz/anchor";
 import { Program, Wallet } from "@coral-xyz/anchor";
@@ -23,9 +23,6 @@ dotenv.config();
 const RPC_URL = process.env.RPC_URL || "https://api.devnet.solana.com";
 const PROGRAM_ID = new PublicKey(
   process.env.PROGRAM_ID || "Ev9HTrf45JBM5PBvAG9v6AUb5cw4XeGgKXmrk7RtQm3D"
-);
-const PYTH_SOL_FEED = new PublicKey(
-  "J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix"
 );
 
 const CONFIG = {
@@ -47,12 +44,13 @@ const provider = new anchor.AnchorProvider(connection, new Wallet(wallet), {
   commitment: CONFIG.commitment,
 });
 
-const idlPath = process.env.IDL_PATH || "./target/idl/ginva.json";
+const idlPath = process.env.IDL_PATH || "../target/idl/ginva.json";
 const idl = JSON.parse(fs.readFileSync(idlPath, "utf8"));
 const program = new Program(idl as Idl, PROGRAM_ID, provider);
 
 console.log(chalk.bold.blue("╔══════════════════════════════════════╗"));
-console.log(chalk.bold.blue("║    GINVA KEEPER BOT v3.0           ║"));
+console.log(chalk.bold.blue("║    GINVA KEEPER BOT v5.0           ║"));
+console.log(chalk.bold.blue("║    (Pinocchio Protocol)            ║"));
 console.log(chalk.bold.blue("╚══════════════════════════════════════╝"));
 console.log(chalk.gray(`Wallet: ${wallet.publicKey.toBase58()}`));
 console.log(chalk.gray(`Program: ${PROGRAM_ID.toBase58()}`));
@@ -68,29 +66,43 @@ interface LoanAccount {
   collateralAmount: anchor.BN;
   loanAmount: anchor.BN;
   cumulativeInterest: anchor.BN;
+  lastInterestUpdate: anchor.BN;
+  loanStartTime: anchor.BN;
+  loanMaturityTime: anchor.BN;
   isLiquidated: number;
+  liquidationProcessed: number;
+  liquidationBonusBps: number;
+  liquidationInitiatedTime: anchor.BN;
+  collateralPriceAtLiquidation: anchor.BN;
+  seizedCollateralAmount: anchor.BN;
+  swappedToCollateral: number;
+  autoSwapExecuted: number;
+  debtAccumulated: anchor.BN;
+  lastDebtAccumulationUpdate: anchor.BN;
   isInitialized: number;
-  liquidationBonusBps: number;
   assetConfig: number[];
-}
-
-interface AssetConfig {
-  discriminator: number[];
-  assetId: number[];
-  mint: number[];
-  maxLtvBps: number;
-  liquidationBonusBps: number;
-  totalReserve: anchor.BN;
-  isActive: number;
+  isRestricted: number;
+  debtAccumulationLastUpdate: anchor.BN;
 }
 
 interface SystemConfig {
   discriminator: number[];
   admin: number[];
+  capitalWalletAuthority: number[];
+  vaultWalletAuthority: number[];
+  revenueWalletAuthority: number[];
+  seizedAssetsAuthority: number[];
   collateralMint: number[];
   loanMint: number[];
+  depositFeeBps: number;
   isActive: number;
+  totalBorrowed: anchor.BN;
+  totalCollateral: anchor.BN;
   opsWallet: number[];
+  totalStaked: anchor.BN;
+  accRewardPerShare: anchor.BN;
+  isPaused: number;
+  pauseReason: number[];
 }
 
 class KeeperBot {
@@ -164,18 +176,22 @@ class KeeperBot {
     )[0];
   }
 
-  private async getAssetConfigPDA(mint: PublicKey): Promise<PublicKey> {
+  private async getAssetConfigPDA(assetConfigBytes: number[]): Promise<PublicKey> {
     return PublicKey.findProgramAddressSync(
-      [Buffer.from("asset_config"), mint.toBuffer()],
+      [Buffer.from("asset_config"), Buffer.from(assetConfigBytes.slice(0, 32))],
       PROGRAM_ID
     )[0];
   }
 
-  private async getReserveWalletPDA(mint: PublicKey): Promise<PublicKey> {
+  private async getReserveWalletPDA(assetConfigBytes: number[]): Promise<PublicKey> {
     return PublicKey.findProgramAddressSync(
-      [Buffer.from("reserve_wallet"), mint.toBuffer()],
+      [Buffer.from("reserve_wallet"), Buffer.from(assetConfigBytes.slice(0, 32))],
       PROGRAM_ID
     )[0];
+  }
+
+  private bytesToU64(bytes: number[]): anchor.BN {
+    return new anchor.BN(Buffer.from(bytes.slice(0, 8)), 10, "le");
   }
 
   private async executeLiquidation(
@@ -188,12 +204,14 @@ class KeeperBot {
     try {
       this.activeLiquidations++;
 
-      const collateralMint = new PublicKey(loanData.assetConfig);
-      const assetConfig = await this.getAssetConfigPDA(collateralMint);
-      const reserveWallet = await this.getReserveWalletPDA(collateralMint);
+      const assetConfigPDA = await this.getAssetConfigPDA(loanData.assetConfig);
+      const reserveWallet = await this.getReserveWalletPDA(loanData.assetConfig);
+
+      const loanId = this.bytesToU64(loanData.loanId);
 
       console.log(chalk.yellow("🔨 Liquidating..."));
       console.log(chalk.gray(`   Loan: ${loanAddress.toBase58().slice(0, 16)}...`));
+      console.log(chalk.gray(`   Loan ID: ${loanId.toString()}`));
       console.log(chalk.gray(`   Collateral: ${loanData.collateralAmount.toString()}`));
       console.log(chalk.gray(`   Debt: ${loanData.loanAmount.toString()}`));
 
@@ -205,15 +223,15 @@ class KeeperBot {
       );
 
       const instruction = await program.methods
-        .liquidate(new anchor.BN(loanData.loanId.slice(0, 8), "le"))
+        .liquidate(loanId)
         .accounts({
           liquidator: wallet.publicKey,
           loanAccount: loanAddress,
-          assetConfig,
-          systemConfig,
+          assetConfig: assetConfigPDA,
+          systemConfig: systemConfig,
           liquidatorCollateralAccount: liquidatorCollateralATA,
           liquidatorRepayAccount: liquidatorRepayATA,
-          reserveWallet,
+          reserveWallet: reserveWallet,
         })
         .instruction();
 
@@ -229,7 +247,7 @@ class KeeperBot {
       this.stats.liquidated++;
 
     } catch (error: any) {
-      console.error(chalk.red("❌ Liquidation failed:"), error.message);
+      console.error(chalk.red("❌ Liquidation failed:"), error.message || error);
     } finally {
       this.activeLiquidations--;
     }

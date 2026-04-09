@@ -12,7 +12,7 @@ services:
     environment:
       - CARGO_NET_GIT_FETCH_WITH_CLI=true
       - RUST_BACKTRACE=1
-    command: anchor build
+    command: sh -c "cd /build/programs/ginva-pinocchio && cargo build --release --target bpfel-unknown-none"
 
   test:
     build:

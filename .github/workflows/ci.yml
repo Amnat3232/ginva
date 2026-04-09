@@ -117,22 +117,21 @@ jobs:
 
       - name: Install BPF toolchain
         run: |
-          solana-version -l
           rustup target add bpfel-unknown-unknown || echo "BPF target may already be available"
 
       - name: Build Solana BPF Program
         run: |
           cd programs/ginva-pinocchio
-          cargo build-bpf --release || cargo build --release -Z build-std=std,panic_abort -Z minimal-versions
-          ls -lh target/release/bpfel-unknown-unknown/release/libginva_pinocchio.so 2>/dev/null || ls -lh target/release/deps/libginva_pinocchio*.so 2>/dev/null || echo "BPF build artifact location may vary"
+          cargo build-sbf --release
+          ls -lh target/release/deps/libginva_pinocchio*.so 2>/dev/null || ls -lh target/sbf-solana-solana/release/libginva_pinocchio.so 2>/dev/null
 
       - name: Upload BPF Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ginva-bpf-so
           path: |
-            programs/ginva-pinocchio/target/release/bpfel-unknown-unknown/release/libginva_pinocchio.so
             programs/ginva-pinocchio/target/release/deps/libginva_pinocchio*.so
+            programs/ginva-pinocchio/target/sbf-solana-solana/release/libginva_pinocchio.so
           retention-days: 7
 
   # Security Audit - จาก github-actions-templates + cicd-automation-workflow-automate
