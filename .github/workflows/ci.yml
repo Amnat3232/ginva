@@ -12,7 +12,6 @@ concurrency:
 
 env:
   SOLANA_VERSION: "1.18.26"
-  RUST_TOOLCHAIN: "nightly"
 
 jobs:
   build-and-test:
@@ -27,8 +26,11 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          toolchain: stable
           components: rustfmt, clippy
+
+      - name: Install Nightly
+        run: rustup install nightly
 
       - name: Clear Cargo cache
         run: |
@@ -108,7 +110,12 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          toolchain: stable
+
+      - name: Install Nightly Rust
+        run: |
+          rustup install nightly
+          rustup default nightly
 
       - name: Clear ALL Cargo registry
         run: |
@@ -127,7 +134,7 @@ jobs:
       - name: Build Solana BPF Program
         run: |
           cd programs/ginva-pinocchio
-          cargo +nightly build-sbf -- -Znext-lockfile-bump
+          cargo +nightly build-sbf
           ls -lh target/release/deps/libginva_pinocchio*.so 2>/dev/null || ls -lh target/sbf-solana-solana/release/libginva_pinocchio.so 2>/dev/null
 
       - name: Upload BPF Artifact
@@ -155,7 +162,10 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          toolchain: stable
+
+      - name: Install Nightly
+        run: rustup install nightly
 
       - name: Run Cargo Audit (Rust dependencies)
         uses: rustsec/audit-check@v1
