@@ -52,7 +52,7 @@ const Hero = () => {
             marginBottom: "20px",
           }}
         >
-          Next Generation DeFi Protocol
+          Decentralized Support Protocol
         </div>
 
         <h1
@@ -70,9 +70,9 @@ const Hero = () => {
             textShadow: "0 0 60px rgba(245, 158, 11, 0.5)",
           }}
         >
-          Unlock Your Crypto
+          Get Instant Cash.
           <br />
-          Liquidity
+          Keep Your Crypto.
         </h1>
 
         <p
@@ -86,8 +86,7 @@ const Hero = () => {
             margin: "0 auto 40px",
           }}
         >
-          Borrow against your crypto assets with instant liquidity, competitive
-          rates, and zero friction. Your assets, your liquidity.
+          Borrow USDC using your crypto as collateral. Our Dual Protection System gives you both time-based and price-based protection. 8% Fixed. No Surprises.
         </p>
 
         <div

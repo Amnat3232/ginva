@@ -1,75 +1,62 @@
-# Agent Instructions for GINVA Project
+# GINVA - Decentralized Pawn Shop Protocol
 
-## 重要指令 (Important Instructions)
+## The Problem
 
-### 1. 技能扫描 (Skill Scanning)
-**每次收到用户请求时，必须先扫描可用的 skills，找到最适合的 skill 来帮助完成任务。**
+Crypto holders need liquidity without selling their assets. Traditional DeFi liquidation is brutal—immediate, no-notice, predator-friendly. Nobody wins except vultures.
 
-流程：
-1. 分析用户请求
-2. 扫描可用的 skills 列表
-3. 加载最相关的 1-2 个 skills
-4. 使用 loaded skills 来完成任务
+## The Solution
 
-### 2. 项目概述 (Project Overview)
-GINVA 是一个基于 Solana 的去中心化借贷协议 (DeFi lending protocol)。
+**GINVA** is a decentralized lending protocol on Solana that lets users borrow USDC against their SOL, BTC, or ETH collateral—without selling. Our Dual Protection System creates a fairness layer crypto never had.
 
-**技术栈:**
-- Smart Contract: Rust + Pinocchio (已从 Anchor 迁移)
-- Frontend: React + TypeScript
-- Network: Solana Devnet/Mainnet
-- CI/CD: GitHub Actions (Pinocchio 构建)
+### Why We're Different
 
-### 3. 开发规范 (Development Standards)
+| Feature | Traditional DeFi | GINVA |
+|--------|------------------|------|
+| Notice Period | None (immediate) | **72 hours** after expiry |
+| Interest Rate | Variable, floating | **Fixed 8% APR** |
+| Language | "Liquidation" | Protection System |
+| Process | Vultures feast | AI Agents help fairly |
 
-#### CI/CD
-- 使用 `cargo build --release` 在 `programs/ginva-pinocchio` 目录构建
-- 不使用 Anchor (`anchor build`)
-- Solana CLI 版本: 1.18.26
-- Rust 版本: nightly-2026-03-01
+### Key Differentiators
 
-#### 代码风格
-- Rust: 使用 rustfmt, clippy
-- TypeScript: 使用 ESLint, Prettier
-- 提交消息格式: `type: description` (feat, fix, chore, etc.)
+1. **72-Hour Grace Period**
+   After loan expires, borrowers have 72 hours to repay or extend—no immediate loss.
 
-### 4. 安全注意事项 (Security Notes)
-- 永远不要提交私钥或敏感信息
-- wallet.json 仅在 develop 分支 push 时使用
-- 使用 GitHub Secrets 存储敏感信息
+2. **Fixed 8% APR**
+   No floating rates, no surprise spikes. Lock in 8% annually.
 
-### 5. Security Hardening Features (Phase 2)
+3. **Dual Protection System**
+   - Layer 1: Time-based (72-hour grace period)
+   - Layer 2: Price-based (immediate protection if Health Factor drops below 100%)
 
-See `docs/SECURITY_HARDENING.md` for full documentation.
+4. **AI Agent Keepers**
+   Instead of predatory liquidators, AI agents assist users fairly using time-weighted pricing. Surplus returned to borrower.
 
-**Supply Cap:**
-- Limits max deposit/borrow amount per asset
-- AssetConfig.supply_cap field (0 = unlimited)
+5. **User-Friendly Language**
+   We renamed "Liquidation" → "Protection System", "Keeper" → "Helper", "Seizure" → "Asset Management". We don't scare users.
 
-**Oracle Circuit Breaker:**
-- Auto-pauses on price anomaly detection
-- AssetConfig.price_deviation_threshold_bps
+### Protocol Basics
 
-**Multi-Oracle:**
-- Pyth + Switchboard dual validation
-- AssetOracleConfig supports primary/secondary oracle
+- **Collateral**: SOL, BTC, ETH (more assets coming)
+- **Loan-to-Value**: Up to 60% of collateral value
+- **Duration**: Flexible, user-selected
+- **Interest**: Fixed 8% APR, always
 
-### 6. 常用命令 (Common Commands)
+### Security Features
 
-```bash
-# 构建 Pinocchio 程序
-cd programs/ginva-pinocchio && cargo build --release
+- **Supply Cap**: Max deposit/borrow limits per asset
+- **Oracle Circuit Breaker**: Auto-pause on price anomalies
+- **Multi-Oracle**: Pyth + Switchboard dual validation
+- **Timelock**: Admin actions require 24-hour delay
 
-# 运行测试
-cd programs/ginva-pinocchio && cargo test --release
+### The Team Behind It
 
-# 启动前端
-cd app && npm run dev
-
-# 本地 Solana 集群
-solana-test-validator
-```
+Our origin story: A DeFi pioneer who watched friends lose crypto to liquidation vultures. Built Ginva to prove lending can be fair.
 
 ---
 
-**记住: 始终先扫描 skills，选择最适合的工具来完成工作！**
+**For QIE Hackathon Judges**
+
+Ginva isn't just another lending protocol. We're the first to prioritize borrower protection with a fairness layer that aligns incentives for everyone. No hidden fees. No immediate liquidation. Just fair, transparent crypto lending.
+
+Built by believers. Tested in production. Ready for mainnet.
