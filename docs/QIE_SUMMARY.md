@@ -26,8 +26,8 @@ No floating rates. No surprises. Lock in 8% annually. Always.
 1. **Layer 1 (Time)**: 72 hours after expiry
 2. **Layer 2 (Price)**: Immediate if Health Factor drops below 100%
 
-### 🤖 AI Agent Keepers
-Instead of predatory liquidators, AI "Helpers" assist users fairly using time-weighted pricing. Surplus value returns to borrower.
+### 🤖 AI Helpers
+ Instead of predatory liquidators, AI "Helpers" assist users fairly using time-weighted pricing. Surplus value returns to borrower.
 
 ### 📢 User-Friendly Language
 We renamed the scary words:

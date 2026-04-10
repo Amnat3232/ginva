@@ -29,7 +29,7 @@ Crypto holders need liquidity without selling their assets. Traditional DeFi liq
    - Layer 1: Time-based (72-hour grace period)
    - Layer 2: Price-based (immediate protection if Health Factor drops below 100%)
 
-4. **AI Agent Keepers**
+4. **AI Helpers**
    Instead of predatory liquidators, AI agents assist users fairly using time-weighted pricing. Surplus returned to borrower.
 
 5. **User-Friendly Language**
