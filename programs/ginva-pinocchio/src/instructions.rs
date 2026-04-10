@@ -645,8 +645,8 @@ fn process_initialize_protocol_config(
         // Write discriminator
         config_data[0..8].copy_from_slice(b"protconf");
 
-        // Write liquidation_timeout
-        config_data[8..16].copy_from_slice(&86400i64.to_le_bytes());
+        // Write liquidation_timeout (72 hours = 259200 seconds)
+        config_data[8..16].copy_from_slice(&259200i64.to_le_bytes());
 
         // Write auto_swap_reward_bps at offset 16
         config_data[16..18].copy_from_slice(&1000u16.to_le_bytes());
