@@ -1,11 +1,11 @@
 [workspace]
 members = ["programs/ginva"]
-exclude = ["programs/ginva_flash_bot", "programs/ginva-pinocchio"]
+exclude = ["programs/ginva_flash_bot", "programs/ginva-pinocchio", "programs/ginva-pinocchio/*"]
 resolver = "2"
 
 [workspace.dependencies]
-anchor-lang = "0.32.1"
-anchor-spl = "0.32.1"
+anchor-lang = "0.29.0"
+anchor-spl = "0.29.0"
 blake3 = "=1.5.5"
 constant_time_eq = "=0.3.1"
 base64ct = "=1.6.0"
@@ -14,17 +14,9 @@ borsh-derive = "1.0.4"
 toml_edit = "0.22.0"
 toml_parser = "0.10.0"
 
-# Lock ALL transitive dependencies to avoid edition2024 requirements
-cc = "=1.0.81"
-jobserver = "=0.1.24"
-getrandom = "=0.2.10"
-hashbrown = "=0.14.0"
-digest = "=0.10.7"
-sha2 = "=0.10.8"
-generic-array = "=0.14.7"
-proc-macro2 = "=1.0.79"
-quote = "=1.0.35"
-syn = "=2.0.55"
+# Force Cargo.lock version 3 compatibility
+[workspace.metadata]
+cargo = { lockfile = { version = 3 } }
 
 
 [profile.dev]

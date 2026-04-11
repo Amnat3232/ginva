@@ -38,7 +38,7 @@ pub const REENTRANCY_GUARD_ACTIVE: u8 = 1;
 pub const REENTRANCY_GUARD_INACTIVE: u8 = 0;
 
 // Program ID - matches Anchor.toml devnet deployment
-declare_id!("GWcQGdrSiVk8p58bYSmw8FTceR9dcHAKQzw7yEyjLTsy");
+declare_id!("GiqfoYyeQuNEPRiZbdKCtMCeYvKVpQyDWUiSDB6U9bzC");
 
 // === HARDCODED PARAMETERS (Immutable - Cannot be changed) ===
 pub const APR: u64 = 800; // 8.00% APR (basis points: 8_00) - IMMUTABLE
@@ -49,13 +49,13 @@ pub const LTV_MAX: u8 = 60; // 60% LTV Max - IMMUTABLE
 // Calculate interest using fixed APR with overflow protection
 pub fn calculate_interest(principal: u64, duration_seconds: u64, apr_bps: u64) -> Result<u64> {
     // interest = principal * APR * duration / (10000 * 365 * 86400)
-    principal
+    Ok(principal
         .checked_mul(apr_bps)
         .ok_or(GinvaError::ArithmeticOverflow)?
         .checked_mul(duration_seconds)
         .ok_or(GinvaError::ArithmeticOverflow)?
         .checked_div(10000 * 365 * 86400)
-        .ok_or(GinvaError::ArithmeticUnderflow)
+        .ok_or(GinvaError::ArithmeticUnderflow)?)
 }
 
 // CONSTANTS
