@@ -21,7 +21,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: 1.75.0
+          toolchain: 1.85.0
 
       - name: Cache Cargo
         uses: Swatinem/rust-cache@v2
@@ -29,18 +29,15 @@ jobs:
           shared-key: "ginva-solana"
           cache-targets: false
 
-      - name: Install Solana CLI
+      - name: Install Anchor
         run: |
-          curl -sSfL "https://github.com/solana-labs/solana/releases/download/v${SOLANA_VERSION}/solana-release-x86_64-unknown-linux-gnu.tar.bz2" -o solana.tar.bz2
-          tar xjf solana.tar.bz2
-          export PATH="$PWD/solana-release/bin:$PATH"
-          echo "$PWD/solana-release/bin" >> $GITHUB_PATH
+          npm install -g @coral-xyz/anchor
 
-      - name: Verify Solana
-        run: solana --version
+      - name: Verify Anchor
+        run: anchor --version
 
       - name: Build program
-        run: cargo build-sbf
+        run: anchor build
 
       - name: Find and copy compiled program
         run: |
