@@ -32,7 +32,11 @@ jobs:
 
       - name: Install Solana CLI
         run: |
-          sh -c "$(curl -sSfL 'https://release.solana.com/v${{ env.SOLANA_VERSION }}/install')"
+          for i in 1 2 3; do
+            sh -c "$(curl -sSfL 'https://release.solana.com/v${{ env.SOLANA_VERSION }}/install')" && break
+            echo "Retrying Solana CLI install..."
+            sleep 5
+          done
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
 
       - name: Verify Solana
@@ -65,17 +69,21 @@ jobs:
 
       - name: Install Solana CLI
         run: |
-          sh -c "$(curl -sSfL 'https://release.solana.com/v${{ env.SOLANA_VERSION }}/install')"
+          for i in 1 2 3; do
+            sh -c "$(curl -sSfL 'https://release.solana.com/v${{ env.SOLANA_VERSION }}/install')" && break
+            echo "Retrying Solana CLI install..."
+            sleep 5
+          done
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
 
       - name: Configure Solana
         run: |
           solana config set --url devnet
-          echo "Deploying to devnet..."
+          solana config set --keypair /dev/stdin <<< "$SOLANA_KEYPAIR"
 
       - name: Deploy to Devnet
         run: |
-          solana program deploy program/ginva.so --program-id target/deploy/ginva-keypair.json
+          solana program deploy program/ginva.so
         env:
           SOLANA_KEYPAIR: ${{ secrets.SOLANA_KEYPAIR }}
 
@@ -92,14 +100,20 @@ jobs:
 
       - name: Install Solana CLI
         run: |
-          sh -c "$(curl -sSfL 'https://release.solana.com/v${{ env.SOLANA_VERSION }}/install')"
+          for i in 1 2 3; do
+            sh -c "$(curl -sSfL 'https://release.solana.com/v${{ env.SOLANA_VERSION }}/install')" && break
+            echo "Retrying Solana CLI install..."
+            sleep 5
+          done
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
 
       - name: Configure Solana
-        run: solana config set --url mainnet-beta
+        run: |
+          solana config set --url mainnet-beta
+          solana config set --keypair /dev/stdin <<< "$SOLANA_KEYPAIR"
 
       - name: Deploy to Mainnet
         run: |
-          solana program deploy program/ginva.so --program-id target/deploy/ginva-keypair.json
+          solana program deploy program/ginva.so
         env:
           SOLANA_KEYPAIR: ${{ secrets.SOLANA_KEYPAIR }}
