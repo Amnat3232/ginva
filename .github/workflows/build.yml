@@ -16,11 +16,13 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          submodules: false
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
-          version: ${{ env.RUST_VERSION }}
+          toolchain: ${{ env.RUST_VERSION }}
 
       - name: Cache Cargo
         uses: Swatinem/rust-cache@v2
