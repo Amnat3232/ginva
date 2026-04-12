@@ -1,10 +1,10 @@
 //! GINVA Protocol - Pinocchio Version
 //! CPI (Cross-Program Invocations) for token transfers and oracle price feeds
 
-use pinocchio::account_info::AccountInfo;
+use pinocchio::AccountInfo;
 use pinocchio::instruction::{AccountMeta, Instruction};
-use pinocchio::program_error::ProgramError;
-use pinocchio::pubkey::Pubkey;
+use pinocchio::ProgramError;
+use pinocchio::Pubkey;
 use pinocchio::ProgramResult;
 
 // ============================================================================

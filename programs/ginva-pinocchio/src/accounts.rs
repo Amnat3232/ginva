@@ -5,9 +5,9 @@
 #![allow(clippy::manual_abs_diff)]
 
 use crate::GinvaError;
-use pinocchio::account_info::AccountInfo;
-use pinocchio::program_error::ProgramError;
-use pinocchio::pubkey::Pubkey;
+use pinocchio::AccountInfo;
+use pinocchio::ProgramError;
+use pinocchio::Pubkey;
 
 // ============================================================================
 // System Config Account

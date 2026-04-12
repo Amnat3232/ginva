@@ -8,10 +8,10 @@
 
 use crate::accounts::*;
 use crate::GinvaError;
-use pinocchio::account_info::AccountInfo;
-use pinocchio::program_error::ProgramError;
-use pinocchio::pubkey::Pubkey;
+use pinocchio::AccountInfo;
+use pinocchio::ProgramError;
 use pinocchio::ProgramResult;
+use pinocchio::Pubkey;
 
 #[allow(unused_variables)]
 #[allow(clippy::op_ref)]

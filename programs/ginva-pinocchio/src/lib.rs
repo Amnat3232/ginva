@@ -8,11 +8,11 @@ mod tests;
 
 pub use instructions::GinvaInstruction;
 pub use instructions::GinvaInstruction::*;
-use pinocchio::account_info::AccountInfo;
 use pinocchio::entrypoint;
-use pinocchio::program_error::ProgramError;
-use pinocchio::pubkey::Pubkey;
+use pinocchio::AccountInfo;
+use pinocchio::ProgramError;
 use pinocchio::ProgramResult;
+use pinocchio::Pubkey;
 use pinocchio_pubkey::declare_id;
 
 // ============================================================================
