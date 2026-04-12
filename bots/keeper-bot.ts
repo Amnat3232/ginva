@@ -20,7 +20,16 @@ import chalk from "chalk";
 
 dotenv.config();
 
-const RPC_URL = process.env.RPC_URL || "https://api.devnet.solana.com";
+// Carbium Infrastructure (Hackathon Edition)
+const CARBIUM_RPC = process.env.CARBIUM_RPC || "https://rpc.carbium.io";
+const CARBIUM_WSS = process.env.CARBIUM_WSS || "wss://wss-rpc.carbium.io";
+const USE_CARBIUM = process.env.USE_CARBIUM === "true";
+
+// Default to Carbium for hackathon (fast + MEV protection)
+const RPC_URL = USE_CARBIUM ? CARBIUM_RPC : (process.env.RPC_URL || "https://api.devnet.solana.com");
+
+// For subscriptions, use WS endpoint
+const WS_URL = USE_CARBIUM ? CARBIUM_WSS : undefined;
 const PROGRAM_ID = new PublicKey(
   process.env.PROGRAM_ID || "Ev9HTrf45JBM5PBvAG9v6AUb5cw4XeGgKXmrk7RtQm3D"
 );
@@ -49,11 +58,22 @@ const idl = JSON.parse(fs.readFileSync(idlPath, "utf8"));
 const program = new Program(idl as Idl, PROGRAM_ID, provider);
 
 console.log(chalk.bold.blue("╔══════════════════════════════════════╗"));
-console.log(chalk.bold.blue("║    GINVA KEEPER BOT v5.0           ║"));
+console.log(chalk.bold.blue("║    GINVA KEEPER BOT v5.1           ║"));
 console.log(chalk.bold.blue("║    (Pinocchio Protocol)            ║"));
 console.log(chalk.bold.blue("╚══════════════════════════════════════╝"));
 console.log(chalk.gray(`Wallet: ${wallet.publicKey.toBase58()}`));
 console.log(chalk.gray(`Program: ${PROGRAM_ID.toBase58()}`));
+
+// Carbium status display
+if (USE_CARBIUM) {
+  console.log("");
+  console.log(chalk.green("🚀 CARBIUM INFRASTRUCTURE ENABLED"));
+  console.log(chalk.gray(`   RPC: ${CARBIUM_RPC}`));
+  console.log(chalk.gray(`   WSS: ${CARBIUM_WSS}`));
+  console.log(chalk.gray("   Benefits: Sub-50ms latency + MEV Protection"));
+} else {
+  console.log(chalk.gray("\n💡 Tip: Set USE_CARBIUM=true for faster RPC + MEV protection"));
+}
 console.log("");
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
