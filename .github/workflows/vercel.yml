@@ -5,6 +5,10 @@ on:
     branches: [main, develop]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  deployments: write
+
 env:
   VERCEL_TOKEN_CONFIGURED: ${{ secrets.VERCEL_TOKEN != '' }}
 
@@ -39,6 +43,16 @@ jobs:
           vercel-args: "--prod"
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        continue-on-error: true
+
+      - name: Report Deployment Status
+        if: always()
+        run: |
+          if [ "$VERCEL_TOKEN_CONFIGURED" == "true" ]; then
+            echo "✅ Vercel deployment triggered"
+          else
+            echo "⚠️ Vercel deployment skipped (no token)"
+          fi
 
       - name: Skip Vercel Deployment (No Token)
         if: env.VERCEL_TOKEN_CONFIGURED == 'false'

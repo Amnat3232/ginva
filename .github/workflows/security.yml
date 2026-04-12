@@ -1,8 +1,5 @@
 name: 🔒 Code Quality & Security
 
-env:
-  RUST_TOOLCHAIN: nightly-2026-03-01
-
 on:
   push:
     branches: [main, develop]
@@ -13,9 +10,12 @@ on:
     - cron: "0 0 * * 1"
 
 jobs:
-  code-quality:
+  codequality:
     name: Code Quality Checks
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
 
     steps:
       - name: Checkout repository
@@ -24,7 +24,7 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          toolchain: stable
           components: rustfmt, clippy
 
       - name: Run Rustfmt
@@ -49,6 +49,9 @@ jobs:
   security-audit:
     name: Security Audit
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
 
     steps:
       - name: Checkout repository
@@ -57,7 +60,7 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          toolchain: stable
 
       - name: Cache cargo-audit
         uses: Swatinem/rust-cache@v2
@@ -70,12 +73,11 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check for secrets
-        uses: trufflesecurity/trufflehog@main
+        uses: trufflesecurity/trufflehog@3
         with:
           path: ./
           base: main
           head: HEAD
-          extra_args: --debug --only-verified
 
       - name: Run cargo-deny
         run: |
@@ -91,6 +93,8 @@ jobs:
   static-analysis:
     name: Static Analysis
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout repository
@@ -99,7 +103,7 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          toolchain: stable
 
       - name: Cache Rust tools
         uses: Swatinem/rust-cache@v2
@@ -126,15 +130,18 @@ jobs:
   size-check:
     name: Binary Size Check
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup Rust
-        uses: dtolnay/rust-toolchain@nightly
+        uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: nightly-2026-03-01
+          toolchain: stable
 
       - name: Install system dependencies
         run: |
@@ -158,6 +165,8 @@ jobs:
       - name: Comment size on PR
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
         with:
           script: |
             const fs = require('fs');

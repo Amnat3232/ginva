@@ -15,6 +15,9 @@ on:
       - "docker-compose.yml"
       - "Dockerfile"
 
+permissions:
+  contents: read
+
 jobs:
   docker-build:
     name: Build with Docker
@@ -59,6 +62,8 @@ jobs:
   docker-compose-test:
     name: Test with Docker Compose
     runs-on: ubuntu-latest
+    # Only run if docker-compose.yml exists
+    if: fileExists('docker-compose.yml')
 
     steps:
       - name: Checkout repository

@@ -16,9 +16,14 @@ on:
           - liquidation
           - integration
 
+permissions:
+  contents: read
+  issues: write
+  checks: write
+
 env:
   SOLANA_VERSION: 1.18.26
-  RUST_VERSION: nightly-2026-03-01
+  RUST_VERSION: stable
 
 jobs:
   scheduled-test:
@@ -35,7 +40,7 @@ jobs:
           cache: "npm"
 
       - name: Setup Rust
-        uses: dtolnay/rust-toolchain@nightly
+        uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: ${{ env.RUST_VERSION }}
 
