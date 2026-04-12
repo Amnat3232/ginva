@@ -55,6 +55,78 @@ Our origin story: A DeFi pioneer who watched friends lose crypto to liquidation 
 
 ---
 
+## AI Keeper Agent
+
+Automated liquidation agent powered by **Carbium Infrastructure** for sub-50ms latency.
+
+### Infrastructure
+
+- **RPC**: `https://rpc.carbium.io` (sub-50ms latency)
+- **WebSocket**: `wss://wss-rpc.carbium.io`
+- **gRPC**: `grpc://grpc.carbium.io:443`
+- **MEV Protection**: Jito bundling via Carbium
+- **Cluster**: Solana Devnet (default)
+
+### How It Works
+
+1. **Subscribe** to GINVA program events via WebSocket
+2. **Monitor** account changes for liquidatable positions (Health Factor < 100%)
+3. **Analyze** opportunity profitability (min profit threshold)
+4. **Execute** liquidation via Carbium Swap API
+5. **Distribute** revenue per split
+
+### Features
+
+- **Real-time Monitoring**: Program subscription via WebSocket
+- **Smart Execution**: Auto-detect liquidatable positions (Health Factor < 100%)
+- **Revenue Split**:
+  - Owner: 45%
+  - Agent: 35%
+  - Protocol: 20%
+- **Resilience**:
+  - Retry with exponential backoff (5 retries: 1s, 2s, 4s, 8s, 16s)
+  - Health check every 30s
+  - Auto-recovery on failure
+- **Alerts**: Discord + Telegram notifications
+- **Dashboard**: Local JSON logging to `keeper-agent.log`
+
+### Environment Variables
+
+```bash
+# Required
+PRIVATE_KEY="[...array...]"     # Wallet private key
+CARBIUM_RPC="https://rpc.carbium.io"
+CARBIUM_WSS="wss://wss-rpc.carbium.io"
+CARBIUM_GRPC="grpc://grpc.carbium.io:443"
+
+# Optional
+GINVA_PROGRAM_ID="GiqfoYyeQuNEPRiZbdKCtMCeYvKVpQyDWUiSDB6U9bzC"
+MIN_PROFIT="0.1"                    # Minimum profit in USDC
+LOG_FILE="./keeper-agent.log"
+
+# Alerts (optional)
+DISCORD_WEBHOOK="https://discord.com/api/webhooks/..."
+TELEGRAM_BOT_TOKEN="123456:ABC-DEF"
+TELEGRAM_CHAT_ID="123456789"
+```
+
+### Usage
+
+```bash
+cd bots
+cp .env.example .env
+# Edit .env with your configuration
+npx tsx ai-keeper-agent.ts
+```
+
+### Files
+
+- `bots/ai-keeper-agent.ts` - Main AI agent implementation (this project)
+- `bots/keeper-bot.ts` - Basic keeper bot
+- `bots/.env.example` - Environment template
+
+---
+
 **For QIE Hackathon Judges**
 
 Ginva isn't just another lending protocol. We're the first to prioritize borrower protection with a fairness layer that aligns incentives for everyone. No hidden fees. No immediate liquidation. Just fair, transparent crypto lending.

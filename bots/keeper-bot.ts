@@ -31,7 +31,7 @@ const RPC_URL = USE_CARBIUM ? CARBIUM_RPC : (process.env.RPC_URL || "https://api
 // For subscriptions, use WS endpoint
 const WS_URL = USE_CARBIUM ? CARBIUM_WSS : undefined;
 const PROGRAM_ID = new PublicKey(
-  process.env.PROGRAM_ID || "Ev9HTrf45JBM5PBvAG9v6AUb5cw4XeGgKXmrk7RtQm3D"
+  process.env.PROGRAM_ID || "67cu15Nf1rEaTMMEyda3TcvRMArUGRmH94etRTBJ7sSB"
 );
 
 const CONFIG = {

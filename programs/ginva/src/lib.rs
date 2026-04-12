@@ -3,7 +3,7 @@ use anchor_lang::solana_program::instruction::{AccountMeta, Instruction};
 use anchor_lang::solana_program::program::invoke_signed;
 use anchor_lang::solana_program::pubkey;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
-use pyth_solana_receiver_sdk::price_update::{get_feed_id_from_hex, PriceUpdateV2};
+use pyth_solana_receiver_sdk_legacy::price_update::{get_feed_id_from_hex, PriceUpdateV2};
 use std::mem::size_of;
 
 // SECURITY CONSTANTS & VALIDATIONS
@@ -38,7 +38,7 @@ pub const REENTRANCY_GUARD_ACTIVE: u8 = 1;
 pub const REENTRANCY_GUARD_INACTIVE: u8 = 0;
 
 // Program ID - matches Anchor.toml devnet deployment
-declare_id!("GiqfoYyeQuNEPRiZbdKCtMCeYvKVpQyDWUiSDB6U9bzC");
+declare_id!("67cu15Nf1rEaTMMEyda3TcvRMArUGRmH94etRTBJ7sSB");
 
 // === HARDCODED PARAMETERS (Immutable - Cannot be changed) ===
 pub const APR: u64 = 800; // 8.00% APR (basis points: 8_00) - IMMUTABLE

@@ -21,12 +21,19 @@ const CARBIUM_RPC = process.env.CARBIUM_RPC || "https://rpc.carbium.io";
 const CARBIUM_WSS = process.env.CARBIUM_WSS || "wss://wss-rpc.carbium.io";
 const CARBIUM_GRPC = process.env.CARBIUM_GRPC || "grpc://grpc.carbium.io:443";
 
+const USE_CARBIUM = process.env.USE_CARBIUM === "true";
+const FALLBACK_RPC = process.env.RPC_URL || "https://api.devnet.solana.com";
+const FALLBACK_WSS = process.env.WS_URL || undefined;
+
+const ACTIVE_RPC = USE_CARBIUM ? CARBIUM_RPC : FALLBACK_RPC;
+const ACTIVE_WSS = USE_CARBIUM ? CARBIUM_WSS : FALLBACK_WSS;
+
 const PROGRAM_ID = new PublicKey(
-  process.env.PROGRAM_ID || "GiqfoYyeQuNEPRiZbdKCtMCeYvKVpQyDWUiSDB6U9bzC"
+  process.env.PROGRAM_ID || "67cu15Nf1rEaTMMEyda3TcvRMArUGRmH94etRTBJ7sSB"
 );
 
 const GINVA_PROGRAM_ID = new PublicKey(
-  process.env.GINVA_PROGRAM_ID || "GiqfoYyeQuNEPRiZbdKCtMCeYvKVpQyDWUiSDB6U9bzC"
+  process.env.GINVA_PROGRAM_ID || "67cu15Nf1rEaTMMEyda3TcvRMArUGRmH94etRTBJ7sSB"
 );
 
 const OWNER_FEE = 0.45;
@@ -156,7 +163,8 @@ class AIKeeperAgent {
   private dashboard: DashboardLogger;
 
   constructor() {
-    this.client = new CarbiumClient(CARBIUM_RPC, CARBIUM_GRPC, CARBIUM_WSS);
+    // Use Carbium infrastructure if USE_CARBIUM=true, otherwise use devnet fallback
+    this.client = new CarbiumClient(ACTIVE_RPC, CARBIUM_GRPC, ACTIVE_WSS);
     this.wallet = this.loadWallet();
     this.state = {
       status: "idle",
@@ -183,19 +191,20 @@ class AIKeeperAgent {
   }
 
   async initialize(): Promise<void> {
+    const infraLabel = USE_CARBIUM ? "Carbium Infrastructure" : "Solana Devnet";
     console.log(chalk.bold.cyan("╔══════════════════════════════════════════╗"));
     console.log(chalk.bold.cyan("║   GINVA AI KEEPER AGENT v1.0          ║"));
-    console.log(chalk.bold.cyan("║   (Powered by Carbium Infrastructure) ║"));
+    console.log(chalk.bold.cyan(`║   (${infraLabel}) ║`.padEnd(44)));
     console.log(chalk.bold.cyan("╚══════════════════════════════════════════╝"));
     console.log(chalk.gray(`Wallet: ${this.wallet.publicKey.toBase58()}`));
     console.log(chalk.gray(`Program: ${GINVA_PROGRAM_ID.toBase58()}`));
-    console.log(chalk.gray(`gRPC: ${CARBIUM_GRPC}`));
+    console.log(chalk.gray(`RPC: ${ACTIVE_RPC}`));
     console.log("");
 
     const idlPath = process.env.IDL_PATH || "../target/idl/ginva.json";
     this.idl = JSON.parse(fs.readFileSync(idlPath, "utf8"));
 
-    const connection = new Connection(CARBIUM_RPC, "confirmed");
+    const connection = new Connection(ACTIVE_RPC, "confirmed");
     const walletAdapter = {
       publicKey: this.wallet.publicKey,
       signTransaction: async <T extends Transaction>(tx: T): Promise<T> => {
@@ -341,7 +350,7 @@ class AIKeeperAgent {
         );
 
         return sendAndConfirmTransaction(
-          new Connection(CARBIUM_RPC),
+          new Connection(ACTIVE_RPC),
           transaction,
           [this.wallet]
         );

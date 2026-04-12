@@ -32,6 +32,7 @@ jobs:
       - name: Install Anchor
         run: |
           npm install -g @coral-xyz/anchor
+          echo "$(npm root -g)/@coral-xyz/anchor/cli/bin" >> $GITHUB_PATH
 
       - name: Verify Anchor
         run: anchor --version
