@@ -1,21 +1,23 @@
 //! GINVA Protocol - Pinocchio Version
 //! CPI (Cross-Program Invocations) for token transfers and oracle price feeds
 
-use pinocchio::AccountInfo;
-use pinocchio::instruction::{AccountMeta, Instruction};
+use pinocchio::AccountView;
+use pinocchio::Address;
 use pinocchio::ProgramError;
-use pinocchio::Pubkey;
 use pinocchio::ProgramResult;
+
+#[cfg(feature = "cpi")]
+use pinocchio::cpi::{AccountMeta, Instruction};
 
 // ============================================================================
 // TOKEN PROGRAM CONSTANTS
 // ============================================================================
 
-pub const TOKEN_PROGRAM_ID: Pubkey = Pubkey::from([
+pub const TOKEN_PROGRAM_ID: Address = Address::from([
     6, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 ]);
 
-pub const TOKEN_2022_PROGRAM_ID: Pubkey = Pubkey::from([
+pub const TOKEN_2022_PROGRAM_ID: Address = Address::from([
     2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 ]);
 

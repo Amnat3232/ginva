@@ -8,10 +8,10 @@
 
 use crate::accounts::*;
 use crate::GinvaError;
-use pinocchio::AccountInfo;
+use pinocchio::AccountView;
+use pinocchio::Address;
 use pinocchio::ProgramError;
 use pinocchio::ProgramResult;
-use pinocchio::Pubkey;
 
 #[allow(unused_variables)]
 #[allow(clippy::op_ref)]
@@ -59,8 +59,8 @@ impl GinvaInstruction {
 // ============================================================================
 
 pub fn process_instruction(
-    _program_id: &Pubkey,
-    accounts: &[AccountInfo],
+    _program_id: &Address,
+    accounts: &[AccountView],
     data: &[u8],
 ) -> ProgramResult {
     if data.is_empty() {

@@ -8,11 +8,12 @@ mod tests;
 
 pub use instructions::GinvaInstruction;
 pub use instructions::GinvaInstruction::*;
+use pinocchio::account;
 use pinocchio::entrypoint;
-use pinocchio::AccountInfo;
+use pinocchio::AccountView;
+use pinocchio::Address;
 use pinocchio::ProgramError;
 use pinocchio::ProgramResult;
-use pinocchio::Pubkey;
 use pinocchio_pubkey::declare_id;
 
 // ============================================================================
@@ -206,8 +207,8 @@ pub fn calculate_interest(principal: u64, duration_seconds: u64, apr_bps: u64) -
 entrypoint!(process_instruction);
 
 pub fn process_instruction(
-    program_id: &Pubkey,
-    accounts: &[AccountInfo],
+    program_id: &Address,
+    accounts: &[AccountView],
     instruction_data: &[u8],
 ) -> ProgramResult {
     instructions::process_instruction(program_id, accounts, instruction_data)
