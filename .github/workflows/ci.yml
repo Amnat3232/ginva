@@ -114,8 +114,8 @@ jobs:
 
       - name: Install Nightly Rust
         run: |
-          rustup install nightly
-          rustup default nightly
+          rustup install nightly-2024-01-01
+          rustup default nightly-2024-01-01
 
       - name: Clear ALL Cargo registry
         run: |
