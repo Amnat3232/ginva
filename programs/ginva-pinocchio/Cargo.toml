@@ -11,13 +11,13 @@ default = ["std"]
 std = []
 
 [dependencies]
-pinocchio = "=0.1.0"
-pinocchio-system = "=0.1.0"
-pinocchio-token = "=0.1.0"
-blake3 = "=1.5.0"
-constant_time_eq = "=0.3.0"
-base64ct = "=1.6.0"
-hashbrown = "=0.14"
+pinocchio = "0.10"
+pinocchio-system = "0.10"
+pinocchio-token = "0.10"
+blake3 = "1.5"
+constant_time_eq = "0.3"
+base64ct = "1.6"
+hashbrown = "0.14"
 [lints.rust]
 unexpected_cfgs = "allow"
 
