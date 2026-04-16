@@ -14,6 +14,17 @@ const BorrowNew = lazy(() => import("./pages/BorrowNew"));
 const SupportPage = lazy(() => import("./pages/Support"));
 const KeeperPage = lazy(() => import("./pages/Keeper"));
 
+// 2026 Edition UI Pages
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Home = lazy(() => import("./pages/Home"));
+const History = lazy(() => import("./pages/History"));
+const Settings = lazy(() => import("./pages/Settings"));
+const AIIntent = lazy(() => import("./pages/AIIntent"));
+const QuantumKeeper = lazy(() => import("./pages/QuantumKeeper"));
+const LiquidityProvider = lazy(() => import("./pages/LiquidityProvider"));
+const BorrowVault = lazy(() => import("./pages/BorrowVault"));
+const WithdrawLiquidity = lazy(() => import("./pages/WithdrawLiquidity"));
+
 // Existing pages
 const Earn = lazy(() => import("./pages/Earn"));
 const Pawn = lazy(() => import("./pages/Pawn"));
@@ -101,7 +112,7 @@ function App() {
       <Container fluid>
         <Suspense fallback={<Loading />}>
           <Routes>
-            <Route path="/" element={<LandingNew onNavigate={setPage} />} />
+            <Route path="/" element={<Home connected={connected} walletAddress={walletAddress} />} />
             <Route
               path="/borrow"
               element={
@@ -121,6 +132,16 @@ function App() {
             <Route path="/storefront" element={<Storefront />} />
             <Route path="/agent" element={<Agent />} />
             <Route path="/admin" element={<Admin />} />
+            {/* 2026 Edition Routes */}
+            <Route path="/dashboard" element={<Dashboard connected={connected} walletAddress={walletAddress} />} />
+            <Route path="/home2026" element={<Home connected={connected} walletAddress={walletAddress} />} />
+            <Route path="/history" element={<History />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/ai-intent" element={<AIIntent connected={connected} walletAddress={walletAddress} />} />
+            <Route path="/quantum" element={<QuantumKeeper />} />
+            <Route path="/liquidity" element={<LiquidityProvider />} />
+            <Route path="/borrow-vault" element={<BorrowVault />} />
+            <Route path="/withdraw" element={<WithdrawLiquidity />} />
           </Routes>
         </Suspense>
       </Container>
