@@ -22,3 +22,11 @@ bots/keypair.json
 .agents/skills/
 .vercel
 app/dist/
+
+# AI Agent tool skills (symlinks that cause issues)
+.claude/skills/
+.augment/skills/
+.codebuddy/skills/
+.continue/skills/
+.junie/skills/
+.kiro/skills/
