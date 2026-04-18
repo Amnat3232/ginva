@@ -95,7 +95,7 @@ const HomeDashboard = ({ connected, walletAddress }: HomeProps) => {
         <div style={{ padding: "0 32px", marginBottom: "40px" }}>
           <h1 style={{ fontSize: "24px", fontWeight: 700, color: "#00f0ff", fontFamily: "'Space Grotesk', sans-serif" }}>Ginva</h1>
           <p style={{ fontSize: "10px", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.2em", marginTop: "4px" }}>
-            Cinematic Intelligence
+            40,000 Years of Instinct — Liquidity Infrastructure for AI Agents
           </p>
         </div>
 

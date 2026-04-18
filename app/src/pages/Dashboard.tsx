@@ -50,6 +50,13 @@ const Dashboard = () => {
 
   const statCards = [
     {
+      label: "Health Factor",
+      value: userActiveLoans > 0 ? "1.45" : "—",
+      subValue: userActiveLoans > 0 ? "Healthy" : "No active loans",
+      icon: <FiShield size={24} />,
+      color: userActiveLoans > 0 ? "#10b981" : "rgba(255,255,255,0.3)",
+    },
+    {
       label: "Total Value Locked",
       value: `$${tvl.toFixed(2)}`,
       subValue: "0 USDC",

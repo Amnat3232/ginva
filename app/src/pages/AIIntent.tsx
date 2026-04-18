@@ -57,7 +57,7 @@ const AIIntent = ({ connected, walletAddress }: { connected: boolean; walletAddr
       <aside style={{ width: "240px", height: "100vh", position: "fixed", left: 0, top: 0, background: "#0a0e17", padding: "24px 0", display: "flex", flexDirection: "column", zIndex: 60 }}>
         <div style={{ padding: "0 32px", marginBottom: "40px" }}>
           <h1 style={{ fontSize: "24px", fontWeight: 700, color: "#00f0ff", fontFamily: "'Space Grotesk', sans-serif" }}>Ginva</h1>
-          <p style={{ fontSize: "10px", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.2em", marginTop: "4px" }}>Cinematic Intelligence</p>
+          <p style={{ fontSize: "10px", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.2em", marginTop: "4px" }}>40,000 Years of Instinct — Liquidity Infrastructure for AI Agents</p>
         </div>
         <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: "8px" }}>
           {[
