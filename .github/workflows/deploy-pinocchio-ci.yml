@@ -35,6 +35,7 @@ jobs:
       - name: Build SBF Program
         working-directory: programs/ginva-pinocchio
         run: |
+          rm -f Cargo.lock
           cargo build-sbf
 
       - name: Find Built Program
