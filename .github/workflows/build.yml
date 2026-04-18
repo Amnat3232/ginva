@@ -50,7 +50,7 @@ jobs:
   deploy-devnet:
     needs: build
     runs-on: ubuntu-latest
-    if: false # Disabled - manual deployment required for Pinocchio programs
+    if: github.ref == 'refs/heads/develop'
     environment:
       name: devnet
       url: https://explorer.solana.com/?cluster=devnet
