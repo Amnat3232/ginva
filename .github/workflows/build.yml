@@ -71,8 +71,10 @@ jobs:
           solana config set --url devnet
           echo "$SOLANA_KEYPAIR" > keypair.json
           solana config set --keypair keypair.json
+          echo "CARBIUM_RPC_URL=https://rpc.carbium.io/?apiKey=${{ secrets.CARBIUM_RPC_KEY }}" >> $GITHUB_ENV
         env:
           SOLANA_KEYPAIR: ${{ secrets.SOLANA_KEYPAIR }}
+          CARBIUM_RPC_KEY: ${{ secrets.CARBIUM_RPC_KEY }}
 
       - name: Deploy to Devnet
         run: solana program deploy program/ginva.so --max-sign-attempts 100
