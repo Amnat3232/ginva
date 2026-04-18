@@ -18,6 +18,9 @@
     "demo:full": "ts-node scripts/demo-full-flow.ts",
     "bot:start": "ts-node auto-swap-bot.ts",
     "bot:test": "ts-node scripts/test-bot.ts",
+    "bot:nli": "ts-node bots/nli.ts",
+    "bot:risk": "ts-node bots/risk-assessment.ts",
+    "bot:smart": "ts-node bots/smart-liquidation.ts",
     "demo:visual": "ts-node scripts/visual-demo.ts",
     "docker:shell": "docker-compose run --rm shell",
     "docker:clean": "docker-compose down -v && docker system prune -f"

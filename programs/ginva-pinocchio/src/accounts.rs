@@ -491,7 +491,7 @@ pub fn load_system_config<'a>(
     program_id: &Address,
 ) -> Result<&'a SystemConfig, ProgramError> {
     // 1. Validate owner
-    if account.owner() != program_id {
+    if unsafe { account.owned_by(program_id) } {
         return Err(ProgramError::IncorrectProgramId);
     }
     // 2. Validate data length
@@ -513,7 +513,7 @@ pub fn load_loan_account<'a>(
     account: &'a AccountView,
     program_id: &Address,
 ) -> Result<&'a LoanAccount, ProgramError> {
-    if account.owner() != program_id {
+    if unsafe { account.owned_by(program_id) } {
         return Err(ProgramError::IncorrectProgramId);
     }
     if account.data_len() < LOAN_ACCOUNT_SIZE {
@@ -532,7 +532,7 @@ pub fn load_asset_config<'a>(
     account: &'a AccountView,
     program_id: &Address,
 ) -> Result<&'a AssetConfig, ProgramError> {
-    if account.owner() != program_id {
+    if unsafe { account.owned_by(program_id) } {
         return Err(ProgramError::IncorrectProgramId);
     }
     if account.data_len() < ASSET_CONFIG_SIZE {

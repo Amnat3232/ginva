@@ -12,7 +12,6 @@ use pinocchio::AccountView;
 use pinocchio::Address;
 use pinocchio::ProgramResult;
 use solana_program_error::ProgramError;
-use solana_program_error::ProgramError;
 
 #[allow(unused_variables)]
 #[allow(clippy::op_ref)]
@@ -173,7 +172,9 @@ fn process_initialize_system(
     drop(config_data);
 
     // 3. Validate mints are not zero (security)
-    if collateral_mint.key().as_ref() == &[0u8; 32] || loan_mint.key().as_ref() == &[0u8; 32] {
+    if collateral_mint.address().as_ref() == &[0u8; 32]
+        || loan_mint.address().as_ref() == &[0u8; 32]
+    {
         return Err(GinvaError::InvalidInput.into());
     }
 
@@ -185,17 +186,17 @@ fn process_initialize_system(
         config_data[0..8].copy_from_slice(b"config__");
 
         // Write admin pubkey (32 bytes)
-        config_data[8..40].copy_from_slice(admin.key().as_ref());
+        config_data[8..40].copy_from_slice(admin.address().as_ref());
 
         // Write other authorities as admin for now (can be changed later)
-        config_data[40..72].copy_from_slice(admin.key().as_ref()); // capital_wallet_authority
-        config_data[72..104].copy_from_slice(admin.key().as_ref()); // vault_wallet_authority
-        config_data[104..136].copy_from_slice(admin.key().as_ref()); // revenue_wallet_authority
-        config_data[136..168].copy_from_slice(admin.key().as_ref()); // seized_assets_authority
+        config_data[40..72].copy_from_slice(admin.address().as_ref()); // capital_wallet_authority
+        config_data[72..104].copy_from_slice(admin.address().as_ref()); // vault_wallet_authority
+        config_data[104..136].copy_from_slice(admin.address().as_ref()); // revenue_wallet_authority
+        config_data[136..168].copy_from_slice(admin.address().as_ref()); // seized_assets_authority
 
         // Write mint pubkeys
-        config_data[168..200].copy_from_slice(collateral_mint.key().as_ref()); // collateral_mint
-        config_data[200..232].copy_from_slice(loan_mint.key().as_ref()); // loan_mint
+        config_data[168..200].copy_from_slice(collateral_mint.address().as_ref()); // collateral_mint
+        config_data[200..232].copy_from_slice(loan_mint.address().as_ref()); // loan_mint
 
         // Write deposit_fee_bps (2 bytes) at offset 282
         config_data[282..284].copy_from_slice(&deposit_fee_bps.to_le_bytes());
@@ -256,7 +257,7 @@ fn process_initialize_asset(
 
     // Verify system config is initialized
     let sys_config = load_system_config(system_config, _program_id)?;
-    if sys_config.admin() != admin.key().as_ref() {
+    if sys_config.admin() != admin.address().as_ref() {
         return Err(GinvaError::Unauthorized.into());
     }
 
@@ -316,7 +317,9 @@ fn process_deposit(_program_id: &Address, accounts: &[AccountView], data: &[u8])
     }
 
     // 2. Validate token program
-    if token_program.key().as_ref() != &[6u8; 32] && token_program.key().as_ref() != &[2u8; 32] {
+    if token_program.address().as_ref() != &[6u8; 32]
+        && token_program.address().as_ref() != &[2u8; 32]
+    {
         return Err(ProgramError::IncorrectProgramId);
     }
 
@@ -460,7 +463,7 @@ fn process_repay(_program_id: &Address, accounts: &[AccountView], data: &[u8]) -
     // Load loan account
     let loan = load_loan_account(loan_account, _program_id)?;
 
-    if loan.is_initialized() && loan.borrower() != payer.key().as_ref() {
+    if loan.is_initialized() && loan.borrower() != payer.address().as_ref() {
         return Err(GinvaError::Unauthorized.into());
     }
 
