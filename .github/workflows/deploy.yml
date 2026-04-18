@@ -90,7 +90,13 @@ jobs:
       - name: Install Solana CLI
         run: |
           sh -c "$(curl -sSfL https://release.solana.com/stable/install)"
+        shell: bash -l {0}
+
+      - name: Add Solana to PATH
+        run: |
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+          echo "Solana CLI installed at: $HOME/.local/share/solana/install/active_release/bin"
+          ls -la $HOME/.local/share/solana/install/active_release/bin/
 
       - name: Download Artifacts
         uses: actions/download-artifact@v4
@@ -100,7 +106,7 @@ jobs:
 
       - name: Deploy to Devnet
         run: |
-          solana program deploy programs/ginva-pinocchio/target/release/ginva-pinocchio --url devnet --keypair ${{ secrets.SOLANA_DEPLOYER_KEY }}
+          solana program deploy programs/ginva-pinocchio/target/release/ginva-pinocchio --url devnet --keypair ${{ secrets.SOLANA_KEYPAIR }}
         env:
           SOLANA_CLUSTER: devnet
 
