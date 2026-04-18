@@ -26,17 +26,16 @@ jobs:
         run: |
           rustup default stable
 
-      - name: Install Solana CLI
+- name: Install Solana CLI
         run: |
           sh -c "$(curl -sSfL https://release.anza.xyz/v1.18.26/install)"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
-          cargo install cargo-build-sbf --locked
 
       - name: Build SBF Program
         working-directory: programs/ginva-pinocchio
         run: |
           rm -f Cargo.lock
-          cargo build-sbf
+          cargo build-bpf --release
 
       - name: Find Built Program
         run: |
