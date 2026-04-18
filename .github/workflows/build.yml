@@ -29,21 +29,14 @@ jobs:
           shared-key: "ginva-solana"
           cache-targets: false
 
-      - name: Install Anchor
-        run: |
-          npm install -g @coral-xyz/anchor
-          echo "$(npm root -g)/@coral-xyz/anchor/cli/bin" >> $GITHUB_PATH
-
-      - name: Verify Anchor
-        run: anchor --version
-
-      - name: Build program
-        run: anchor build
+      - name: Build Pinocchio program
+        working-directory: programs/ginva-pinocchio
+        run: cargo build --release
 
       - name: Find and copy compiled program
         run: |
           mkdir -p target/deploy
-          find target -name "*.so" -path "*/deploy/*" -type f 2>/dev/null | head -1 | xargs -I {} cp {} target/deploy/ginva.so || true
+          find programs/ginva-pinocchio/target -name "*.so" -type f 2>/dev/null | head -1 | xargs -I {} cp {} target/deploy/ginva.so || true
           ls -la target/deploy/ 2>/dev/null || echo "No deploy directory"
 
       - name: Upload artifact
