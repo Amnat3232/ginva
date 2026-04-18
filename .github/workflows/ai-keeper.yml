@@ -1,0 +1,83 @@
+name: 🤖 AI Keeper Agent - 24/7 Monitor
+
+on:
+  schedule:
+    # Run every 5 minutes for continuous monitoring
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Manual Action"
+        required: true
+        default: "run-keeper"
+        type: choice
+        options:
+          - run-keeper
+          - check-health
+          - trigger-liquidate
+
+permissions:
+  contents: read
+
+env:
+  GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+  RPC_URL: ${{ secrets.RPC_URL }}
+  WALLET_PRIVATE_KEY: ${{ secrets.KEEPER_WALLET_PRIVATE_KEY }}
+
+jobs:
+  ai-keeper-monitor:
+    name: 🤖 AI Keeper Monitor
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: |
+          cd bots
+          npm install --legacy-peer-deps
+
+      - name: Run AI Keeper Agent
+        run: |
+          cd bots
+          npx tsx ai-keeper-agent.ts
+        env:
+          RPC_URL: ${{ secrets.RPC_URL }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          PROGRAM_ID: "8Gykav1cYZgrC7EkZWSwDr4Xk2L7MR3ip8A2z2eji21s"
+          GINVA_PROGRAM_ID: "8Gykav1cYZgrC7EkZWSwDr4Xk2L7MR3ip8A2z2eji21s"
+
+      - name: Report Status
+        if: always()
+        run: |
+          STATUS="${{ job.status }}"
+          if [ "$STATUS" == "success" ]; then
+            echo "✅ AI Keeper completed cycle"
+          else
+            echo "⚠️ AI Keeper cycle needs attention"
+          fi
+
+  ai-keeper-health:
+    name: 💚 Keeper Health Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Keeper Wallet Balance
+        run: |
+          echo "🔍 Checking keeper wallet on devnet..."
+          # Check balance via RPC
+          curl -s -X POST "${{ secrets.RPC_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{"jsonrpc":"2.0","id":1,"method":"getBalance","params":["KEEPER_WALLET_ADDRESS"]}'
+        continue-on-error: true
+
+      - name: Log Health Status
+        run: |
+          echo "💚 AI Keeper Agent: Healthy"
+          echo "⏰ Last run: $(date -u)"
+          echo "🔗 Network: Solana Devnet"

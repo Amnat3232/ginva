@@ -564,6 +564,19 @@ See `programs/ginva-pinocchio/src/lib.rs` for full error code list.
 
 ## 🚀 **Quick Start**
 
+### **Access Instructions**
+
+```
+🔗 Live App: https://ginva.vercel.app
+🔐 Wallet: Phantom or Solflare (Devnet)
+
+📖 How to Use:
+1. Connect wallet (Phantom/Solflare) → Switch to Devnet
+2. Borrower: Deposit SOL/BTC/ETH → Borrow USDC (8% APR fixed)
+3. Liquidity Provider: Deposit USDC → Earn 8% APR + liquidation rewards
+4. Keeper: Run AI Keeper agent → Earn from liquidation events
+```
+
 ### **For Users (Web)**
 
 ```bash
@@ -633,14 +646,8 @@ cp .env.example .env
 # 3. Run Keeper A (Trigger Bot)
 npm run keeper-a
 
-# Or run Keeper B (Storefront Bot)
-npm run keeper-b
-
-# Or run Keeper C (Finalize Bot)
-npm run keeper-c
-
-# Or run Auto-Swap Bot (Jupiter DEX)
-npm run auto-swap
+# Or run AI Keeper 24/7 (GitHub Actions)
+# See: docs/SECRETS_SETUP.md for setup instructions
 ```
 
 ---
