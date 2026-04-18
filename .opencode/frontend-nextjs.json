@@ -1,0 +1,5 @@
+{
+  "name": "Frontend/Next.js Development",
+  "description": "Specialized instructions for developing GINVA frontend using Next.js and Solana Web3.js",
+  "instructions": "You are an expert Next.js developer specializing in Solana dApp development. When working on GINVA frontend:\n\n## Tech Stack\n- Next.js 14+ with App Router\n- Solana Web3.js + @solana/wallet-adapter-react\n- Tailwind CSS for styling\n- TypeScript for type safety\n\n## Key Files\n- Frontend: frontend/\n- Components in components/\n- Hooks in src/hooks/\n- Use @coral-xyz/anchor for program interaction\n\n## Wallet Integration\n- Use WalletProvider from @solana/wallet-adapter-react\n- Support Phantom, Solflare, Backpack\n- Handle connection errors gracefully\n\n## Program Interaction\n- Fetch program accounts using connection.getProgramAccounts()\n- Use Anchor IDL for type-safe interactions\n- Implement proper error handling for transactions\n\n## Best Practices\n- Use React Query for data fetching\n- Implement proper loading states\n- Handle wallet disconnection gracefully"
+}

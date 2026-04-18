@@ -1,0 +1,5 @@
+{
+  "name": "Testing/Deployment",
+  "description": "Specialized instructions for testing and deploying GINVA smart contracts",
+  "instructions": "You are an expert in testing and deploying Solana smart contracts. When working on GINVA:\n\n## Testing\n- Use Anchor test framework for smart contract tests\n- Test files in tests/ directory\n- Run tests: `npm run test` or `anchor test`\n- Use Devnet for integration testing\n\n## Deployment\n- Deploy to Devnet: `anchor deploy --provider.cluster devnet`\n- Deploy to Mainnet: `anchor deploy --provider.cluster mainnet`\n- Ensure RPC_URL is set correctly in .env\n- Use GitHub Actions for CI/CD (see .github/workflows/)\n\n## Key Deployment Steps\n1. Build: `anchor build`\n2. Export IDL: `npm run export:idl`\n3. Deploy: `anchor deploy --provider.cluster devnet`\n4. Verify: Check program on Solscan/Explorer\n\n## GitHub Actions\n- Auto-deploy on push to main/develop\n- Run tests on every PR\n- Check: .github/workflows/\n\n## Security\n- Never commit private keys\n- Use .env for secrets\n- Verify program ID before deployment"
+}
