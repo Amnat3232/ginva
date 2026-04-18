@@ -1,0 +1,79 @@
+name: 🚀 Build & Deploy Pinocchio (Solana CI)
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: "Deploy to devnet?"
+        required: true
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    container: 
+      image: solanalabs/solana:latest
+      options: --entrypoint /bin/bash
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        run: |
+          rustup default stable
+
+      - name: Build Pinocchio Program
+        working-directory: programs/ginva-pinocchio
+        run: |
+          cargo build --release
+          ls -la target/release/libginva_pinocchio.so
+
+      - name: Save artifact
+        if: github.event.inputs.deploy == 'true'
+        run: |
+          cp programs/ginva-pinocchio/target/release/libginva_pinocchio.so /tmp/ginva.so
+
+      - name: Upload artifact
+        if: github.event.inputs.deploy == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ginva-pinocchio-so
+          path: /tmp/ginva.so
+          retention-days: 1
+
+  deploy-devnet:
+    needs: build-and-deploy
+    runs-on: ubuntu-latest
+    if: github.event.inputs.deploy == 'true'
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ginva-pinocchio-so
+          path: .
+
+      - name: Setup Solana CLI
+        run: |
+          sh -c "$(curl -sSfL https://release.anza.xyz/v1.18.26/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+
+      - name: Configure Solana
+        run: |
+          solana config set --url devnet
+          echo "${{ secrets.SOLANA_KEYPAIR }}" > keypair.json
+          solana config set --keypair keypair.json
+
+      - name: Deploy to Devnet
+        run: |
+          solana program deploy ginva.so --url devnet --max-sign-attempts 100
+        env:
+          SOLANA_KEYPAIR: ${{ secrets.SOLANA_KEYPAIR }}
+
+      - name: Show deployed program
+        run: |
+          solana program show ginva.so --url devnet
