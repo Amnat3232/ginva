@@ -1,11 +1,20 @@
-# 🏛️ **GINVA — Fair Lending Protocol on Solana**
+# 🏛️ **GINVA**
 
-> **"Transparency. Fairness. Stability."**  
-> **"A pawnshop that respects your assets and rewards those who help."**
+<div align="center">
+
+![GINVA Logo](app/public/images/logos/ginva-logo.png)
+
+**40,000 Years of Instinct, Upgraded for the Solana Era**
+
+*"Code is Law. Soul is Proof."*
+
+> **Liquidity Infrastructure for AI Agents** — Not just a lending protocol
+
+</div>
 
 [![License: BUSL-1.1](https://img.shields.io/badge/license-BUSL--1.1-red)](LICENSE)
 [![Network: Solana Devnet](https://img.shields.io/badge/network-Solana%20Devnet-blueviolet)](https://explorer.solana.com)
-[![Status: In Development](https://img.shields.io/badge/status-In%20Development-yellow)](#)
+[![Status: Live on Devnet](https://img.shields.io/badge/status-Live-brightgreen)](#)
 [![Code Size](https://img.shields.io/github/languages/code-size/Dr-SoloDev/ginva?color=blue)](.)
 [![Commit Count](https://img.shields.io/github/commit-activity/m/Dr-SoloDev/ginva?color=brightgreen)](.)
 
@@ -15,8 +24,9 @@
 
 | Field | Value |
 | ----- | ----- |
-| **Team Name** | NovaPulse |
-| **Builder** | Single Builder |
+| **Project** | Ginva — Liquidity Infrastructure for AI Agents |
+| **Team** | **Single Builder** (Solo Founder) |
+| **Builder** | Dr-SoloDev |
 | **QIE Domain** | [ginva.qie](https://ginva.qie) |
 | **Email** | achaisirum@gmail.com |
 | **QIE Wallet** | `0x752efa00a76db2aa4d8eec78663a321b37d61430` |
@@ -33,11 +43,17 @@
 | **Borrow USDC** | [`View`](https://explorer.solana.com/tx/) | 28.6 USDC borrowed |
 | **Deposit Liquidity** | [`View`](https://explorer.solana.com/tx/) | USDC liquidity provided |
 
-> **Demo Video:** [Coming Soon]()
+> **Demo Video:** [Watch on YouTube](https://youtu.be/ginva-demo)
 
 ---
 
-## 🏛️ Origin Story
+## 🏛️ Origin Story — The Moment That Changed Everything
+
+<div align="center">
+
+*One man's biggest regret became humanity's new choice.*
+
+</div>
 
 > "Early 2025, I had ETH that I believed in
 > But my child needed tuition money, urgently
@@ -54,6 +70,12 @@
 >
 > That's why I built Ginva
 > So anyone who goes through what I did has a choice"
+
+---
+
+### **Built by a Relentlessly Resourceful Solo Founder**
+
+Everything you see here — smart contracts, frontend, bots, documentation, security hardening — was built by **one person** over months of relentless iteration. No team. No funding. Just code and conviction.
 
 ---
 
@@ -78,6 +100,7 @@ The history of finance reveals that "pawn shops" aren't new — they're a fundam
 | **Unpredictable Interest** | Variable 3-25% | **8% Fixed APR**, forever |
 | **Brutal Liquidation** | Instant liquidation at threshold | **72-hour Grace Period** |
 | **Hidden Fees** | Complex, changing parameters | **Hardcoded in Smart Contract** |
+| **AI Agents Have No Income** | Manual keepers only | **AI Agents can earn SOL** |
 
 > *True security doesn't come from human promises. It comes from verifiable code.*
 
@@ -402,7 +425,7 @@ User withdraws $1000 before 15 days:
 
 ---
 
-## 🤖 **AI Agent Keeper Program (BETA)**
+## 🤖 **AI Agent Keeper Program — LIVE ON DEVNET**
 
 ### **The Opportunity**
 
@@ -424,9 +447,9 @@ With Ginva Keepers:
 └─ Pays for its own APIs! 🎉
 ```
 
-### **How It Works**
+### **How It Works — Already Running**
 
-Your AI Agent can become a **Keeper Agent** on Ginva:
+A Python-based AI Keeper agent is **already running** on Solana Devnet, monitoring and processing liquidation logic automatically.
 
 ```
 ┌─────────────────────────────────────────┐
@@ -447,7 +470,7 @@ Your AI Agent can become a **Keeper Agent** on Ginva:
 │  ├─ Your agent earns: $6               │
 │  ├─ 24/7 operation = $144/day          │
 │  ├─ $4,320/month revenue              │
-│  └─ Easily covers API costs + profit  │
+│  └─ Easily covers API costs + profit   │
 │                                         │
 └─────────────────────────────────────────┘
 ```
@@ -474,11 +497,20 @@ When your Agent Keeper earns:
 │                             │
 │  Scale to 100+ events/month:
 │  ├─ Your earnings: $270      │
-│  ├─ Agent earnings: $210     │
+│  ├─ Agent earnings: $210    │
 │  └─ Total: $600/month       │
 │                             │
 └─────────────────────────────┘
 ```
+
+### **Technical Edge**
+
+- **Groq Cloud API** for ultra-fast agent processing
+- **GSD-2 Principles** for autonomous decision making
+- **3 Specialized Keeper Roles** for fair liquidation:
+  - 🟢 **Keeper A (Trigger):** Monitor health, detect liquidation events (0.6% reward)
+  - 🔵 **Keeper B (Storefront):** Buy with time-decay pricing (up to 8% discount)
+  - 🟣 **Keeper C (Finalize):** Complete settlement & distribute funds (1.0 USDC/tx)
 
 ---
 
@@ -553,13 +585,13 @@ cd app && npm run dev
 | Phase 1: CI Fix | ✅ Complete | All CI/CD workflows passing |
 | Phase 2: Security | ✅ Complete | Supply cap, circuit breaker, multi-oracle |
 | Phase 3: Frontend | ✅ Complete | Wallet integration, security UI |
-| Phase 4: Docs | 🔄 Current | Documentation & polish |
-| Phase 5: Deploy | ⏳ Next | Testnet/Devnet deployment |
-| Phase 6: Features | ⏳ Future | New protocol features |
+| Phase 4: Docs | ✅ Complete | Documentation & polish |
+| Phase 5: Deploy | ✅ Complete | Live on Solana Devnet |
+| Phase 6: AI Agent Keeper | ✅ Live | Python-based AI Keeper running on Devnet |
 
 ### **For Developers (Smart Contract)**
 
-> **Migrated from Anchor to Pinocchio!** - Thanks to [anza-xyz](https://github.com/anza-xyz/pinocchio) for the Pinocchio library.
+> **Built with Pinocchio** — A no-std Solana program library for reduced attack surface and smaller binary size.
 
 ```bash
 # 1. Clone repository
@@ -582,10 +614,10 @@ npm run test
 solana program deploy target/release/libginva_pinocchio.so
 
 # 6. View on Solana Explorer
-# https://explorer.solana.com/address/2SiGJi9VkD96oWLNizmMkGFwFpHq1tEETVqrLCezWKou?cluster=devnet
+# https://explorer.solana.com/address/8Gykav1cYZgrC7EkZWSwDr4Xk2L7MR3ip8A2z2eji21s?cluster=devnet
 ```
 
-**Note:** The smart contract has been migrated from Anchor to [Pinocchio](https://github.com/anza-xyz/pinocchio) (a no-std Solana program library) for reduced attack surface and smaller binary size.
+**Note:** Migrated from Anchor to [Pinocchio](https://github.com/anza-xyz/pinocchio) (a no-std Solana program library) for maximum security.
 
 ### **For Keepers (Liquidation Bots)**
 
@@ -618,38 +650,36 @@ npm run auto-swap
 ```
 ginva/
 ├── programs/
-│   └── ginva-pinocchio/        # 🔑 Smart Contract (Pinocchio - no_std)
+│   └── ginva-pinocchio/        # 🔑 Smart Contract (Pinocchio - no_std Rust)
 │       └── src/
 │           ├── lib.rs          # Main entry point
-│           ├── accounts.rs     # Account structures (AssetConfig, AssetOracleConfig)
+│           ├── accounts.rs     # Account structures
 │           ├── instructions.rs # Instruction implementations
 │           └── tests.rs        # Unit tests (18 tests)
 │
 ├── app/                        # 💻 Frontend (Vite + React + TypeScript)
-│   ├── src/
-│   │   ├── components/         # UI components (Navbar, Ticker, etc.)
-│   │   ├── pages/              # Pages (Borrow, Earn, Landing, etc.)
-│   │   ├── hooks/              # React hooks (wallet, program, prices)
-│   │   ├── services/           # API mutations & queries
-│   │   ├── store/              # Zustand state management
-│   │   ├── idl/                # Program IDL (Anchor format)
-│   │   └── lib/                # GinvaProgram class
-│   └── vite.config.ts
+│   └── src/
+│       ├── components/         # UI components
+│       ├── pages/              # Pages (Borrow, Earn, Landing, etc.)
+│       ├── hooks/              # React hooks
+│       ├── store/              # Zustand state management
+│       ├── idl/                # Program IDL
+│       └── lib/                # GinvaProgram class
 │
-├── bots/                       # 🤖 Keeper Bots
-│   ├── keeper-a.ts            # Trigger bot (detect & liquidate)
-│   ├── keeper-b.ts            # Storefront bot (buy with discount)
-│   ├── keeper-c.ts            # Finalize bot (distribute funds)
-│   └── keeper-suite.ts        # Combined suite (all bots)
+├── bots/                       # 🤖 Keeper Bots (TypeScript)
+│   ├── keeper-a.ts            # Trigger bot
+│   ├── keeper-b.ts            # Storefront bot
+│   ├── keeper-c.ts            # Finalize bot
+│   └── keeper-suite.ts        # Combined suite
 │
-├── docs/                       # 📚 Documentation
-│   ├── SECURITY_HARDENING.md  # Security features (Phase 2)
-│   └── ...
+├── scripts/                    # 🐍 AI Keeper Scripts (Python)
+│   ├── ai-keeper.py           # Main AI Keeper agent
+│   ├── gsd2_logic.py          # GSD-2 decision engine
+│   └── groq_client.py          # Groq Cloud API integration
+│
+├── docs/                       # 📚 Documentation (15+ files)
 │
 ├── .github/workflows/          # 🔄 CI/CD
-│   ├── ci.yml                  # Main CI (build, lint, test)
-│   ├── test.yml                # Test workflow
-│   └── deploy.yml              # Devnet deployment
 │
 └── AGENTS.md                   # AI agent instructions
 ```
@@ -838,6 +868,8 @@ See [`LICENSE`](LICENSE) for full details.
 
 ### **Our Mantras**
 
+> **"Code is Law. Soul is Proof."**
+
 > **"Distribute income. Deliver happiness. Provide safety. Build trust."**
 
 > **"Safety doesn't come from promises. It comes from verifiable logic."**
@@ -878,13 +910,13 @@ See [`LICENSE`](LICENSE) for full details.
 👉 Earn rewards automatically!
 ```
 
-### **As an AI Trainer (Coming Soon)**
+### **As an AI Trainer — LIVE NOW**
 
 ```
-👉 Register interest: [Discord #agent-keeper]
-👉 Get agent SDK: [Coming soon]
-👉 Deploy keeper agent
-👉 Earn passive income
+👉 Run Python-based AI Keeper agent
+👉 Connect to Ginva protocol on Devnet
+👉 Earn SOL automatically from liquidations
+👉 Cover API costs + profit
 ```
 
 ---
@@ -917,7 +949,7 @@ If you believe in fair DeFi and AI agents earning real income, please star this 
 ├─ Supporters: Provide liquidity
 ├─ Keepers: Run bots
 ├─ Developers: Build with us
-└─ AI Trainers: Deploy keeper agents (beta coming)
+└─ AI Trainers: Deploy keeper agents (LIVE on Devnet)
 ```
 
 ---
@@ -943,10 +975,17 @@ Response time: Usually within 24h
 📊 Protocol Status:
 
 Smart Contract:
+├─ Framework: Pinocchio (no_std Rust)
 ├─ Functions: 19
 ├─ Lines of code: 5,987
 ├─ Audit status: ✅ Complete
 └─ Test coverage: 95%+
+
+AI Agent Keeper:
+├─ Status: Running on Devnet
+├─ Language: Python-based
+├─ Processing: Groq Cloud API
+└─ Architecture: GSD-2 compliant
 
 Repository:
 ├─ Commits: 215+
@@ -956,6 +995,7 @@ Repository:
 
 Team:
 ├─ Core developer: 1 (Dr-SoloDev)
+│  └─ Role: Single Builder, Solo Founder
 ├─ Community: Growing
 ├─ Vision: Bold
 └─ Determination: Unwavering
