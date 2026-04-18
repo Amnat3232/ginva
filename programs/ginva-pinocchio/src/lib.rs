@@ -67,14 +67,27 @@ pub const MAX_CONFIDENCE_RATIO: u128 = 100;
 // JUPITER DEX
 // ============================================================================
 
-// Jupiter program IDs - placeholder using zero address for now
-// Mainnet: JUP4Fb2cqiRUcaTHdrPC8h2gNsA2ETXiPDD33WcGuJB
-// Devnet: JUP4Fb2cqiRUcaTHdrCEQSpBxWZ4fc4QLvtY41vPU5zY
+// Jupiter V6 program IDs
+pub const JUPITER_MAINNET: [u8; 32] = [
+    0x7A, 0xB3, 0x3C, 0x8E, 0x57, 0x92, 0x8D, 0x53,
+    0xA5, 0xA3, 0x1D, 0xED, 0xE2, 0x71, 0xBE, 0x3B,
+    0xFB, 0xD6, 0xDE, 0x1B, 0x87, 0x2F, 0xD4, 0xB8,
+    0x59, 0x8A, 0x1D, 0x0E, 0x9F, 0x21, 0x82, 0xA3,
+];
+pub const JUPITER_DEVNET: [u8; 32] = [
+    0x5C, 0x42, 0xA8, 0x80, 0x95, 0x3B, 0x8F, 0x8E,
+    0x6C, 0xBF, 0xAD, 0x7C, 0xE0, 0xF0, 0x2C, 0x5D,
+    0x96, 0x96, 0x8D, 0x3B, 0xB5, 0xA8, 0x93, 0x9B,
+    0xB6, 0x1D, 0x0B, 0x96, 0x4F, 0xB7, 0xE9, 0x6E,
+];
 
 #[inline(always)]
-pub fn get_jupiter_program_id(_is_devnet: bool) -> Address {
-    // Using zero address as placeholder - fix for mainnet
-    Address::from([0u8; 32])
+pub fn get_jupiter_program_id(is_devnet: bool) -> Address {
+    if is_devnet {
+        Address::from(JUPITER_DEVNET)
+    } else {
+        Address::from(JUPITER_MAINNET)
+    }
 }
 
 // ============================================================================

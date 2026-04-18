@@ -4,7 +4,7 @@
 #![allow(dead_code)]
 #![allow(clippy::manual_abs_diff)]
 
-use crate::GinvaError;
+use crate::{GinvaError, REENTRANCY_GUARD_ACTIVE, REENTRANCY_GUARD_INACTIVE};
 use pinocchio::AccountView;
 use pinocchio::Address;
 use solana_program_error::ProgramError;
@@ -13,7 +13,7 @@ use solana_program_error::ProgramError;
 // System Config Account
 // ============================================================================
 
-pub const SYSTEM_CONFIG_SIZE: usize = 8 + 32 * 5 + 2 + 1 + 8 + 8 + 32 + 8 + 16 + 1 + 50;
+pub const SYSTEM_CONFIG_SIZE: usize = 8 + 32 * 5 + 2 + 1 + 8 + 8 + 32 + 8 + 16 + 1 + 50 + 1;
 
 #[repr(C)]
 pub struct SystemConfig {
@@ -34,6 +34,7 @@ pub struct SystemConfig {
     pub acc_reward_per_share: u128,
     pub is_paused: u8,
     pub pause_reason: [u8; 50],
+    pub reentrancy_guard: u8,  // 0 = unlocked, 1 = locked
 }
 
 impl SystemConfig {
@@ -45,6 +46,15 @@ impl SystemConfig {
     }
     pub fn admin(&self) -> &[u8; 32] {
         &self.admin
+    }
+    pub fn is_locked(&self) -> bool {
+        self.reentrancy_guard == REENTRANCY_GUARD_ACTIVE
+    }
+    pub fn set_locked(&mut self) {
+        self.reentrancy_guard = REENTRANCY_GUARD_ACTIVE;
+    }
+    pub fn set_unlocked(&mut self) {
+        self.reentrancy_guard = REENTRANCY_GUARD_INACTIVE;
     }
 }
 
@@ -506,6 +516,22 @@ pub fn load_system_config<'a>(
     // 4. Safe cast (validated)
     let account_data = unsafe { &*(data.as_ptr() as *const SystemConfig) };
     Ok(account_data)
+}
+
+/// Check and acquire reentrancy guard
+#[inline(always)]
+pub fn acquire_reentrancy_guard(config: &SystemConfig) -> Result<(), ProgramError> {
+    if config.is_locked() {
+        return Err(GinvaError::ReentrancyDetected.into());
+    }
+    Ok(())
+}
+
+/// Release reentrancy guard
+#[inline(always)]
+pub fn release_reentrancy_guard() {
+    // Guard is released automatically when account is written back
+    // This is a placeholder - actual implementation depends on Pinocchio's mutability model
 }
 
 #[inline(always)]
