@@ -1,367 +1,452 @@
-#!/usr/bin/env node
-/**
- * 🤖 AUTO-SWAP BOT: Jupiter DEX Integration
- *
- * Handles automatic swapping of liquidated collateral to USDC using Jupiter.
- * Falls back to DEX if storefront is not used within 6 hours.
- *
- * Features:
- * - Best price routing via Jupiter Aggregator
- * - Slippage protection (default 1%)
- * - Automatic retry on failure
- * - Rate limiting for RPC protection
- *
- * Run: npm run auto-swap
- */
+// pawn-shop-bot.ts
+// Free-for-All Model Bot - Anyone can buy with 6% discount
+// At minute 5: First to buy wins - no exclusive rights
 
 import * as anchor from "@coral-xyz/anchor";
 import { Program, Wallet, Idl } from "@coral-xyz/anchor";
+import { Connection, PublicKey, Keypair, Transaction } from "@solana/web3.js";
 import {
-  Connection,
-  PublicKey,
-  Keypair,
-  Transaction,
-  ComputeBudgetProgram,
-  TransactionInstruction,
-} from "@solana/web3.js";
-import { getAssociatedTokenAddress, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+  getAssociatedTokenAddress,
+  createAssociatedTokenAccountInstruction,
+  TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
 import * as dotenv from "dotenv";
 import * as fs from "fs";
-import chalk from "chalk";
+import bs58 from "bs58";
 
+// Load Environment
 dotenv.config();
 
 // ═══════════════════════════════════════════════════════════
-// ⚙️ CONFIGURATION
+// 🔧 UTILITY FUNCTIONS
 // ═══════════════════════════════════════════════════════════
+
+// Sanitize HTML to prevent XSS
+const sanitizeHtml = (str: string): string => {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+};
+
+// Validate numeric input
+const validateThreshold = (
+  value: string | undefined,
+  defaultVal: number
+): number => {
+  const parsed = parseFloat(value || "");
+  if (isNaN(parsed) || parsed <= 0 || parsed > 2) {
+    console.warn(`Invalid threshold, using default: ${defaultVal}`);
+    return defaultVal;
+  }
+  return parsed;
+};
+
+// Rate limiter for Telegram API
+const telegramRateLimiter = {
+  lastSent: 0,
+  minInterval: 1000, // 1 second minimum between messages
+  canSend(): boolean {
+    const now = Date.now();
+    if (now - this.lastSent < this.minInterval) return false;
+    return true;
+  },
+  markSent() {
+    this.lastSent = Date.now();
+  },
+};
+
+// ═══════════════════════════════════════════════════════════
+// 1️⃣ CONFIGURATION
+// ═══════════════════════════════════════════════════════════
+
+// Telegram Configuration
+const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+const LIQUIDATION_THRESHOLD = validateThreshold(
+  process.env.LIQUIDATION_THRESHOLD,
+  1.05
+);
+
+// Trusted RPCs - use only trusted RPCs
+const TRUSTED_RPCS = [
+  {
+    url: process.env.RPC_URL || "https://api.devnet.solana.com",
+    name: "Primary",
+  },
+];
+
+// Known trusted RPCs for devnet (whitelist)
+const DEVNET_TRUSTED_RPCS = [
+  "https://api.devnet.solana.com",
+  "https://devnet.genesysgo.net",
+];
+
+// Fallback RPCs - only for devnet or known RPCs
+const FALLBACK_RPCS =
+  process.env.NODE_ENV === "production"
+    ? [] // Production: no fallback for security
+    : [
+        {
+          url: process.env.FALLBACK_RPC,
+          name: "Ankr",
+          trusted: DEVNET_TRUSTED_RPCS.includes(process.env.FALLBACK_RPC || ""),
+        },
+        {
+          url: process.env.FALLBACK2_RPC,
+          name: "Pocket",
+          trusted: DEVNET_TRUSTED_RPCS.includes(
+            process.env.FALLBACK2_RPC || ""
+          ),
+        },
+      ].filter(
+        (r) => r.url && (r.trusted || process.env.NODE_ENV !== "production")
+      );
+
+// RPC with automatic fallback - use only trusted RPCs
+const getConnection = (): Connection => {
+  const allRpcs = [...TRUSTED_RPCS, ...FALLBACK_RPCS].filter((r) => r.url);
+
+  for (const rpc of allRpcs) {
+    if (rpc.url) {
+      console.log(`Using RPC: ${rpc.name}`);
+      return new Connection(rpc.url, { commitment: "confirmed" });
+    }
+  }
+  throw new Error("No trusted RPC available");
+};
+
 const RPC_URL = process.env.RPC_URL || "https://api.devnet.solana.com";
 const PROGRAM_ID = new PublicKey(
-  process.env.PROGRAM_ID || "GWcQGdrSiVk8p58bYSmw8FTceR9dcHAKQzw7yEyjLTsy"
+  process.env.PROGRAM_ID || "2SiGJi9VkD96oWLNizmMkGFwFpHq1tEETVqrLCezWKou"
 );
-
-// Jupiter Program IDs
-const JUPITER_DEVNET = new PublicKey(
-  "JUP4Fb2cqiRUcaTHdrCEQSpBxWZ4fc4QLvtY41vPU5zY"
-);
-const JUPITER_MAINNET = new PublicKey(
-  "JUP4Fb2cqiRUcaTHdrPC8h2gNsA2ETXiPDD33WcGuJB"
-);
-
-const CONFIG = {
-  jupiterProgram: JUPITER_DEVNET,
-  slippageBps: 100, // 1% default slippage
-  checkInterval: 30000, // Check every 30 seconds
-  fallbackTimeout: 21600, // 6 hours in seconds
-  priorityFee: 10000,
-  commitment: "confirmed" as const,
-  maxRetries: 3,
-};
+const PYTH_SOL_USD = new PublicKey(
+  "J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix"
+); // Devnet SOL/USD
 
 // ═══════════════════════════════════════════════════════════
-// 🔑 SETUP
+// 2️⃣ TELEGRAM ALERT FUNCTIONS 📱
 // ═══════════════════════════════════════════════════════════
-const loadWallet = (): Keypair => {
-  const keypairPath = process.env.KEYPAIR_PATH || "./keypair.json";
-  const secretKey = JSON.parse(fs.readFileSync(keypairPath, "utf8"));
-  return Keypair.fromSecretKey(new Uint8Array(secretKey));
+
+async function sendTelegramMessage(
+  message: string,
+  parseMode: "HTML" | "Markdown" = "HTML"
+) {
+  if (!TELEGRAM_TOKEN || !TELEGRAM_CHAT_ID) {
+    console.warn("⚠️ Telegram not configured - skipping alert");
+    return;
+  }
+
+  // Rate limiting
+  if (!telegramRateLimiter.canSend()) {
+    console.warn("⚠️ Telegram rate limited, skipping message");
+    return;
+  }
+
+  try {
+    await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: TELEGRAM_CHAT_ID,
+        text: message,
+        parse_mode: parseMode,
+        disable_web_page_preview: true, // Security: prevent link preview attacks
+      }),
+    });
+    telegramRateLimiter.markSent();
+    console.log("✅ Telegram message sent");
+  } catch (err) {
+    console.error("❌ Telegram failed:", err);
+  }
+}
+
+async function sendLiquidationAlert(
+  healthFactor: number,
+  solPrice: number,
+  collateralAmount: number,
+  debtAmount: number,
+  walletAddress: string,
+  txSignature?: string
+) {
+  const status =
+    healthFactor < 1.0
+      ? "🚨 LIQUIDATED!"
+      : "⚠️ Near Liquidation (Low Health Factor)";
+
+  // Sanitize all user-controlled data before rendering as HTML
+  const safeWallet = sanitizeHtml(walletAddress);
+  const safeSignature = txSignature ? sanitizeHtml(txSignature) : "";
+
+  const solscanLink = safeSignature
+    ? `https://solscan.io/tx/${safeSignature}`
+    : `https://solscan.io/account/${safeWallet}`;
+
+  const message = `
+${status}
+
+📊 Health Factor: <b>${sanitizeHtml(healthFactor.toFixed(3))}</b>
+💰 SOL Price: <b>$${sanitizeHtml(solPrice.toFixed(2))}</b>
+🏦 Collateral: <b>${sanitizeHtml(collateralAmount.toFixed(4))} SOL</b>
+💸 Debt: <b>${sanitizeHtml(debtAmount.toFixed(2))} USDC</b>
+👤 Wallet: <code>${safeWallet}</code>
+
+🔗 View: ${solscanLink}
+  ⏰ Time: ${new Date().toLocaleString("en-US", { timeZone: "UTC" })}
+
+#GinvaKeeper #LiquidationAlert
+  `.trim();
+
+  await sendTelegramMessage(message);
+}
+
+async function sendStartupAlert() {
+  const message = `
+🚀 <b>GINVA KEEPER BOT STARTED</b>
+
+🔧 RPC: ${RPC_URL}
+📦 Program: ${PROGRAM_ID.toString()}
+⚡ Liquidation Threshold: ${LIQUIDATION_THRESHOLD}
+
+Bot is now monitoring for liquidation opportunities...
+  `.trim();
+
+  await sendTelegramMessage(message);
+}
+
+// ═══════════════════════════════════════════════════════════
+// 3️⃣ INITIALIZE CONNECTION
+// ═══════════════════════════════════════════════════════════
+
+// Load wallet from environment variable (base58 encoded) - more secure than file
+const getWalletFromEnv = (): Wallet => {
+  const privateKeyBase58 = process.env.PRIVATE_KEY;
+
+  if (!privateKeyBase58) {
+    // Fallback to file-based keypair (for backwards compatibility)
+    const keypairPath = process.env.KEYPAIR_PATH || "./keypair.json";
+    console.warn(
+      "⚠️ Using file-based keypair (deprecated). Set PRIVATE_KEY in .env for better security."
+    );
+    try {
+      const secretKey = Uint8Array.from(
+        JSON.parse(fs.readFileSync(keypairPath, "utf8"))
+      );
+      return new Wallet(Keypair.fromSecretKey(secretKey));
+    } catch (e) {
+      throw new Error(
+        "No wallet configured. Set PRIVATE_KEY env var or provide keypair.json"
+      );
+    }
+  }
+
+  // Decode base58 private key
+  try {
+    const secretKey = Uint8Array.from(bs58.decode(privateKeyBase58));
+    return new Wallet(Keypair.fromSecretKey(secretKey));
+  } catch (e) {
+    throw new Error("Invalid PRIVATE_KEY format. Use base58 encoded string.");
+  }
 };
 
-const wallet = loadWallet();
-const connection = new Connection(RPC_URL, CONFIG.commitment);
-const provider = new anchor.AnchorProvider(connection, new Wallet(wallet), {
-  commitment: CONFIG.commitment,
+// Load IDL
+let idl: any;
+try {
+  idl = JSON.parse(fs.readFileSync("./ginva.json", "utf8"));
+} catch (e) {
+  console.warn("⚠️ ginva.json not found. Program methods may not work.");
+  idl = null;
+}
+
+const connection = getConnection();
+const wallet = getWalletFromEnv();
+const provider = new anchor.AnchorProvider(connection, wallet, {
+  commitment: "confirmed",
 });
 
-const idlPath = process.env.IDL_PATH || "./target/idl/ginva.json";
-const idl = JSON.parse(fs.readFileSync(idlPath, "utf8"));
 const program = new Program(idl as Idl, PROGRAM_ID, provider);
 
-console.log(
-  chalk.blue.bold(
-    "\n╔══════════════════════════════════════════════════════════╗"
-  )
-);
-console.log(
-  chalk.blue.bold(
-    "║           🤖 AUTO-SWAP BOT: JUPITER DEX INTEGRATION      ║"
-  )
-);
-console.log(
-  chalk.blue.bold(
-    "╚══════════════════════════════════════════════════════════╝"
-  )
-);
-console.log(
-  chalk.gray(`Wallet: ${wallet.publicKey.toBase58().slice(0, 8)}...`)
-);
-console.log(chalk.gray(`RPC: ${RPC_URL}`));
-console.log(
-  chalk.gray(`Jupiter: ${CONFIG.jupiterProgram.toBase58().slice(0, 8)}...`)
-);
-console.log(
-  chalk.cyan(
-    `\n📋 Config: Slippage ${CONFIG.slippageBps / 100}%, Check every ${
-      CONFIG.checkInterval / 1000
-    }s\n`
-  )
-);
+console.log(`🏪 Free-for-All Bot Started!`);
+console.log(`💼 Wallet: ${wallet.publicKey.toBase58()}`);
+console.log(`🏃‍♂️ Race to buy! Checking every 2 seconds...`);
+
+// Send startup notification
+sendStartupAlert();
 
 // ═══════════════════════════════════════════════════════════
-// 📊 UTILITIES
+// 3️⃣ MAIN LOOP
 // ═══════════════════════════════════════════════════════════
-const formatSOL = (lamports: number): string => {
-  return `${(lamports / 1_000_000_000).toFixed(4)} SOL`;
-};
-
-const formatUSDC = (amount: number): string => {
-  return `$${(amount / 1_000_000).toFixed(2)}`;
-};
-
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-// ═══════════════════════════════════════════════════════════
-// 🛡️ RATE LIMITER
-// ═══════════════════════════════════════════════════════════
-class RateLimiter {
-  private requestTimes: number[] = [];
-  private readonly maxRequests = 10;
-  private readonly windowMs = 1000;
-
-  async acquire(): Promise<void> {
-    const now = Date.now();
-    this.requestTimes = this.requestTimes.filter(
-      (t) => now - t < this.windowMs
-    );
-    if (this.requestTimes.length >= this.maxRequests) {
-      await sleep(this.windowMs);
-      return this.acquire();
-    }
-    this.requestTimes.push(now);
-  }
-}
-
-const rpcLimiter = new RateLimiter();
-
-// ═══════════════════════════════════════════════════════════
-// 🔄 JUPITER API CLIENT
-// ═══════════════════════════════════════════════════════════
-interface JupiterRoute {
-  inAmount: string;
-  outAmount: string;
-  priceImpactPct: string;
-  marketInfos: Array<{
-    label: string;
-    inputMint: string;
-    outputMint: string;
-  }>;
-}
-
-interface JupiterQuote {
-  data: Array<{
-    outAmount: string;
-    priceImpactPct: string;
-    marketInfos: Array<{
-      label: string;
-    }>;
-  }>;
-}
-
-class JupiterClient {
-  private readonly baseUrl: string;
-
-  constructor(isDevnet: boolean = true) {
-    this.baseUrl = isDevnet
-      ? "https://quote-api.jup.ag/v6"
-      : "https://quote-api.jup.ag/v6";
-  }
-
-  async getQuote(
-    inputMint: string,
-    outputMint: string,
-    amount: number
-  ): Promise<JupiterQuote | null> {
+async function main() {
+  while (true) {
     try {
-      const url = `${this.baseUrl}/quote?inputMint=${inputMint}&outputMint=${outputMint}&amount=${amount}&slippageBps=${CONFIG.slippageBps}`;
-      const response = await fetch(url);
-      if (!response.ok) return null;
-      return await response.json();
+      await checkAndBuyFromStorefront();
     } catch (error) {
-      console.error(chalk.red("❌ Jupiter quote error:"), error);
-      return null;
+      console.error("❌ Error in main loop:", error);
     }
-  }
 
-  async getSwapInstructions(
-    inputMint: string,
-    outputMint: string,
-    amount: number,
-    userWallet: PublicKey
-  ): Promise<TransactionInstruction[] | null> {
-    try {
-      const quote = await this.getQuote(inputMint, outputMint, amount);
-      if (!quote || !quote.data || quote.data.length === 0) {
-        console.log(chalk.yellow("⚠️ No route found"));
-        return null;
-      }
-
-      const route = quote.data[0];
-      const response = await fetch(`${this.baseUrl}/swap-instructions`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          quoteResponse: quote,
-          userPublicKey: userWallet.toBase58(),
-          wrapUnwrapSOL: true,
-        }),
-      });
-
-      if (!response.ok) return null;
-      return await response.json();
-    } catch (error) {
-      console.error(chalk.red("❌ Jupiter swap instructions error:"), error);
-      return null;
-    }
+    // Wait 2 seconds before next check (Race condition!)
+    await new Promise((resolve) => setTimeout(resolve, 2000));
   }
 }
 
-const jupiterClient = new JupiterClient(RPC_URL.includes("devnet"));
-
 // ═══════════════════════════════════════════════════════════
-// 🤖 AUTO-SWAP BOT
+// 4️⃣ CHECK AND BUY FROM STOREFRONT
 // ═══════════════════════════════════════════════════════════
-class AutoSwapBot {
-  private isRunning = false;
-  private stats = { checked: 0, swapped: 0, errors: 0, totalSwapped: 0 };
+async function checkAndBuyFromStorefront() {
+  console.log("\n🔍 Scanning for Pawn Shop opportunities...");
 
-  async start() {
-    this.isRunning = true;
-    console.log(chalk.green("🟢 Auto-Swap Bot: Starting...\n"));
+  // Fetch all LiquidationProcess accounts from Blockchain
+  // @ts-ignore
+  const allProcesses = await program.account.liquidationProcess.all();
 
-    while (this.isRunning) {
+  for (const process of allProcesses) {
+    const data = process.account;
+    const pubkey = process.publicKey;
+
+    // 🏪 FREE-FOR-ALL OPPORTUNITY (IMMEDIATE!)
+    const isTriggered = data.status === 1; // 1 = Triggered
+    const notSwappedYet = !data.swapped;
+
+    // Priority 1: Buy Storefront (IMMEDIATE - no waiting)
+    if (isTriggered && notSwappedYet) {
+      const seizedAmount = data.seizedCollateralAmount as any;
+      console.log(`\n🏪 OPPORTUNITY: ${pubkey.toBase58()}`);
+      console.log(`   💎 Seized: ${seizedAmount.toNumber() / 1e9} SOL`);
+      console.log(`   💰 Discount: 6% IMMEDIATE!`);
+      console.log(`   🏃‍♂️ RACE ON - Anyone can buy!`);
+
       try {
-        await this.scanAndSwap();
-        this.stats.checked++;
-      } catch (error) {
-        this.stats.errors++;
-        console.error(chalk.red("❌ Auto-Swap Error:"), error);
-      }
-      await sleep(CONFIG.checkInterval);
-    }
-  }
-
-  private async scanAndSwap() {
-    await rpcLimiter.acquire();
-    const processes = await program.account.liquidationProcess.all();
-    const now = Math.floor(Date.now() / 1000);
-
-    for (const process of processes) {
-      const data = process.account;
-
-      // Only check Triggered but not Swapped
-      if (data.status !== 1 || data.swapped) continue;
-
-      // Check if fallback timeout reached (6 hours)
-      const elapsed = now - data.triggeredAt.toNumber();
-      if (elapsed >= CONFIG.fallbackTimeout) {
-        await this.executeAutoSwap(process.publicKey, data);
+        await buyFromStorefront(pubkey, data);
+        console.log(`   🎉 SUCCESS! You got the deal!`);
+      } catch (e: any) {
+        const errorMsg = e.message || String(e);
+        // Distinguish between "race lost" vs real errors
+        if (
+          errorMsg.includes("0x0") ||
+          errorMsg.includes("already") ||
+          errorMsg.includes("AccountInUse")
+        ) {
+          console.log(`   ⚠️ Someone else was faster!`);
+        } else {
+          console.error(`   ❌ Transaction failed:`, errorMsg);
+        }
       }
     }
   }
+}
 
-  private async executeAutoSwap(processAddress: PublicKey, processData: any) {
-    try {
-      console.log(chalk.yellow("🔄 Auto-Swap: Executing Jupiter swap..."));
-      console.log(
-        chalk.gray(`   Process: ${processAddress.toBase58().slice(0, 12)}...`)
-      );
+// ═══════════════════════════════════════════════════════════
+// 5️⃣ Buy From Storefront (6% discount) 🏪
+// ═══════════════════════════════════════════════════════════
+async function buyFromStorefront(liquidationPda: PublicKey, processData: any) {
+  console.log("🏪 Executing buy transaction...");
 
-      // Get loan data for collateral mint
-      const [loanAccount] = PublicKey.findProgramAddressSync(
-        [Buffer.from("loan"), processData.loanAccount.toBuffer()],
-        program.programId
-      );
-      const loanData = await program.account.loanAccount.fetch(loanAccount);
+  // Find required PDAs
+  const [configPda] = PublicKey.findProgramAddressSync(
+    [Buffer.from("config")],
+    program.programId
+  );
 
-      // Get token accounts
-      const [seizedAuth] = PublicKey.findProgramAddressSync(
-        [Buffer.from("seized_auth")],
-        program.programId
-      );
-      const seizedVault = await getAssociatedTokenAddress(
-        loanData.collateralMint,
-        seizedAuth,
-        true
-      );
+  const [seizedAuth] = PublicKey.findProgramAddressSync(
+    [Buffer.from("seized_auth")],
+    program.programId
+  );
 
-      const userCollateral = await getAssociatedTokenAddress(
-        loanData.collateralMint,
-        wallet.publicKey
-      );
+  const [processingAuth] = PublicKey.findProgramAddressSync(
+    [Buffer.from("processing_auth")],
+    program.programId
+  );
 
-      const [capitalAuth] = PublicKey.findProgramAddressSync(
-        [Buffer.from("capital_auth")],
-        program.programId
-      );
-      const capitalVault = await getAssociatedTokenAddress(
-        loanData.loanMint,
-        capitalAuth,
-        true
-      );
+  // Find Token Accounts
+  const seizedVault = await getAssociatedTokenAddress(
+    processData.collateralMint,
+    seizedAuth,
+    true
+  );
 
-      // Get swap instructions from Jupiter
-      const collateralMint = loanData.collateralMint.toBase58();
-      const usdcMint = "EPjFWdd5AufqSSBcM3M8FG23yYEDoGaiKQBypoFBWR8L"; // USDC on mainnet
-      const devnetUsdc = "4zMCC9E3d4i1Uv3cT2P4qT5i5T5i5T5i5T5i5T5i5T5"; // Devnet USDC placeholder
+  const processingVault = await getAssociatedTokenAddress(
+    processData.loanMint,
+    processingAuth,
+    true
+  );
 
-      // For now, use mock swap (actual Jupiter integration would require more setup)
-      console.log(
-        chalk.yellow(
-          "⚠️ Using fallback swap (Jupiter integration requires additional setup)"
-        )
-      );
+  const callerUsdcAccount = await getAssociatedTokenAddress(
+    processData.loanMint,
+    wallet.publicKey
+  );
 
-      // This would be replaced with actual Jupiter swap:
-      // const instructions = await jupiterClient.getSwapInstructions(
-      //   collateralMint,
-      //   devnetUsdc,
-      //   processData.seizedCollateralAmount,
-      //   wallet.publicKey
-      // );
-
-      this.stats.swapped++;
-      console.log(
-        chalk.green("✅ Auto-Swap: Simulated (Jupiter integration pending)\n")
-      );
-    } catch (error) {
-      console.error(chalk.red("❌ Auto-Swap failed:"), error);
-    }
-  }
-
-  stop() {
-    this.isRunning = false;
-    console.log(chalk.yellow("\n🛑 Auto-Swap Bot: Stopped"));
-    console.log(
-      chalk.gray(
-        `   Stats: Checked ${this.stats.checked}, Swapped ${this.stats.swapped}`
+  // Create ATA if not exists
+  const tx = new Transaction();
+  const callerUsdcInfo = await connection.getAccountInfo(callerUsdcAccount);
+  if (!callerUsdcInfo) {
+    tx.add(
+      createAssociatedTokenAccountInstruction(
+        wallet.publicKey,
+        callerUsdcAccount,
+        wallet.publicKey,
+        processData.loanMint
       )
     );
-    console.log(chalk.cyan(`   Total Volume: ${this.stats.totalSwapped}\n`));
   }
+
+  console.log("   📝 Calling Smart Contract to buy...");
+  console.log("   ⚡ SPEED IS KEY - First come, first served!");
+
+  // Send Transaction to Smart Contract
+  const executeTx = await program.methods
+    .buyFromStorefront()
+    .accounts({
+      caller: wallet.publicKey,
+      liquidationProcess: liquidationPda,
+      systemConfig: configPda,
+      seizedAssetsAuthority: seizedAuth,
+      seizedAssetsVault: seizedVault,
+      processingVault: processingVault,
+      processingVaultAuthority: processingAuth,
+      callerUsdcAccount: callerUsdcAccount,
+      // Note: For Storefront, we don't need jupiterProgram
+      // But keeping it for compatibility
+      jupiterProgram: PROGRAM_ID, // placeholder
+      pythPriceFeed: PYTH_SOL_USD,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      systemProgram: anchor.web3.SystemProgram.programId,
+      rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+    })
+    .rpc();
+
+  console.log(`   🎉 TRANSACTION SUCCESS!`);
+  console.log(`   💰 You got 6% discount!`);
+  console.log(
+    `   🔗 View: https://explorer.solana.com/tx/${executeTx}?cluster=devnet`
+  );
 }
 
 // ═══════════════════════════════════════════════════════════
-// 🚀 MAIN
+// 6️⃣ START BOT 🚀
 // ═══════════════════════════════════════════════════════════
-const autoSwapBot = new AutoSwapBot();
-
-process.on("SIGINT", () => {
-  console.log(chalk.yellow("\n🛑 Shutting down..."));
-  autoSwapBot.stop();
-  process.exit(0);
-});
-
-console.log(chalk.green("✅ Auto-Swap Bot ready! Press Ctrl+C to stop.\n"));
-autoSwapBot.start().catch((error) => {
-  console.error(chalk.red("Fatal error:"), error);
+main().catch((err) => {
+  console.error("Fatal error:", err);
   process.exit(1);
 });
+
+/*
+📋 Pawn Shop Bot - Free-for-All Model:
+
+🎯 New Flow:
+1. trigger_liquidation occurs → Storefront opens IMMEDIATELY (6% discount)
+2. Both Bot and regular humans can buy - no waiting!
+3. Faster buyer wins - no exclusive rights
+
+⚡ Speed is key:
+- Bot checks every 2 seconds (very fast)
+- Faster buyers get the deal
+- No 24-hour lock-in period
+
+💡 Strategy:
+- Like an auction with instant buyout
+- Both protocol and humans have equal opportunity
+- Frontend may allow manual clicking
+- Bot = "fastest buyer"
+*/
