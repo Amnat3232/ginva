@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { FiSend, FiCheck, FiX, FiBell } from "react-icons/fi";
 
 const Settings = () => {
   const { publicKey, connected } = useWallet();
@@ -7,8 +8,19 @@ const Settings = () => {
   const [riskThreshold, setRiskThreshold] = useState("medium");
   const [customRPC, setCustomRPC] = useState("");
   const [displayName, setDisplayName] = useState("NeonSentinel_01");
+  
+  // Telegram settings
+  const [telegramEnabled, setTelegramEnabled] = useState(false);
+  const [telegramChatId, setTelegramChatId] = useState("");
+  const [telegramVerified, setTelegramVerified] = useState(false);
 
   const walletAddress = publicKey ? `${publicKey.toBase58().slice(0, 6)}...${publicKey.toBase58().slice(-4)}` : "Not connected";
+
+  const verifyTelegram = () => {
+    if (telegramChatId.trim()) {
+      setTelegramVerified(true);
+    }
+  };
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "#0f131c", fontFamily: "'Manrope', sans-serif" }}>
@@ -70,6 +82,91 @@ const Settings = () => {
           </div>
 
           <div style={{ background: "#181b25", borderRadius: "16px", padding: "24px", gridColumn: "span 2" }}>
+            <h3 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "16px" }}><FiBell style={{ marginRight: "8px" }} />Telegram Notifications</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>Enable Telegram Alerts</span>
+                <button 
+                  onClick={() => setTelegramEnabled(!telegramEnabled)} 
+                  style={{ 
+                    width: "48px", 
+                    height: "24px", 
+                    borderRadius: "12px", 
+                    background: telegramEnabled ? "#00f0ff" : "#262a34", 
+                    border: "none", 
+                    cursor: "pointer" 
+                  }}
+                />
+              </div>
+              
+              {telegramEnabled && (
+                <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ fontSize: "12px", color: "#64748b", display: "block", marginBottom: "8px" }}>Telegram Chat ID</label>
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      <input 
+                        value={telegramChatId} 
+                        onChange={(e) => setTelegramChatId(e.target.value)} 
+                        placeholder="123456789" 
+                        style={{ 
+                          flex: 1,
+                          background: "#0a0e17", 
+                          border: `1px solid ${telegramVerified ? "#10b981" : "rgba(59,73,75,0.2)"}`, 
+                          borderRadius: "8px", 
+                          padding: "12px", 
+                          color: "#dfe2ef" 
+                        }} 
+                      />
+                      <button 
+                        onClick={verifyTelegram}
+                        style={{ 
+                          background: telegramVerified ? "#10b981" : "#00f0ff", 
+                          border: "none", 
+                          borderRadius: "8px", 
+                          padding: "12px 16px", 
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "4px"
+                        }}
+                      >
+                        {telegramVerified ? <FiCheck size={16} /> : <FiSend size={16} />}
+                      </button>
+                    </div>
+                    {telegramVerified && (
+                      <p style={{ color: "#10b981", fontSize: "12px", marginTop: "8px", display: "flex", alignItems: "center", gap: "4px" }}>
+                        <FiCheck /> Connected - You will receive alerts for:
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {telegramVerified && (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
+                  {[
+                    "Loan Maturity (72h)",
+                    "Health Factor Warning",
+                    "Liquidation Alert",
+                    "Deposit/Withdrawal",
+                    "Keeper Rewards",
+                    "System Updates"
+                  ].map((alert) => (
+                    <label key={alert} style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#94a3b8" }}>
+                      <input type="checkbox" defaultChecked style={{ accentColor: "#00f0ff" }} />
+                      {alert}
+                    </label>
+                  ))}
+                </div>
+              )}
+              
+              <p style={{ fontSize: "11px", color: "#64748b", fontStyle: "italic" }}>
+                💡 To get your Chat ID: Start a conversation with @GinvaBot on Telegram
+              </p>
+            </div>
+          </div>
+          
+          <div style={{ background: "#181b25", borderRadius: "16px", padding: "24px" }}>
             <h3 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "16px" }}>Network Settings</h3>
             <div>
               <label style={{ fontSize: "12px", color: "#64748b", display: "block", marginBottom: "8px" }}>Custom RPC URL</label>
