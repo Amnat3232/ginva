@@ -31,7 +31,7 @@
 | **QIE Domain** | [ginva.qie](https://ginva.qie) |
 | **Email** | achaisirum@gmail.com |
 | **QIE Wallet** | `0x752efa00a76db2aa4d8eec78663a321b37d61430` |
-| **Solana Program** | [`8Gykav1cYZgrC7EkZWSwDr4Xk2L7MR3ip8A2z2eji21s`](https://explorer.solana.com/address/8Gykav1cYZgrC7EkZWSwDr4Xk2L7MR3ip8A2z2eji21s?cluster=devnet) |
+| **Solana Program** | [`Ev9HTrf45JBM5PBvAG9v6AUb5cw4XeGgKXmrk7RtQm3D`](https://explorer.solana.com/address/Ev9HTrf45JBM5PBvAG9v6AUb5cw4XeGgKXmrk7RtQm3D?cluster=devnet) |
 
 ---
 
@@ -646,7 +646,7 @@ npm run test
 solana program deploy target/release/libginva_pinocchio.so
 
 # 6. View on Solana Explorer
-# https://explorer.solana.com/address/8Gykav1cYZgrC7EkZWSwDr4Xk2L7MR3ip8A2z2eji21s?cluster=devnet
+# https://explorer.solana.com/address/Ev9HTrf45JBM5PBvAG9v6AUb5cw4XeGgKXmrk7RtQm3D?cluster=devnet
 ```
 
 **Note:** Migrated from Anchor to [Pinocchio](https://github.com/anza-xyz/pinocchio) (a no-std Solana program library) for maximum security.

@@ -50,8 +50,8 @@ jobs:
         env:
           RPC_URL: ${{ secrets.RPC_URL }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          PROGRAM_ID: "8Gykav1cYZgrC7EkZWSwDr4Xk2L7MR3ip8A2z2eji21s"
-          GINVA_PROGRAM_ID: "8Gykav1cYZgrC7EkZWSwDr4Xk2L7MR3ip8A2z2eji21s"
+          PROGRAM_ID: "Ev9HTrf45JBM5PBvAG9v6AUb5cw4XeGgKXmrk7RtQm3D"
+          GINVA_PROGRAM_ID: "Ev9HTrf45JBM5PBvAG9v6AUb5cw4XeGgKXmrk7RtQm3D"
 
       - name: Report Status
         if: always()

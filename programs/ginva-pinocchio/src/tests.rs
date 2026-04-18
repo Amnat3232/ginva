@@ -75,6 +75,7 @@ mod tests {
             acc_reward_per_share: 0,
             is_paused: 0,
             pause_reason: [0u8; 50],
+            reentrancy_guard: 0,
         };
 
         assert!(config.is_active());
@@ -101,6 +102,7 @@ mod tests {
             acc_reward_per_share: 0,
             is_paused: 1, // Paused
             pause_reason: [0u8; 50],
+            reentrancy_guard: 0,
         };
 
         assert!(!config.is_active());
