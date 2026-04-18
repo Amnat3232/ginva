@@ -1,4 +1,4 @@
-name: 🚀 Build & Deploy Pinocchio (Solana CI)
+name: 🚀 Build & Deploy Pinocchio (Solana Verified Build)
 
 on:
   workflow_dispatch:
@@ -13,48 +13,47 @@ on:
           - "false"
 
 jobs:
-  build-and-deploy:
+  build-verified:
     runs-on: ubuntu-latest
-    container: 
-      image: solanalabs/solana:latest
-      options: --entrypoint /bin/bash
+    permissions:
+      contents: read
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Rust
-        run: |
-          rustup default stable
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Build Pinocchio Program
+      - name: Install Solana Verify CLI
+        run: |
+          cargo install solana-verify --locked
+
+      - name: Build Verified Program
         working-directory: programs/ginva-pinocchio
         run: |
-          cargo build --release
-          ls -la target/release/libginva_pinocchio.so
+          solana-verify build --library-name ginva_pinocchio
 
-      - name: Save artifact
-        if: github.event.inputs.deploy == 'true'
+      - name: Get Program Hash
         run: |
-          cp programs/ginva-pinocchio/target/release/libginva_pinocchio.so /tmp/ginva.so
+          solana-verify get-executable-hash programs/ginva-pinocchio/target/release/deploy/ginva_pinocchio.so
 
-      - name: Upload artifact
-        if: github.event.inputs.deploy == 'true'
+      - name: Upload Verified Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ginva-pinocchio-so
-          path: /tmp/ginva.so
+          name: ginva-verified-so
+          path: programs/ginva-pinocchio/target/release/deploy/ginva_pinocchio.so
           retention-days: 1
 
   deploy-devnet:
-    needs: build-and-deploy
+    needs: build-verified
     runs-on: ubuntu-latest
     if: github.event.inputs.deploy == 'true'
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: ginva-pinocchio-so
+          name: ginva-verified-so
           path: .
 
       - name: Setup Solana CLI
@@ -70,10 +69,6 @@ jobs:
 
       - name: Deploy to Devnet
         run: |
-          solana program deploy ginva.so --url devnet --max-sign-attempts 100
+          solana program deploy ginva_pinocchio.so --url devnet --max-sign-attempts 100
         env:
           SOLANA_KEYPAIR: ${{ secrets.SOLANA_KEYPAIR }}
-
-      - name: Show deployed program
-        run: |
-          solana program show ginva.so --url devnet
