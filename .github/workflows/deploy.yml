@@ -88,15 +88,14 @@ jobs:
           sudo apt-get install -y libudev-dev pkg-config libssl-dev
 
       - name: Install Solana CLI
-        run: |
-          sh -c "$(curl -sSfL https://release.solana.com/stable/install)"
-        shell: bash -l {0}
+        uses: Solana-actions/setup-solana@v1
+        with:
+          version: 1.18.26
 
-      - name: Add Solana to PATH
+      - name: Verify Solana CLI
         run: |
-          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
-          echo "Solana CLI installed at: $HOME/.local/share/solana/install/active_release/bin"
-          ls -la $HOME/.local/share/solana/install/active_release/bin/
+          solana --version
+          which solana
 
       - name: Download Artifacts
         uses: actions/download-artifact@v4
