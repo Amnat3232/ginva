@@ -1,334 +1,246 @@
-# 🔒 Security Policy - Ginva Protocol
+# Security Policy - Ginva Protocol
 
 > **Last Updated**: February 2026
 > **Protocol Version**: 2.0.0
 
 ---
 
-## 🎯 Our Commitment
+## Our Commitment
 
-Ginva Protocol มุ่งมั่นในการรักษาความปลอดภัยของผู้ใช้และทรัพย์สินของพวกเขา เราต้อนรับการแจ้งเตือนจากนักวิจัยด้านความปลอดภัยเพื่อช่วยปรับปรุงระบบ
-
-> **Our Commitment**: Ginva Protocol is committed to securing user funds and assets. We welcome security researchers to help improve our systems.
+Ginva Protocol is committed to securing user funds and assets. We welcome security researchers to help improve our systems.
 
 ---
 
-## 🚨 Responsible Disclosure
+## Responsible Disclosure
 
-### สิ่งที่ควรทำ / What to Do
+### What to Do
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                   ✅ DO - แจ้งเตือนอย่างรับผิดชอบ                 │
+│                   ✅ DO - Responsible Disclosure               │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  1. 🐛 ค้นพบ Bug หรือ Vulnerability                            │
-│     → แจ้งให้เราทราบทันทีผ่านช่องทางที่กำหนด                     │
+│  1. 🐛 Discover Bug or Vulnerability                           │
+│     → Report to us immediately through designated channels     │
 │                                                                 │
-│  2. 📝 ให้รายละเอียดครบถ้วน                                     │
-│     - คำอธิบาย Vulnerability                                   │
-│     - ขั้นตอนการ Reproduce                                     │
-│     - ผลกระทบที่อาจเกิดขึ้น                                     │
-│     - ข้อเสนอแนะการแก้ไข (ถ้ามี)                                │
+│  2. 📝 Provide Complete Details                                │
+│     - Vulnerability Description                                │
+│     - Steps to Reproduce                                       │
+│     - Potential Impact                                         │
+│     - Fix Suggestions (if any)                                 │
 │                                                                 │
-│  3. ⏳ ให้เวลาเราแก้ไขก่อนเปิดเผย                                 │
-│     → จะแจ้งให้ทราบหลังจากแก้ไขเสร็จ                            │
+│  3. ⏳ Give Us Time to Fix Before Disclosure                   │
+│     → We will notify you after the fix is complete            │
 │                                                                 │
-│  4. 📧 ช่องทางติดต่อ:                                           │
-│     → security@ginva.io (เร็วที่สุด)                            │
-│     → Discord: #security-reports (สำรอง)                      │
+│  4. 📧 Contact Channels:                                       │
+│     → security@ginva.io (fastest)                             │
+│     → Discord: #security-reports (backup)                     │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### สิ่งที่ห้ามทำ / What NOT to Do
+### What NOT to Do
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                   ❌ DON'T - ห้ามทำอย่างเด็ดขาด                  │
+│                   ❌ DON'T - Absolutely Prohibited             │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  1. ❌ เปิดเผยต่อสาธารณะก่อนแก้ไข                               │
-│     → ให้เวลาเราแก้ไขก่อน (30-90 วัน)                          │
+│  1. ❌ Public Disclosure Before Fix                            │
+│     → Give us time to fix first (30-90 days)                   │
 │                                                                 │
-│  2. ❌ โจมตีระบบจริงเพื่อพิสูจน์                                  │
-│     → ใช้ Devnet/Testnet สำหรับทดสอบ                          │
+│  2. ❌ Attack Real System to Prove                             │
+│     → Use Devnet/Testnet for testing                          │
 │                                                                 │
-│  3. ❌ เข้าถึงหรือขโมยข้อมูลผู้ใช้                                 │
-│     → ห้ามขโมยหรือเปิดเผยข้อมูลส่วนตัว                           │
+│  3. ❌ Access or Steal User Data                               │
+│     → Do not steal or expose personal data                    │
 │                                                                 │
-│  4. ❌ แก้ไขหรือทำลายข้อมูลบนระบบ                               │
-│     → ห้ามเปลี่ยนแปลงข้อมูลใดๆ                                   │
+│  4. ❌ Modify or Destroy Data on System                       │
+│     → Do not change any data                                  │
 │                                                                 │
-│  5. ❌ Social Engineering ต่อทีมงาน                             │
-│     → ห้ามหลอกลวงหรือหาข้อมูลผ่านการหลอก                        │
+│  5. ❌ Social Engineering Against Team                        │
+│     → Do not deceive or gather info through deception        │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
----
-
-## 🔍 Scope
-
-### อะไรคือ Scope ของการแจ้งเตือน?
+### What is in Scope for Reporting?
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                      📋 IN-SCOPE                                │
+│                    ✅ IN SCOPE                                  │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  ✅ Smart Contracts (On-Chain)                                  │
-│     - programs/ginva/src/lib.rs                                 │
-│     - โค้ดที่ Deploy บน Solana                                  │
-│     - ตรรกะ DeFi (Lending, Borrowing, Liquidation)              │
+│  ✅ Smart Contract Vulnerabilities                             │
+│     - Code deployed on Solana                                  │
+│     - DeFi Logic (Lending, Borrowing, Liquidation)             │
+│     - Design flaws                                             │
 │                                                                 │
-│  ✅ Protocol Design                                              │
-│     - ช่องโหว่ในการออกแบบระบบ                                   │
-│     - Economic Attacks (Flash Loan, etc.)                      │
+│  ✅ Oracle Manipulation                                        │
+│     - Price feed manipulation                                  │
 │                                                                 │
-│  ✅ Backend/Keeper Bot                                          │
-│     - tests/*.ts (Test files)                                  │
-│     - สคริปต์ Automation                                        │
+│  ✅ Access Control                                             │
+│     - Privilege escalation                                     │
 │                                                                 │
-│  ✅ Documentation                                                │
-│     - README.md                                                 │
-│     - CODE_CONDUCT.md                                           │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────────┐
-│                    ❌ OUT-OF-SCOPE                               │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  ❌ Frontend/UI Bugs (ไม่กระทบ Funds)                          │
-│     - Design issues                                             │
-│     - UI/UX improvements                                        │
-│                                                                 │
-│  ❌ Third-Party Services                                        │
-│     - RPC Providers (Helius, QuickNode)                         │
-│     - Oracle Providers (Pyth Network)                           │
-│     - Wallet Extensions (Phantom, Solflare)                     │
-│                                                                 │
-│  ❌ Social Engineering ที่ไม่เกี่ยวกับ Protocol                 │
-│     - การหลอกลวงผ่าน Discord, Twitter, Telegram                  │
-│                                                                 │
-│  ❌ Physical Security                                           │
-│     - Hardware หรือ Physical attacks                            │
+│  ✅ Automation Scripts                                         │
+│     - Bot vulnerabilities                                       │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
----
-
-## 🏆 Bug Bounty Program
-
-### รางวัลสำหรับการแจ้งเตือน
+### What is NOT in Scope?
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                   💰 BUG BOUNTY TIERS                           │
+│                    ❌ OUT OF SCOPE                             │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  🟢 LOW (1-3 วันทำงาน)                                          │
-│     • การแจ้งเตือนที่มีผลกระทบต่ำ                                │
-│     • ไม่กระทบ Funds ผู้ใช้                                     │
-│     → รางวัล: $50 - $200 USDC                                  │
+│  ❌ Frontend/UI Bugs (No Funds Impact)                        │
 │                                                                 │
-│  🟡 MEDIUM (4-7 วันทำงาน)                                       │
-│     • การแจ้งเตือนที่มีผลกระทบปานกลาง                            │
-│     • อาจกระทบ Funds ได้บางส่วน                                  │
-│     → รางวัล: $200 - $1,000 USDC                               │
+│  ❌ Social Engineering Not Related to Protocol                 │
+│     - Deception via Discord, Twitter, Telegram                │
 │                                                                 │
-│  🟠 HIGH (8-14 วันทำงาน)                                        │
-│     • การแจ้งเตือนที่มีผลกระทบสูง                                 │
-│     • กระทบ Funds ผู้ใช้โดยตรง                                  │
-│     → รางวัล: $1,000 - $5,000 USDC                             │
-│                                                                 │
-│  🔴 CRITICAL (15-30 วันทำงาน)                                   │
-│     • ช่องโหว่ร้ายแรงที่สุด                                      │
-│     • สูญเสีย Funds จำนวนมาก                                     │
-│     • รางวัล: $5,000 - $50,000 USDC                            │
-│                                                                 │
-│  ⭐ พิเศษ: Zero-Day ที่สำคัญ                                     │
-│     • ถ้าเป็นคนแรกที่ค้นพบและแจ้ง                                │
-│     • รางวัลพิเศษ + Hall of Fame                               │
+│  ❌ Physical/Hardware Attacks                                  │
+│     - Hardware or physical attacks                            │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### 🏅 Hall of Fame
+### Rewards for Reporting
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                   🏆 SECURITY RESEARCHERS                        │
+│                    Bounty Program                              │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  ขอบคุณนักวิจัยที่ช่วยรักษาความปลอดภัยให้ Ginva!                  │
+│  🟢 LOW (1-3 work days)                                        │
+│     • Low-impact reports                                       │
+│     • No user funds affected                                   │
+│     → Reward: $50 - $200 USDC                                 │
 │                                                                 │
-│  🤝 การแจ้งเตือนจะได้รับการยอมรับใน Hall of Fame:                │
-│     - ชื่อ/นามแฝง (ถ้าต้องการ)                                  │
-│     - Link ไปถึง Profile หรือ Website                           │
-│     - รายละเอียด Vulnerability ที่แจ้ง (ถ้าเปิดเผยได้)          │
+│  🟡 MEDIUM (4-7 work days)                                     │
+│     • Medium-impact reports                                    │
+│     • May affect some funds                                    │
+│     → Reward: $200 - $1,000 USDC                               │
 │                                                                 │
-│  📝 ตัวอย่าง:                                                   │
-│     ────────────────────────────────────────────────────        │
-│     🏆 [2026-02] security_researcher_01                        │
-│        Found: Reentrancy vulnerability in liquidate()           │
-│        Reward: $2,500 USDC + Hall of Fame                       │
+│  🟠 HIGH (8-14 work days)                                      │
+│     • High-impact reports                                      │
+│     • Directly affects user funds                              │
+│     → Reward: $1,000 - $5,000 USDC                             │
+│                                                                 │
+│  🔴 CRITICAL (15-30 work days)                                 │
+│     • Most severe vulnerabilities                              │
+│     • Large fund loss                                           │
+│     → Reward: $5,000 - $50,000 USDC                            │
+│                                                                 │
+│  ⭐ Special: Significant Zero-Days                              │
+│     • If you're the first to discover and report              │
+│     → Special reward + Hall of Fame                           │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
----
-
-## 📞 Contact Channels
-
-### ช่องทางการติดต่อ (ลำดับความเร็ว)
+### Hall of Fame
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                  📞 CONTACT PRIORITY                             │
+│                   Hall of Fame                                 │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  1️⃣  EMAIL (เร็วที่สุด)                                          │
-│     📧 security@ginva.io                                        │
-│     ⏱️ Response: ภายใน 24 ชั่วโมง                                │
+│  Thank you security researchers for keeping Ginva safe!       │
 │                                                                 │
-│  2️⃣  Discord (สำรอง)                                            │
-│     💬 ginva-protocol / #security-reports                       │
-│     ⏱️ Response: ภายใน 48 ชั่วโมง                                │
-│                                                                 │
-│  3️⃣  GitHub Issues (สาธารณะ)                                     │
-│     🐛 https://github.com/Amnat3232/ginva/issues                 │
-│     ⏱️ Response: ภายใน 72 ชั่วโมง                                │
-│                                                                 │
-│  ⚠️  สำหรับ Vulnerability ร้ายแรง:                               │
-│     → ใช้ PGP Encryption: security@ginva.io                    │
-│     → PGP Key: [จะอัปเดตในภายหลัง]                               │
+│  🏆 Your reports will be acknowledged in Hall of Fame:        │
+│     - Name/Alias (if desired)                                  │
+│     - Link to Profile or Website                               │
+│     - Vulnerability details (if can be disclosed)             │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
----
-
-## 🔄 Disclosure Timeline
-
-### กระบวนการหลังแจ้งเตือน
+### Contact Channels (Priority Order)
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                 📅 DISCLOSURE TIMELINE                           │
+│                 Contact Priority                               │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  Day 0    📨 นักวิจัยแจ้งเตือนผ่าน security@ginva.io             │
-│          ✅ เรายืนยันการได้รับภายใน 24 ชั่วโมง                     │
+│  1️⃣  EMAIL (Fastest)                                           │
+│     📧 security@ginva.io                                       │
+│     ⏱️ Response: Within 24 hours                               │
 │                                                                 │
-│  Day 1-7  🔍 ทีมงานตรวจสอบและ Reproduce Bug                     │
-│          - ยืนยันว่าเป็น Vulnerability จริง                     │
-│          - ประเมินความรุนแรง                                    │
-│          - วางแผนการแก้ไข                                       │
+│  2️⃣  Discord (Backup)                                          │
+│     💬 #security-reports                                       │
+│     ⏱️ Response: Within 48 hours                               │
 │                                                                 │
-│  Day 7-14 🛠️ พัฒนาและทดสอบ Fix                                  │
-│          - เขียน Patch                                         │
-│          - ทดสอบบน Devnet/Testnet                              │
-│          - Security Review                                      │
+│  3️⃣  GitHub Issues (Public)                                    │
+│     🐛 GitHub Issues                                           │
+│     ⏱️ Response: Within 72 hours                               │
 │                                                                 │
-│  Day 14-30 🚀 Deploy Fix                                        │
-│          - Deploy บน Testnet (ถ้ามี)                            │
-│          - Deploy บน Mainnet                                    │
-│          - แจ้งนักวิจัยว่าแก้ไขแล้ว                              │
-│                                                                 │
-│  Day 30+   🌐 เปิดเผยต่อสาธารณะ                                  │
-│          - อัปเดต Security.md                                   │
-│          - ส่ง Bounty ให้นักวิจัย                                │
-│          - เพิ่มใน Hall of Fame                                 │
+│  ⚠️  For Critical Vulnerabilities:                             │
+│     → Use PGP Encryption: security@ginva.io                   │
+│     → PGP Key: [To be updated]                                │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
----
-
-## 🔐 PGP Encryption (สำหรับข้อมูลอ่อนไหว)
-
-### ถ้าต้องการส่งข้อมูลที่อ่อนไหว:
-
-```
-📧 Email: security@ginva.io
-🔐 PGP Key: [อัปเดตภายหลัง]
-   Fingerprint: [อัปเดตภายหลัง]
-```
-
-**แนะนำใช้สำหรับ:**
-
-- Private Keys ที่รั่วไหล
-- Exploit Code
-- ข้อมูลที่ sensitive อื่นๆ
-
----
-
-## 📚 Additional Resources
-
-### เอกสารที่เกี่ยวข้อง
+### Post-Reporting Process
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                   📖 RELATED DOCUMENTATION                       │
+│                 After Reporting                                │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  📄 LICENSE.md                                                  │
-│     → BUSL-1.1 License และข้อกำหนด                               │
+│  Day 0    📨 Researcher reports via security@ginva.io        │
+│          ✅ We confirm receipt within 24 hours                │
 │                                                                 │
-│  📄 README.md                                                   │
-│     → ภาพรวม Protocol และ Architecture                          │
+│  Day 1-7  🔍 Team investigates and reproduces bug              │
+│          - Confirm it's a real vulnerability                  │
+│          - Assess severity                                     │
+│          - Plan fix                                            │
 │                                                                 │
-│  📄 CONTRIBUTING.md                                             │
-│     → แนวทางการ Contribute                                     │
+│  Day 7-14 🛠️ Develop and test fix                              │
+│          - Write patch                                         │
+│          - Test on Devnet/Testnet                              │
 │                                                                 │
-│  🔗 Audits (ถ้ามี)                                              │
-│     → รายงานการ Audit จากบุคคลที่สาม                             │
+│  Day 14-30 🚀 Deploy fix                                       │
+│          - Deploy on Testnet (if applicable)                   │
+│          - Deploy on Mainnet                                   │
+│          - Notify researcher of fix                           │
+│                                                                 │
+│  Day 30+   🌐 Public disclosure                                 │
+│          - Update SECURITY.md                                  │
+│          - Send bounty to researcher                          │
+│          - Add to Hall of Fame                                 │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
----
+## PGP Encryption (For Sensitive Data)
 
-## ⚖️ Legal
+### If you need to send sensitive data:
 
-### ข้อตกลงทางกฎหมาย
+**PGP Key**: [To be updated]
+**Fingerprint**: [To be updated]
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    ⚖️ LEGAL PROTECTIONS                          │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  🛡️ Good Faith Commitment:                                     │
-│     - นักวิจัยที่แจ้งเตือนอย่างสุจริตจะได้รับความคุ้มครอง          │
-│     - ไม่ดำเนินคดีหรือฟ้องร้อง                                    │
-│                                                                 │
-│  ⚠️ Limitations:                                                │
-│     - ไม่คุ้มครองการโจมตีที่ทำโดยเจตนาร้าย                        │
-│     - ไม่คุ้มครองการละเมิด Privacy ของผู้ใช้อื่น                 │
-│                                                                 │
-│  📝 By reporting, you agree to:                                 │
-│     - ไม่เปิดเผยต่อสาธารณะก่อน 30 วัน                            │
-│     - ให้รายละเอียดครบถ้วนและถูกต้อง                              │
-│     - ไม่โจมตีระบบจริงเพื่อพิสูจน์                                 │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
+**Recommended for:**
+- Leaked private keys
+- Other sensitive data
 
 ---
 
-## 🙏 Thank You!
+## Related Documents
 
-> **ขอบคุณทุกคนที่ช่วยรักษาความปลอดภัยให้ Ginva Protocol!**
->
-> ทุกการแจ้งเตือนช่วยทำให้ระบบดีขึ้นและปกป้องผู้ใช้ของเรา
-
-```
-🤝 หากมีคำถามเพิ่มเติม: security@ginva.io
-```
+| Document | Description |
+|----------|-------------|
+| [LICENSE](./LICENSE) | BUSL-1.1 License and Terms |
+| [README](../README.md) | Protocol and Architecture Overview |
+| [CONTRIBUTING](./CONTRIBUTING.md) | Contribution Guidelines |
 
 ---
 
-**🔒 Ginva Protocol - Security First**
+## Contact
+
+For security-related inquiries, contact: **security@ginva.io**
+
+---
+**Last Updated**: February 2026

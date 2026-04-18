@@ -1,13 +1,13 @@
 # GINVA Project Overview
 
 ## Core Concept
-GINVA เป็นแพลตฟอร์ม **Decentralized Pawn Shop** บน Solana  
-ผู้ใช้ฝาก collateral (SOL, BTC, ETH wrapped) เพื่อยืม USDC อัตราดอกเบี้ยคงที่ **8% APR**
+GINVA is a **Decentralized Pawn Shop** platform on Solana
+Users deposit collateral (SOL, BTC, ETH wrapped) to borrow USDC at fixed interest rate of **8% APR**
 
 ## Key Features
 - Interest Rate: 8% fixed APR (hardcoded at `lib.rs:51`)
 - LTV: Safe 20% | Standard 40% | Max 60% (hardcoded at `lib.rs:52-54`)
-- Liquidation: Immediate เมื่อ Health Factor < 100%
+- Liquidation: Immediate when Health Factor < 100%
 - Keeper System: 3 Keepers + AI Agent (35% revenue share)
 - Security: Hardcoded params + Anti Venus-style attack
 
@@ -50,7 +50,7 @@ Source: `programs/ginva-pinocchio/src/instructions.rs:22-35`
 - **Safe Math**: All arithmetic uses checked operations
 
 ## Related Notes
-- [[Deployment-Links]] → รายละเอียด deployment ทั้งหมด
+- [[Deployment-Links]] → Full deployment details
 - [[02-Architecture/Pinocchio-Framework]]
 - [[02-Architecture/Security-Model]]
 - [[02-Architecture/Keeper-System]]

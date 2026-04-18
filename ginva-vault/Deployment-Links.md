@@ -30,9 +30,9 @@
 - Last Deployed: March 2026
 
 ### Related Environment Variables
-- `NEXT_PUBLIC_PROGRAM_ID` → ต้องตรงกับ Program ID ด้านบน
-- `VITE_PROGRAM_ID` → ใน app/src/lib/ginvaProgram.ts:29-31
-- `RPC_URL` → ใช้ Helius / QuickNode / Public Devnet
+- `NEXT_PUBLIC_PROGRAM_ID` → Must match Program ID above
+- `VITE_PROGRAM_ID` → In app/src/lib/ginvaProgram.ts:29-31
+- `RPC_URL` → Use Helius / QuickNode / Public Devnet
 
 ## Quick Actions
 

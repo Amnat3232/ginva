@@ -1,10 +1,10 @@
 /**
- * 🎭 THE GRAND FINALE - Visual Demo Script
+ * THE GRAND FINALE - Visual Demo Script
  *
- * สคริปต์นี้จะแสดงการทำงานทั้งหมดของ Ginva Protocol
- * แบบ Step-by-Step พร้อม Visual Output
+ * This script displays all operations of Ginva Protocol
+ * Step-by-Step with Visual Output
  *
- * วิธีใช้: ts-node scripts/visual-demo.ts
+ * Usage: ts-node scripts/visual-demo.ts
  */
 
 import chalk from "chalk";

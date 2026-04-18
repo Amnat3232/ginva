@@ -6,8 +6,8 @@
 This page serves as the central hub for everything related to Ginva's Smart Contract.
 
 ## Overview
-Ginva Smart Contract ใช้ **Pinocchio** framework (no_std) เพื่อลดขนาด binary และ attack surface ให้ต่ำที่สุด  
-ตั้งอยู่ที่ `programs/ginva-pinocchio/`
+Ginva Smart Contract uses **Pinocchio** framework (no_std) to minimize binary size and attack surface
+Located at `programs/ginva-pinocchio/`
 
 **Core Philosophy**: Immutable-first + Maximum safety + Minimal trust
 
@@ -16,19 +16,19 @@ Ginva Smart Contract ใช้ **Pinocchio** framework (no_std) เพื่อ�
 ## Key Documents
 
 ### Core Architecture
-- [[03-Smart-Contract/Processor-Overview]] → ภาพรวมโครงสร้าง Processor
-- [[03-Smart-Contract/Instructions]] → รายการ Instruction ทั้งหมด
-- [[02-Architecture/Pinocchio-Framework]] → รายละเอียด Pinocchio และข้อแตกต่างจาก Anchor
-- [[03-Smart-Contract/Account-Validation-Rules]] → กฎการ validate account (สำคัญมาก)
+- [[03-Smart-Contract/Processor-Overview]] → Processor Structure Overview
+- [[03-Smart-Contract/Instructions]] → All Instructions List
+- [[02-Architecture/Pinocchio-Framework]] → Pinocchio Details and Differences from Anchor
+- [[03-Smart-Contract/Account-Validation-Rules]] → Account Validation Rules (Very Important)
 
 ### Critical Logic
 - [[02-Architecture/Liquidation-Waterfall]] → Liquidation flow
 - [[03-Smart-Contract/Emergency-Pause]] → Emergency pause mechanism
-- [[02-Architecture/Security-Model]] → โมเดลความปลอดภัยโดยรวม
+- [[02-Architecture/Security-Model]] → Overall Security Model
 
 ### Safety & Best Practices
-- [[03-Smart-Contract/Common-Pitfalls]] → ข้อผิดพลาดที่พบบ่อย (no_std, arithmetic, CPI)
-- [[07-Security-Audit]] → ผลการ audit และ findings
+- [[03-Smart-Contract/Common-Pitfalls]] → Common Mistakes (no_std, arithmetic, CPI)
+- [[07-Security-Audit]] → Audit Results and Findings
 
 ---
 
@@ -90,56 +90,56 @@ pub const AGENT_REVENUE_PROTOCOL_SHARE_BPS: u16 = 2000; // 20%
 
 ## Status & Next Steps (Smart Contract)
 
-### Current Status (28 มีนาคม 2026)
-- **Framework**: Pinocchio (no_std) — Migration เสร็จสมบูรณ์
-- **Deployment**: Deployed บน Devnet (Program ID: `HQd5KLkNzAuJiG6jyyfs2wiMByLdAyGncUnbFhmhQhBj`)
-- **CI/CD**: Workflow กำลัง stabilize (cargo build-sbf)
-- **Security Level**: High (Hardcoded params, Account validation เข้มงวด)
-- **Test Coverage**: Unit tests ผ่าน แต่ Integration tests ยังไม่ครบ
-- **Frontend Integration**: Program ID ถูกเชื่อมต่อกับ Vercel deployment แล้ว
+### Current Status (March 28, 2026)
+- **Framework**: Pinocchio (no_std) — Migration Complete
+- **Deployment**: Deployed on Devnet (Program ID: `HQd5KLkNzAuJiG6jyyfs2wiMByLdAyGncUnbFhmhQhBj`)
+- **CI/CD**: Workflow stabilizing (cargo build-sbf)
+- **Security Level**: High (Hardcoded params, Strict Account validation)
+- **Test Coverage**: Unit tests pass but Integration tests incomplete
+- **Frontend Integration**: Program ID connected to Vercel deployment
 
-**จุดแข็งปัจจุบัน**:
-- Immutable parameters หลัก ๆ เรียบร้อย
-- Liquidation logic พื้นฐานพร้อมใช้งาน
-- ป้องกันการ bypass Supply Cap ได้ในระดับหนึ่ง
+**Current Strengths**:
+- Core immutable parameters complete
+- Basic liquidation logic ready
+- Supply Cap bypass prevention working at basic level
 
-**จุดที่ยังอ่อน**:
-- ยังไม่มี Supply Cap / Borrow Cap ที่ชัดเจน
-- ยังไม่มี Oracle Circuit Breaker
-- Emergency Pause ยังไม่ implement
+**Weaknesses**:
+- No clear Supply Cap / Borrow Cap
+- No Oracle Circuit Breaker
+- Emergency Pause not implemented
 
-### Next Steps (เรียงตามลำดับความสำคัญ)
+### Next Steps (Priority Order)
 
-**Priority 1 (ต้องทำด่วนที่สุด)**
-- [ ] เพิ่ม **Supply Cap** และ **Borrow Cap** สำหรับแต่ละ collateral (SOL, BTC, ETH)
-- [ ] Implement **Oracle Circuit Breaker** (ป้องกันราคาพุ่งแบบ Venus Protocol)
-- [ ] เพิ่ม **Multi-Oracle** (Pyth + Switchboard) + Price deviation check
+**Priority 1 (Most Urgent)**
+- [ ] Add **Supply Cap** and **Borrow Cap** for each collateral (SOL, BTC, ETH)
+- [ ] Implement **Oracle Circuit Breaker** (prevent Venus Protocol-style attack)
+- [ ] Add **Multi-Oracle** (Pyth + Switchboard) + Price deviation check
 
 **Priority 2**
 - [ ] Implement **Emergency Pause** instruction + Timelock
-- [ ] เพิ่ม Keeper reward distribution logic ให้สมบูรณ์ (Waterfall 45/35/20)
-- [ ] เพิ่ม comprehensive integration tests (deposit → borrow → liquidate flow)
+- [ ] Add Keeper reward distribution logic (Waterfall 45/35/20)
+- [ ] Add comprehensive integration tests (deposit → borrow → liquidate flow)
 
 **Priority 3**
-- [ ] Optimize binary size ให้เล็กกว่า 1MB (Pinocchio advantage)
-- [ ] เพิ่ม Shield Fee logic (5% ใน 15 วันแรก)
-- [ ] เขียน formal Security Documentation + Post-mortem template
+- [ ] Optimize binary size under 1MB (Pinocchio advantage)
+- [ ] Add Shield Fee logic (5% in first 15 days)
+- [ ] Write formal Security Documentation + Post-mortem template
 
-**Priority 4 (ระยะยาว)**
-- [ ] Audit รอบสุดท้ายโดย third-party
-- [ ] เตรียมการ upgrade program สำหรับ mainnet
-- [ ] Cross-chain collateral support (ถ้ามี)
+**Priority 4 (Long-term)**
+- [ ] Final audit by third-party
+- [ ] Prepare program upgrade for mainnet
+- [ ] Cross-chain collateral support (if applicable)
 
 ### Success Criteria
-- ผ่าน `cargo test --release` 100%
-- มี Circuit Breaker + Supply Cap ทำงาน
-- Liquidation + Keeper flow ทำงานถูกต้องบน devnet
-- Frontend สามารถ interact กับ program ได้ปกติ
+- Pass `cargo test --release` 100%
+- Circuit Breaker + Supply Cap working
+- Liquidation + Keeper flow working correctly on devnet
+- Frontend can interact with program normally
 
 ---
 
 ## Related MOCs
-- [[MOCs/MOC-Keeper-System]] → Keeper Bots และ AI Agent
+- [[MOCs/MOC-Keeper-System]] → Keeper Bots and AI Agent
 - [[MOCs/MOC-Security]] → Security & Risk Management
 
 ---
@@ -149,10 +149,10 @@ pub const AGENT_REVENUE_PROTOCOL_SHARE_BPS: u16 = 2000; // 20%
 - [[01-Project-Overview]] → Project overview
 - [[08-Next-Steps]] → Full roadmap
 
-**Tip**: ทุกครั้งที่แก้ไข Smart Contract ต้อง:
-1. `cargo test --release` ผ่านก่อน
-2. Build ด้วย `cargo build-sbf --release`
-3. อัปเดต Obsidian Vault ด้วย prompt "Update Ginva Obsidian Vault with latest changes"
+**Tip**: Every time you modify Smart Contract:
+1. Pass `cargo test --release` first
+2. Build with `cargo build-sbf --release`
+3. Update Obsidian Vault with prompt "Update Ginva Obsidian Vault with latest changes"
 
 ---
 
