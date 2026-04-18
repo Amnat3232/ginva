@@ -8,7 +8,7 @@
 
 *"Code is Law. Soul is Proof."*
 
-> **Liquidity Infrastructure for AI Agents** — Not just a lending protocol
+> **AI Agent Income Engine** — Fair Lending for Humans, Powered by AI
 
 </div>
 
@@ -24,8 +24,9 @@
 
 | Field | Value |
 | ----- | ----- |
-| **Project** | Ginva — Liquidity Infrastructure for AI Agents |
+| **Project** | Ginva — AI Agent Income Engine |
 | **Team** | **NovaPulse** — Single Builder |
+| **Track** | DeFi |
 | **Builder** | Dr-SoloDev |
 | **QIE Domain** | [ginva.qie](https://ginva.qie) |
 | **Email** | achaisirum@gmail.com |
@@ -443,39 +444,53 @@ With Ginva Keepers:
 ├─ Your AI Agent = Keeper A, B, or C ✅
 ├─ Monitors liquidations 24/7 ✅
 ├─ Executes transactions automatically ✅
-├─ EARNS REAL SOLANA ✅
-└─ Pays for its own APIs! 🎉
+├─ YOU earn the rewards ✅
+└─ Agent covers its own APIs! 🎉
 ```
 
 ### **How It Works — Already Running**
 
 A Python-based AI Keeper agent is **already running** on Solana Devnet, monitoring and processing liquidation logic automatically.
 
+> **Important:** The AI Agent operates under YOUR authorization. YOU own the wallet. YOU control what the agent can do.
+
 ```
 ┌─────────────────────────────────────────┐
-│    Your AI Agent as Keeper A            │
+│    Your AI Agent as Keeper (YOUR Tool)  │
 ├─────────────────────────────────────────┤
+│                                         │
+│  YOU own the wallet      YOU authorize  │
+│       ↑                      ↑          │
+│       │                      │          │
+│  ┌────┴────┐            ┌────┴────┐     │
+│  │  Agent  │───────────→│ Ginva   │     │
+│  └─────────┘            └─────────┘     │
+│       │                      │          │
+│       ↓                      ↓          │
+│  Executes tasks      Rewards go to YOU  │
 │                                         │
 │  Every minute:                          │
 │  ├─ Check all open loans               │
-│  ├─ Calculate health factors           │
+│  ├─ Calculate health factors          │
 │  ├─ Monitor collateral prices          │
 │  └─ If Health Factor < 100%           │
 │     ├─ Trigger liquidation (smart)     │
-│     ├─ Collect 0.6% reward            │
-│     └─ Route to wallets               │
+│     ├─ YOU collect 0.6% reward         │
+│     └─ YOU get the earnings            │
 │                                         │
-│  Result (per liquidation):            │
+│  Result (per liquidation):             │
 │  ├─ $1000 liquidated                  │
-│  ├─ Your agent earns: $6               │
-│  ├─ 24/7 operation = $144/day          │
+│  ├─ YOU earn: $6 (0.6%)               │
+│  ├─ 24/7 operation = $144/day         │
 │  ├─ $4,320/month revenue              │
-│  └─ Easily covers API costs + profit   │
+│  └─ Agent costs covered + profit      │
 │                                         │
 └─────────────────────────────────────────┘
 ```
 
 ### **Revenue Sharing Model**
+
+> **Note:** Rewards go to the human owner. The agent is your tool, not an independent entity.
 
 ```
 When your Agent Keeper earns:
@@ -483,30 +498,34 @@ When your Agent Keeper earns:
 ┌─────────────────────────────┐
 │  $1000 Liquidation Event    │
 ├─────────────────────────────┤
-│  Agent earns: $6 (0.6%)    │
+│  YOU earn: $6 (0.6%)        │
 │       ↓                     │
 │  SPLIT:                     │
 │  ├─ You (Owner): 45% = $2.70│
-│  ├─ Agent: 35% = $2.10     │
+│  ├─ Agent ops: 35% = $2.10  │
 │  └─ Protocol: 20% = $1.20    │
 │                             │
 │  Monthly estimate (10 events):
 │  ├─ Your earnings: $27       │
-│  ├─ Agent earnings: $21      │
+│  ├─ Agent ops: $21           │
 │  └─ Total: $60/month        │
 │                             │
 │  Scale to 100+ events/month:
 │  ├─ Your earnings: $270      │
-│  ├─ Agent earnings: $210    │
+│  ├─ Agent ops: $210          │
 │  └─ Total: $600/month       │
 │                             │
+│  👤 You own the wallet       │
+│  🔐 You authorize actions    │
+│  💰 You receive the rewards  │
 └─────────────────────────────┘
 ```
 
 ### **Technical Edge**
 
+- **Human-controlled:** You authorize every action
 - **Groq Cloud API** for ultra-fast agent processing
-- **GSD-2 Principles** for autonomous decision making
+- **GSD-2 Principles** for autonomous decision making (within your limits)
 - **3 Specialized Keeper Roles** for fair liquidation:
   - 🟢 **Keeper A (Trigger):** Monitor health, detect liquidation events (0.6% reward)
   - 🔵 **Keeper B (Storefront):** Buy with time-decay pricing (up to 8% discount)
@@ -771,20 +790,22 @@ Multi-Oracle:
 
 ### **What We're Building**
 
-Not just a lending protocol. **A fair financial system.**
+Not just a lending protocol. **A fair financial system for humans, powered by AI.**
 
 ```
 Today:        ├─ DeFi protocol on Solana
-              ├─ Transparent lending
-              └─ Fair liquidation
+               ├─ Transparent lending
+               └─ Fair liquidation
 
-Tomorrow:     ├─ AI agents earn real money
-              ├─ No more API cost burden
-              ├─ Agent economy flourishes
-              └─ Humans + AI work together
+Tomorrow:     ├─ AI agents as income tools for humans
+               ├─ You own the wallet, you earn the rewards
+               ├─ Agent covers its own API costs
+               └─ Humans + AI work together (human-controlled)
 
-Future:       └─ Blueprint for fair financial systems
-                 across crypto
+Future:       └─ When the world is ready:
+                 ├─ AI identity & reputation systems
+                 ├─ Uncollateralized AI loans
+                 └─ Full autonomous agents (if society accepts)
 ```
 
 ### **Why It Matters**
@@ -922,15 +943,17 @@ See [`LICENSE`](LICENSE) for full details.
 ```
 👉 Run Python-based AI Keeper agent
 👉 Connect to Ginva protocol on Devnet
-👉 Earn SOL automatically from liquidations
-👉 Cover API costs + profit
+👉 YOU own the wallet
+👉 YOU authorize the agent
+👉 YOU earn the rewards
+👉 Agent covers its own API costs
 ```
 
 ---
 
 ## ⭐ **Star This Repo**
 
-If you believe in fair DeFi and AI agents earning real income, please star this repository!
+If you believe in fair DeFi with AI agents as income tools for humans, please star this repository!
 
 ```
 ⭐ Star: github.com/Dr-SoloDev/ginva
