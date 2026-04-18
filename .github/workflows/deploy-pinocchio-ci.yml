@@ -1,4 +1,4 @@
-name: 🚀 Build & Deploy Pinocchio (Solana Verified Build)
+name: 🚀 Build & Deploy Pinocchio (Solana SBF)
 
 on:
   workflow_dispatch:
@@ -13,7 +13,7 @@ on:
           - "false"
 
 jobs:
-  build-verified:
+  build-sbf:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -22,38 +22,41 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Install Solana Verify CLI
+      - name: Setup Rust
         run: |
-          cargo install solana-verify --locked
+          rustup default stable
 
-      - name: Build Verified Program
+      - name: Install Solana CLI
+        run: |
+          sh -c "$(curl -sSfL https://release.anza.xyz/v1.18.26/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+          cargo install cargo-build-sbf --locked
+
+      - name: Build SBF Program
         working-directory: programs/ginva-pinocchio
         run: |
-          solana-verify build --library-name ginva_pinocchio
+          cargo build-sbf --release
 
-      - name: Get Program Hash
+      - name: Find Built Program
         run: |
-          solana-verify get-executable-hash programs/ginva-pinocchio/target/release/deploy/ginva_pinocchio.so
+          find programs/ginva-pinocchio/target -name "*.so" -type f | head -1
 
-      - name: Upload Verified Artifact
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ginva-verified-so
-          path: programs/ginva-pinocchio/target/release/deploy/ginva_pinocchio.so
+          name: ginva-sbf-so
+          path: programs/ginva-pinocchio/target/deploy/ginva_pinocchio.so
           retention-days: 1
 
   deploy-devnet:
-    needs: build-verified
+    needs: build-sbf
     runs-on: ubuntu-latest
     if: github.event.inputs.deploy == 'true'
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: ginva-verified-so
+          name: ginva-sbf-so
           path: .
 
       - name: Setup Solana CLI
