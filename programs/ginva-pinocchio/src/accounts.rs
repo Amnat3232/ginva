@@ -7,7 +7,7 @@
 use crate::GinvaError;
 use pinocchio::AccountView;
 use pinocchio::Address;
-use pinocchio::ProgramError;
+use solana_program_error::ProgramError;
 
 // ============================================================================
 // System Config Account
@@ -487,8 +487,8 @@ pub const LOAN_ACCOUNT_DISCRIMINATOR: &[u8; 8] = b"loanac01";
 
 #[inline(always)]
 pub fn load_system_config<'a>(
-    account: &'a AccountInfo,
-    program_id: &Pubkey,
+    account: &'a AccountView,
+    program_id: &Address,
 ) -> Result<&'a SystemConfig, ProgramError> {
     // 1. Validate owner
     if account.owner() != program_id {
@@ -499,7 +499,7 @@ pub fn load_system_config<'a>(
         return Err(GinvaError::InvalidInput.into());
     }
     // 3. Validate discriminator
-    let data = account.try_borrow_data()?;
+    let data = account.try_borrow()?;
     if &data[0..8] != SYSTEM_CONFIG_DISCRIMINATOR {
         return Err(ProgramError::UninitializedAccount);
     }
@@ -510,8 +510,8 @@ pub fn load_system_config<'a>(
 
 #[inline(always)]
 pub fn load_loan_account<'a>(
-    account: &'a AccountInfo,
-    program_id: &Pubkey,
+    account: &'a AccountView,
+    program_id: &Address,
 ) -> Result<&'a LoanAccount, ProgramError> {
     if account.owner() != program_id {
         return Err(ProgramError::IncorrectProgramId);
@@ -519,7 +519,7 @@ pub fn load_loan_account<'a>(
     if account.data_len() < LOAN_ACCOUNT_SIZE {
         return Err(GinvaError::InvalidInput.into());
     }
-    let data = account.try_borrow_data()?;
+    let data = account.try_borrow()?;
     if &data[0..8] != LOAN_ACCOUNT_DISCRIMINATOR {
         return Err(ProgramError::UninitializedAccount);
     }
@@ -529,8 +529,8 @@ pub fn load_loan_account<'a>(
 
 #[inline(always)]
 pub fn load_asset_config<'a>(
-    account: &'a AccountInfo,
-    program_id: &Pubkey,
+    account: &'a AccountView,
+    program_id: &Address,
 ) -> Result<&'a AssetConfig, ProgramError> {
     if account.owner() != program_id {
         return Err(ProgramError::IncorrectProgramId);
@@ -538,7 +538,7 @@ pub fn load_asset_config<'a>(
     if account.data_len() < ASSET_CONFIG_SIZE {
         return Err(GinvaError::InvalidInput.into());
     }
-    let data = account.try_borrow_data()?;
+    let data = account.try_borrow()?;
     if &data[0..8] != ASSET_CONFIG_DISCRIMINATOR {
         return Err(ProgramError::UninitializedAccount);
     }

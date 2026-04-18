@@ -10,8 +10,9 @@ use crate::accounts::*;
 use crate::GinvaError;
 use pinocchio::AccountView;
 use pinocchio::Address;
-use pinocchio::ProgramError;
 use pinocchio::ProgramResult;
+use solana_program_error::ProgramError;
+use solana_program_error::ProgramError;
 
 #[allow(unused_variables)]
 #[allow(clippy::op_ref)]
@@ -134,8 +135,8 @@ impl TryFrom<u8> for GinvaInstruction {
 /// 6. [readonly] loan_mint
 /// 7. [readonly] system_program
 fn process_initialize_system(
-    _program_id: &Pubkey,
-    accounts: &[AccountInfo],
+    _program_id: &Address,
+    accounts: &[AccountView],
     data: &[u8],
 ) -> ProgramResult {
     // Parse data: deposit_fee_bps (u16)
@@ -164,7 +165,7 @@ fn process_initialize_system(
 
     // 2. Validate system_config is not already initialized
     // (Check if discriminator is set or data is non-zero)
-    let config_data = system_config.try_borrow_data()?;
+    let config_data = system_config.try_borrow()?;
     let is_initialized = &config_data[0..8] == b"config__" || config_data.iter().any(|&b| b != 0);
     if is_initialized {
         return Err(GinvaError::InvalidInput.into()); // Already initialized
@@ -178,7 +179,7 @@ fn process_initialize_system(
 
     // 4. Initialize system_config account data
     {
-        let mut config_data = system_config.try_borrow_mut_data()?;
+        let mut config_data = system_config.try_borrow_mut()?;
 
         // Write discriminator (8 bytes): b"config__"
         config_data[0..8].copy_from_slice(b"config__");
@@ -208,8 +209,8 @@ fn process_initialize_system(
 
 /// InitializeAsset: Add a new asset to the protocol
 fn process_initialize_asset(
-    _program_id: &Pubkey,
-    accounts: &[AccountInfo],
+    _program_id: &Address,
+    accounts: &[AccountView],
     data: &[u8],
 ) -> ProgramResult {
     if data.len() < 24 {
@@ -261,7 +262,7 @@ fn process_initialize_asset(
 
     // Initialize asset config
     {
-        let mut config_data = asset_config.try_borrow_mut_data()?;
+        let mut config_data = asset_config.try_borrow_mut()?;
 
         // Write discriminator
         config_data[0..8].copy_from_slice(b"asset___");
@@ -278,7 +279,7 @@ fn process_initialize_asset(
 }
 
 /// Deposit: User deposits collateral
-fn process_deposit(_program_id: &Pubkey, accounts: &[AccountInfo], data: &[u8]) -> ProgramResult {
+fn process_deposit(_program_id: &Address, accounts: &[AccountView], data: &[u8]) -> ProgramResult {
     if data.len() < 8 {
         return Err(GinvaError::InvalidInput.into());
     }
@@ -337,7 +338,7 @@ fn process_deposit(_program_id: &Pubkey, accounts: &[AccountInfo], data: &[u8]) 
 
     // Update total_collateral in system_config
     {
-        let mut config_data = system_config.try_borrow_mut_data()?;
+        let mut config_data = system_config.try_borrow_mut()?;
         // Offset for total_collateral: 8 + 32*5 + 2 + 1 + 8 = 197
         let current = u64::from_le_bytes([
             config_data[197],
@@ -359,7 +360,7 @@ fn process_deposit(_program_id: &Pubkey, accounts: &[AccountInfo], data: &[u8]) 
 }
 
 /// Borrow: User borrows against collateral
-fn process_borrow(_program_id: &Pubkey, accounts: &[AccountInfo], data: &[u8]) -> ProgramResult {
+fn process_borrow(_program_id: &Address, accounts: &[AccountView], data: &[u8]) -> ProgramResult {
     if data.len() < 16 {
         return Err(GinvaError::InvalidInput.into());
     }
@@ -425,7 +426,7 @@ fn process_borrow(_program_id: &Pubkey, accounts: &[AccountInfo], data: &[u8]) -
 }
 
 /// Repay: User repays a loan
-fn process_repay(_program_id: &Pubkey, accounts: &[AccountInfo], data: &[u8]) -> ProgramResult {
+fn process_repay(_program_id: &Address, accounts: &[AccountView], data: &[u8]) -> ProgramResult {
     if data.len() < 16 {
         return Err(GinvaError::InvalidInput.into());
     }
@@ -469,7 +470,11 @@ fn process_repay(_program_id: &Pubkey, accounts: &[AccountInfo], data: &[u8]) ->
 }
 
 /// Liquidate: Liquidate an undercollateralized loan
-fn process_liquidate(_program_id: &Pubkey, accounts: &[AccountInfo], data: &[u8]) -> ProgramResult {
+fn process_liquidate(
+    _program_id: &Address,
+    accounts: &[AccountView],
+    data: &[u8],
+) -> ProgramResult {
     if data.len() < 8 {
         return Err(GinvaError::InvalidInput.into());
     }
@@ -511,7 +516,11 @@ fn process_liquidate(_program_id: &Pubkey, accounts: &[AccountInfo], data: &[u8]
 }
 
 /// Withdraw: User withdraws collateral
-fn process_withdraw(_program_id: &Pubkey, _accounts: &[AccountInfo], data: &[u8]) -> ProgramResult {
+fn process_withdraw(
+    _program_id: &Address,
+    _accounts: &[AccountView],
+    data: &[u8],
+) -> ProgramResult {
     if data.len() < 8 {
         return Err(GinvaError::InvalidInput.into());
     }
@@ -531,8 +540,8 @@ fn process_withdraw(_program_id: &Pubkey, _accounts: &[AccountInfo], data: &[u8]
 
 /// StakeAgent: Stake tokens to an agent
 fn process_stake_agent(
-    _program_id: &Pubkey,
-    _accounts: &[AccountInfo],
+    _program_id: &Address,
+    _accounts: &[AccountView],
     data: &[u8],
 ) -> ProgramResult {
     if data.len() < 16 {
@@ -557,8 +566,8 @@ fn process_stake_agent(
 
 /// UnstakeAgent: Unstake tokens from an agent
 fn process_unstake_agent(
-    _program_id: &Pubkey,
-    _accounts: &[AccountInfo],
+    _program_id: &Address,
+    _accounts: &[AccountView],
     data: &[u8],
 ) -> ProgramResult {
     if data.len() < 16 {
@@ -572,8 +581,8 @@ fn process_unstake_agent(
 
 /// RegisterKeeper: Register a keeper agent
 fn process_register_keeper(
-    _program_id: &Pubkey,
-    _accounts: &[AccountInfo],
+    _program_id: &Address,
+    _accounts: &[AccountView],
     data: &[u8],
 ) -> ProgramResult {
     if data.len() < 9 {
@@ -592,8 +601,8 @@ fn process_register_keeper(
 
 /// KeeperHeartbeat: Keeper sends heartbeat to stay active
 fn process_keeper_heartbeat(
-    _program_id: &Pubkey,
-    accounts: &[AccountInfo],
+    _program_id: &Address,
+    accounts: &[AccountView],
     _data: &[u8],
 ) -> ProgramResult {
     if accounts.len() < 2 {
@@ -618,8 +627,8 @@ fn process_keeper_heartbeat(
 
 /// InitializeProtocolConfig: Initialize protocol configuration
 fn process_initialize_protocol_config(
-    _program_id: &Pubkey,
-    accounts: &[AccountInfo],
+    _program_id: &Address,
+    accounts: &[AccountView],
     data: &[u8],
 ) -> ProgramResult {
     // Params: liquidation_timeout (i64), auto_swap_reward_bps (u16), distribute_reward_bps (u16)
@@ -640,7 +649,7 @@ fn process_initialize_protocol_config(
 
     // Initialize protocol config data
     {
-        let mut config_data = protocol_config.try_borrow_mut_data()?;
+        let mut config_data = protocol_config.try_borrow_mut()?;
 
         // Write discriminator
         config_data[0..8].copy_from_slice(b"protconf");

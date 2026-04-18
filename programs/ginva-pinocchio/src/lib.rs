@@ -9,12 +9,12 @@ mod tests;
 pub use instructions::GinvaInstruction;
 pub use instructions::GinvaInstruction::*;
 use pinocchio::account;
+use pinocchio::address::declare_id;
 use pinocchio::entrypoint;
 use pinocchio::AccountView;
 use pinocchio::Address;
-use pinocchio::ProgramError;
 use pinocchio::ProgramResult;
-use pinocchio_pubkey::declare_id;
+use solana_program_error::ProgramError;
 
 // ============================================================================
 // PROGRAM ID
@@ -72,9 +72,9 @@ pub const MAX_CONFIDENCE_RATIO: u128 = 100;
 // Devnet: JUP4Fb2cqiRUcaTHdrCEQSpBxWZ4fc4QLvtY41vPU5zY
 
 #[inline(always)]
-pub fn get_jupiter_program_id(_is_devnet: bool) -> Pubkey {
+pub fn get_jupiter_program_id(_is_devnet: bool) -> Address {
     // Using zero address as placeholder - fix for mainnet
-    Pubkey::from([0u8; 32])
+    Address::from([0u8; 32])
 }
 
 // ============================================================================

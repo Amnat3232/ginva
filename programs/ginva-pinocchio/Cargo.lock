@@ -130,6 +130,7 @@ dependencies = [
  "pinocchio",
  "pinocchio-system",
  "pinocchio-token",
+ "solana-program-error",
 ]
 
 [[package]]

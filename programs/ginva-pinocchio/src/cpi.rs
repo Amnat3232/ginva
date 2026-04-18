@@ -3,8 +3,9 @@
 
 use pinocchio::AccountView;
 use pinocchio::Address;
-use pinocchio::ProgramError;
+use pinocchio::program_error::ProgramError;
 use pinocchio::ProgramResult;
+use pinocchio::Pubkey;
 
 #[cfg(feature = "cpi")]
 use pinocchio::cpi::{AccountMeta, Instruction};
