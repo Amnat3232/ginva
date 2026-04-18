@@ -31,11 +31,11 @@ jobs:
           sh -c "$(curl -sSfL https://release.anza.xyz/v1.18.26/install)"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
 
-      - name: Build SBF Program
+      - name: Build BPF Program
         working-directory: programs/ginva-pinocchio
         run: |
           rm -f Cargo.lock
-          cargo build-bpf --release
+          cargo build-bpf
 
       - name: Find Built Program
         run: |
