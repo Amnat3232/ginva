@@ -89,7 +89,7 @@ jobs:
 
       - name: Install Solana CLI
         run: |
-          curl -sSfL https://release.solana.com/v1.18.26/install | sh
+          curl -sSfL "https://release.anza.xyz/v1.18.26/install" | sh
         shell: bash
 
       - name: Add Solana to PATH
