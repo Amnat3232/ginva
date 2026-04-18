@@ -25,7 +25,7 @@
 | Field | Value |
 | ----- | ----- |
 | **Project** | Ginva — Liquidity Infrastructure for AI Agents |
-| **Team** | **Single Builder** (Solo Founder) |
+| **Team** | **NovaPulse** — Single Builder |
 | **Builder** | Dr-SoloDev |
 | **QIE Domain** | [ginva.qie](https://ginva.qie) |
 | **Email** | achaisirum@gmail.com |
@@ -994,6 +994,7 @@ Repository:
 └─ License: BUSL-1.1
 
 Team:
+├─ Team name: NovaPulse
 ├─ Core developer: 1 (Dr-SoloDev)
 │  └─ Role: Single Builder, Solo Founder
 ├─ Community: Growing
