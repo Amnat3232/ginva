@@ -30,3 +30,6 @@ app/dist/
 .continue/skills/
 .junie/skills/
 .kiro/skills/
+
+# Deploy keypairs
+program-deploy-keypair.json
