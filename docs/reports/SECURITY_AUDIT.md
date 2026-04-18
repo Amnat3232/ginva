@@ -1,59 +1,59 @@
 # GINVA Protocol - Security Audit Report
 
-## รายงานการตรวจสอบช่องโหว่และบั๊ก (ฉบับเจาะลึกทุกอนู)
+## Vulnerability and Bug Report (Deep Dive)
 
-**วันที่ตรวจสอบ:** 2026-02-12  
-**ผู้ตรวจสอบ:** AI Security Auditor  
-**เวอร์ชั่นโค้ด:** 2.0.0  
-**สถานะ:** ⚠️ **พบช่องโหว่ที่ต้องแก้ไข**
+**Audit Date:** 2026-02-12  
+**Auditor:** AI Security Auditor  
+**Code Version:** 2.0.0  
+**Status:** ⚠️ **Vulnerabilities Found - Requires Fixes**
 
 ---
 
-## 🚨 CRITICAL VULNERABILITIES (ระดับวิกฤต)
+## 🚨 CRITICAL VULNERABILITIES
 
-### 1. **Jupiter CPI ไม่มี Slippage Protection ที่เพียงพอ** 🔴
+### 1. **Jupiter CPI Missing Sufficient Slippage Protection** 🔴
 
-**ไฟล์:** `lib.rs:1133-1280` (execute_dex_fallback)  
-**ความรุนแรง:** CRITICAL  
-**ความเสี่ยง:** สูง
+**File:** `lib.rs:1133-1280` (execute_dex_fallback)  
+**Severity:** CRITICAL  
+**Risk:** High
 
-**รายละเอียด:**
-ฟังก์ชัน `execute_dex_fallback` ใช้ Jupiter CPI สำหรับ swap แต่มีช่องโหว่:
+**Details:**
+The `execute_dex_fallback` function uses Jupiter CPI for swaps but has vulnerabilities:
 
-- `data: Vec<u8>` ที่รับเข้ามาไม่มีการ validate ว่าเป็น route ที่ถูกต้อง
-- ไม่มีการตรวจสอบ minimum output amount ก่อนเรียก Jupiter
-- Attacker สามารถ front-run หรือ manipulate route data ได้
+- `data: Vec<u8>` received has no validation for valid route
+- No minimum output amount check before calling Jupiter
+- Attacker can front-run or manipulate route data
 
-**ช่องโหว่:**
+**Vulnerability:**
 
 ```rust
-// ❌ ไม่มีการ validate route data
+// ❌ No route data validation
 pub fn execute_dex_fallback(ctx: Context<ExecuteDexFallback>, data: Vec<u8>) -> Result<()> {
     // ...
     let jupiter_instruction = Instruction {
         program_id: ctx.accounts.jupiter_program.key(),
-        accounts,  // ไม่มีการ validate accounts
-        data,      // ไม่มีการ validate data
+        accounts,  // No account validation
+        data,      // No data validation
     };
     invoke_signed(&jupiter_instruction, &account_infos, signer_seeds)?;
 ```
 
-**ผลกระทบ:**
+**Impact:**
 
-- Sandwich attack บน Jupiter swap
+- Sandwich attack on Jupiter swap
 - MEV extraction
-- สูญเสียเงินใน processing vault
+- Loss of funds in processing vault
 
-**การแก้ไข:**
+**Fix:**
 
 ```rust
-// ✅ เพิ่มการ validate minimum output
+// ✅ Add minimum output validation
 require!(
     data.len() >= MIN_JUPITER_DATA_LEN,
     GinvaError::InvalidJupiterRoute
 );
 
-// ✅ คำนวณ minimum output จาก oracle
+// ✅ Calculate minimum output from oracle
 let min_output = calculate_min_output_from_oracle(
     seized_amount,
     oracle_price,
@@ -69,77 +69,77 @@ require!(
 
 ---
 
-### 2. **Reentrancy Guard ไม่ครอบคลุมทุกฟังก์ชัน** 🔴
+### 2. **Reentrancy Guard Not Covering All Functions** 🔴
 
-**ไฟล์:** หลายฟังก์ชันใน `lib.rs`  
-**ความรุนแรง:** HIGH  
-**ความเสี่ยง:** สูง
+**File:** Multiple functions in `lib.rs`  
+**Severity:** HIGH  
+**Risk:** High
 
-**รายละเอียด:**
+**Details:**
 
-- `buy_from_storefront()` - ไม่มี reentrancy guard!
-- `stake_lp()` - ไม่มี reentrancy guard!
-- `unstake_lp()` - ไม่มี reentrancy guard!
-- `claim_staking_rewards()` - ไม่มี reentrancy guard!
+- `buy_from_storefront()` - No reentrancy guard!
+- `stake_lp()` - No reentrancy guard!
+- `unstake_lp()` - No reentrancy guard!
+- `claim_staking_rewards()` - No reentrancy guard!
 
-**ช่องโหว่:**
+**Vulnerability:**
 
 ```rust
-// ❌ ไม่มี reentrancy guard
+// ❌ No reentrancy guard
 pub fn buy_from_storefront(ctx: Context<ExecuteAutoSwap>) -> Result<()> {
-    // ทำ transfer ออกจาก protocol ก่อน update state
-    token::transfer(cpi_ctx_send, seized_amount)?;  // Transfer ออกไปก่อน
-    // ... state update ทีหลัง
-    liquidation_process.swapped = true;  // Update state ทีหลัง
+    // Transfer out from protocol before state update
+    token::transfer(cpi_ctx_send, seized_amount)?;  // Transfer out first
+    // ... state update later
+    liquidation_process.swapped = true;  // Update state later
 ```
 
-**ผลกระทบ:**
+**Impact:**
 
-- Reentrancy attack บน storefront (ซื้อซ้ำหลายครั้ง)
-- Double spending ใน staking
-- Drain funds จาก revenue wallet
+- Reentrancy attack on storefront (buy multiple times)
+- Double spending in staking
+- Drain funds from revenue wallet
 
-**การแก้ไข:**
+**Fix:**
 
 ```rust
 pub fn buy_from_storefront(ctx: Context<ExecuteAutoSwap>) -> Result<()> {
-    // ✅ ตรวจสอบ guard ก่อน
+    // ✅ Check guard first
     check_reentrancy_guard(system_config.reentrancy_guard)?;
     system_config.reentrancy_guard = REENTRANCY_GUARD_ACTIVE;
 
     // ... logic ...
 
-    // ✅ Reset guard ตอนจบ
+    // ✅ Reset guard at end
     system_config.reentrancy_guard = REENTRANCY_GUARD_INACTIVE;
 }
 ```
 
 ---
 
-### 3. **Loan Account ไม่มี Constraint บน borrower** 🟠
+### 3. **Loan Account Missing Constraint on Borrower** 🟠
 
-**ไฟล์:** `lib.rs:3066-3105` (TriggerLiquidation struct)  
-**ความรุนแรง:** MEDIUM  
-**ความเสี่ยง:** ปานกลาง
+**File:** `lib.rs:3066-3105` (TriggerLiquidation struct)  
+**Severity:** MEDIUM  
+**Risk:** Medium
 
-**รายละเอียด:**
-ใน `TriggerLiquidation` struct ไม่มี constraint ว่า `loan_account` ต้องมี borrower ที่ถูกต้อง:
+**Details:**
+In `TriggerLiquidation` struct, there's no constraint that `loan_account` must have a valid borrower:
 
 ```rust
 #[derive(Accounts)]
 pub struct TriggerLiquidation<'info> {
     #[account(mut)]
     pub keeper_a: Signer<'info>,
-    #[account(mut)]  // ❌ ไม่มี constraint!
+    #[account(mut)]  // ❌ No constraint!
     pub loan_account: Box<Account<'info, LoanAccount>>,
 ```
 
-**ผลกระทบ:**
+**Impact:**
 
-- Keeper สามารถ trigger liquidation บน loan ที่ไม่มี borrower ได้ (แต่จะ fail ตอน check collateral)
-- DoS attack โดยการสร้าง loan accounts ที่ไม่ valid
+- Keeper can trigger liquidation on loans without borrower (but will fail at collateral check)
+- DoS attack by creating invalid loan accounts
 
-**การแก้ไข:**
+**Fix:**
 
 ```rust
 #[account(
@@ -152,16 +152,16 @@ pub loan_account: Box<Account<'info, LoanAccount>>,
 
 ---
 
-## 🟠 HIGH VULNERABILITIES (ระดับสูง)
+## 🟠 HIGH VULNERABILITIES
 
-### 4. **Interest Calculation มี Precision Loss** 🟠
+### 4. **Interest Calculation Has Precision Loss** 🟠
 
-**ไฟล์:** `lib.rs:669-675` และอื่นๆ  
-**ความรุนแรง:** HIGH  
-**ความเสี่ยง:** ปานกลาง-สูง
+**File:** `lib.rs:669-675` and others  
+**Severity:** HIGH  
+**Risk:** Medium-High
 
-**รายละเอียด:**
-การคำนวณ interest ใช้ division ที่ทำให้เกิด precision loss:
+**Details:**
+Interest calculation uses division that causes precision loss:
 
 ```rust
 let interest_amount = (loan_account.loan_amount as u128)
@@ -169,25 +169,25 @@ let interest_amount = (loan_account.loan_amount as u128)
     .ok_or(GinvaError::ArithmeticOverflow)?
     .checked_mul(time_elapsed as u128)
     .ok_or(GinvaError::ArithmeticOverflow)?
-    .checked_div(31_536_000 * 10000)  // ❌ Precision loss ที่นี่
+    .checked_div(31_536_000 * 10000)  // ❌ Precision loss here
     .ok_or(GinvaError::ArithmeticUnderflow)?;
 ```
 
-**ตัวอย่างปัญหา:**
+**Example problem:**
 
-- Loan 100 USDC, 25% APR, 1 วัน
-- คำนวณได้: 68 USDC (ควรได้ 68.49...)
-- Loss: ~0.7% ต่อปี
+- Loan 100 USDC, 25% APR, 1 day
+- Calculated: 68 USDC (should be 68.49...)
+- Loss: ~0.7% per year
 
-**ผลกระทบ:**
+**Impact:**
 
-- Protocol สูญเสียรายได้
-- Stakers ได้รับ reward น้อยกว่าที่ควร
+- Protocol loses revenue
+- Stakers receive less reward than expected
 
-**การแก้ไข:**
+**Fix:**
 
 ```rust
-// ✅ ใช้ higher precision หรือ round up
+// ✅ Use higher precision or round up
 const INTEREST_PRECISION: u128 = 1_000_000;  // 6 decimals precision
 
 let interest_amount = (loan_amount as u128)
@@ -206,13 +206,13 @@ let interest = ((interest_amount + INTEREST_PRECISION - 1) / INTEREST_PRECISION)
 
 ---
 
-### 5. **Reward Debt Calculation อาจเกิด Underflow** 🟠
+### 5. **Reward Debt Calculation May Underflow** 🟠
 
-**ไฟล์:** `lib.rs:2071-2073`  
-**ความรุนแรง:** MEDIUM  
-**ความเสี่ยง:** ปานกลาง
+**File:** `lib.rs:2071-2073`  
+**Severity:** MEDIUM  
+**Risk:** Medium
 
-**รายละเอียด:**
+**Details:**
 
 ```rust
 let pending = accumulated
@@ -220,32 +220,32 @@ let pending = accumulated
     .ok_or(GinvaError::ArithmeticUnderflow)?;
 ```
 
-**ปัญหา:**
-ถ้า `acc_reward_per_share` ลดลง (จาก bug หรือ manipulation) ทำให้ `accumulated < reward_debt`  
-จะเกิด underflow และ transaction จะ fail
+**Problem:**
+If `acc_reward_per_share` decreases (from bug or manipulation) causing `accumulated < reward_debt`  
+Underflow occurs and transaction fails
 
-**ผลกระทบ:**
+**Impact:**
 
-- User ไม่สามารถ claim rewards ได้
-- DoS บน reward claiming
+- User cannot claim rewards
+- DoS on reward claiming
 
-**การแก้ไข:**
+**Fix:**
 
 ```rust
-// ✅ ใช้ saturating_sub แทน
+// ✅ Use saturating_sub instead
 let pending = accumulated.saturating_sub(stake.reward_debt);
 require!(pending > 0, GinvaError::NoPendingRewards);
 ```
 
 ---
 
-### 6. **Liquidation Lock ไม่ถูก Reset ในกรณี error** 🟠
+### 6. **Liquidation Lock Not Reset on Error** 🟠
 
-**ไฟล์:** `lib.rs:819-945` (trigger_liquidation)  
-**ความรุนแรง:** MEDIUM  
-**ความเสี่ยง:** ปานกลาง
+**File:** `lib.rs:819-945` (trigger_liquidation)  
+**Severity:** MEDIUM  
+**Risk:** Medium
 
-**รายละเอียด:**
+**Details:**
 
 ```rust
 // 🛡️ ATOMIC LIQUIDATION LOCK
@@ -253,7 +253,7 @@ require!(
     !loan_account.liquidation_lock,
     GinvaError::AlreadyBeingLiquidated
 );
-loan_account.liquidation_lock = true;  // ตั้งค่า lock
+loan_account.liquidation_lock = true;  // Set lock
 
 // ... logic ...
 
@@ -261,20 +261,20 @@ loan_account.liquidation_lock = true;  // ตั้งค่า lock
 system_config.reentrancy_guard = REENTRANCY_GUARD_INACTIVE;
 ```
 
-**ปัญหา:**
-ถ้าเกิด error ระหว่างทำงาน (หลังจาก set lock) แต่ก่อน reset  
-`liquidation_lock` จะยังคงเป็น `true` ตลอดไป!
+**Problem:**
+If error occurs during execution (after setting lock but before reset)  
+`liquidation_lock` will remain `true` forever!
 
-**ผลกระทบ:**
+**Impact:**
 
-- Loan จะถูก lock ตลอดกาล
-- ไม่สามารถ liquidate ได้อีก
-- Borrower ก็ไม่สามารถ repay ได้ (ถ้ามี check)
+- Loan will be locked forever
+- Cannot liquidate again
+- Borrower cannot repay (if there's check)
 
-**การแก้ไข:**
+**Fix:**
 
 ```rust
-// ✅ ใช้ scope guard pattern หรือ try-finally
+// ✅ Use scope guard pattern or try-finally
 loan_account.liquidation_lock = true;
 
 let result = (|| -> Result<()> {
@@ -282,7 +282,7 @@ let result = (|| -> Result<()> {
     Ok(())
 })();
 
-// Reset lock ไม่ว่าจะ success หรือ fail
+// Reset lock regardless of success or fail
 loan_account.liquidation_lock = false;
 system_config.reentrancy_guard = REENTRANCY_GUARD_INACTIVE;
 
@@ -291,37 +291,37 @@ result?;
 
 ---
 
-## 🟡 MEDIUM VULNERABILITIES (ระดับปานกลาง)
+## 🟡 MEDIUM VULNERABILITIES
 
-### 7. **Pyth Price Deviation อาจถูก Bypass** 🟡
+### 7. **Pyth Price Deviation May Be Bypassed** 🟡
 
-**ไฟล์:** `lib.rs:2403-2425`  
-**ความรุนแรง:** MEDIUM  
-**ความเสี่ยง:** ปานกลาง
+**File:** `lib.rs:2403-2425`  
+**Severity:** MEDIUM  
+**Risk:** Medium
 
-**รายละเอียด:**
+**Details:**
 
 ```rust
 fn validate_price_deviation(current_price: u64, reference_price: u64) -> Result<()> {
     if reference_price == 0 {
-        return Ok(()); // ❌ ไม่มี validation ครั้งแรก!
+        return Ok(()); // ❌ No first validation!
     }
 ```
 
-**ช่องโหว่:**
+**Vulnerability:**
 
-- ครั้งแรกที่ oracle ถูกใช้ `reference_price = 0` ไม่มี validation
-- Attacker สามารถ manipulate ราคาครั้งแรกได้
+- First time oracle is used `reference_price = 0` has no validation
+- Attacker can manipulate first price
 
-**ผลกระทบ:**
+**Impact:**
 
-- ราคาแรกอาจถูก manipulate
-- ส่งผลต่อการคำนวณ LTV ที่ผิด
+- First price may be manipulated
+- Affects LTV calculation incorrectly
 
-**การแก้ไข:**
+**Fix:**
 
 ```rust
-// ✅ ตรวจสอบว่าไม่ใช่การเรียกครั้งแรกหรือมีการ initialize ราคา
+// ✅ Check if not first call or price has been initialized
 require!(
     system_config.last_price_update > 0 ||
     ctx.accounts.user.key() == system_config.admin,
@@ -331,24 +331,24 @@ require!(
 
 ---
 
-### 8. **Staking ไม่มี Maximum Cap** 🟡
+### 8. **Staking Has No Maximum Cap** 🟡
 
-**ไฟล์:** `lib.rs:1978-2048` (stake_lp)  
-**ความรุนแรง:** MEDIUM  
-**ความเสี่ยง:** ต่ำ-ปานกลาง
+**File:** `lib.rs:1978-2048` (stake_lp)  
+**Severity:** MEDIUM  
+**Risk:** Low-Medium
 
-**รายละเอียด:**
-ไม่มีการตรวจสอบว่า `total_staked` ไม่เกิน limit ที่กำหนด
+**Details:**
+No check that `total_staked` doesn't exceed defined limit
 
-**ผลกระทบ:**
+**Impact:**
 
-- ถ้ามี whale stake จำนวนมาก อาจทำให้ reward distribution ไม่ยุติธรรม
-- Potential overflow ใน `acc_reward_per_share` calculation
+- If large whale stakes large amount, reward distribution may be unfair
+- Potential overflow in `acc_reward_per_share` calculation
 
-**การแก้ไข:**
+**Fix:**
 
 ```rust
-// ✅ เพิ่ม maximum stake cap
+// ✅ Add maximum stake cap
 const MAX_TOTAL_STAKED: u64 = 1_000_000_000_000_000; // 1B USDC
 
 require!(
@@ -359,23 +359,23 @@ require!(
 
 ---
 
-### 9. **Deposit Fee ไม่ถูกเก็บ** 🟡
+### 9. **Deposit Fee Not Collected** 🟡
 
-**ไฟล์:** `lib.rs:443-501` (deposit_collateral)  
-**ความรุนแรง:** LOW  
-**ความเสี่ยง:** ต่ำ
+**File:** `lib.rs:443-501` (deposit_collateral)  
+**Severity:** LOW  
+**Risk:** Low
 
-**รายละเอียด:**
-มี `deposit_fee_bps` ใน `SystemConfig` แต่ไม่มีการคิดค่าธรรมเนียมตอน deposit
+**Details:**
+`deposit_fee_bps` exists in `SystemConfig` but no fee charged on deposit
 
-**ผลกระทบ:**
+**Impact:**
 
-- สูญเสียรายได้จากค่าธรรมเนียม
+- Lost fee revenue
 
-**การแก้ไข:**
+**Fix:**
 
 ```rust
-// ✅ คำนวณและเก็บ deposit fee
+// ✅ Calculate and collect deposit fee
 let deposit_fee = amount
     .checked_mul(system_config.deposit_fee_bps as u64)
     .ok_or(...)?
@@ -392,27 +392,27 @@ if deposit_fee > 0 {
 
 ---
 
-## 🟢 LOW VULNERABILITIES (ระดับต่ำ)
+## 🟢 LOW VULNERABILITIES
 
-### 10. **Missing Events ในบางฟังก์ชัน** 🟢
+### 10. **Missing Events in Some Functions** 🟢
 
-**ฟังก์ชันที่ขาด Events:**
+**Functions Missing Events:**
 
-- `update_protocol_config` - ไม่มี event
-- `update_interest_rates` - มี event แต่ไม่ครบข้อมูล
-- `update_ltv_levels` - มี event แต่ไม่ครบข้อมูล
-- `buy_from_storefront` - ไม่มี event
-- `execute_dex_fallback` - ไม่มี event
+- `update_protocol_config` - No event
+- `update_interest_rates` - Has event but incomplete data
+- `update_ltv_levels` - Has event but incomplete data
+- `buy_from_storefront` - No event
+- `execute_dex_fallback` - No event
 
-**ผลกระทบ:**
+**Impact:**
 
-- ยากต่อการติดตามและ debug
-- Off-chain indexing ไม่สมบูรณ์
+- Hard to track and debug
+- Off-chain indexing incomplete
 
-**การแก้ไข:**
+**Fix:**
 
 ```rust
-// ✅ เพิ่ม events
+// ✅ Add events
 #[event]
 pub struct StorefrontPurchase {
     pub buyer: Pubkey,
@@ -421,7 +421,7 @@ pub struct StorefrontPurchase {
     pub discount_bps: u64,
 }
 
-// ใน buy_from_storefront
+// In buy_from_storefront
 emit!(StorefrontPurchase {
     buyer: caller,
     liquidation_process: liquidation_process.key(),
@@ -432,21 +432,21 @@ emit!(StorefrontPurchase {
 
 ---
 
-### 11. **Protocol Config ไม่มี Version Tracking** 🟢
+### 11. **Protocol Config Has No Version Tracking** 🟢
 
-**ไฟล์:** `lib.rs:2856-2870`  
-**ความรุนแรง:** LOW  
-**ความเสี่ยง:** ต่ำ
+**File:** `lib.rs:2856-2870`  
+**Severity:** LOW  
+**Risk:** Low
 
-**ปัญหา:**
-ไม่มี field สำหรับ track protocol version ทำให้ยากต่อการ upgrade
+**Problem:**
+No field to track protocol version, making upgrades difficult
 
-**การแก้ไข:**
+**Fix:**
 
 ```rust
 pub struct ProtocolConfig {
     pub admin: Pubkey,
-    pub version: u8,  // ✅ เพิ่ม version tracking
+    pub version: u8,  // ✅ Add version tracking
     pub liquidation_timeout: i64,
     // ...
 }
@@ -456,62 +456,62 @@ pub struct ProtocolConfig {
 
 ## 🔍 CODE QUALITY ISSUES
 
-### 12. **TODO/FIXME Comments ที่ยังไม่ได้แก้** 🔍
+### 12. **TODO/FIXME Comments Not Yet Fixed** 🔍
 
 ```bash
 grep -n "TODO\|FIXME\|XXX\|HACK" /home/mkx-t/ginva/programs/ginva/src/lib.rs
 ```
 
-**พบ:**
+**Found:**
 
-- Line 130: Local test mode - ต้อง remove ก่อน production
-- Line 331: Comment เกี่ยวกับ feature flag
+- Line 130: Local test mode - must remove before production
+- Line 331: Comment about feature flag
 
 ---
 
-### 13. **Unused Variables และ Dead Code** 🔍
+### 13. **Unused Variables and Dead Code** 🔍
 
-**พบ:**
+**Found:**
 
-- `distribute_reward_bps` ใน `ProtocolConfig` - ไม่ถูกใช้งาน
-- `JUPITER_PROGRAM_ID` - ใช้แค่ใน check ไม่ได้ใช้ใน CPI (ใช้ remaining_accounts แทน)
+- `distribute_reward_bps` in `ProtocolConfig` - Not used
+- `JUPITER_PROGRAM_ID` - Only used in check, not in CPI (uses remaining_accounts instead)
 
 ---
 
 ## 📊 SUMMARY OF VULNERABILITIES
 
-| ระดับ       | จำนวน | รายการหลัก                                   |
-| ----------- | ----- | -------------------------------------------- |
-| 🔴 CRITICAL | 3     | Jupiter CPI, Reentrancy, Missing constraints |
-| 🟠 HIGH     | 3     | Precision loss, Underflow, Lock issue        |
-| 🟡 MEDIUM   | 3     | Price validation, Staking cap, Missing fee   |
-| 🟢 LOW      | 2     | Events, Version tracking                     |
-| 🔍 Quality  | 2     | TODOs, Dead code                             |
+| Level      | Count | Main Items                                      |
+|------------| ----- | ----------------------------------------------- |
+| 🔴 CRITICAL | 3     | Jupiter CPI, Reentrancy, Missing constraints    |
+| 🟠 HIGH     | 3     | Precision loss, Underflow, Lock issue          |
+| 🟡 MEDIUM   | 3     | Price validation, Staking cap, Missing fee      |
+| 🟢 LOW      | 2     | Events, Version tracking                       |
+| 🔍 Quality  | 2     | TODOs, Dead code                               |
 
-**รวม:** 13 ช่องโหว่
+**Total:** 13 vulnerabilities
 
 ---
 
 ## 🎯 RECOMMENDATIONS
 
-### Priority 1 (ต้องแก้ก่อนใช้งานจริง):
+### Priority 1 (Must fix before production):
 
-1. ✅ เพิ่ม Reentrancy Guard ให้ครอบคลุมทุกฟังก์ชันที่มี transfer
-2. ✅ แก้ไข Jupiter CPI validation
-3. ✅ เพิ่ม constraint ให้ loan_account ใน TriggerLiquidation
-4. ✅ แก้ไข liquidation_lock reset logic
+1. ✅ Add Reentrancy Guard covering all functions with transfer
+2. ✅ Fix Jupiter CPI validation
+3. ✅ Add constraint to loan_account in TriggerLiquidation
+4. ✅ Fix liquidation_lock reset logic
 
-### Priority 2 (ควรแก้เพื่อความปลอดภัย):
+### Priority 2 (Should fix for security):
 
-5. ✅ ปรับปรุง interest calculation precision
-6. ✅ แก้ไข reward debt underflow
-7. ✅ แก้ไข Pyth price validation ครั้งแรก
+5. ✅ Improve interest calculation precision
+6. ✅ Fix reward debt underflow
+7. ✅ Fix Pyth price first validation
 
-### Priority 3 (แก้เพื่อคุณภาพ):
+### Priority 3 (Fix for quality):
 
-8. ✅ เพิ่ม events ให้ครบทุกฟังก์ชัน
-9. ✅ ลบ dead code และ TODOs
-10. ✅ เพิ่ม maximum stake cap
+8. ✅ Add events to all functions
+9. ✅ Remove dead code and TODOs
+10. ✅ Add maximum stake cap
 
 ---
 
@@ -551,14 +551,14 @@ fn test_reward_debt_underflow() {
 
 ---
 
-**หมายเหตุ:** รายงานนี้สร้างขึ้นจากการตรวจสอบ static analysis และ code review  
-**แนะนำ:** ควรมีการทดสอบด้วย dynamic analysis และ fuzzing ก่อนขึ้น production
+**Note:** This report was generated from static analysis and code review  
+**Recommendation:** Should have dynamic analysis and fuzzing testing before production
 
-**สถานะการแก้ไข:**
+**Fix Status:**
 
 - [ ] CRITICAL (3 items)
 - [ ] HIGH (3 items)
 - [ ] MEDIUM (3 items)
 - [ ] LOW (2 items)
 
-**⚠️ ระบบยังไม่พร้อมสำหรับ Mainnet จนกว่าจะแก้ไขช่องโหว่ CRITICAL และ HIGH ทั้งหมด**
+**⚠️ System not ready for Mainnet until all CRITICAL and HIGH vulnerabilities are fixed**

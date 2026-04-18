@@ -50,7 +50,7 @@ const CONFIG = {
 // 🔑 SETUP
 // ═══════════════════════════════════════════════════════════
 const loadWallet = (): Keypair => {
-  // รองรับ 2 วิธี: 1. PRIVATE_KEY จาก env (array), 2. KEYPAIR_PATH จากไฟล์
+  // Supports 2 methods: 1. PRIVATE_KEY from env (array), 2. KEYPAIR_PATH from file
   const privateKeyEnv = process.env.PRIVATE_KEY;
   const keypairPath = process.env.KEYPAIR_PATH;
 

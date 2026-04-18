@@ -1,5 +1,5 @@
 // Ginva Keeper Dual Mode Manager
-// รองรับ 2 โหมดหลัก: Full Access Mode และ Secure Scoped Mode (Solblade)
+// Supports 2 main modes: Full Access Mode and Secure Scoped Mode (Solblade)
 
 import { Connection, PublicKey } from "@solana/web3.js";
 import { KeeperConfig, KeeperMode } from "./types/keeper-types";
@@ -8,7 +8,7 @@ import { SolbladeKeeper } from "./modes/solblade-keeper";
 
 /**
  * Ginva Keeper Dual Mode Manager
- * รองรับ 2 โหมดหลักตามที่เราคุยกัน
+ * Supports 2 main modes as discussed
  */
 export class GinvaKeeperManager {
   private config: KeeperConfig;
@@ -21,7 +21,7 @@ export class GinvaKeeperManager {
   }
 
   /**
-   * Initialize Keeper ตามโหมดที่เลือก
+   * Initialize Keeper based on selected mode
    */
   async initialize(): Promise<void> {
     if (this.config.mode === KeeperMode.FULL_ACCESS) {
@@ -87,5 +87,5 @@ export class GinvaKeeperManager {
   }
 }
 
-// Export สำหรับใช้งานง่าย
+// Export for easy usage
 export { KeeperMode } from "./types/keeper-types";

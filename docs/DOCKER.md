@@ -1,90 +1,90 @@
-# 🐳 Ginva Protocol - Docker Build Guide
+# Ginva Protocol - Docker Build Guide
 
-## สรุป (Summary)
+## Summary
 
-Docker ช่วยแก้ปัญหา **Build Toolchain Compatibility** โดยสร้าง environment ที่มีทุกอย่างพร้อมใช้งาน:
+Docker solves **Build Toolchain Compatibility** issues by providing a ready environment:
 
-- ✅ Rust 1.79 (compatible กับ edition2024)
+- ✅ Rust 1.79 (compatible with edition2024)
 - ✅ Solana CLI 1.18.26
 - ✅ Anchor CLI 0.32.1
 - ✅ Node.js 20
-- ✅ ทุก dependencies ที่ต้องการ
+- ✅ All required dependencies
 
-## ขั้นตอนการใช้งาน
+## Usage Steps
 
-### 1. ติดตั้ง Docker (ถ้ายังไม่มี)
+### 1. Install Docker (if not already installed)
 
 **macOS:**
 
 ```bash
-# ดาวน์โหลด Docker Desktop
+# Download Docker Desktop
 open https://www.docker.com/products/docker-desktop
 
-# หรือใช้ Homebrew
+# Or use Homebrew
 brew install --cask docker
 ```
 
 **Linux (Ubuntu/Debian):**
 
 ```bash
-# ติดตั้ง Docker
+# Install Docker
 curl -fsSL https://get.docker.com | sh
 
-# เพิ่ม user ไปยัง docker group (ต้อง logout/login ใหม่)
+# Add user to docker group (must logout/login)
 sudo usermod -aG docker $USER
 
-# ติดตั้ง docker-compose
+# Install docker-compose
 sudo apt-get install docker-compose-plugin
 ```
 
 **Windows:**
 
-- ดาวน์โหลด Docker Desktop: https://www.docker.com/products/docker-desktop
+- Download Docker Desktop: https://www.docker.com/products/docker-desktop
 
-### 2. ตรวจสอบการติดตั้ง
+### 2. Verify Installation
 
 ```bash
-# ตรวจสอบ Docker
+# Check Docker
 docker --version
-# ควรแสดง: Docker version 24.x.x หรือสูงกว่า
+# Should show: Docker version 24.x.x or higher
 
-# ตรวจสอบ Docker Compose
+# Check Docker Compose
 docker-compose --version
-# หรือ
+# or
 docker compose version
-# ควรแสดง: v2.x.x หรือสูงกว่า
+# Should show: v2.x.x or higher
 
-# ตรวจสอบว่า Docker กำลังทำงาน
+# Check if Docker is running
 docker info
 ```
 
-### 3. เริ่ม Build
+### 3. Start Build
 
-#### วิธีที่ 1: ใช้ Interactive Script (แนะนำ)
+#### Method 1: Interactive Script (Recommended)
 
 ```bash
-# ทำให้ script สามารถรันได้
+# Make script executable
 chmod +x docker-build.sh
 
-# รัน script
+# Run script
 ./docker-build.sh
 ```
 
-**Menu ที่จะแสดง:**
+**Menu that will appear:**
 
 ```
-เลือกการทำงาน (Select operation):
+Select operation:
 
-1) 🔨 Build โปรแกรม (Build program)
-2) 🧪 รันเทส (Run tests)
-3) 🐚 เข้า shell (Enter shell for manual commands)
-4) 🚀 Deploy ไป devnet (Deploy to devnet)
+1) 🔨 Build program
+2) 🧪 Run tests
+3) 🐚 Enter shell for manual commands
+4) 🚀 Deploy to devnet
 5) 🧹 Clean build cache
-6) 📊 ดู logs (View logs)
-7) ❌ ออก (Exit)
+6) 📊 View logs
+7) ❌ Exit
 ```
 
-#### วิธีที่ 2: ใช้ NPM Scripts
+#### Method 2: Use NPM Scripts
 
 ```bash
 # Build
@@ -103,13 +103,13 @@ docker-compose up --build deploy-devnet
 npm run docker:clean
 ```
 
-#### วิธีที่ 3: ใช้ Docker Compose โดยตรง
+#### Method 3: Use Docker Compose Directly
 
 ```bash
 # Build
 docker-compose up --build build
 
-# หรือถ้าใช้ Docker Compose V2
+# Or if using Docker Compose V2
 docker compose up --build build
 
 # Run tests
@@ -119,63 +119,63 @@ docker-compose up --build test
 docker-compose run --rm shell
 ```
 
-## คำสั่งที่ใช้บ่อย
+## Common Commands
 
-### Build โปรแกรม
+### Build Program
 
 ```bash
-# วิธีที่ 1: ผ่าน script
+# Method 1: via script
 ./docker-build.sh
-# เลือก 1
+# Select 1
 
-# วิธีที่ 2: ผ่าน npm
+# Method 2: via npm
 npm run build:docker
 
-# วิธีที่ 3: docker-compose
+# Method 3: docker-compose
 make build
-# หรือ
+# or
 make docker-build
 ```
 
-### รัน Tests
+### Run Tests
 
 ```bash
 ./docker-build.sh
-# เลือก 2
+# Select 2
 
-# หรือ
+# or
 npm run test:docker
 ```
 
-### Deploy ไป Devnet
+### Deploy to Devnet
 
 ```bash
 ./docker-build.sh
-# เลือก 4
+# Select 4
 
-# หรือ
+# or
 docker-compose up --build deploy-devnet
 ```
 
-**⚠️ สำคัญ:** ก่อน deploy ต้องมี wallet ที่ `~/.config/solana/id.json`
+**Important:** Before deploying, must have wallet at `~/.config/solana/id.json`
 
-สร้าง wallet:
+Create wallet:
 
 ```bash
-# ในเครื่อง host (ไม่ใช่ใน Docker)
+# On host machine (not in Docker)
 solana-keygen new
 
-# ขอ airdrop (devnet)
+# Request airdrop (devnet)
 solana airdrop 2
 ```
 
-### เข้า Shell ใช้งาน Manual
+### Enter Shell for Manual Use
 
 ```bash
 ./docker-build.sh
-# เลือก 3
+# Select 3
 
-# ใน shell สามารถใช้คำสั่ง:
+# In shell, can use commands:
 anchor build
 anchor test
 anchor deploy --provider.cluster devnet
@@ -183,7 +183,7 @@ anchor keys sync
 solana --version
 ```
 
-ออกจาก shell:
+Exit shell:
 
 ```bash
 exit
@@ -193,28 +193,28 @@ exit
 
 ```bash
 ./docker-build.sh
-# เลือก 5
+# Select 5
 
-# หรือ
+# or
 npm run docker:clean
 ```
 
-## โครงสร้าง Docker
+## Docker Structure
 
-### Services ที่มี
+### Services Available
 
-1. **build** - Build โปรแกรม
-2. **test** - รัน tests
+1. **build** - Build program
+2. **test** - Run tests
 3. **shell** - Interactive shell
-4. **deploy-devnet** - Deploy ไป devnet
+4. **deploy-devnet** - Deploy to devnet
 
 ### Volumes (Persistent Data)
 
-- **cargo-cache** - Cargo registry cache (ไม่ต้องโหลดใหม่ทุกครั้ง)
+- **cargo-cache** - Cargo registry cache (no reload each time)
 - **solana-cache** - Solana CLI cache
 - **target-cache** - Build artifacts
 
-## แก้ไขปัญหา (Troubleshooting)
+## Troubleshooting
 
 ### 1. Docker daemon not running
 
@@ -222,7 +222,7 @@ npm run docker:clean
 ❌ Docker daemon is not running
 ```
 
-**แก้ไข:**
+**Fix:**
 
 ```bash
 # macOS
@@ -232,7 +232,7 @@ open -a Docker
 sudo systemctl start docker
 
 # Windows
-# เปิด Docker Desktop
+# Open Docker Desktop
 ```
 
 ### 2. Permission denied
@@ -241,40 +241,40 @@ sudo systemctl start docker
 permission denied while trying to connect to Docker daemon
 ```
 
-**แก้ไข (Linux):**
+**Fix (Linux):**
 
 ```bash
-# เพิ่ม user ไปยัง docker group
+# Add user to docker group
 sudo usermod -aG docker $USER
 
-# Logout และ login ใหม่
-# หรือ
+# Logout and login again
+# or
 newgrp docker
 ```
 
-### 3. Build ช้า / ค้าง
+### 3. Build Slow / Stuck
 
-**สาเหตุ:** ครั้งแรกต้องดาวน์โหลด Docker image และ dependencies
+**Cause:** First time must download Docker image and dependencies
 
-**แก้ไข:**
+**Fix:**
 
-```bash
-# รอให้เสร็จ (อาจใช้เวลา 10-30 นาทีในครั้งแรก)
-# ครั้งต่อไปจะเร็วขึ้นมากเนื่องจากมี cache
+```
+# Wait (may take 10-30 minutes on first run)
+# Next time will be much faster due to cache
 
-# ดู progress
+# View progress
 ./docker-build.sh
-# เลือก 6 (ดู logs)
+# Select 6 (View logs)
 ```
 
 ### 4. Out of memory
 
-**แก้ไข:**
+**Fix:**
 
 ```bash
-# เพิ่ม memory limit ให้ Docker
+# Increase memory limit for Docker
 # Docker Desktop > Settings > Resources > Memory
-# แนะนำ: 4GB ขึ้นไป
+# Recommended: 4GB or higher
 ```
 
 ### 5. Network issues
@@ -283,73 +283,73 @@ newgrp docker
 error: failed to download crate
 ```
 
-**แก้ไข:**
+**Fix:**
 
 ```bash
-# ตรวจสอบ internet connection
+# Check internet connection
 ping google.com
 
-# รันใหม่
+# Run again
 ./docker-build.sh
 ```
 
-### 6. อยาก rebuild จากศูนย์
+### 6. Want to rebuild from scratch
 
 ```bash
 # Clean everything
 ./docker-build.sh
-# เลือก 5
+# Select 5
 
-# หรือ manual
+# or manually
 docker-compose down -v
 docker system prune -a
 ```
 
-## เปรียบเทียบ: Docker vs Native Build
+## Comparison: Docker vs Native Build
 
 | Feature         | Docker                   | Native                                |
 | --------------- | ------------------------ | ------------------------------------- |
-| Setup           | ง่าย (แค่ติดตั้ง Docker) | ยาก (ต้องจัดการ Rust, Solana, Anchor) |
-| Build Time      | ช้ากว่าเล็กน้อย          | เร็วกว่า                              |
-| Consistency     | ✅ 100% consistent       | อาจมีปัญหา version ต่างกัน            |
-| Cross-platform  | ✅ ใช้ได้ทุก OS          | ยากกว่า                               |
-| Toolchain Issue | ✅ แก้ได้                | ❌ มีปัญหา edition2024                |
+| Setup           | Easy (just install Docker) | Hard (must manage Rust, Solana, Anchor) |
+| Build Time      | Slightly slower          | Faster                                |
+| Consistency     | ✅ 100% consistent       | May have version issues               |
+| Cross-platform  | ✅ Works on all OS       | More difficult                        |
+| Toolchain Issue | ✅ Solved                | ❌ Has edition2024 issues             |
 
 ## Tips & Tricks
 
-### 1. ใช้ VS Code Dev Containers
+### 1. Use VS Code Dev Containers
 
-ถ้าใช้ VS Code สามารถพัฒนาใน Docker container ได้เลย:
+If using VS Code, can develop in Docker container directly:
 
 ```bash
-# ติดตั้ง extension: Remote - Containers
-# กด F1 > "Remote-Containers: Reopen in Container"
+# Install extension: Remote - Containers
+# Press F1 > "Remote-Containers: Reopen in Container"
 ```
 
 ### 2. Parallel Development
 
 ```bash
-# Terminal 1: รัน build
+# Terminal 1: Run build
 npm run build:docker
 
-# Terminal 2: เข้า shell ทำอย่างอื่น
+# Terminal 2: Enter shell for other tasks
 npm run docker:shell
 ```
 
 ### 3. Save Build Time
 
 ```bash
-# Build ครั้งแรก (ช้า)
-./docker-build.sh  # เลือก 1
+# First build (slow)
+./docker-build.sh  # Select 1
 
-# ครั้งต่อไป (เร็ว - ใช้ cache)
-./docker-build.sh  # เลือก 1
+# Next time (fast - uses cache)
+./docker-build.sh  # Select 1
 ```
 
 ### 4. Custom Commands
 
 ```bash
-# รัน command ใดก็ได้ใน Docker
+# Run any command in Docker
 docker-compose run --rm shell anchor keys list
 
 docker-compose run --rm shell solana balance
@@ -357,29 +357,29 @@ docker-compose run --rm shell solana balance
 docker-compose run --rm shell cargo --version
 ```
 
-## สรุปคำสั่งที่สำคัญ
+## Important Commands Summary
 
 ```bash
-# เริ่มต้น - Build โปรแกรม
-./docker-build.sh  # เลือก 1
+# Start - Build program
+./docker-build.sh  # Select 1
 
-# รันเทส
-./docker-build.sh  # เลือก 2
+# Run tests
+./docker-build.sh  # Select 2
 
 # Deploy
-./docker-build.sh  # เลือก 4
+./docker-build.sh  # Select 4
 
-# เข้า shell
-./docker-build.sh  # เลือก 3
+# Enter shell
+./docker-build.sh  # Select 3
 
-# ล้าง cache
-./docker-build.sh  # เลือก 5
+# Clean cache
+./docker-build.sh  # Select 5
 
-# ดู logs
-./docker-build.sh  # เลือก 6
+# View logs
+./docker-build.sh  # Select 6
 ```
 
-หรือใช้ npm scripts:
+Or use npm scripts:
 
 ```bash
 npm run build:docker   # Build
@@ -388,11 +388,11 @@ npm run docker:shell   # Shell
 npm run docker:clean   # Clean
 ```
 
-## ติดต่อ & ช่วยเหลือ
+## Contact & Support
 
-- **GitHub Issues**: สำหรับรายงานปัญหา
-- **Discord**: สำหรับถามคำถามทั่วไป
+- **GitHub Issues**: For bug reports
+- **Discord**: For general questions
 
 ---
 
-**หมายเหตุ:** ถ้าไม่อยากใช้ Docker ให้ downgrade เป็น Anchor 0.29.0 แทน (ติดต่อทีมงานสำหรับ branch นั้น)
+**Note:** If you don't want to use Docker, downgrade to Anchor 0.29.0 instead (contact team for that branch)

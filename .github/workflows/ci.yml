@@ -53,7 +53,7 @@ jobs:
           rustc --version
           cargo --version
 
-      - name: Setup Wallet (เฉพาะ develop)
+      - name: Setup Wallet (develop only)
         if: github.ref == 'refs/heads/develop'
         env:
           SOLANA_PRIVATE_KEY: ${{ secrets.SOLANA_PRIVATE_KEY }}
@@ -73,7 +73,7 @@ jobs:
           cd programs/ginva-pinocchio
           cargo test --release
 
-      - name: Build Frontend (ถ้ามี)
+      - name: Build Frontend (if present)
         run: |
           npm ci --legacy-peer-deps || echo "No package.json or skipped"
           npm run build --if-present || echo "No build script"
@@ -85,7 +85,7 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          echo "✅ Build & Test สำเร็จ"
+          echo "Build & Test passed"
           if [ -n "$DISCORD_WEBHOOK_URL" ]; then
             curl -X POST "$DISCORD_WEBHOOK_URL" \
               -H "Content-Type: application/json" \
@@ -146,7 +146,7 @@ jobs:
             programs/ginva-pinocchio/target/sbf-solana-solana/release/libginva_pinocchio.so
           retention-days: 7
 
-  # Security Audit - จาก github-actions-templates + cicd-automation-workflow-automate
+  # Security Audit - from github-actions-templates + cicd-automation-workflow-automate
   security-audit:
     runs-on: ubuntu-latest
     needs: [build-and-test, build-bpf]
@@ -176,7 +176,7 @@ jobs:
         run: |
           npm audit --production || echo "⚠️ NPM vulnerabilities found"
 
-  # Notification on Failure - จาก cicd-automation-workflow-automate
+  # Notification on Failure - from cicd-automation-workflow-automate
   notify-on-failure:
     runs-on: ubuntu-latest
     needs: [build-and-test, security-audit]

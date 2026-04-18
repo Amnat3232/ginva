@@ -1,8 +1,8 @@
 /**
  * GINVA Terminology Mapping
  *
- * แปลงคำศัพท์จาก DeFi Generic → User-Friendly Language
- * เน้นความเป็นมิตรและการปกป้องผู้ใช้
+ * Convert DeFi terms to User-Friendly Language
+ * Focus on friendliness and user protection
  */
 
 // ═══════════════════════════════════════════════════════════
@@ -10,55 +10,55 @@
 // ═══════════════════════════════════════════════════════════
 
 export const USER_FRIENDLY_TERMS = {
-  // หน้าที่/บทบาท
-  BORROWER: "User", // ผู้ใช้ (แทน Borrower)
-  SUPPORTER: "Supporter", // ผู้สนับสนุน (แทน Lender/Staker)
-  HELPER: "Helper", // ผู้ช่วยเหลือ (แทน Keeper)
+  // Roles
+  BORROWER: "User", // User (instead of Borrower)
+  SUPPORTER: "Supporter", // Supporter (instead of Lender/Staker)
+  HELPER: "Helper", // Helper (instead of Keeper)
 
-  // ระบบปกป้อง
-  PROTECTION_SYSTEM: "Protection System", // ระบบปกป้อง (แทน Liquidation)
-  PROTECTION_PERIOD: "Protection Period", // ช่วงเวลาปกป้อง (แทน Liquidation Period)
-  ASSET_MANAGEMENT: "Asset Management", // การจัดการสินทรัพย์ (แทน Seizure)
+  // Protection system
+  PROTECTION_SYSTEM: "Protection System", // Protection System (instead of Liquidation)
+  PROTECTION_PERIOD: "Protection Period", // Protection Period (instead of Liquidation Period)
+  ASSET_MANAGEMENT: "Asset Management", // Asset Management (instead of Seizure)
 
-  // เอกสาร/สัญญา
-  LOAN_ACCOUNT: "Loan", // เงินกู้ (แทน Loan Account)
-  LOAN_TICKET: "Loan Ticket", // ตั๋วเงินกู้
-  COLLATERAL_TICKET: "Collateral Ticket", // ตั๋วค้ำประกัน
+  // Documents/Contracts
+  LOAN_ACCOUNT: "Loan", // Loan (instead of Loan Account)
+  LOAN_TICKET: "Loan Ticket", // Loan Ticket
+  COLLATERAL_TICKET: "Collateral Ticket", // Collateral Ticket
 
-  // การดำเนินการ
-  BORROW: "Borrow", // กู้เงิน
-  DEPOSIT_COLLATERAL: "Deposit", // ฝากหลักประกัน
-  REPAY: "Repay", // คืนเงิน
-  EXTEND_LOAN: "Extend", // ต่ออายุ
-  PROTECT_ASSET: "Protect Asset", // ปกป้องสินทรัพย์ (แทน Liquidation prevention)
+  // Operations
+  BORROW: "Borrow", // Borrow money
+  DEPOSIT_COLLATERAL: "Deposit", // Deposit collateral
+  REPAY: "Repay", // Repay
+  EXTEND_LOAN: "Extend", // Extend
+  PROTECT_ASSET: "Protect Asset", // Protect Asset (instead of Liquidation prevention)
 
-  // การช่วยเหลือ
-  ASSIST: "Assist", // ช่วยเหลือ (แทน Liquidate)
-  SUPPORT: "Support", // สนับสนุน
-  COMPLETE: "Complete", // จัดการให้เสร็จสิ้น
+  // Assistance
+  ASSIST: "Assist", // Assist (instead of Liquidate)
+  SUPPORT: "Support", // Support
+  COMPLETE: "Complete", // Complete
 
-  // ทรัพย์สิน
-  COLLATERAL: "Collateral", // หลักประกัน
-  PROTECTED_ASSET: "Protected Asset", // สินทรัพย์ที่ได้รับการปกป้อง
-  SUPPORTED_ASSET: "Asset Under Support", // สินทรัพย์ที่กำลังได้รับการช่วยเหลือ
+  // Assets
+  COLLATERAL: "Collateral", // Collateral
+  PROTECTED_ASSET: "Protected Asset", // Protected Asset
+  SUPPORTED_ASSET: "Asset Under Support", // Asset Under Support
 
-  // การเงิน
-  PRINCIPAL: "Principal", // เงินต้น
-  INTEREST: "Interest", // ดอกเบี้ย
-  AMOUNT_DUE: "Amount Due", // จำนวนเงินที่ต้องจ่าย
-  BORROW_AMOUNT: "Borrow Amount", // จำนวนเงินที่กู้
+  // Finance
+  PRINCIPAL: "Principal", // Principal
+  INTEREST: "Interest", // Interest
+  AMOUNT_DUE: "Amount Due", // Amount Due
+  BORROW_AMOUNT: "Borrow Amount", // Borrow Amount
 
-  // สถานะ
-  ACTIVE: "Active", // ใช้งานอยู่
-  REPAID: "Repaid", // คืนเงินแล้ว
-  HEALTHY: "Healthy", // สถานะดี
-  PROTECTED: "Protected", // ได้รับการปกป้อง
-  COMPLETED: "Completed", // จัดการเสร็จสิ้น
+  // Status
+  ACTIVE: "Active", // Active
+  REPAID: "Repaid", // Repaid
+  HEALTHY: "Healthy", // Healthy
+  PROTECTED: "Protected", // Protected
+  COMPLETED: "Completed", // Completed
 
-  // สถานที่
-  DASHBOARD: "Dashboard", // แดชบอร์ด
-  SUPPORT_CENTER: "Support Center", // ศูนย์ช่วยเหลือ (แทน Pawn Shop/Storefront)
-  MARKET: "Market", // ตลาด
+  // Locations
+  DASHBOARD: "Dashboard", // Dashboard
+  SUPPORT_CENTER: "Support Center", // Support Center (instead of Pawn Shop/Storefront)
+  MARKET: "Market", // Market
 } as const;
 
 // ═══════════════════════════════════════════════════════════
@@ -243,9 +243,9 @@ export const SCARY_TO_FRIENDLY_MAPPING: Record<string, string> = {
 // ═══════════════════════════════════════════════════════════
 
 export const FRIENDLY_STATUS_LABELS: Record<number, string> = {
-  0: "Active", // เงินกู้ใช้งานอยู่
-  1: "Repaid", // คืนเงินแล้ว
-  2: "Assisted", // ได้รับการช่วยเหลือ
+  0: "Active", // Active loan
+  1: "Repaid", // Repaid
+  2: "Assisted", // Assisted
 };
 
 // ═══════════════════════════════════════════════════════════

@@ -1,141 +1,141 @@
 # GINVA Protocol - QA/QE Report
 
-## รายงานการตรวจสอบคุณภาพและความปลอดภัย
+## Quality and Security Audit Report
 
-**วันที่ตรวจสอบ:** 2026-02-12  
-**ผู้ตรวจสอบ:** AI QA Engineer  
-**เวอร์ชั่นโค้ด:** 2.0.0  
-**สถานะโดยรวม:** ⚠️ **NEEDS CRITICAL FIXES BEFORE MAINNET**
+**Audit Date:** 2026-02-12  
+**Auditor:** AI QA Engineer  
+**Code Version:** 2.0.0  
+**Overall Status:** ⚠️ **NEEDS CRITICAL FIXES BEFORE MAINNET**
 
 ---
 
-## 📊 สรุปผลการตรวจสอบ
+## Audit Summary
 
-| หมวดหมู่                    | สถานะ | คะแนน  | บันทึก                                    |
+| Category                    | Status | Score | Notes                                    |
 | --------------------------- | ----- | ------ | ----------------------------------------- |
-| **Smart Contract Security** | ⚠️    | 75/100 | พบปัญหาสำคัญ 3 รายการ                     |
-| **Financial Logic**         | ✅    | 90/100 | Logic ถูกต้อง แต่มีจุดที่ต้องตรวจสอบเพิ่ม |
-| **Test Coverage**           | ⚠️    | 60/100 | ขาด Integration Tests ที่สมบูรณ์          |
-| **Frontend Quality**        | ⚠️    | 70/100 | พบปัญหา UX/UI และ Error Handling          |
-| **Documentation**           | ✅    | 85/100 | มีเอกสารครบถ้วนแต่บางส่วนล้าสมัย          |
-| **Bot/Automation**          | ⚠️    | 65/100 | ยังไม่พร้อมใช้งานบน Mainnet               |
+| **Smart Contract Security** | ⚠️    | 75/100 | Found 3 critical issues                  |
+| **Financial Logic**         | ✅    | 90/100 | Logic is correct, but needs some verification |
+| **Test Coverage**           | ⚠️    | 60/100 | Missing comprehensive integration tests   |
+| **Frontend Quality**        | ⚠️    | 70/100 | Found UX/UI issues and error handling   |
+| **Documentation**           | ✅    | 85/100 | Complete but some parts are outdated     |
+| **Bot/Automation**          | ⚠️    | 65/100 | Not ready for mainnet use                |
 
-**คะแนนรวม: 74/100** - ⚠️ **ต้องแก้ไขก่อนขึ้น Mainnet**
+**Overall Score: 74/100** - ⚠️ **Must fix before mainnet deployment**
 
 ---
 
-## 🚨 CRITICAL ISSUES (ต้องแก้ไขก่อน Mainnet)
+## 🚨 CRITICAL ISSUES (Must fix before mainnet)
 
-### 1. **Hardcoded Program ID ใน Bot** 🔴 SEVERITY: CRITICAL
+### 1. **Hardcoded Program ID in Bot** 🔴 SEVERITY: CRITICAL
 
-**ไฟล์:** `auto-swap-bot.ts:25`  
-**ปัญหา:** Program ID ใน Bot ไม่ตรงกับที่ Deploy บน Devnet
+**File:** `auto-swap-bot.ts:25`  
+**Issue:** Program ID in Bot does not match the one deployed on Devnet
 
 ```typescript
-// ❌ ใน Bot (ไฟล์เก่า)
+// ❌ In Bot (old file)
 const PROGRAM_ID = new PublicKey(
   "DyeFMCFmvtkmPtDE4rFryvSDFWwuDCdDhFqPCPdCvujv"
 );
 
-// ✅ ที่ถูกต้อง (จาก Anchor.toml)
+// ✅ Correct (from Anchor.toml)
 ("2SiGJi9VkD96oWLNizmMkGFwFpHq1tEETVqrLCezWKou");
 ```
 
-**ผลกระทบ:** Bot จะทำงานผิดพลาดหรือไม่ทำงานเลย  
-**การแก้ไข:** อัปเดต Program ID ให้ตรงกัน
+**Impact:** Bot will work incorrectly or not work at all  
+**Fix:** Update Program ID to match
 
 ---
 
-### 2. **IDL File Missing สำหรับ Bot** 🔴 SEVERITY: CRITICAL
+### 2. **IDL File Missing for Bot** 🔴 SEVERITY: CRITICAL
 
-**ไฟล์:** `auto-swap-bot.ts:39`
+**File:** `auto-swap-bot.ts:39`
 
 ```typescript
 const idl = JSON.parse(fs.readFileSync("./ginva.json", "utf8"));
 ```
 
-**ปัญหา:** Bot ต้องการไฟล์ `ginva.json` (IDL) แต่ไม่มีใน repository  
-**ผลกระทบ:** Bot ไม่สามารถรันได้  
-**การแก้ไข:** เพิ่ม IDL file หรือสร้าง script สำหรับ export IDL
+**Issue:** Bot requires `ginvajson` (IDL) file but it's not in the repository  
+**Impact:** Bot cannot run  
+**Fix:** Add IDL file or create script to export IDL
 
 ---
 
-### 3. **Environment Variable ไม่ครบ** 🟡 SEVERITY: HIGH
+### 3. **Incomplete Environment Variables** 🟡 SEVERITY: HIGH
 
-**ไฟล์:** `.env.example`
+**File:** `.env.example`
 
-ขาดตัวแปรสำคัญ:
+Missing critical variables:
 
-- `RPC_URL` (มี default แต่ไม่มีใน .env.example)
-- `PROGRAM_ID` (มี default แต่ไม่มีใน .env.example)
-- `KEYPAIR_PATH` (มี default)
-- `OPS_WALLET_PRIVATE_KEY` (สำหรับทีมงานถอนเงิน)
+- `RPC_URL` (has default but not in .env.example)
+- `PROGRAM_ID` (has default but not in .env.example)
+- `KEYPAIR_PATH` (has default)
+- `OPS_WALLET_PRIVATE_KEY` (for team to withdraw funds)
 - `RESERVE_WALLET_ADDRESS`
 
 ---
 
 ## 🛡️ SECURITY AUDIT RESULTS
 
-### ✅ Strengths (จุดแข็ง)
+### ✅ Strengths
 
 1. **Reentrancy Protection**
 
-   - มี `reentrancy_guard` field ใน `SystemConfig`
-   - มีการตรวจสอบ `check_reentrancy_guard()` ในฟังก์ชันสำคัญ
-   - ใช้ pattern: ตรวจสอบ → ตั้งค่า ACTIVE → ทำงาน → ตั้งค่า INACTIVE
+   - Has `reentrancy_guard` field in `SystemConfig`
+   - Has `check_reentrancy_guard()` check in critical functions
+   - Pattern: Check → Set ACTIVE → Execute → Set INACTIVE
 
 2. **Flash Loan Protection**
 
-   - `MIN_HOLD_BLOCKS = 100` (~40 วินาที)
-   - `MIN_HOLD_TIME_SECONDS = 300` (5 นาที)
-   - ตรวจสอบทั้ง block และ time
+   - `MIN_HOLD_BLOCKS = 100` (~40 seconds)
+   - `MIN_HOLD_TIME_SECONDS = 300` (5 minutes)
+   - Checks both block and time
 
 3. **Oracle Price Validation**
 
-   - ใช้ Pyth Network สำหรับราคา
-   - ตรวจสอบ `MAX_PRICE_AGE_SECONDS = 15`
-   - ตรวจสอบ `MAX_CONFIDENCE_RATIO = 100` (1%)
-   - มี `validate_price_deviation()`
+   - Uses Pyth Network for prices
+   - Checks `MAX_PRICE_AGE_SECONDS = 15`
+   - Checks `MAX_CONFIDENCE_RATIO = 100` (1%)
+   - Has `validate_price_deviation()`
 
 4. **Rate Limiting**
 
    - `MAX_OPERATIONS_PER_BLOCK = 5`
-   - `MIN_TIME_BETWEEN_OPERATIONS = 1` วินาที
-   - ใช้ `UserRateLimit` account
+   - `MIN_TIME_BETWEEN_OPERATIONS = 1` second
+   - Uses `UserRateLimit` account
 
 5. **Emergency Pause Mechanism**
 
-   - `emergency_pause()` - หยุดทุก operation
-   - `emergency_resume()` - คืนสภาพพร้อม timelock 48 ชั่วโมง
-   - `is_paused` และ `ops_resume_at` checks
+   - `emergency_pause()` - Stops all operations
+   - `emergency_resume()` - Restores state with 48-hour timelock
+   - `is_paused` and `ops_resume_at` checks
 
 6. **Access Control**
-   - `AdminOnly` struct ใช้ `has_one = admin`
-   - Admin validation ในฟังก์ชันสำคัญทุกอัน
+   - `AdminOnly` struct uses `has_one = admin`
+   - Admin validation in all critical functions
 
-### ⚠️ Weaknesses (จุดอ่อน)
+### ⚠️ Weaknesses
 
 1. **Arithmetic Operations**
 
-   - มีการใช้ `.unwrap()` ในบางจุดแทนการจัดการ error อย่างเหมาะสม
-   - ตัวอย่าง: `lib.rs:669-675`
+   - Uses `.unwrap()` in some places instead of proper error handling
+   - Example: `lib.rs:669-675`
 
    ```rust
    let interest_amount = (loan_account.loan_amount as u128)
        .checked_mul(loan_account.interest_rate_bps as u128)
-       .unwrap()  // ❌ ควรใช้ ok_or
+       .unwrap()  // ❌ Should use ok_or
        .checked_mul(time_elapsed as u128)
        .unwrap()
    ```
 
 2. **Integer Overflow/Underflow**
 
-   - มีการใช้ `saturating_add` และ `saturating_sub` ที่ดี
-   - แต่บางจุดยังใช้ `checked_add` แล้ว `unwrap()` หรือ `expect()`
+   - Uses `saturating_add` and `saturating_sub` well
+   - But some places still use `checked_add` with `unwrap()` or `expect()`
 
 3. **Missing Zero Address Check**
-   - ไม่มีการตรวจสอบว่า `ops_wallet` ไม่ใช่ `Pubkey::default()`
-   - ไม่มีการตรวจสอบว่า `keeper_a` ไม่ใช่ `Pubkey::default()`
+   - No check that `ops_wallet` is not `Pubkey::default()`
+   - No check that `keeper_a` is not `Pubkey::default()`
 
 ---
 
@@ -145,34 +145,34 @@ const idl = JSON.parse(fs.readFileSync("./ginva.json", "utf8"));
 
 ```
 Borrower Repay/Extend/PayInterest
-    │
-    ├── 10% → Capital Wallet ✅
-    ├── 24.75% → Ops Wallet ✅ (แก้ไขแล้ว)
-    └── 65.25% → Revenue Wallet (Stakers) ✅
+     │
+     ├── 10% → Capital Wallet ✅
+     ├── 24.75% → Ops Wallet ✅ (fixed)
+     └── 65.25% → Revenue Wallet (Stakers) ✅
 ```
 
-**สถานะ:** แก้ไขปัญหา Fund Trap เรียบร้อยแล้ว  
-**ตรวจสอบแล้วที่:** `lib.rs:3359` และ `lib.rs:3408`
+**Status:** Fixed Fund Trap issue  
+**Verified at:** `lib.rs:3359` and `lib.rs:3408`
 
 ### ✅ Interest Calculation
 
-**สูตร:**
+**Formula:**
 
 ```rust
 interest = (loan_amount * interest_rate_bps * time_elapsed) / (31_536_000 * 10_000)
 ```
 
-**Precision:** ใช้ `u128` สำหรับการคำนวณก่อน convert เป็น `u64`
+**Precision:** Uses `u128` for calculation before converting to `u64`
 
 ### ✅ Reward Distribution
 
-**Precision:** ใช้ `REWARD_PRECISION = 1_000_000_000_000` (1e12)
-**Pattern:** `acc_reward_per_share` - มาตรฐานของ yield farming
+**Precision:** Uses `REWARD_PRECISION = 1_000_000_000_000` (1e12)
+**Pattern:** `acc_reward_per_share` - Standard yield farming
 
 ### ⚠️ Points to Monitor
 
-1. **Minimum Interest:** มี enforcement แต่ต้องตรวจสอบว่า `MIN_INTEREST_AMOUNT = 1000` (0.001 USDC) เหมาะสม
-2. **Dust Handling:** มี `reward_dust` accumulation แต่ไม่มีกลไมาสำหรับ distribute dust ที่สะสม
+1. **Minimum Interest:** Has enforcement but need to verify `MIN_INTEREST_AMOUNT = 1000` (0.001 USDC) is appropriate
+2. **Dust Handling:** Has `reward_dust` accumulation but no mechanism to distribute accumulated dust
 
 ---
 
@@ -180,15 +180,15 @@ interest = (loan_amount * interest_rate_bps * time_elapsed) / (31_536_000 * 10_0
 
 ### Current Tests
 
-| ไฟล์                         | สถานะ | ความครอบคลุม                        |
+| File                         | Status | Coverage                          |
 | ---------------------------- | ----- | ----------------------------------- |
-| `ginva.ts`                   | ✅    | Full integration test               |
-| `ginva-liquidation-test.ts`  | ✅    | Liquidation flow                    |
-| `extend_loan_simple.test.ts` | ⚠️    | Unit tests only (ไม่มี integration) |
-| `extend_loan.ts`             | ❓    | ไม่ได้อ่าน                          |
-| `quick-test.ts`              | ❓    | ไม่ได้อ่าน                          |
-| `integration-devnet.test.ts` | ❓    | ไม่ได้อ่าน                          |
-| `repay_loan_test.ts`         | ❓    | ไม่ได้อ่าน                          |
+| `ginva.ts`                   | ✅    | Full integration test              |
+| `ginva-liquidation-test.ts`  | ✅    | Liquidation flow                   |
+| `extend_loan_simple.test.ts` | ⚠️    | Unit tests only (no integration)   |
+| `extend_loan.ts`             | ❓    | Not read                          |
+| `quick-test.ts`              | ❓    | Not read                          |
+| `integration-devnet.test.ts` | ❓    | Not read                          |
+| `repay_loan_test.ts`         | ❓    | Not read                          |
 
 ### Missing Test Scenarios
 
@@ -209,38 +209,38 @@ interest = (loan_amount * interest_rate_bps * time_elapsed) / (31_536_000 * 10_0
 
 ### ✅ Strengths
 
-1. **React + TypeScript + Vite** - Stack ที่เหมาะสม
-2. **React Router** - Navigation ถูกต้อง
-3. **Component Structure** - แบ่งหน้าชัดเจน:
+1. **React + TypeScript + Vite** - Appropriate stack
+2. **React Router** - Navigation is correct
+3. **Component Structure** - Clear separation:
    - Dashboard, Earn, Pawn, Redeem, MyTickets, Storefront
 
 ### ⚠️ Issues Found
 
 1. **Missing Error Boundaries**
 
-   - ไม่มี Error Boundary component
-   - ถ้า Smart Contract revert อาจทำให้แอพ crash
+   - No Error Boundary component
+   - If Smart Contract reverts, it may crash the app
 
 2. **No Loading States**
 
-   - ต้องเพิ่ม loading indicator สำหรับ transaction
+   - Need to add loading indicator for transactions
 
 3. **No Transaction Confirmation Modal**
 
-   - ควรมี modal แสดงสถานะ transaction (pending → confirmed)
+   - Should have modal showing transaction status (pending → confirmed)
 
 4. **Wallet Connection**
 
-   - ต้องตรวจสอบว่ามีการ handle wallet disconnect ด้วย
+   - Need to handle wallet disconnect as well
 
 5. **Missing Input Validation**
-   - ต้อง validate ค่าที่ user input ก่อนเรียก smart contract
-   - เช่น: LTV percentage, loan amount
+   - Need to validate user input before calling smart contract
+   - Example: LTV percentage, loan amount
 
 ### 🔧 Recommendations
 
 ```typescript
-// ตัวอย่าง Error Boundary ที่ควรเพิ่ม
+// Example Error Boundary to add
 class ErrorBoundary extends React.Component {
   state = { hasError: false };
 
@@ -264,10 +264,10 @@ class ErrorBoundary extends React.Component {
 ### Current Bots
 
 1. **auto-swap-bot.ts** - Pawn Shop Hunter
-   - ✅ ตรวจสอบ opportunity ทุก 2 วินาที
-   - ⚠️ Hardcoded Program ID (ผิด!)
-   - ⚠️ ขาด IDL file
-   - ⚠️ ไม่มี error recovery mechanism
+   - ✅ Checks opportunity every 2 seconds
+   - ⚠️ Hardcoded Program ID (wrong!)
+   - ⚠️ Missing IDL file
+   - ⚠️ No error recovery mechanism
 
 ### Missing Bots
 
@@ -285,7 +285,7 @@ class ErrorBoundary extends React.Component {
 
 3. **Health Check Bot**
    - Monitor protocol health
-   - Alert ถ้า collateral ratio ต่ำ
+   - Alert if collateral ratio is low
 
 ---
 
@@ -293,18 +293,18 @@ class ErrorBoundary extends React.Component {
 
 ### ✅ Complete Documents
 
-- [x] `README.md` - ดีมาก มี diagram ครบ
-- [x] `ARCHITECTURE.md` - มีการระบุ issues และ solutions
+- [x] `README.md` - Very good, complete diagrams
+- [x] `ARCHITECTURE.md` - Has issues and solutions listed
 - [x] `DEVELOPMENT.md` - Setup instructions
 - [x] `DEPLOYMENT.md` - Deployment guide
 - [x] `SECURITY.md` - Security practices
 
 ### ⚠️ Outdated/Missing
 
-- [ ] **API Documentation** - ไม่มี docs สำหรับ public methods
-- [ ] **Frontend Documentation** - ไม่มี README ใน `app/`
-- [ ] **Bot Documentation** - ไม่มีคำแนะนำสำหรับการรัน bots
-- [ ] **Changelog** - ไม่มี VERSIONING.md หรือ CHANGELOG.md
+- [ ] **API Documentation** - No docs for public methods
+- [ ] **Frontend Documentation** - No README in `app/`
+- [ ] **Bot Documentation** - No instructions for running bots
+- [ ] **Changelog** - No VERSIONING.md or CHANGELOG.md
 
 ---
 
@@ -427,25 +427,25 @@ class ErrorBoundary extends React.Component {
 
 ## 🎯 CONCLUSION
 
-**สถานะปัจจุบัน:** ⚠️ **NOT READY FOR MAINNET**
+**Current Status:** ⚠️ **NOT READY FOR MAINNET**
 
-**ปัญหาสำคัญที่ต้องแก้:**
+**Critical issues to fix:**
 
-1. Bot ใช้ Program ID ผิด
-2. ขาด IDL file
-3. ขาด Environment variables
+1. Bot uses wrong Program ID
+2. Missing IDL file
+3. Missing environment variables
 
-**การแก้ไขที่แนะนำ:**
+**Recommended fixes:**
 
-- แก้ไข 3 ปัญหา CRITICAL ก่อน
-- เพิ่ม Integration tests
-- ปรับปรุง Frontend
-- สร้าง Keeper bots ให้ครบ
+- Fix 3 CRITICAL issues first
+- Add integration tests
+- Improve frontend
+- Complete all Keeper bots
 
-**ระยะเวลาโดยประมาณ:** 1-2 สัปดาห์สำหรับแก้ไขทั้งหมด
+**Estimated time:** 1-2 weeks for all fixes
 
 ---
 
-**รายงานโดย:** AI QA Engineer  
-**ตรวจสอบเมื่อ:** 2026-02-12  
-**เวอร์ชั่นโค้ด:** 2.0.0
+**Report by:** AI QA Engineer  
+**Audited on:** 2026-02-12  
+**Code version:** 2.0.0

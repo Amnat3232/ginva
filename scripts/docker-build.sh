@@ -5,7 +5,7 @@
 
 set -e
 
-echo "🐳 Ginva Protocol Docker Build"
+echo "Ginva Protocol Docker Build"
 echo "==============================="
 echo ""
 
@@ -15,55 +15,55 @@ if command -v docker-compose &> /dev/null; then
 elif docker compose version &> /dev/null 2>&1; then
     COMPOSE_CMD="docker compose"
 else
-    echo "❌ Docker Compose not found. Please install:"
+    echo "Docker Compose not found. Please install:"
     echo "   https://docs.docker.com/compose/install/"
     exit 1
 fi
 
-echo "✅ Using: $COMPOSE_CMD"
+echo "Using: $COMPOSE_CMD"
 
 # Check if Docker is running
 if ! docker info &> /dev/null; then
-    echo "❌ Docker daemon is not running"
+    echo "Docker daemon is not running"
     echo "   Please start Docker Desktop or docker service"
     exit 1
 fi
 
-echo "✅ Docker is running"
+echo "Docker is running"
 echo ""
 
 # Function to show menu
 show_menu() {
-    echo "เลือกการทำงาน (Select operation):"
+    echo "Select operation:"
     echo ""
-    echo "1) 🔨 Build โปรแกรม (Build program)"
-    echo "2) 🧪 รันเทส (Run tests)"  
-    echo "3) 🐚 เข้า shell (Enter shell for manual commands)"
-    echo "4) 🚀 Deploy ไป devnet (Deploy to devnet)"
-    echo "5) 🧹 Clean build cache"
-    echo "6) 📊 ดู logs (View logs)"
-    echo "7) ❌ ออก (Exit)"
+    echo "1) Build program"
+    echo "2) Run tests"  
+    echo "3) Enter shell for manual commands"
+    echo "4) Deploy to devnet"
+    echo "5) Clean build cache"
+    echo "6) View logs"
+    echo "7) Exit"
     echo ""
 }
 
 # Function to build
 build_project() {
     echo ""
-    echo "🔨 Building program..."
-    echo "   นี่อาจใช้เวลาหลายนาทีในครั้งแรก"
+    echo "Building program..."
+    echo "   This may take several minutes on first run"
     echo ""
     
     if $COMPOSE_CMD up --build build; then
         echo ""
-        echo "✅ Build complete!"
+        echo "Build complete!"
         echo ""
-        echo "📦 ไฟล์ที่สร้าง:"
-        ls -lh target/deploy/*.so 2>/dev/null || echo "   ไม่พบไฟล์ .so"
-        ls -lh target/idl/*.json 2>/dev/null || echo "   ไม่พบไฟล์ IDL"
+        echo "Built files:"
+        ls -lh target/deploy/*.so 2>/dev/null || echo "   No .so files found"
+        ls -lh target/idl/*.json 2>/dev/null || echo "   No IDL files found"
     else
         echo ""
-        echo "❌ Build failed!"
-        echo "   ตรวจสอบ logs ด้วย: $COMPOSE_CMD logs build"
+        echo "Build failed!"
+        echo "   Check logs with: $COMPOSE_CMD logs build"
         return 1
     fi
 }
@@ -71,15 +71,15 @@ build_project() {
 # Function to run tests
 run_tests() {
     echo ""
-    echo "🧪 Running tests..."
+    echo "Running tests..."
     echo ""
     
     if $COMPOSE_CMD up --build test; then
         echo ""
-        echo "✅ Tests passed!"
+        echo "Tests passed!"
     else
         echo ""
-        echo "❌ Tests failed!"
+        echo "Tests failed!"
         return 1
     fi
 }
@@ -87,16 +87,16 @@ run_tests() {
 # Function to enter shell
 enter_shell() {
     echo ""
-    echo "🐚 Entering shell..."
+    echo "Entering shell..."
     echo ""
-    echo "💡 คำสั่งที่ใช้บ่อย:"
-    echo "   anchor build          - Build โปรแกรม"
-    echo "   anchor test           - รันเทส"
+    echo "Common commands:"
+    echo "   anchor build          - Build program"
+    echo "   anchor test           - Run tests"
     echo "   anchor deploy         - Deploy"
     echo "   anchor keys sync      - Sync program IDs"
-    echo "   solana --version      - เช็ค Solana version"
-    echo "   anchor --version      - เช็ค Anchor version"
-    echo "   exit                  - ออกจาก shell"
+    echo "   solana --version      - Check Solana version"
+    echo "   anchor --version      - Check Anchor version"
+    echo "   exit                  - Exit shell"
     echo ""
     
     $COMPOSE_CMD run --rm shell
@@ -105,24 +105,24 @@ enter_shell() {
 # Function to deploy
 deploy_devnet() {
     echo ""
-    echo "🚀 Deploying to devnet..."
+    echo "Deploying to devnet..."
     echo ""
     
     # Check if wallet exists
     if [ ! -f "$HOME/.config/solana/id.json" ]; then
-        echo "❌ ไม่พบ wallet ที่ ~/.config/solana/id.json"
-        echo "   สร้าง wallet ก่อน: solana-keygen new"
+        echo "No wallet found at ~/.config/solana/id.json"
+        echo "   Create wallet first: solana-keygen new"
         return 1
     fi
     
-    echo "✅ พบ wallet"
+    echo "Wallet found"
     
     if $COMPOSE_CMD up --build deploy-devnet; then
         echo ""
-        echo "✅ Deploy complete!"
+        echo "Deploy complete!"
     else
         echo ""
-        echo "❌ Deploy failed!"
+        echo "Deploy failed!"
         return 1
     fi
 }
@@ -130,19 +130,19 @@ deploy_devnet() {
 # Function to clean
 clean_cache() {
     echo ""
-    echo "🧹 Cleaning build cache..."
+    echo "Cleaning build cache..."
     
     $COMPOSE_CMD down -v 2>/dev/null || true
     docker system prune -f
     
     echo ""
-    echo "✅ Cache cleaned!"
+    echo "Cache cleaned!"
 }
 
 # Function to view logs
 view_logs() {
     echo ""
-    echo "📊 ดู logs..."
+    echo "Viewing logs..."
     $COMPOSE_CMD logs -f
 }
 
@@ -172,16 +172,16 @@ while true; do
             ;;
         7)
             echo ""
-            echo "👋 Goodbye!"
+            echo "Goodbye!"
             exit 0
             ;;
         *)
             echo ""
-            echo "❌ ตัวเลือกไม่ถูกต้อง (Invalid choice)"
+            echo "Invalid choice"
             ;;
     esac
     
     echo ""
-    read -p "กด Enter เพื่อดำเนินการต่อ..."
+    read -p "Press Enter to continue..."
     clear
 done

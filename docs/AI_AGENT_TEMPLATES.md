@@ -1,6 +1,6 @@
 # GINVA AI Agent Templates for Developers
 
-**Templates และเครื่องมือสำหรับ AI Trainers เพื่อสร้างรายได้จาก GINVA Protocol**
+**Templates and tools for AI Trainers to earn income from GINVA Protocol**
 
 ---
 
@@ -18,7 +18,7 @@
 
 ### Template A: Basic Loan Monitor Agent
 
-**ใช้สำหรับ**: ติดตาม loans ที่ใกล้หมด grace period และแจ้งเตือน borrowers
+**Use for**: Tracking loans approaching grace period expiration and notifying borrowers
 
 ```typescript
 // ginva-agent-templates/monitor-agent.ts
@@ -119,7 +119,7 @@ setInterval(() => new GinvaMonitorAgent('https://api.devnet.solana.com').run(), 
 
 ### Template B: Helper Agent (Repayment Assistant)
 
-**ใช้สำหรับ**: ช่วย borrowers ตัดสินใจ repay และ offer refinancing options
+**Use for**: Helping borrowers make repayment decisions and offering refinancing options
 
 ```typescript
 // ginva-agent-templates/helper-agent.ts
@@ -199,7 +199,7 @@ class GinvaHelperAgent {
 
 ### Template C: Liquidator Agent
 
-**ใช้สำหรับ**: Execute liquidations หลังจาก grace period หมดแล้ว
+**Use for**: Executing liquidations after grace period has expired
 
 ```typescript
 // ginva-agent-templates/liquidator-agent.ts
@@ -357,7 +357,7 @@ Liquidator Agent:
 
 class GinvaIncomeCalculator:
     """
-    คำนวณรายได้ที่เป็นไปได้สำหรับ AI Agent
+    Calculate potential income for AI Agent
     """
     
     # Average values from GINVA protocol
@@ -477,7 +477,7 @@ if __name__ == "__main__":
 # ginva_agent.py
 """
 GINVA AI Agent - Python Implementation
-สำหรับ AI Trainers ที่ต้องการ deploy agent บน Solana
+For AI Trainers who want to deploy agents on Solana
 """
 
 import asyncio
