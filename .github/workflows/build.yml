@@ -69,13 +69,13 @@ jobs:
       - name: Configure Solana
         run: |
           solana config set --url devnet
-          solana config set --keypair /dev/stdin <<< "$SOLANA_KEYPAIR"
-
-      - name: Deploy to Devnet
-        run: |
-          solana program deploy program/ginva.so --max-sign-attempts 100
+          echo "$SOLANA_KEYPAIR" > keypair.json
+          solana config set --keypair keypair.json
         env:
           SOLANA_KEYPAIR: ${{ secrets.SOLANA_KEYPAIR }}
+
+      - name: Deploy to Devnet
+        run: solana program deploy program/ginva.so --max-sign-attempts 100
 
   deploy-mainnet:
     needs: build
