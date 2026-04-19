@@ -113,7 +113,7 @@ jobs:
 
       - name: Deploy to Devnet
         run: |
-          solana program deploy programs/ginva-pinocchio/target/release/ginva-pinocchio --url devnet
+          solana program deploy programs/ginva-pinocchio/target/release/libginva_pinocchio.so --url devnet
         env:
           SOLANA_CLUSTER: devnet
 
