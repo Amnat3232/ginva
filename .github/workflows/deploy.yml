@@ -52,14 +52,16 @@ jobs:
       - name: Install Solana CLI
         run: |
           curl -sSfL "https://release.anza.xyz/v1.18.26/install" | sh
-        shell: bash
 
       - name: Add Solana to PATH
         run: |
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+          export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
+          which solana-install
 
       - name: Install BPF Toolchain
         run: |
+          export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
           solana-install update bpf
 
       - name: Build Pinocchio Program
