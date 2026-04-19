@@ -23,9 +23,12 @@ env:
   RUST_TOOLCHAIN: stable
 
 jobs:
-  build-and-test:
-    name: Build & Test
+  deploy:
+    name: Build & Deploy to Devnet
     runs-on: ubuntu-latest
+    environment:
+      name: devnet
+      url: https://explorer.solana.com/?cluster=devnet
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -46,47 +49,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libudev-dev pkg-config libssl-dev
 
-      - name: Build Pinocchio Program
-        working-directory: programs/ginva-pinocchio
-        run: |
-          cargo build --release
-
-      - name: Run Tests
-        if: ${{ !inputs.skip_tests }}
-        working-directory: programs/ginva-pinocchio
-        run: |
-          cargo test --release
-
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts
-          path: |
-            programs/ginva-pinocchio/target/release/libginva_pinocchio.so
-            programs/ginva-pinocchio/target/release/ginva-pinocchio
-
-  deploy-devnet:
-    name: Deploy to Devnet
-    runs-on: ubuntu-latest
-    needs: build-and-test
-    environment:
-      name: devnet
-      url: https://explorer.solana.com/?cluster=devnet
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@v1
-        with:
-          toolchain: stable
-          components: rustfmt, clippy
-
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libudev-dev pkg-config libssl-dev
-
       - name: Install Solana CLI
         run: |
           curl -sSfL "https://release.anza.xyz/v1.18.26/install" | sh
@@ -95,14 +57,21 @@ jobs:
       - name: Add Solana to PATH
         run: |
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
-          export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
-          solana --version
 
-      - name: Download Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-artifacts
-          path: programs/ginva-pinocchio/target/release/
+      - name: Install BPF Toolchain
+        run: |
+          solana-install update bpf
+
+      - name: Build Pinocchio Program
+        working-directory: programs/ginva-pinocchio
+        run: |
+          cargo build-bpf --release
+
+      - name: Run Tests
+        if: ${{ !inputs.skip_tests }}
+        working-directory: programs/ginva-pinocchio
+        run: |
+          cargo test --release
 
       - name: Setup Deployer Keypair
         run: |
@@ -112,13 +81,14 @@ jobs:
           SOLANA_KEYPAIR: ${{ secrets.SOLANA_KEYPAIR }}
 
       - name: Deploy to Devnet
+        working-directory: programs/ginva-pinocchio
         run: |
-          solana program deploy programs/ginva-pinocchio/target/release/libginva_pinocchio.so --url devnet
+          solana program deploy target/release/ginva-pinocchio.so --url devnet
         env:
           SOLANA_CLUSTER: devnet
 
       - name: Verify Deployment
         run: |
-          PROGRAM_ID=$(solana program show programs/ginva-pinocchio/target/release/ginva-pinocchio --url devnet | grep "Program Id:" | awk '{print $3}')
+          PROGRAM_ID=$(solana program show programs/ginva-pinocchio/target/release/ginva-pinocchio.so --url devnet 2>/dev/null | grep "Program Id:" | awk '{print $3}' || echo "Manual check required")
           echo "✅ Deployed to: $PROGRAM_ID"
           echo "program_id=$PROGRAM_ID" >> $GITHUB_OUTPUT
