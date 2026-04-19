@@ -13,23 +13,28 @@ test-ledger
 .env.local
 .env.production.local
 secret*.json
+node_modules/
+node_modules
+dist/
+.DS_Store
+*.log
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+coverage/
+.env
+.env.local
+.env.*.local
 keypair*.json
-*.key
-bots/.env
 bots/keypair.json
-
-# Agent skills (personal configuration)
-.agents/skills/
-.vercel
-app/dist/
-
-# AI Agent tool skills (symlinks that cause issues)
-.claude/skills/
-.augment/skills/
-.codebuddy/skills/
-.continue/skills/
-.junie/skills/
-.kiro/skills/
-
-# Deploy keypairs
 program-deploy-keypair.json
+# Rust
+target/
+Cargo.lock
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
