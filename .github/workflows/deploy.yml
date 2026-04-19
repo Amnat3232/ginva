@@ -106,8 +106,10 @@ jobs:
 
       - name: Setup Deployer Keypair
         run: |
-          echo "${{ secrets.SOLANA_KEYPAIR }}" | base64 -d > deploy-keypair.json
+          echo "$SOLANA_KEYPAIR" > deploy-keypair.json
           solana config set --keypair deploy-keypair.json --url devnet
+        env:
+          SOLANA_KEYPAIR: ${{ secrets.SOLANA_KEYPAIR }}
 
       - name: Deploy to Devnet
         run: |
