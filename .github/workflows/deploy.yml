@@ -62,7 +62,7 @@ jobs:
         working-directory: programs/ginva-pinocchio
         run: |
           export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
-          cargo build-sbf --release || cargo build-bpf --release
+          cargo build-sbf
 
       - name: Build Pinocchio Program
         working-directory: programs/ginva-pinocchio
