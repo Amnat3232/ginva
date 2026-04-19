@@ -26,7 +26,7 @@ jobs:
         run: |
           rustup default stable
 
-- name: Install Solana CLI
+      - name: Install Solana CLI
         run: |
           sh -c "$(curl -sSfL https://release.anza.xyz/v1.18.26/install)"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
@@ -52,6 +52,8 @@ jobs:
     needs: build-sbf
     runs-on: ubuntu-latest
     if: github.event.inputs.deploy == 'true'
+    permissions:
+      contents: read
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v4
@@ -64,14 +66,13 @@ jobs:
           sh -c "$(curl -sSfL https://release.anza.xyz/v1.18.26/install)"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
 
-      - name: Configure Solana
+      - name: Configure Wallet
         run: |
-          solana config set --url devnet
           echo "${{ secrets.SOLANA_KEYPAIR }}" > keypair.json
+          solana config set --url devnet
           solana config set --keypair keypair.json
+          solana address -k keypair.json
 
       - name: Deploy to Devnet
         run: |
-          solana program deploy ginva_pinocchio.so --url devnet --max-sign-attempts 100
-        env:
-          SOLANA_KEYPAIR: ${{ secrets.SOLANA_KEYPAIR }}
+          solana program deploy ginva_pinocchio.so --url devnet --max-sign-attempts 100 --skip-upgradeable-check
