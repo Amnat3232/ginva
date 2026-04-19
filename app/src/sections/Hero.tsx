@@ -1,7 +1,7 @@
+import { Link } from "react-router-dom";
 import ParticleBackground from "../components/ParticleBackground";
 import Button from "../components/Button";
-import GlassCard from "../components/GlassCard";
-import AnimatedCounter from "../components/AnimatedCounter";
+import GlassCard from "../components/ui/GlassCard";
 
 const Hero = () => {
   return (
@@ -14,21 +14,32 @@ const Hero = () => {
         alignItems: "center",
         justifyContent: "center",
         overflow: "hidden",
-        background: "linear-gradient(180deg, #0a0a0f 0%, #0f172a 100%)",
+        background: "linear-gradient(180deg, #0F172A 0%, #1E293B 100%)",
       }}
     >
       <ParticleBackground />
 
+      {/* Ambient glow - gold accent */}
       <div
         style={{
           position: "absolute",
-          top: "20%",
-          right: "10%",
-          width: "400px",
-          height: "400px",
-          background:
-            "radial-gradient(circle, rgba(245, 158, 11, 0.3) 0%, transparent 70%)",
-          filter: "blur(60px)",
+          top: "10%",
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: "800px",
+          height: "500px",
+          background: "radial-gradient(ellipse, rgba(245, 158, 11, 0.12) 0%, transparent 70%)",
+          filter: "blur(100px)",
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* Glassmorphism overlay effect */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "linear-gradient(180deg, transparent 0%, rgba(15, 23, 42, 0.3) 100%)",
           pointerEvents: "none",
         }}
       />
@@ -42,69 +53,115 @@ const Hero = () => {
           padding: "0 20px",
         }}
       >
+        {/* USP Badge - Glassmorphism style */}
         <div
           style={{
-            fontFamily: "'Orbitron', sans-serif",
-            fontSize: "clamp(14px, 2vw, 18px)",
-            color: "#00e676",
-            textTransform: "uppercase",
-            letterSpacing: "4px",
-            marginBottom: "20px",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "8px",
+            padding: "10px 20px",
+            marginBottom: "32px",
+            background: "rgba(245, 158, 11, 0.1)",
+            backdropFilter: "blur(10px)",
+            WebkitBackdropFilter: "blur(10px)",
+            border: "1px solid rgba(245, 158, 11, 0.3)",
+            borderRadius: "9999px",
+            fontFamily: "'IBM Plex Sans', sans-serif",
+            fontSize: "13px",
+            fontWeight: 500,
+            color: "#F59E0B",
+            letterSpacing: "0.5px",
           }}
         >
-          Decentralized Support Protocol
+          <span
+            style={{
+              width: "8px",
+              height: "8px",
+              borderRadius: "50%",
+              background: "#F59E0B",
+              animation: "pulse 2s infinite",
+            }}
+          />
+          Hardcoded & Immutable
         </div>
 
+        {/* Headline - USP */}
         <h1
-          className="hero-title"
           style={{
-            fontFamily: "'Orbitron', sans-serif",
-            fontSize: "clamp(40px, 8vw, 80px)",
+            fontFamily: "'IBM Plex Sans', sans-serif",
+            fontSize: "clamp(40px, 7vw, 72px)",
             fontWeight: 700,
             lineHeight: 1.1,
-            marginBottom: "30px",
-            background:
-              "linear-gradient(135deg, #ffffff 0%, #00e676 50%, #00b359 100%)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            textShadow: "0 0 60px rgba(245, 158, 11, 0.5)",
+            marginBottom: "24px",
+            color: "#F8FAFC",
+            letterSpacing: "-0.02em",
           }}
         >
-          Get Instant Cash.
+          <span style={{ color: "#F59E0B" }}>72-Hour Grace Period</span>
           <br />
-          Keep Your Crypto.
+          <span
+            style={{
+              fontWeight: 400,
+              color: "rgba(248, 250, 252, 0.7)",
+            }}
+          >
+            & 8% Fixed APR
+          </span>
         </h1>
 
+        {/* Sub-headline - AI Agents */}
         <p
-          className="hero-subtitle"
           style={{
-            fontFamily: "'Inter', sans-serif",
-            fontSize: "clamp(16px, 2vw, 20px)",
-            color: "rgba(255, 255, 255, 0.7)",
-            marginBottom: "40px",
-            maxWidth: "600px",
-            margin: "0 auto 40px",
+            fontFamily: "'IBM Plex Sans', sans-serif",
+            fontSize: "clamp(16px, 1.5vw, 20px)",
+            color: "rgba(248, 250, 252, 0.7)",
+            marginBottom: "48px",
+            maxWidth: "640px",
+            margin: "0 auto 48px",
+            lineHeight: 1.7,
           }}
         >
-          Borrow USDC using your crypto as collateral. Our Dual Protection System gives you both time-based and price-based protection. 8% Fixed. No Surprises.
+          Borrow with peace of mind, or deploy your{" "}
+          <span style={{ color: "#F59E0B", fontWeight: 600 }}>
+            Human-controlled AI Agents
+          </span>
+          {" "}to earn income 24/7. The fairest pawn shop on Solana.
         </p>
 
+        {/* CTAs - User Roles with Glassmorphism */}
         <div
-          className="hero-buttons"
           style={{
             display: "flex",
             gap: "20px",
             justifyContent: "center",
             flexWrap: "wrap",
-            marginBottom: "60px",
+            marginBottom: "64px",
           }}
         >
-          <Button magnetic>Get Started</Button>
-          <Button variant="outline">Documentation</Button>
+          <Link to="/borrow">
+            <Button variant="primary">Start Borrowing</Button>
+          </Link>
+          <Link to="/keeper">
+            <Button variant="secondary">Deploy AI Keeper</Button>
+          </Link>
         </div>
 
+        {/* Trust Signals */}
         <div
-          className="hero-stats"
+          style={{
+            fontFamily: "'IBM Plex Sans', sans-serif",
+            fontSize: "12px",
+            color: "rgba(248, 250, 252, 0.5)",
+            letterSpacing: "3px",
+            textTransform: "uppercase",
+            marginBottom: "48px",
+          }}
+        >
+          Code is Law. Soul is Proof.
+        </div>
+
+        {/* Stats - Glassmorphism cards */}
+        <div
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
@@ -112,56 +169,124 @@ const Hero = () => {
             marginTop: "40px",
           }}
         >
-          <GlassCard hoverEffect={false}>
+          <GlassCard
+            style={{
+              padding: "24px",
+              background: "rgba(255, 255, 255, 0.03)",
+              backdropFilter: "blur(16px)",
+              WebkitBackdropFilter: "blur(16px)",
+              border: "1px solid rgba(255, 255, 255, 0.08)",
+              borderRadius: "16px",
+            }}
+          >
             <div
               style={{
-                fontFamily: "'Orbitron', sans-serif",
-                fontSize: "14px",
-                color: "rgba(255,255,255,0.5)",
+                fontSize: "12px",
+                color: "rgba(248, 250, 252, 0.5)",
                 marginBottom: "8px",
+                textTransform: "uppercase",
+                letterSpacing: "1px",
+                fontFamily: "'IBM Plex Sans', sans-serif",
               }}
             >
               Total Value Locked
             </div>
-            <AnimatedCounter end={50} prefix="$" suffix="M+" />
-          </GlassCard>
-          <GlassCard hoverEffect={false}>
             <div
               style={{
-                fontFamily: "'Orbitron', sans-serif",
-                fontSize: "14px",
-                color: "rgba(255,255,255,0.5)",
-                marginBottom: "8px",
+                fontFamily: "'IBM Plex Sans', sans-serif",
+                fontSize: "28px",
+                fontWeight: 600,
+                color: "#F59E0B",
               }}
             >
-              Active Loans
+              $50M+
             </div>
-            <AnimatedCounter end={10000} suffix="+" />
           </GlassCard>
-          <GlassCard hoverEffect={false}>
+
+          <GlassCard
+            style={{
+              padding: "24px",
+              background: "rgba(255, 255, 255, 0.03)",
+              backdropFilter: "blur(16px)",
+              WebkitBackdropFilter: "blur(16px)",
+              border: "1px solid rgba(255, 255, 255, 0.08)",
+              borderRadius: "16px",
+            }}
+          >
             <div
               style={{
-                fontFamily: "'Orbitron', sans-serif",
-                fontSize: "14px",
-                color: "rgba(255,255,255,0.5)",
+                fontSize: "12px",
+                color: "rgba(248, 250, 252, 0.5)",
                 marginBottom: "8px",
+                textTransform: "uppercase",
+                letterSpacing: "1px",
+                fontFamily: "'IBM Plex Sans', sans-serif",
               }}
             >
-              Uptime
+              Grace Periods Used
             </div>
-            <AnimatedCounter end={99.9} prefix="" suffix="%" decimals={1} />
+            <div
+              style={{
+                fontFamily: "'IBM Plex Sans', sans-serif",
+                fontSize: "28px",
+                fontWeight: 600,
+                color: "#F59E0B",
+              }}
+            >
+              12,400+
+            </div>
+          </GlassCard>
+
+          <GlassCard
+            style={{
+              padding: "24px",
+              background: "rgba(255, 255, 255, 0.03)",
+              backdropFilter: "blur(16px)",
+              WebkitBackdropFilter: "blur(16px)",
+              border: "1px solid rgba(255, 255, 255, 0.08)",
+              borderRadius: "16px",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "12px",
+                color: "rgba(248, 250, 252, 0.5)",
+                marginBottom: "8px",
+                textTransform: "uppercase",
+                letterSpacing: "1px",
+                fontFamily: "'IBM Plex Sans', sans-serif",
+              }}
+            >
+              Network Uptime
+            </div>
+            <div
+              style={{
+                fontFamily: "'IBM Plex Sans', sans-serif",
+                fontSize: "28px",
+                fontWeight: 600,
+                color: "#F59E0B",
+              }}
+            >
+              99.9%
+            </div>
           </GlassCard>
         </div>
       </div>
 
       <style>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-10px); }
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap');
+
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
         }
-        @keyframes pulse-glow {
-          0%, 100% { opacity: 0.5; transform: scale(1); }
-          50% { opacity: 0.8; transform: scale(1.1); }
+
+        @media (prefers-reduced-motion: reduce) {
+          * {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+          }
         }
       `}</style>
     </section>

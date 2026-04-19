@@ -1,6 +1,5 @@
-import { useEffect } from "react";
-import GlassCard from "../components/GlassCard";
-import gsap from "gsap";
+import GlassCard from "../components/ui/GlassCard";
+import React from "react";
 
 const LightningIcon = () => (
   <svg
@@ -9,7 +8,7 @@ const LightningIcon = () => (
     viewBox="0 0 24 24"
     strokeWidth={1.5}
     stroke="currentColor"
-    style={{ width: "40px", height: "40px" }}
+    style={{ width: "28px", height: "28px" }}
   >
     <path
       strokeLinecap="round"
@@ -26,7 +25,7 @@ const ShieldIcon = () => (
     viewBox="0 0 24 24"
     strokeWidth={1.5}
     stroke="currentColor"
-    style={{ width: "40px", height: "40px" }}
+    style={{ width: "28px", height: "28px" }}
   >
     <path
       strokeLinecap="round"
@@ -43,12 +42,29 @@ const BanknotesIcon = () => (
     viewBox="0 0 24 24"
     strokeWidth={1.5}
     stroke="currentColor"
-    style={{ width: "40px", height: "40px" }}
+    style={{ width: "28px", height: "28px" }}
   >
     <path
       strokeLinecap="round"
       strokeLinejoin="round"
       d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"
+    />
+  </svg>
+);
+
+const ClockIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={1.5}
+    stroke="currentColor"
+    style={{ width: "28px", height: "28px" }}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
     />
   </svg>
 );
@@ -60,7 +76,7 @@ const ChartIcon = () => (
     viewBox="0 0 24 24"
     strokeWidth={1.5}
     stroke="currentColor"
-    style={{ width: "40px", height: "40px" }}
+    style={{ width: "28px", height: "28px" }}
   >
     <path
       strokeLinecap="round"
@@ -77,7 +93,7 @@ const LockIcon = () => (
     viewBox="0 0 24 24"
     strokeWidth={1.5}
     stroke="currentColor"
-    style={{ width: "40px", height: "40px" }}
+    style={{ width: "28px", height: "28px" }}
   >
     <path
       strokeLinecap="round"
@@ -87,102 +103,63 @@ const LockIcon = () => (
   </svg>
 );
 
-const TrendingUpIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={1.5}
-    stroke="currentColor"
-    style={{ width: "40px", height: "40px" }}
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941"
-    />
-  </svg>
-);
-
 const features = [
+  {
+    icon: <ClockIcon />,
+    title: "72-Hour Grace Period",
+    description:
+      "When collateral drops below threshold, you get 72 hours to add more collateral or repay. No instant liquidation.",
+  },
+  {
+    icon: <ShieldIcon />,
+    title: "No-Liquidation Guarantee",
+    description:
+      "As long as you respond within the grace period, your collateral is safe. Human-controlled AI Agents can help.",
+  },
+  {
+    icon: <BanknotesIcon />,
+    title: "8% Fixed APR",
+    description:
+      "Predictable, transparent interest rates. No variable rates, no surprises. Plan your finances with confidence.",
+  },
   {
     icon: <LightningIcon />,
     title: "Instant Liquidity",
     description:
-      "Get immediate access to liquidity against your crypto collateral with minimal delays.",
+      "Get immediate access to liquidity against your crypto collateral in minutes, not days.",
   },
   {
-    icon: <ShieldIcon />,
-    title: "Security First",
+    icon: <LockIcon />,
+    title: "Non-Custodial",
     description:
-      "Audited smart contracts with multi-sig protection and insurance coverage.",
-  },
-  {
-    icon: <BanknotesIcon />,
-    title: "Zero Fees",
-    description:
-      "No hidden fees, no origination costs. Keep more of what you earn.",
+      "Your keys, your crypto. We never take custody of your assets. True decentralization.",
   },
   {
     icon: <ChartIcon />,
     title: "Flexible Terms",
     description: "Choose your loan duration and LTV that fits your strategy.",
   },
-  {
-    icon: <LockIcon />,
-    title: "Non-Custodial",
-    description:
-      "Your keys, your crypto. We never take custody of your assets.",
-  },
-  {
-    icon: <TrendingUpIcon />,
-    title: "Earn Yield",
-    description:
-      "Supply assets to our pools and earn competitive APY on your holdings.",
-  },
 ];
 
 const Features = () => {
-  useEffect(() => {
-    gsap.utils.toArray<HTMLElement>(".feature-card").forEach((card, i) => {
-      gsap.fromTo(
-        card,
-        { opacity: 0, y: 40 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.6,
-          delay: i * 0.1,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: card,
-            start: "top 85%",
-            toggleActions: "play none none reverse",
-          },
-        }
-      );
-    });
-  }, []);
-
   return (
     <section
       id="features"
       style={{
-        padding: "100px 20px",
-        background: "linear-gradient(180deg, #0f172a 0%, #0a0a0f 100%)",
+        padding: "120px 20px",
+        background: "linear-gradient(180deg, #0F172A 0%, #0A0E17 100%)",
         position: "relative",
       }}
     >
       <div
         style={{
           position: "absolute",
-          top: "50%",
+          top: "30%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          width: "800px",
-          height: "800px",
-          background:
-            "radial-gradient(circle, rgba(245, 158, 11, 0.1) 0%, transparent 50%)",
+          width: "900px",
+          height: "900px",
+          background: "radial-gradient(circle, rgba(245, 158, 11, 0.08) 0%, transparent 50%)",
           pointerEvents: "none",
         }}
       />
@@ -198,81 +175,104 @@ const Features = () => {
         <div
           style={{
             height: "1px",
-            background:
-              "linear-gradient(90deg, transparent, rgba(245, 158, 11, 0.3), transparent)",
-            marginBottom: "60px",
+            background: "linear-gradient(90deg, transparent, rgba(245, 158, 11, 0.3), transparent)",
+            marginBottom: "64px",
           }}
         />
-        <div style={{ textAlign: "center", marginBottom: "60px" }}>
+
+        <div style={{ textAlign: "center", marginBottom: "80px" }}>
           <h2
             style={{
-              fontFamily: "'Orbitron', sans-serif",
+              fontFamily: "'IBM Plex Sans', sans-serif",
               fontSize: "clamp(32px, 5vw, 48px)",
               fontWeight: 700,
-              color: "white",
-              marginBottom: "20px",
+              color: "#F8FAFC",
+              marginBottom: "24px",
+              letterSpacing: "-0.02em",
             }}
           >
-            Why Choose <span style={{ color: "#00e676" }}>GINVA</span>
+            Why Choose <span style={{ color: "#F59E0B" }}>GINVA</span>
           </h2>
           <p
             style={{
-              fontFamily: "'Inter', sans-serif",
+              fontFamily: "'IBM Plex Sans', sans-serif",
               fontSize: "18px",
-              color: "rgba(255, 255, 255, 0.6)",
+              color: "rgba(248, 250, 252, 0.6)",
               maxWidth: "600px",
               margin: "0 auto",
+              lineHeight: 1.7,
             }}
           >
-            Experience the future of decentralized lending with
-            institutional-grade security
+            The fairest pawn shop on Solana. Borrow with peace of mind, not fear.
           </p>
         </div>
 
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-            gap: "30px",
+            gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+            gap: "24px",
           }}
         >
           {features.map((feature, index) => (
-            <GlassCard key={index} className="feature-card feature-card-hover">
+            <GlassCard
+              key={index}
+              style={{
+                padding: "32px",
+                background: "rgba(255, 255, 255, 0.02)",
+                backdropFilter: "blur(16px)",
+                WebkitBackdropFilter: "blur(16px)",
+                border: "1px solid rgba(255, 255, 255, 0.06)",
+                borderRadius: "20px",
+                transition: "all 0.3s ease",
+              }}
+              onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => {
+                const target = e.currentTarget;
+                target.style.borderColor = "rgba(245, 158, 11, 0.3)";
+                target.style.transform = "translateY(-4px)";
+                target.style.background = "rgba(245, 158, 11, 0.05)";
+              }}
+              onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => {
+                const target = e.currentTarget;
+                target.style.borderColor = "rgba(255, 255, 255, 0.06)";
+                target.style.transform = "translateY(0)";
+                target.style.background = "rgba(255, 255, 255, 0.02)";
+              }}
+            >
               <div
-                className="feature-icon"
                 style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  width: "70px",
-                  height: "70px",
-                  borderRadius: "16px",
-                  background:
-                    "linear-gradient(135deg, rgba(0, 230, 118, 0.15) 0%, rgba(0, 230, 118, 0.05) 100%)",
-                  border: "1px solid rgba(0, 230, 118, 0.2)",
-                  marginBottom: "20px",
-                  color: "#00e676",
+                  width: "56px",
+                  height: "56px",
+                  borderRadius: "14px",
+                  background: "linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(245, 158, 11, 0.05) 100%)",
+                  border: "1px solid rgba(245, 158, 11, 0.2)",
+                  marginBottom: "24px",
+                  color: "#F59E0B",
                 }}
               >
                 {feature.icon}
               </div>
               <h3
                 style={{
-                  fontFamily: "'Rajdhani', sans-serif",
-                  fontSize: "24px",
+                  fontFamily: "'IBM Plex Sans', sans-serif",
+                  fontSize: "22px",
                   fontWeight: 600,
-                  color: "white",
+                  color: "#F8FAFC",
                   marginBottom: "12px",
+                  letterSpacing: "-0.01em",
                 }}
               >
                 {feature.title}
               </h3>
               <p
                 style={{
-                  fontFamily: "'Inter', sans-serif",
+                  fontFamily: "'IBM Plex Sans', sans-serif",
                   fontSize: "15px",
-                  color: "rgba(255, 255, 255, 0.6)",
-                  lineHeight: 1.6,
+                  color: "rgba(248, 250, 252, 0.6)",
+                  lineHeight: 1.7,
                 }}
               >
                 {feature.description}
@@ -280,15 +280,26 @@ const Features = () => {
             </GlassCard>
           ))}
         </div>
+
         <div
           style={{
             height: "1px",
-            background:
-              "linear-gradient(90deg, transparent, rgba(245, 158, 11, 0.2), transparent)",
-            marginTop: "60px",
+            background: "linear-gradient(90deg, transparent, rgba(245, 158, 11, 0.2), transparent)",
+            marginTop: "80px",
           }}
         />
       </div>
+
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap');
+
+        @media (prefers-reduced-motion: reduce) {
+          * {
+            animation-duration: 0.01ms !important;
+            transition-duration: 0.01ms !important;
+          }
+        }
+      `}</style>
     </section>
   );
 };

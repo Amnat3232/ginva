@@ -219,7 +219,7 @@ const LiquidationDeals = () => {
               </div>
 
               <Button
-                variant="outline"
+                variant="secondary"
                 className="w-100"
                 style={{ borderColor: "#ef4444", color: "#ef4444" }}
               >
@@ -230,7 +230,7 @@ const LiquidationDeals = () => {
         </div>
 
         <div style={{ textAlign: "center", marginTop: "40px" }}>
-          <Button variant="outline">View All Deals</Button>
+          <Button variant="secondary">View All Deals</Button>
         </div>
       </div>
     </section>

@@ -256,7 +256,7 @@ const LendingPools = () => {
               </div>
 
               <Button
-                variant="outline"
+                variant="secondary"
                 className="w-100"
                 style={{ borderColor: pool.color, color: pool.color }}
               >

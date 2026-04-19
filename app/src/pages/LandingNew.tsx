@@ -70,12 +70,21 @@ const UI_ICONS: Record<string, React.ReactNode> = {
 
 interface LandingProps {
   onNavigate: (page: Page) => void;
+  connected?: boolean;
+  walletAddress?: string;
 }
 
-export function Landing({ onNavigate }: LandingProps) {
+export function Landing({ onNavigate, connected, walletAddress }: LandingProps) {
   const navigate = useNavigate();
   const [liveTvl, setLiveTvl] = useState(12845620);
   const [liveUsers, setLiveUsers] = useState(1847);
+
+  // Redirect connected users to dashboard
+  useEffect(() => {
+    if (connected) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [connected, navigate]);
 
   // Live data updates every 15 seconds
   useEffect(() => {
