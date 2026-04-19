@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { FiSend, FiCheck, FiX, FiBell } from "react-icons/fi";
+import { FiSend, FiCheck, FiX, FiBell, FiHome, FiDollarSign, FiCpu, FiFileText, FiSettings, FiInfo } from "react-icons/fi";
 
 const Settings = () => {
   const { publicKey, connected } = useWallet();
@@ -31,14 +31,14 @@ const Settings = () => {
         </div>
         <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: "8px" }}>
           {[
-            { icon: "🏠", name: "Home" },
-            { icon: "💰", name: "Assets" },
-            { icon: "🤖", name: "AI Intent" },
-            { icon: "📜", name: "History" },
-            { icon: "⚙️", name: "Settings", active: true },
+            { icon: <FiHome size={20} />, name: "Home" },
+            { icon: <FiDollarSign size={20} />, name: "Assets" },
+            { icon: <FiCpu size={20} />, name: "AI Intent" },
+            { icon: <FiFileText size={20} />, name: "History" },
+            { icon: <FiSettings size={20} />, name: "Settings", active: true },
           ].map((item) => (
             <a key={item.name} href="#" style={{ display: "flex", alignItems: "center", gap: "16px", padding: "12px 32px", color: item.active ? "#00f0ff" : "#94a3b8", borderLeft: item.active ? "2px solid #00f0ff" : "2px solid transparent", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.05em", fontFamily: "'Space Grotesk', sans-serif", textDecoration: "none" }}>
-              <span style={{ fontSize: "20px" }}>{item.icon}</span>
+              {item.icon}
               {item.name}
             </a>
           ))}
@@ -161,7 +161,7 @@ const Settings = () => {
               )}
               
               <p style={{ fontSize: "11px", color: "#64748b", fontStyle: "italic" }}>
-                💡 To get your Chat ID: Start a conversation with @GinvaBot on Telegram
+                <FiInfo style={{ marginRight: "4px" }} /> To get your Chat ID: Start a conversation with @GinvaBot on Telegram
               </p>
             </div>
           </div>

@@ -182,9 +182,9 @@ const PawnDemo = () => {
             <Button variant="outline-warning" size="sm" onClick={() => skipDays(15)}>
               +15 Days
             </Button>
-            <Button variant="outline-secondary" size="sm" onClick={() => { skipDays(30); }}>
-              +30 Days ⚠️
-            </Button>
+<Button variant="outline-secondary" size="sm" onClick={() => { skipDays(30); }}>
+                +30 Days <FiAlertTriangle />
+              </Button>
             {simulatedDays > 0 && (
               <Button variant="outline-danger" size="sm" onClick={resetSimulation}>
                 Reset Time

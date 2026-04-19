@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useLoanAccount, useCryptoPrices } from "../services/queries";
+import { FiGrid, FiBriefcase, FiLayers, FiTrendingUp } from "react-icons/fi";
 
 const BorrowVault = () => {
   const { publicKey, connected } = useWallet();
@@ -47,6 +48,13 @@ const BorrowVault = () => {
   const getHealthColor = (h: number) => h < 1.2 ? "#ef4444" : h < 1.5 ? "#eac324" : "#00f0ff";
   const getLtvColor = (l: number) => l > 60 ? "#ef4444" : l > 50 ? "#eac324" : "#00f0ff";
 
+  const navItems = [
+    { icon: FiGrid, name: "Dashboard" },
+    { icon: FiBriefcase, name: "Lending", active: true },
+    { icon: FiLayers, name: "Liquidity" },
+    { icon: FiTrendingUp, name: "Portfolio" },
+  ];
+
   return (
     <div style={{ minHeight: "100vh", background: "#0f131c", fontFamily: "'Manrope', sans-serif" }}>
       <header style={{ position: "fixed", top: 0, left: 0, right: 0, height: "64px", background: "#0f131c", borderBottom: "1px solid rgba(59,73,75,0.15)", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 32px", zIndex: 50 }}>
@@ -70,14 +78,9 @@ const BorrowVault = () => {
           </div>
         </div>
         <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: "8px" }}>
-          {[
-            { icon: "📊", name: "Dashboard" },
-            { icon: "🏦", name: "Lending", active: true },
-            { icon: "💧", name: "Liquidity" },
-            { icon: "📈", name: "Portfolio" },
-          ].map((item) => (
+          {navItems.map((item) => (
             <a key={item.name} href="#" style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 16px", color: item.active ? "#00f0ff" : "#94a3b8", borderLeft: item.active ? "2px solid #00f0ff" : "2px solid transparent", fontSize: "12px", textTransform: "uppercase", letterSpacing: "widest", textDecoration: "none" }}>
-              <span>{item.icon}</span>
+              <item.icon size={20} />
               {item.name}
             </a>
           ))}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+import { FiZap, FiShoppingBag, FiCheck, FiDollarSign, FiPercent } from "react-icons/fi";
 
 const QuantumKeeper = () => {
   const { publicKey, connected } = useWallet();
@@ -21,9 +22,9 @@ const QuantumKeeper = () => {
   }, [connected, publicKey]);
 
   const roles = [
-    { id: "trigger", name: "Trigger (Keeper A)", icon: "⚡", desc: "Monitoring network events", active: true },
-    { id: "storefront", name: "Storefront (Keeper B)", icon: "🏪", desc: "Optimizing market execution", active: false },
-    { id: "finalize", name: "Finalize (Keeper C)", icon: "✓", desc: "Securing block settlement", active: false },
+    { id: "trigger", name: "Trigger (Keeper A)", icon: FiZap, desc: "Monitoring network events", active: true },
+    { id: "storefront", name: "Storefront (Keeper B)", icon: FiShoppingBag, desc: "Optimizing market execution", active: false },
+    { id: "finalize", name: "Finalize (Keeper C)", icon: FiCheck, desc: "Securing block settlement", active: false },
   ];
 
   const terminalMessages = [
@@ -53,7 +54,7 @@ const QuantumKeeper = () => {
               {roles.map((role) => (
                 <button key={role.id} onClick={() => setActiveRole(role.id)} style={{ width: "100%", textAlign: "left", padding: "12px", borderRadius: "12px", background: activeRole === role.id ? "rgba(0,240,255,0.1)" : "transparent", border: activeRole === role.id ? "1px solid rgba(0,240,255,0.3)" : "1px solid rgba(59,73,75,0.2)", marginBottom: "8px", cursor: "pointer" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                    <span style={{ fontSize: "20px" }}>{role.icon}</span>
+                    <role.icon size={20} color={activeRole === role.id ? "#00f0ff" : "#94a3b8"} />
                     <div>
                       <p style={{ fontSize: "14px", fontWeight: 600, color: "#dfe2ef" }}>{role.name}</p>
                       <p style={{ fontSize: "10px", color: "#64748b" }}>{role.desc}</p>

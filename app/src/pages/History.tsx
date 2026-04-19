@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
+import { FiHome, FiDollarSign, FiCpu, FiFileText, FiSettings, FiSearch, FiBell, FiZap, FiRefreshCw, FiArrowUpRight, FiArrowDownLeft, FiLink, FiZap as FiLightning, FiFile, FiExternalLink, FiArrowRight } from "react-icons/fi";
 
 const HistoryPage = () => {
   const { publicKey, connected } = useWallet();
@@ -59,14 +60,23 @@ const HistoryPage = () => {
   };
 
   const getTypeIcon = (type: string) => {
-    if (type === "Swap") return "🔄";
-    if (type === "Borrow") return "💰";
-    if (type === "Supply") return "📥";
-    if (type === "Repay") return "📤";
-    if (type === "Bridge") return "🌉";
-    if (type === "Liquidate") return "⚡";
-    return "📋";
+    const iconStyle = { width: 24, height: 24, color: "#00f0ff" };
+    if (type === "Swap") return <FiRefreshCw style={iconStyle} />;
+    if (type === "Borrow") return <FiDollarSign style={iconStyle} />;
+    if (type === "Supply") return <FiArrowDownLeft style={iconStyle} />;
+    if (type === "Repay") return <FiArrowUpRight style={iconStyle} />;
+    if (type === "Bridge") return <FiLink style={iconStyle} />;
+    if (type === "Liquidate") return <FiLightning style={iconStyle} />;
+    return <FiFile style={iconStyle} />;
   };
+
+  const navItems = [
+    { icon: FiHome, name: "Home" },
+    { icon: FiDollarSign, name: "Assets" },
+    { icon: FiCpu, name: "AI Intent" },
+    { icon: FiFileText, name: "History", active: true },
+    { icon: FiSettings, name: "Settings" },
+  ];
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "#0a0e17", fontFamily: "'Manrope', sans-serif", color: "#dfe2ef" }}>
@@ -77,15 +87,9 @@ const HistoryPage = () => {
         </div>
 
         <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: "8px" }}>
-          {[
-            { icon: "🏠", name: "Home" },
-            { icon: "💰", name: "Assets" },
-            { icon: "🤖", name: "AI Intent" },
-            { icon: "📜", name: "History", active: true },
-            { icon: "⚙️", name: "Settings" },
-          ].map((item) => (
+          {navItems.map((item) => (
             <a key={item.name} href="#" style={{ display: "flex", alignItems: "center", gap: "16px", padding: "12px 32px", color: item.active ? "#00f0ff" : "#94a3b8", borderLeft: item.active ? "2px solid #00f0ff" : "2px solid transparent", background: item.active ? "rgba(24, 27, 37, 0.5)" : "transparent", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.05em", fontFamily: "'Space Grotesk', sans-serif", textDecoration: "none" }}>
-              <span style={{ fontSize: "20px" }}>{item.icon}</span>
+              <item.icon size={20} />
               {item.name}
             </a>
           ))}
@@ -104,12 +108,12 @@ const HistoryPage = () => {
 
       <header style={{ position: "fixed", top: 0, left: "240px", right: 0, height: "64px", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 32px", background: "rgba(15, 19, 28, 0.9)", backdropFilter: "blur(20px)", zIndex: 50, boxShadow: "0 20px 40px rgba(0, 240, 255, 0.06)" }}>
         <div style={{ flex: 1, maxWidth: "600px", position: "relative" }}>
-          <span style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "#64748b" }}>🔍</span>
+          <span style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "#64748b" }}><FiSearch size={18} /></span>
           <input type="text" placeholder="Search transactions..." style={{ width: "100%", background: "#181b25", border: "none", borderRadius: "8px", padding: "8px 16px 8px 40px", color: "#dfe2ef", fontSize: "14px" }} />
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
-          <span style={{ fontSize: "18px", cursor: "pointer" }}>🔔</span>
-          <span style={{ fontSize: "18px", cursor: "pointer" }}>✨</span>
+          <FiBell size={20} style={{ cursor: "pointer", color: "#94a3b8" }} />
+          <FiZap size={20} style={{ cursor: "pointer", color: "#94a3b8" }} />
         </div>
       </header>
 
@@ -194,7 +198,7 @@ const HistoryPage = () => {
                       >
                         {tx.status}
                       </span>
-                      <button style={{ background: "transparent", border: "none", color: "#00f0ff", cursor: "pointer", fontSize: "18px" }}>↗</button>
+                      <button style={{ background: "transparent", border: "none", color: "#00f0ff", cursor: "pointer" }}><FiArrowRight size={18} /></button>
                     </div>
                   </div>
                 );

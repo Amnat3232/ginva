@@ -321,7 +321,7 @@ export function Borrow({ showToast, connected }: BorrowProps) {
                             margin: 0,
                             fontSize: "0.8rem",
                           }}
-                          onClick={() => showToast(`✓ Repaid ${l.id}`)}
+                          onClick={() => showToast(<><FiCheck /> Repaid {l.id}</>)}
                         >
                           Repay
                         </button>
@@ -725,7 +725,7 @@ export function Borrow({ showToast, connected }: BorrowProps) {
                           fontSize: "0.78rem",
                           cursor: "pointer",
                         }}
-                        onClick={() => showToast("✓ Loan extended")}
+                        onClick={() => showToast(<><FiCheck /> Loan extended</>)}
                       >
                         Extend
                       </button>

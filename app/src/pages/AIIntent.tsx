@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import { useLoanAccount, useCryptoPrices } from "../services/queries";
+import { FiHome, FiDollarSign, FiCpu, FiFileText, FiSettings, FiMessageSquare, FiUser } from "react-icons/fi";
 
 const AIIntent = ({ connected, walletAddress }: { connected: boolean; walletAddress: string }) => {
   const { publicKey } = useWallet();
@@ -61,14 +62,14 @@ const AIIntent = ({ connected, walletAddress }: { connected: boolean; walletAddr
         </div>
         <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: "8px" }}>
           {[
-            { icon: "🏠", name: "Home" },
-            { icon: "💰", name: "Assets" },
-            { icon: "🤖", name: "AI Intent", active: true },
-            { icon: "📜", name: "History" },
-            { icon: "⚙️", name: "Settings" },
+            { icon: <FiHome size={20} />, name: "Home" },
+            { icon: <FiDollarSign size={20} />, name: "Assets" },
+            { icon: <FiCpu size={20} />, name: "AI Intent", active: true },
+            { icon: <FiFileText size={20} />, name: "History" },
+            { icon: <FiSettings size={20} />, name: "Settings" },
           ].map((item) => (
             <a key={item.name} href="#" style={{ display: "flex", alignItems: "center", gap: "16px", padding: "12px 32px", color: item.active ? "#00f0ff" : "#94a3b8", borderLeft: item.active ? "2px solid #00f0ff" : "2px solid transparent", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.05em", fontFamily: "'Space Grotesk', sans-serif", textDecoration: "none" }}>
-              <span style={{ fontSize: "20px" }}>{item.icon}</span>
+              {item.icon}
               {item.name}
             </a>
           ))}
@@ -82,8 +83,8 @@ const AIIntent = ({ connected, walletAddress }: { connected: boolean; walletAddr
           <div style={{ padding: "24px", borderBottom: "1px solid rgba(59,73,75,0.15)", flex: 1, overflowY: "auto" }}>
             {messages.map((msg, i) => (
               <div key={i} style={{ marginBottom: "16px", display: "flex", gap: "12px" }}>
-                <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: msg.type === "ai" ? "#00f0ff" : "#262a34", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }}>
-                  {msg.type === "ai" ? "✨" : "👤"}
+                <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: msg.type === "ai" ? "#00f0ff" : "#262a34", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  {msg.type === "ai" ? <FiMessageSquare size={16} color="#002022" /> : <FiUser size={16} color="#94a3b8" />}
                 </div>
                 <div style={{ flex: 1, padding: "12px 16px", background: msg.type === "ai" ? "rgba(0,240,255,0.1)" : "#0a0e17", borderRadius: "12px" }}>
                   <p style={{ color: msg.type === "ai" ? "#00f0ff" : "#dfe2ef" }}>{msg.text}</p>

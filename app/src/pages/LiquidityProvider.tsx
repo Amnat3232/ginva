@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import { useSystemConfig } from "../services/queries";
+import { FiGrid, FiBriefcase, FiLayers, FiTrendingUp } from "react-icons/fi";
 
 const LiquidityProvider = () => {
   const { publicKey, connected } = useWallet();
@@ -32,6 +33,13 @@ const LiquidityProvider = () => {
   ];
   const yieldProjection = { expectedInterest: 228.40, totalGain: 240.55 };
 
+  const navItems = [
+    { icon: FiGrid, name: "Dashboard" },
+    { icon: FiBriefcase, name: "Lending", active: true },
+    { icon: FiLayers, name: "Liquidity" },
+    { icon: FiTrendingUp, name: "Portfolio" },
+  ];
+
   return (
     <div style={{ minHeight: "100vh", background: "#0f131c", fontFamily: "'Manrope', sans-serif" }}>
       <aside style={{ width: "240px", height: "100vh", position: "fixed", left: 0, top: 0, background: "#0a0e17", padding: "24px 0", display: "flex", flexDirection: "column", zIndex: 60 }}>
@@ -40,14 +48,9 @@ const LiquidityProvider = () => {
           <p style={{ fontSize: "10px", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.2em" }}>40,000 Years of Instinct — Liquidity Infrastructure for AI Agents</p>
         </div>
         <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: "8px" }}>
-          {[
-            { icon: "📊", name: "Dashboard" },
-            { icon: "🏦", name: "Lending", active: true },
-            { icon: "💧", name: "Liquidity" },
-            { icon: "📈", name: "Portfolio" },
-          ].map((item) => (
+          {navItems.map((item) => (
             <a key={item.name} href="#" style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 16px", color: item.active ? "#00f0ff" : "#94a3b8", borderLeft: item.active ? "2px solid #00f0ff" : "2px solid transparent", fontSize: "12px", textTransform: "uppercase", letterSpacing: "widest", textDecoration: "none" }}>
-              <span>{item.icon}</span>
+              <item.icon size={20} />
               {item.name}
             </a>
           ))}

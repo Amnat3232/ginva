@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useLoanAccount, useCryptoPrices } from "../services/queries";
+import { FiHome, FiDollarSign, FiCpu, FiFileText, FiSettings, FiSearch, FiBell, FiZap, FiSend, FiFuel, FiGift, FiTerminal, FiArrowRight } from "react-icons/fi";
 
 interface HomeProps {
   connected: boolean;
@@ -60,11 +61,11 @@ const HomeDashboard = ({ connected, walletAddress }: HomeProps) => {
   ];
 
   const navItems = [
-    { icon: "🏠", name: "Home", active: true, path: "/" },
-    { icon: "💰", name: "Assets", path: "/assets" },
-    { icon: "🤖", name: "AI Intent", path: "/ai-intent" },
-    { icon: "📜", name: "History", path: "/history" },
-    { icon: "⚙️", name: "Settings", path: "/settings" },
+    { icon: <FiHome size={20} />, name: "Home", active: true, path: "/" },
+    { icon: <FiDollarSign size={20} />, name: "Assets", path: "/assets" },
+    { icon: <FiCpu size={20} />, name: "AI Intent", path: "/ai-intent" },
+    { icon: <FiFileText size={20} />, name: "History", path: "/history" },
+    { icon: <FiSettings size={20} />, name: "Settings", path: "/settings" },
   ];
 
   const chartBars = [40, 55, 45, 70, 85, 65, 95, 80, 100];
@@ -119,7 +120,7 @@ const HomeDashboard = ({ connected, walletAddress }: HomeProps) => {
                 textDecoration: "none",
               }}
             >
-              <span style={{ fontSize: "20px" }}>{item.icon}</span>
+              {item.icon}
               {item.name}
             </a>
           ))}
@@ -168,7 +169,7 @@ const HomeDashboard = ({ connected, walletAddress }: HomeProps) => {
         }}
       >
         <div style={{ flex: 1, maxWidth: "600px", position: "relative" }}>
-          <span style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "#64748b" }}>🔍</span>
+          <FiSearch size={16} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "#64748b" }} />
           <input
             type="text"
             placeholder="Search assets, intents or agents..."
@@ -186,8 +187,8 @@ const HomeDashboard = ({ connected, walletAddress }: HomeProps) => {
 
         <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
           <div style={{ display: "flex", gap: "16px", color: "#94a3b8" }}>
-            <button style={{ background: "transparent", border: "none", cursor: "pointer" }}>🔔</button>
-            <button style={{ background: "transparent", border: "none", cursor: "pointer" }}>✨</button>
+            <button style={{ background: "transparent", border: "none", cursor: "pointer" }}><FiBell size={18} /></button>
+            <button style={{ background: "transparent", border: "none", cursor: "pointer" }}><FiZap size={18} /></button>
           </div>
 <button
               onClick={() => setVisible(true)}
@@ -304,7 +305,7 @@ const HomeDashboard = ({ connected, walletAddress }: HomeProps) => {
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ fontSize: "18px" }}>⚡</span>
+                <FiZap size={18} style={{ color: "#eac324" }} />
                 <p style={{ fontSize: "10px", color: "#b9cacb", textTransform: "uppercase", letterSpacing: "0.15em" }}>Smart Insights</p>
               </div>
               <span
@@ -367,7 +368,7 @@ const HomeDashboard = ({ connected, walletAddress }: HomeProps) => {
                 fontFamily: "'Space Grotesk', sans-serif",
               }}
             >
-              Execute Rebalance 🚀
+              <FiSend size={14} /> Execute Rebalance
             </button>
           </section>
 
@@ -384,7 +385,7 @@ const HomeDashboard = ({ connected, walletAddress }: HomeProps) => {
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-              <span style={{ fontSize: "18px" }}>⛽</span>
+              <FiFuel size={18} style={{ color: "#00f0ff" }} />
               <span
                 style={{
                   padding: "4px 8px",
@@ -421,7 +422,7 @@ const HomeDashboard = ({ connected, walletAddress }: HomeProps) => {
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-              <span style={{ fontSize: "18px" }}>🎁</span>
+              <FiGift size={18} style={{ color: "#eac324" }} />
               <span
                 style={{
                   padding: "4px 8px",
@@ -528,7 +529,7 @@ const HomeDashboard = ({ connected, walletAddress }: HomeProps) => {
             }}
           >
             <div style={{ position: "absolute", top: "16px", right: "16px", opacity: 0.1 }}>
-              <span style={{ fontSize: "60px", color: "#00dbe9" }}>⌨️</span>
+              <FiTerminal size={60} style={{ color: "#00dbe9" }} />
             </div>
             <p style={{ fontSize: "10px", color: "#b9cacb", textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: "16px" }}>
               Command Center
@@ -590,7 +591,7 @@ const HomeDashboard = ({ connected, walletAddress }: HomeProps) => {
                   cursor: "pointer",
                 }}
               >
-                ➤
+                <FiArrowRight size={16} />
               </button>
             </div>
           </section>
