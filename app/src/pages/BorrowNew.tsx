@@ -1,5 +1,5 @@
 // Borrow Page Component
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   LOANS,
@@ -33,20 +33,16 @@ export function Borrow({ showToast, connected }: BorrowProps) {
 
   // Validate and calculate values with error handling
   const calculations = useMemo(() => {
-    setError(null);
-
     // Validate amount
     const amountNum = parseFloat(amount);
     if (isNaN(amountNum) || amountNum <= 0) {
-      setError("Invalid collateral amount");
-      return { colValue: 0, borrowAmt: 0, hf: 0 };
+      return { colValue: 0, borrowAmt: 0, hf: 0, error: "Invalid collateral amount" };
     }
 
     // Validate LTV
     const ltvNum = parseFloat(ltv);
     if (isNaN(ltvNum) || ltvNum < 20 || ltvNum > 60) {
-      setError("Invalid LTV percentage");
-      return { colValue: 0, borrowAmt: 0, hf: 0 };
+      return { colValue: 0, borrowAmt: 0, hf: 0, error: "Invalid LTV percentage" };
     }
 
     // Calculate collateral value
@@ -59,10 +55,15 @@ export function Borrow({ showToast, connected }: BorrowProps) {
     // Calculate health factor (simplified)
     const hf = ltvNum === 20 ? 250 : ltvNum === 40 ? 150 : 102;
 
-    return { colValue, borrowAmt, hf };
+    return { colValue, borrowAmt, hf, error: null };
   }, [amount, collateral, ltv, prices]);
 
-  const { colValue, borrowAmt, hf } = calculations;
+  const { colValue, borrowAmt, hf, error: calcError } = calculations;
+
+  // Update error state based on calculation
+  useEffect(() => {
+    setError(calcError);
+  }, [calcError]);
 
   return (
     <div className="page-content dashboard">

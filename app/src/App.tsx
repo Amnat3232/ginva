@@ -6,7 +6,7 @@ import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import Navbar from "./components/Navbar";
 import Loading from "./components/ui/Loading";
 import Ticker from "./components/Ticker";
-import { Toast, Page } from "./types";
+import { Toast } from "./types";
 
 // New pages from our redesign
 const LandingNew = lazy(() => import("./pages/LandingNew"));
@@ -36,7 +36,6 @@ const Agent = lazy(() => import("./pages/Agent"));
 const Admin = lazy(() => import("./pages/Admin"));
 
 function App() {
-  const [page, setPage] = useState<Page>("landing");
   const [toast, setToast] = useState<Toast>({ msg: "", show: false });
   const [balance, setBalance] = useState<{ sol: string; usd: string } | null>(null);
 
@@ -99,20 +98,19 @@ function App() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#0a0a0f" }}>
+    <div style={{ minHeight: "100vh", backgroundColor: "#0F172A" }}>
       <Navbar
-        page={page}
         connected={connected}
         walletAddress={walletAddress}
         balance={balance}
-        onNavigate={setPage}
         onConnect={connected ? handleDisconnect : handleConnect}
       />
       <Ticker />
       <Container fluid>
         <Suspense fallback={<Loading />}>
           <Routes>
-            <Route path="/" element={<Home connected={connected} walletAddress={walletAddress} />} />
+            <Route path="/" element={<LandingNew connected={connected} walletAddress={walletAddress} />} />
+            <Route path="/landing" element={<LandingNew connected={connected} walletAddress={walletAddress} />} />
             <Route
               path="/borrow"
               element={
@@ -152,16 +150,17 @@ function App() {
           bottom: 32,
           right: 32,
           zIndex: 999,
-          background: "var(--surface2, #09160a)",
-          border: "1px solid var(--green, #00e676)",
-          borderRadius: 10,
+          background: "rgba(15, 23, 42, 0.95)",
+          border: "1px solid #F59E0B",
+          borderRadius: "10px",
           padding: "14px 20px",
-          fontFamily: "var(--font-mono)",
-          fontSize: "0.8rem",
-          color: "var(--green, #00e676)",
+          fontFamily: "'IBM Plex Sans', sans-serif",
+          fontSize: "0.85rem",
+          color: "#F59E0B",
           transform: toast.show ? "translateY(0)" : "translateY(80px)",
           opacity: toast.show ? 1 : 0,
           transition: "all 0.3s",
+          backdropFilter: "blur(10px)",
         }}
       >
         {toast.msg}

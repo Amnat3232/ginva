@@ -1,3 +1,5 @@
+@import url("bootstrap/dist/css/bootstrap.min.css");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -23,9 +25,6 @@ body {
 #root {
   min-height: 100vh;
 }
-
-/* Import Bootstrap CSS */
-@import url("bootstrap/dist/css/bootstrap.min.css");
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
@@ -173,16 +172,6 @@ body {
   }
 }
 
-/* Touch-friendly improvements */
-@media (hover: none) and (pointer: coarse) {
-  .btn {
-    min-height: 44px;
-  }
-  input, select {
-    min-height: 44px;
-  }
-}
-
 /* Page balance improvements */
 .page-content {
   padding: 16px;
@@ -227,11 +216,6 @@ body {
   
   .stack, .stack-horizontal {
     gap: 8px !important;
-  }
-}
-  input,
-  select {
-    min-height: 44px;
   }
 }
 

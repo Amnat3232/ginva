@@ -16,6 +16,10 @@ import { WalletSync } from "./hooks/useWalletSync";
 // Import Styles
 import "@solana/wallet-adapter-react-ui/styles.css";
 import "bootstrap/dist/css/bootstrap.min.css";
+import "./styles/index.css";
+import "./styles/theme.css";
+import "./styles/globals.css";
+import "./styles/custom.css";
 import App from "./App";
 
 // ---------------------------------------------------------
