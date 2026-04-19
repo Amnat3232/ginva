@@ -104,9 +104,14 @@ jobs:
           name: build-artifacts
           path: programs/ginva-pinocchio/target/release/
 
+      - name: Setup Deployer Keypair
+        run: |
+          echo "${{ secrets.SOLANA_KEYPAIR }}" | base64 -d > deploy-keypair.json
+          solana config set --keypair deploy-keypair.json --url devnet
+
       - name: Deploy to Devnet
         run: |
-          solana program deploy programs/ginva-pinocchio/target/release/ginva-pinocchio --url devnet --keypair ${{ secrets.SOLANA_KEYPAIR }}
+          solana program deploy programs/ginva-pinocchio/target/release/ginva-pinocchio --url devnet
         env:
           SOLANA_CLUSTER: devnet
 
