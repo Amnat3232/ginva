@@ -1,6 +1,18 @@
 # GINVA Protocol - AI Agent Documentation
 
-> **"Distribute Income. Deliver Happiness. Provide Safety. Build Trust"**
+> **"AI Agent Income Engine — Fair Lending for Humans, Powered by AI"**
+
+---
+
+## 🏆 Hackathon Registration
+
+| Field | Value |
+| ----- | ----- |
+| **Project** | Ginva — AI Agent Income Engine |
+| **Team** | **NovaPulse** — Single Builder |
+| **Track** | DeFi |
+| **Builder** | Dr-SoloDev |
+| **Program ID** | `Ev9HTrf45JBM5PBvAG9v6AUb5cw4XeGgKXmrk7RtQm3D` |
 
 ---
 
@@ -219,14 +231,18 @@ pub fn claim_keeper_earnings(ctx: Context<ClaimKeeperEarnings>) -> Result<()>
 
 ## 🤖 AI Agent Integration
 
+> **Important:** AI Agents are tools controlled by humans. They earn income for their owners, not for themselves.
+
 ### Revenue Share Model
 
 ```
 Total Rewards: 100%
 ├── 45% → Human Owner
-├── 35% → AI Agent (for operations)
+├── 35% → AI Agent (covers API costs + profit)
 └── 20% → Protocol
 ```
+
+> **Note:** The AI Agent operates under YOUR authorization. YOU own the wallet. YOU control what the agent can do. YOU receive the rewards.
 
 ### Keeper Agent Registration
 
@@ -305,10 +321,10 @@ npm run test:integration
 
 ### Networks
 
-| Network   | Program ID                                     | RPC                            |
+| Network   | Program ID                                      | RPC                            |
 | --------- | ---------------------------------------------- | ------------------------------ |
 | Localhost | Generated on deploy                            | http://localhost:8899          |
-| Devnet    | `GWcQGdrSiVk8p58bYSmw8FTceR9dcHAKQzw7yEyjLTsy` | https://api.devnet.solana.com  |
+| Devnet    | `Ev9HTrf45JBM5PBvAG9v6AUb5cw4XeGgKXmrk7RtQm3D` | https://api.devnet.solana.com  |
 | Mainnet   | TBD                                            | https://api.mainnet.solana.com |
 
 ### Deploy Commands
