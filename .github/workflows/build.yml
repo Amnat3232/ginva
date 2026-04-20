@@ -41,13 +41,13 @@ jobs:
           export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
           rm -f Cargo.lock
           rm -rf target/
-          cargo build-sbf --solana-sdk 1.18.26 2>&1 || cargo build-sbf 2>&1 || echo "SBF failed"
+          cargo build-sbf 2>&1
+          ls -laR target/ 2>/dev/null | head -50
 
       - name: Find and copy compiled program
         run: |
           mkdir -p target/deploy
-          find programs/ginva-pinocchio/target -name "*.so" -type f 2>/dev/null | head-1 | xargs -I {} cp {} target/deploy/ginva.so || true
-          ls -la target/deploy/ 2>/dev/null || echo "No deploy directory"
+          find . -name "*.so" -type f 2>/dev/null | head -5
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
