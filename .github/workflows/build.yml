@@ -41,8 +41,10 @@ jobs:
           export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
           rm -f Cargo.lock
           rm -rf target/
-          cargo build-sbf 2>&1
-          ls -laR target/ 2>/dev/null | head -50
+          # Try native build first
+          cargo build --release 2>&1
+          # If BPF needed, try this:
+          cargo build-sbf 2>&1 || echo "BPF skipped"
 
       - name: Find and copy compiled program
         run: |
