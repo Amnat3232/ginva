@@ -20,7 +20,7 @@ permissions:
 
 env:
   SOLANA_VERSION: 1.18.26
-  RUST_TOOLCHAIN: nightly-2026-03-01
+  # Don't set RUST_TOOLCHAIN - let cargo-build-sbf use its bundled toolchain
 
 jobs:
   deploy:
@@ -33,17 +33,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@v1
-        with:
-          toolchain: nightly-2026-03-01
-          components: rustfmt, clippy
-
-      # Don't use cargo cache to avoid stale lock file issues
-      # - name: Cache Cargo dependencies
-      #   uses: Swatinem/rust-cache@v2
-      #   with:
-      #     workspaces: programs/ginva-pinocchio
+      # Don't setup Rust toolchain - cargo-build-sbf has its own bundled toolchain
 
       - name: Install system dependencies
         run: |
@@ -59,18 +49,17 @@ jobs:
           # If that fails, try direct install
           curl -sSfL "https://release.anza.xyz/v1.18.26/install" | sh || true
 
-      - name: Build with platform tools v1.45
+      - name: Build Pinocchio Program
         working-directory: programs/ginva-pinocchio
         run: |
           export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
           rm -f Cargo.lock
-          # Use platform tools v1.45 which has rustc 1.79+
-          cargo build-sbf --tools-version v1.45
+          cargo build-sbf
 
       - name: Build with build-bpf
         working-directory: programs/ginva-pinocchio
         run: |
-          cargo build-bpf --release --tools-version v1.45
+          cargo build-bpf --release
 
       - name: Run Tests
         if: ${{ !inputs.skip_tests }}
