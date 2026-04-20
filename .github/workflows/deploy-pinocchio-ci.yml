@@ -22,21 +22,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Rust
-        run: |
-          rustup default nightly-2026-03-01
-
-      - name: Install Solana CLI
+      - name: Install Solana CLI + BPF
         run: |
           sh -c "$(curl -sSfL https://release.anza.xyz/v1.18.26/install)"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
 
+      - name: Disable cargo cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo
+          key: ${{ runner.os }}-nocache-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-nocache-
+
       - name: Build BPF Program
         working-directory: programs/ginva-pinocchio
         run: |
+          export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
           rm -f Cargo.lock
           rm -rf target
-          cargo build-sbf
+          cargo build-sbf --tools-version v1.45
 
       - name: Find Built Program
         run: |
@@ -76,4 +80,5 @@ jobs:
 
       - name: Deploy to Devnet
         run: |
+          export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
           solana program deploy ginva_pinocchio.so --url devnet --max-sign-attempts 100 --skip-upgradeable-check

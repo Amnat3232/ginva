@@ -18,25 +18,34 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: nightly-2026-03-01
+      - name: Install Solana CLI + BPF
+        run: |
+          sh -c "$(curl -sSfL https://release.anza.xyz/v${SOLANA_VERSION}/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
 
-      - name: Cache Cargo
-        uses: Swatinem/rust-cache@v2
+      - name: Disable cargo cache to avoid Cargo.lock v4
+        uses: actions/cache@v4
         with:
-          shared-key: "ginva-solana"
-          cache-targets: false
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          key: ${{ runner.os }}-solana-nocache-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-solana-nocache-
 
-      - name: Build Pinocchio program
+      - name: Build Pinocchio program with SBF
         working-directory: programs/ginva-pinocchio
-        run: cargo build --release
+        run: |
+          export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
+          rm -f Cargo.lock
+          cargo build-sbf --tools-version v1.45
 
       - name: Find and copy compiled program
         run: |
           mkdir -p target/deploy
-          find programs/ginva-pinocchio/target -name "*.so" -type f 2>/dev/null | head -1 | xargs -I {} cp {} target/deploy/ginva.so || true
+          find programs/ginva-pinocchio/target -name "*.so" -type f 2>/dev/null | head-1 | xargs -I {} cp {} target/deploy/ginva.so || true
           ls -la target/deploy/ 2>/dev/null || echo "No deploy directory"
 
       - name: Upload artifact
