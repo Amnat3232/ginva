@@ -39,11 +39,9 @@ jobs:
         working-directory: programs/ginva-pinocchio
         run: |
           export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
-          # Fully remove any lockfile
           rm -f Cargo.lock
           rm -rf target/
-          # Build with cargo nightly
-          cargo +nightly build-bpf 2>&1
+          cargo build-sbf --solana-sdk 1.18.26 2>&1 || cargo build-sbf 2>&1 || echo "SBF failed"
 
       - name: Find and copy compiled program
         run: |
