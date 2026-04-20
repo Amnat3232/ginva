@@ -24,7 +24,7 @@ jobs:
 
       - name: Setup Rust
         run: |
-          rustup default stable
+          rustup default nightly-2026-03-01
 
       - name: Install Solana CLI
         run: |
