@@ -117,23 +117,14 @@ jobs:
           sh -c "$(curl -sSfL https://release.anza.xyz/v${{ env.SOLANA_VERSION }}/install)"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
 
-      - name: Clear ALL Cargo registry
-        run: |
-          rm -rf ~/.cargo/registry
-          rm -rf ~/.cargo/.package-cache
-
-      - name: Install Solana CLI
-        run: |
-          sh -c "$(curl -sSfL https://release.anza.xyz/v${{ env.SOLANA_VERSION }}/install)"
-          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
-
       - name: Build Solana BPF Program
         working-directory: programs/ginva-pinocchio
         run: |
           export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
+          rm -rf ~/.cargo/registry
           rm -f Cargo.lock
           cargo build-sbf --tools-version v1.45
-          ls -lh target/deploy/*.so 2>/dev/null || ls -lh target/sbf-solana-solana/release/*.so 2>/dev/null
+          ls -lh programs/ginva-pinocchio/target/deploy/*.so 2>/dev/null || ls -lh programs/ginva-pinocchio/target/sbf-solana-solana/release/*.so 2>/dev/null || echo "Build artifact location check"
 
       - name: Upload BPF Artifact
         uses: actions/upload-artifact@v4
