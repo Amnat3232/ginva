@@ -39,10 +39,11 @@ jobs:
           toolchain: nightly-2026-03-01
           components: rustfmt, clippy
 
-      - name: Cache Cargo dependencies
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: programs/ginva-pinocchio
+      # Don't use cargo cache to avoid stale lock file issues
+      # - name: Cache Cargo dependencies
+      #   uses: Swatinem/rust-cache@v2
+      #   with:
+      #     workspaces: programs/ginva-pinocchio
 
       - name: Install system dependencies
         run: |
@@ -58,10 +59,14 @@ jobs:
           # If that fails, try direct install
           curl -sSfL "https://release.anza.xyz/v1.18.26/install" | sh || true
 
+      - name: Remove Cargo.lock
+        run: rm -f programs/ginva-pinocchio/Cargo.lock
+
       - name: Build Pinocchio Program
         working-directory: programs/ginva-pinocchio
         run: |
           export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
+          rm -f Cargo.lock
           cargo build-sbf
 
       - name: Build Pinocchio Program
