@@ -59,20 +59,18 @@ jobs:
           # If that fails, try direct install
           curl -sSfL "https://release.anza.xyz/v1.18.26/install" | sh || true
 
-      - name: Remove Cargo.lock
-        run: rm -f programs/ginva-pinocchio/Cargo.lock
-
-      - name: Build Pinocchio Program
+      - name: Build with platform tools v1.45
         working-directory: programs/ginva-pinocchio
         run: |
           export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
           rm -f Cargo.lock
-          cargo build-sbf
+          # Use platform tools v1.45 which has rustc 1.79+
+          cargo build-sbf --tools-version v1.45
 
-      - name: Build Pinocchio Program
+      - name: Build with build-bpf
         working-directory: programs/ginva-pinocchio
         run: |
-          cargo build-bpf --release
+          cargo build-bpf --release --tools-version v1.45
 
       - name: Run Tests
         if: ${{ !inputs.skip_tests }}
