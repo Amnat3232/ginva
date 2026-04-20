@@ -53,8 +53,8 @@ jobs:
         working-directory: programs/ginva-pinocchio
         run: |
           export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
-          rm -f Cargo.lock
-          cargo build-sbf
+          # Force older platform-tools (Rust 1.79) to avoid Cargo.lock v4
+          cargo build-sbf --tools-version v1.45
 
       - name: Build with build-bpf
         working-directory: programs/ginva-pinocchio
