@@ -35,12 +35,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-solana-nocache-
 
-      - name: Build Pinocchio program with SBF
+      - name: Build Pinocchio program
         working-directory: programs/ginva-pinocchio
         run: |
           export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
           rm -f Cargo.lock
-          cargo build-sbf --tools-version v1.45 2>&1 || cargo build-sbf 2>&1
+          cargo build-bpf 2>&1
 
       - name: Find and copy compiled program
         run: |
