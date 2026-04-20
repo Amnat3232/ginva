@@ -41,10 +41,9 @@ jobs:
           export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
           rm -f Cargo.lock
           rm -rf target/
-          # Try native build first
+          # Downgrade constant_time_eq to work with older Rust
+          cargo update constant_time_eq@0.4.3 --precise 0.2.8
           cargo build --release 2>&1
-          # If BPF needed, try this:
-          cargo build-sbf 2>&1 || echo "BPF skipped"
 
       - name: Find and copy compiled program
         run: |
