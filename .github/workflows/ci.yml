@@ -112,10 +112,10 @@ jobs:
         with:
           toolchain: stable
 
-      - name: Install Nightly Rust
+      - name: Install Solana CLI + BPF tools
         run: |
-          rustup install nightly-2024-01-01
-          rustup default nightly-2024-01-01
+          sh -c "$(curl -sSfL https://release.anza.xyz/v${{ env.SOLANA_VERSION }}/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
 
       - name: Clear ALL Cargo registry
         run: |
@@ -127,15 +127,13 @@ jobs:
           sh -c "$(curl -sSfL https://release.anza.xyz/v${{ env.SOLANA_VERSION }}/install)"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
 
-      - name: Install BPF toolchain
-        run: |
-          rustup target add bpfel-unknown-unknown || echo "BPF target may already be available"
-
       - name: Build Solana BPF Program
+        working-directory: programs/ginva-pinocchio
         run: |
-          cd programs/ginva-pinocchio
-          cargo +nightly build-sbf
-          ls -lh target/release/deps/libginva_pinocchio*.so 2>/dev/null || ls -lh target/sbf-solana-solana/release/libginva_pinocchio.so 2>/dev/null
+          export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
+          rm -f Cargo.lock
+          cargo build-sbf --tools-version v1.45
+          ls -lh target/deploy/*.so 2>/dev/null || ls -lh target/sbf-solana-solana/release/*.so 2>/dev/null
 
       - name: Upload BPF Artifact
         uses: actions/upload-artifact@v4
