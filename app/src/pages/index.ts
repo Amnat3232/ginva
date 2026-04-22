@@ -1,23 +1,11 @@
-// Pages
-export { default as LandingNew } from './LandingNew';
-export { default as LandingPage } from './LandingPage';
-export { default as BorrowNew } from './BorrowNew';
-export { default as BorrowVault } from './BorrowVault';
-export { default as Keeper } from './Keeper';
-export { default as Earn } from './Earn';
-export { default as History } from './History';
-export { default as Home } from './Home';
-export { default as Pawn } from './Pawn';
-export { default as PawnDemo } from './PawnDemo';
-export { default as Redeem } from './Redeem';
-export { default as Settings } from './Settings';
-export { default as Storefront } from './Storefront';
-export { default as Support } from './Support';
-export { default as Admin } from './Admin';
-export { default as Agent } from './Agent';
-export { default as AIIntent } from './AIIntent';
-export { default as Dashboard } from './Dashboard';
-export { default as LiquidityProvider } from './LiquidityProvider';
-export { default as MyTickets } from './MyTickets';
-export { default as QuantumKeeper } from './QuantumKeeper';
-export { default as WithdrawLiquidity } from './WithdrawLiquidity';
+// Dashboard Pages (Landing)
+export { default as Hero } from './Hero';
+export { default as FeatureCards } from './FeatureCards';
+export { default as ProtocolParams } from './ProtocolParams';
+
+// Feature Pages
+export { default as BorrowPage } from './BorrowPage';
+export { default as EarnPage } from './EarnPage';
+export { default as PawnShopPage } from './PawnShopPage';
+export { default as KeeperPage } from './KeeperPage';
+export { default as AIAgentPage } from './AIAgentPage';

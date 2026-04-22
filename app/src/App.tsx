@@ -2,14 +2,14 @@ import { Routes, Route } from 'react-router-dom';
 import AuroraBackground from './components/AuroraBackground';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import Hero from './sections/Hero';
-import FeatureCards from './sections/FeatureCards';
-import ProtocolParams from './sections/ProtocolParams';
-import BorrowPage from './sections/BorrowPage';
-import EarnPage from './sections/EarnPage';
-import PawnShopPage from './sections/PawnShopPage';
-import KeeperPage from './sections/KeeperPage';
-import AIAgentPage from './sections/AIAgentPage';
+import Hero from './pages/Hero';
+import FeatureCards from './pages/FeatureCards';
+import ProtocolParams from './pages/ProtocolParams';
+import BorrowPage from './pages/BorrowPage';
+import EarnPage from './pages/EarnPage';
+import PawnShopPage from './pages/PawnShopPage';
+import KeeperPage from './pages/KeeperPage';
+import AIAgentPage from './pages/AIAgentPage';
 
 function Dashboard() {
   return (
