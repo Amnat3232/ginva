@@ -586,7 +586,7 @@ See `programs/ginva-pinocchio/src/lib.rs` for full error code list.
 ### **Access Instructions**
 
 ```
-🔗 Live App: https://ginva.vercel.app
+🔗 Live App: https://ginva.pages.dev
 🔐 Wallet: Phantom or Solflare (Devnet)
 
 📖 How to Use:
@@ -599,8 +599,8 @@ See `programs/ginva-pinocchio/src/lib.rs` for full error code list.
 ### **For Users (Web)**
 
 ```bash
-# 1. Open app (Vite + React)
-cd app && npm run dev
+# 1. Open app (React 19 + Vite 7 + Tailwind CSS)
+cd app && npm install && npm run dev
 
 # 2. Connect wallet (Phantom, Solflare supported)
 
@@ -683,14 +683,15 @@ ginva/
 │           ├── instructions.rs # Instruction implementations
 │           └── tests.rs        # Unit tests (18 tests)
 │
-├── app/                        # 💻 Frontend (Vite + React + TypeScript)
+├── app/                        # 💻 Frontend (React 19 + Vite 7 + shadcn/ui + Tailwind CSS + TypeScript)
 │   └── src/
-│       ├── components/         # UI components
+│       ├── components/         # UI components (shadcn/ui + custom)
 │       ├── pages/              # Pages (Borrow, Earn, Landing, etc.)
 │       ├── hooks/              # React hooks
-│       ├── store/              # Zustand state management
-│       ├── idl/                # Program IDL
-│       └── lib/                # GinvaProgram class
+│       ├── stores/            # Zustand state management
+│       ├── sections/          # Landing page sections
+│       ├── idl/               # Program IDL
+│       └── lib/               # GinvaProgram class
 │
 ├── bots/                       # 🤖 Keeper Bots (TypeScript)
 │   ├── keeper-a.ts            # Trigger bot
@@ -913,7 +914,7 @@ See [`LICENSE`](LICENSE) for full details.
 ### **As a Borrower**
 
 ```
-👉 Open: https://ginva.vercel.app
+👉 Open: https://ginva.pages.dev
 👉 Connect wallet
 👉 Deposit collateral
 👉 Borrow USDC
@@ -922,7 +923,7 @@ See [`LICENSE`](LICENSE) for full details.
 ### **As a Liquidity Provider**
 
 ```
-👉 Open: https://ginva.vercel.app
+👉 Open: https://ginva.pages.dev
 👉 Connect wallet
 👉 Deposit USDC
 👉 Earn 8% APR + liquidation profits
