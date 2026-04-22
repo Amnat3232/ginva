@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 130 18% 7%;
+    --foreground: 100 10% 85%;
+    --card: 130 15% 11%;
+    --card-foreground: 100 10% 85%;
+    --popover: 130 15% 11%;
+    --popover-foreground: 100 10% 85%;
+    --primary: 100 10% 85%;
+    --primary-foreground: 130 18% 7%;
+    --secondary: 130 10% 17%;
+    --secondary-foreground: 100 10% 85%;
+    --muted: 130 10% 17%;
+    --muted-foreground: 100 10% 60%;
+    --accent: 11 95% 63%;
+    --accent-foreground: 100 10% 85%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 100% / 0.08;
+    --input: 0 0% 100% / 0.05;
+    --ring: 11 95% 63%;
+    --radius: 0.75rem;
+
+    --ginva-bg: #121a13;
+    --ginva-bg-secondary: #2a332a;
+    --ginva-bg-tertiary: #3d4d3a;
+    --ginva-bg-card: #1a2318;
+    --ginva-text: #d9e0d6;
+    --ginva-text-secondary: #9da893;
+    --ginva-text-muted: #6b7563;
+    --ginva-orange: #fa6849;
+    --ginva-green: #22c55e;
+    --ginva-red: #ef4444;
+    --ginva-blue: #3b82f6;
+    --ginva-yellow: #eab308;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--ginva-bg);
+    color: var(--ginva-text);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+
+  code, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+@layer components {
+  .text-ticker {
+    font-size: 14px;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer utilities {
+  @keyframes agent-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); transform: scale(1); }
+    70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); transform: scale(1.1); }
+  }
+  @keyframes agent-pulse-yellow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.4); transform: scale(1); }
+    70% { box-shadow: 0 0 0 10px rgba(234, 179, 8, 0); transform: scale(1.1); }
+  }
+  @keyframes agent-pulse-red {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); transform: scale(1); }
+    70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); transform: scale(1.1); }
+  }
+
+  .animate-agent-pulse {
+    animation: agent-pulse 2s infinite;
+  }
+  .animate-agent-pulse-yellow {
+    animation: agent-pulse-yellow 2s infinite;
+  }
+  .animate-agent-pulse-red {
+    animation: agent-pulse-red 2s infinite;
+  }
+}

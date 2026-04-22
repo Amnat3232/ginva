@@ -1,296 +1,119 @@
-import { Link } from "react-router-dom";
-import ParticleBackground from "../components/ParticleBackground";
-import Button from "../components/Button";
-import GlassCard from "../components/ui/GlassCard";
+import { useWalletStore } from '../stores/walletStore';
+import { Link } from 'react-router-dom';
+import { TrendingUp, Shield, Bot, Store } from 'lucide-react';
 
-const Hero = () => {
+const STATS = [
+  { label: 'Total Value Locked', value: '$2.4M', color: 'text-ginva-orange' },
+  { label: 'Active Loans', value: '184', color: 'text-ginva-green' },
+  { label: 'AI Keepers', value: '23', color: 'text-ginva-blue' },
+  { label: 'Fixed APR', value: '8%', color: 'text-ginva-orange' },
+];
+
+export default function Hero() {
+  const { connected } = useWalletStore();
+
   return (
-    <section
-      id="hero"
-      style={{
-        minHeight: "100vh",
-        position: "relative",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        overflow: "hidden",
-        background: "linear-gradient(180deg, #0F172A 0%, #1E293B 100%)",
-      }}
-    >
-      <ParticleBackground />
-
-      {/* Ambient glow - gold accent */}
-      <div
-        style={{
-          position: "absolute",
-          top: "10%",
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: "800px",
-          height: "500px",
-          background: "radial-gradient(ellipse, rgba(245, 158, 11, 0.12) 0%, transparent 70%)",
-          filter: "blur(100px)",
-          pointerEvents: "none",
-        }}
-      />
-
-      {/* Glassmorphism overlay effect */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: "linear-gradient(180deg, transparent 0%, rgba(15, 23, 42, 0.3) 100%)",
-          pointerEvents: "none",
-        }}
-      />
-
-      <div
-        style={{
-          position: "relative",
-          zIndex: 1,
-          textAlign: "center",
-          maxWidth: "900px",
-          padding: "0 20px",
-        }}
-      >
-        {/* USP Badge - Glassmorphism style */}
-        <div
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "8px",
-            padding: "10px 20px",
-            marginBottom: "32px",
-            background: "rgba(245, 158, 11, 0.1)",
-            backdropFilter: "blur(10px)",
-            WebkitBackdropFilter: "blur(10px)",
-            border: "1px solid rgba(245, 158, 11, 0.3)",
-            borderRadius: "9999px",
-            fontFamily: "'IBM Plex Sans', sans-serif",
-            fontSize: "13px",
-            fontWeight: 500,
-            color: "#F59E0B",
-            letterSpacing: "0.5px",
-          }}
-        >
-          <span
+    <section className="relative min-h-screen flex flex-col justify-center px-[5vw] pt-[60px]">
+      <div className="max-w-[1440px] mx-auto w-full">
+        <div className="max-w-[640px]">
+          <h1
+            className="font-heading font-bold text-ginva-text"
             style={{
-              width: "8px",
-              height: "8px",
-              borderRadius: "50%",
-              background: "#F59E0B",
-              animation: "pulse 2s infinite",
+              fontSize: 'clamp(36px, 5vw, 52px)',
+              lineHeight: 1.1,
+              letterSpacing: '-1.5px',
             }}
-          />
-          Hardcoded & Immutable
+          >
+            AI Agent Income Engine
+          </h1>
+          <p className="mt-6 text-base text-ginva-text-secondary leading-relaxed max-w-[520px]">
+            Fair Lending for Humans, Powered by AI. Deposit collateral, borrow
+            USDC, and let AI agents earn for you.
+          </p>
+          <div className="flex gap-4 mt-8">
+            {connected ? (
+              <>
+                <Link
+                  to="/borrow"
+                  className="inline-flex items-center gap-2 bg-ginva-orange text-white px-6 py-3 rounded-lg text-sm font-medium hover:brightness-110 transition-all"
+                >
+                  <Shield size={16} />
+                  Start Borrowing
+                </Link>
+                <Link
+                  to="/earn"
+                  className="inline-flex items-center gap-2 bg-ginva-bg-tertiary border border-white/[0.08] text-ginva-text px-6 py-3 rounded-lg text-sm font-medium hover:border-ginva-orange/50 transition-all"
+                >
+                  <TrendingUp size={16} />
+                  Explore Earn
+                </Link>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => useWalletStore.getState().connect()}
+                  className="inline-flex items-center gap-2 bg-ginva-orange text-white px-6 py-3 rounded-lg text-sm font-medium hover:brightness-110 transition-all"
+                >
+                  Connect Wallet
+                </button>
+                <Link
+                  to="/pawn-shop"
+                  className="inline-flex items-center gap-2 bg-ginva-bg-tertiary border border-white/[0.08] text-ginva-text px-6 py-3 rounded-lg text-sm font-medium hover:border-ginva-orange/50 transition-all"
+                >
+                  <Store size={16} />
+                  Browse Store
+                </Link>
+              </>
+            )}
+          </div>
         </div>
 
-        {/* Headline - USP */}
-        <h1
-          style={{
-            fontFamily: "'IBM Plex Sans', sans-serif",
-            fontSize: "clamp(40px, 7vw, 72px)",
-            fontWeight: 700,
-            lineHeight: 1.1,
-            marginBottom: "24px",
-            color: "#F8FAFC",
-            letterSpacing: "-0.02em",
-          }}
-        >
-          <span style={{ color: "#F59E0B" }}>72-Hour Grace Period</span>
-          <br />
-          <span
-            style={{
-              fontWeight: 400,
-              color: "rgba(248, 250, 252, 0.7)",
-            }}
-          >
-            & 8% Fixed APR
-          </span>
-        </h1>
-
-        {/* Sub-headline - AI Agents */}
-        <p
-          style={{
-            fontFamily: "'IBM Plex Sans', sans-serif",
-            fontSize: "clamp(16px, 1.5vw, 20px)",
-            color: "rgba(248, 250, 252, 0.7)",
-            marginBottom: "48px",
-            maxWidth: "640px",
-            margin: "0 auto 48px",
-            lineHeight: 1.7,
-          }}
-        >
-          Borrow with peace of mind, or deploy your{" "}
-          <span style={{ color: "#F59E0B", fontWeight: 600 }}>
-            Human-controlled AI Agents
-          </span>
-          {" "}to earn income 24/7. The fairest pawn shop on Solana.
-        </p>
-
-        {/* CTAs - User Roles with Glassmorphism */}
-        <div
-          style={{
-            display: "flex",
-            gap: "20px",
-            justifyContent: "center",
-            flexWrap: "wrap",
-            marginBottom: "64px",
-          }}
-        >
-          <Link to="/borrow">
-            <Button variant="primary">Start Borrowing</Button>
-          </Link>
-          <Link to="/keeper">
-            <Button variant="secondary">Deploy AI Keeper</Button>
-          </Link>
+        {/* Quick Actions Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-16">
+          {[
+            { icon: Shield, label: 'Borrow', desc: 'Collateral → USDC', to: '/borrow' },
+            { icon: TrendingUp, label: 'Earn', desc: 'Deposit → Yield', to: '/earn' },
+            { icon: Store, label: 'Pawn Shop', desc: 'Buy at discount', to: '/pawn-shop' },
+            { icon: Bot, label: 'AI Agent', desc: 'Deploy keeper', to: '/ai-agent' },
+          ].map((item) => (
+            <Link
+              key={item.label}
+              to={item.to}
+              className="bg-ginva-bg-secondary/50 backdrop-blur-sm border border-white/[0.08] p-5 rounded-xl hover:border-ginva-orange/30 hover:-translate-y-1 transition-all duration-200 group"
+            >
+              <item.icon
+                size={24}
+                className="text-ginva-text-secondary group-hover:text-ginva-orange transition-colors"
+              />
+              <div className="mt-3 font-heading font-medium text-ginva-text text-sm">
+                {item.label}
+              </div>
+              <div className="text-xs text-ginva-text-secondary mt-1">
+                {item.desc}
+              </div>
+            </Link>
+          ))}
         </div>
 
-        {/* Trust Signals */}
-        <div
-          style={{
-            fontFamily: "'IBM Plex Sans', sans-serif",
-            fontSize: "12px",
-            color: "rgba(248, 250, 252, 0.5)",
-            letterSpacing: "3px",
-            textTransform: "uppercase",
-            marginBottom: "48px",
-          }}
-        >
-          Code is Law. Soul is Proof.
-        </div>
-
-        {/* Stats - Glassmorphism cards */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-            gap: "20px",
-            marginTop: "40px",
-          }}
-        >
-          <GlassCard
-            style={{
-              padding: "24px",
-              background: "rgba(255, 255, 255, 0.03)",
-              backdropFilter: "blur(16px)",
-              WebkitBackdropFilter: "blur(16px)",
-              border: "1px solid rgba(255, 255, 255, 0.08)",
-              borderRadius: "16px",
-            }}
-          >
+        {/* Stats Bar */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+          {STATS.map((stat) => (
             <div
-              style={{
-                fontSize: "12px",
-                color: "rgba(248, 250, 252, 0.5)",
-                marginBottom: "8px",
-                textTransform: "uppercase",
-                letterSpacing: "1px",
-                fontFamily: "'IBM Plex Sans', sans-serif",
-              }}
+              key={stat.label}
+              className="bg-ginva-bg-secondary/50 backdrop-blur-sm border border-white/[0.08] p-4 rounded-xl"
             >
-              Total Value Locked
+              <div className="text-xs text-ginva-text-secondary uppercase tracking-wider">
+                {stat.label}
+              </div>
+              <div
+                className={`font-mono text-xl font-medium mt-1 ${stat.color}`}
+              >
+                {stat.value}
+              </div>
             </div>
-            <div
-              style={{
-                fontFamily: "'IBM Plex Sans', sans-serif",
-                fontSize: "28px",
-                fontWeight: 600,
-                color: "#F59E0B",
-              }}
-            >
-              $50M+
-            </div>
-          </GlassCard>
-
-          <GlassCard
-            style={{
-              padding: "24px",
-              background: "rgba(255, 255, 255, 0.03)",
-              backdropFilter: "blur(16px)",
-              WebkitBackdropFilter: "blur(16px)",
-              border: "1px solid rgba(255, 255, 255, 0.08)",
-              borderRadius: "16px",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "12px",
-                color: "rgba(248, 250, 252, 0.5)",
-                marginBottom: "8px",
-                textTransform: "uppercase",
-                letterSpacing: "1px",
-                fontFamily: "'IBM Plex Sans', sans-serif",
-              }}
-            >
-              Grace Periods Used
-            </div>
-            <div
-              style={{
-                fontFamily: "'IBM Plex Sans', sans-serif",
-                fontSize: "28px",
-                fontWeight: 600,
-                color: "#F59E0B",
-              }}
-            >
-              12,400+
-            </div>
-          </GlassCard>
-
-          <GlassCard
-            style={{
-              padding: "24px",
-              background: "rgba(255, 255, 255, 0.03)",
-              backdropFilter: "blur(16px)",
-              WebkitBackdropFilter: "blur(16px)",
-              border: "1px solid rgba(255, 255, 255, 0.08)",
-              borderRadius: "16px",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "12px",
-                color: "rgba(248, 250, 252, 0.5)",
-                marginBottom: "8px",
-                textTransform: "uppercase",
-                letterSpacing: "1px",
-                fontFamily: "'IBM Plex Sans', sans-serif",
-              }}
-            >
-              Network Uptime
-            </div>
-            <div
-              style={{
-                fontFamily: "'IBM Plex Sans', sans-serif",
-                fontSize: "28px",
-                fontWeight: 600,
-                color: "#F59E0B",
-              }}
-            >
-              99.9%
-            </div>
-          </GlassCard>
+          ))}
         </div>
       </div>
-
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap');
-
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          * {
-            animation-duration: 0.01ms !important;
-            animation-iteration-count: 1 !important;
-            transition-duration: 0.01ms !important;
-          }
-        }
-      `}</style>
     </section>
   );
-};
-
-export default Hero;
+}
