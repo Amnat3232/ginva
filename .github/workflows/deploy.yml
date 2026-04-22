@@ -1,88 +1,44 @@
-name: 🚀 Auto Deploy to Devnet
+name: Deploy to Cloudflare Pages
 
 on:
   push:
-    branches: [develop]
-    paths-ignore:
-      - "docs/**"
-      - "ginva-vault/**"
-  workflow_dispatch:
-    inputs:
-      skip_tests:
-        description: "Skip tests before deploy"
-        type: boolean
-        default: false
-
-permissions:
-  contents: read
-  id-token: write
-  deployments: write
-
-env:
-  SOLANA_VERSION: 1.18.26
-  # Don't set RUST_TOOLCHAIN - let cargo-build-sbf use its bundled toolchain
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
   deploy:
-    name: Build & Deploy to Devnet
     runs-on: ubuntu-latest
-    environment:
-      name: devnet
-      url: https://explorer.solana.com/?cluster=devnet
+    permissions:
+      contents: read
+      deployments: write
+
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      # Don't setup Rust toolchain - cargo-build-sbf has its own bundled toolchain
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: app/package-lock.json
 
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libudev-dev pkg-config libssl-dev
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./app
 
-      - name: Install Solana CLI + BPF
-        run: |
-          export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
-          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
-          # Install specific version with BPF included
-          sh -c "$(curl -sSfL 'https://release.anza.xyz/v1.18.26/solana-release-x86_64-unknown-linux-gnu.tar.bz2')" -- --no-prompt || true
-          # If that fails, try direct install
-          curl -sSfL "https://release.anza.xyz/v1.18.26/install" | sh || true
-
-      - name: Build Pinocchio Program
-        working-directory: programs/ginva-pinocchio
-        run: |
-          export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
-          # Force older platform-tools (Rust 1.79) to avoid Cargo.lock v4
-          cargo build-sbf --tools-version v1.45
-
-      - name: Build with build-bpf
-        working-directory: programs/ginva-pinocchio
-        run: |
-          cargo build-bpf --release
-
-      - name: Run Tests
-        if: ${{ !inputs.skip_tests }}
-        working-directory: programs/ginva-pinocchio
-        run: |
-          cargo test --release
-
-      - name: Setup Deployer Keypair
-        run: |
-          echo "$SOLANA_KEYPAIR" > deploy-keypair.json
-          solana config set --keypair deploy-keypair.json --url devnet
+      - name: Build
+        run: npm run build
+        working-directory: ./app
         env:
-          SOLANA_KEYPAIR: ${{ secrets.SOLANA_KEYPAIR }}
+          VITE_SOLANA_RPC_ENDPOINT: ${{ secrets.VITE_SOLANA_RPC_ENDPOINT }}
+          VITE_GINVA_PROGRAM_ID: ${{ secrets.VITE_GINVA_PROGRAM_ID }}
 
-      - name: Deploy to Devnet
-        working-directory: programs/ginva-pinocchio
-        run: |
-          solana program deploy target/release/ginva-pinocchio.so --url devnet
-        env:
-          SOLANA_CLUSTER: devnet
-
-      - name: Verify Deployment
-        run: |
-          PROGRAM_ID=$(solana program show programs/ginva-pinocchio/target/release/ginva-pinocchio.so --url devnet 2>/dev/null | grep "Program Id:" | awk '{print $3}' || echo "Manual check required")
-          echo "✅ Deployed to: $PROGRAM_ID"
-          echo "program_id=$PROGRAM_ID" >> $GITHUB_OUTPUT
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=ginva-frontend --branch=main
+        working-directory: ./app

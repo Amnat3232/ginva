@@ -1,0 +1,8 @@
+name = "ginva-frontend"
+compatibility_date = "2024-01-01"
+pages_build_output_dir = "./dist"
+
+[vars]
+# Set these in Cloudflare Dashboard for production
+# VITE_SOLANA_RPC_ENDPOINT = "..."
+# VITE_GINVA_PROGRAM_ID = "..."
