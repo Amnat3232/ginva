@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useLoanAccount, useCryptoPrices } from "../services/queries";
-import { FiHome, FiDollarSign, FiCpu, FiFileText, FiSettings, FiSearch, FiBell, FiZap, FiSend, FiFuel, FiGift, FiTerminal, FiArrowRight } from "react-icons/fi";
+import { FiHome, FiDollarSign, FiCpu, FiFileText, FiSettings, FiSearch, FiBell, FiZap, FiSend, FiBattery, FiGift, FiTerminal, FiArrowRight } from "react-icons/fi";
 
 interface HomeProps {
   connected: boolean;
@@ -385,7 +385,7 @@ const HomeDashboard = ({ connected, walletAddress }: HomeProps) => {
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-              <FiFuel size={18} style={{ color: "#00f0ff" }} />
+              <FiBattery size={18} style={{ color: "#00f0ff" }} />
               <span
                 style={{
                   padding: "4px 8px",
