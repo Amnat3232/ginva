@@ -2,9 +2,9 @@
 
 ## สถานะ
 
-- [x] Deploy แล้ว: https://ginva-frontend.pages.dev
-- [ ] ตั้ง Environment Variables
-- [ ] CI/CD
+- [x] Deploy แล้ว: https://e71ea726.ginva-frontend.pages.dev
+- [x] ตั้ง Environment Variables (มี default ใน code แล้ว)
+- [x] CI/CD (GitHub Actions workflow พร้อมแล้ว)
 
 ---
 
@@ -148,10 +148,10 @@ VITE_GINVA_PROGRAM_ID    # Program ID บน Solana
 | ติดตั้ง wrangler | ✅ |
 | สร้าง Pages project | ✅ |
 | Deploy ครั้งแรก | ✅ |
-| ตั้ง Environment Variables | ⏳ |
-| ตั้ง CI/CD | ⏳ |
+| ตั้ง Environment Variables | ✅ |
+| ตั้ง CI/CD | ✅ |
 
 ### URLs
-- **Production**: https://ginva-frontend.pages.dev
+- **Production**: https://e71ea726.ginva-frontend.pages.dev
 - **Preview**: จะสร้างอัตโนมัติเมื่อเปิด PR
 ```
