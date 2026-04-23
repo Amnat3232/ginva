@@ -43,10 +43,12 @@ jobs:
           rm -rf target/
           cargo build --release 2>&1
 
-      - name: Find and copy compiled program
+- name: Find and copy compiled program
         run: |
+          SO_FILE=$(find programs/ginva-pinocchio/target/release -name "*.so" -type f | grep -v deps | head -1)
+          echo "Found: $SO_FILE"
           mkdir -p target/deploy
-          find . -name "*.so" -type f 2>/dev/null | head -5
+          cp "$SO_FILE" target/deploy/ginva.so
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
