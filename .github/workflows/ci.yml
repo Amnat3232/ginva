@@ -117,22 +117,20 @@ jobs:
           sh -c "$(curl -sSfL https://release.anza.xyz/v${{ env.SOLANA_VERSION }}/install)"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
 
-      - name: Build Solana BPF Program
+- name: Build Native Program
         working-directory: programs/ginva-pinocchio
         run: |
           export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
           rm -rf ~/.cargo/registry
           rm -f Cargo.lock
-          cargo build-sbf --tools-version v1.45
-          ls -lh programs/ginva-pinocchio/target/deploy/*.so 2>/dev/null || ls -lh programs/ginva-pinocchio/target/sbf-solana-solana/release/*.so 2>/dev/null || echo "Build artifact location check"
+          cargo build --release
+          ls -lh target/release/libginva_pinocchio.so 2>/dev/null || echo "Build complete"
 
-      - name: Upload BPF Artifact
+      - name: Upload Program Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ginva-bpf-so
-          path: |
-            programs/ginva-pinocchio/target/release/deps/libginva_pinocchio*.so
-            programs/ginva-pinocchio/target/sbf-solana-solana/release/libginva_pinocchio.so
+          name: ginva-program-so
+          path: programs/ginva-pinocchio/target/release/libginva_pinocchio.so
           retention-days: 7
 
   # Security Audit - from github-actions-templates + cicd-automation-workflow-automate
