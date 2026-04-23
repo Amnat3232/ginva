@@ -27,6 +27,10 @@ jobs:
           sh -c "$(curl -sSfL https://release.anza.xyz/v1.18.26/install)"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
 
+      - name: Install build tools (clang, llvm)
+        run: |
+          apt-get update && apt-get install -y build-essential clang llvm
+
       - name: Disable cargo cache
         uses: actions/cache@v4
         with:
