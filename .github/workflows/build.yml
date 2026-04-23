@@ -7,7 +7,7 @@ on:
     branches: [main, develop]
 
 env:
-  SOLANA_VERSION: "1.18.26"
+  SOLANA_VERSION: "1.17.23"
 
 jobs:
   build:
@@ -41,8 +41,6 @@ jobs:
           export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
           rm -f Cargo.lock
           rm -rf target/
-          # Downgrade constant_time_eq to work with older Rust
-          cargo update constant_time_eq@0.4.3 --precise 0.2.8
           cargo build --release 2>&1
 
       - name: Find and copy compiled program

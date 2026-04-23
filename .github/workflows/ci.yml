@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  SOLANA_VERSION: "1.18.26"
+  SOLANA_VERSION: "1.17.23"
 
 jobs:
   build-and-test:

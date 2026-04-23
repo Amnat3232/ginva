@@ -7,7 +7,7 @@ on:
     branches: [main, develop]
 
 env:
-  SOLANA_VERSION: "1.18.26"
+  SOLANA_VERSION: "1.17.23"
 
 jobs:
   test:

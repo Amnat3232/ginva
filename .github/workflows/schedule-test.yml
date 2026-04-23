@@ -22,7 +22,7 @@ permissions:
   checks: write
 
 env:
-  SOLANA_VERSION: 1.18.26
+  SOLANA_VERSION: 1.17.23
   RUST_VERSION: stable
 
 jobs:
