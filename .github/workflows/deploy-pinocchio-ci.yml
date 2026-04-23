@@ -35,17 +35,19 @@ jobs:
         working-directory: programs/ginva-pinocchio
         env:
           CARGO_TARGET_DIR: target
+          RUST_BACKTRACE: 1
         run: |
           export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
           export SBF_OUT_DIR=target/deploy
           export BPF_STANDARDIZED_VERSION=v1.45
+          echo "=== BPF SDK Path ==="
+          ls -la $HOME/.local/share/solana/install/active_release/bpf-sdk/ 2>&1 || echo "No BPF SDK"
+          echo "=== Available Solana tools ==="
+          ls -la $HOME/.local/share/solana/install/active_release/bin/ 2>&1
+          echo "=== Try running cargo-build-sbf directly ==="
+          which cargo-build-sbf
           rm -rf target
-          cargo build-sbf --tools-version v1.45 2>&1 | tee build.log
-          if [ ! -f target/deploy/ginva_pinocchio.so ]; then
-            echo "=== build-sbf failed, checking build.log ==="
-            cat build.log
-          fi
-          ls -la target/deploy/ 2>/dev/null || echo "No deploy dir"
+          cargo build-sbf --tools-version v1.45 2>&1 | head -50
 
       - name: Find Built Program
         run: |
