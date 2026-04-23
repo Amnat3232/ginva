@@ -34,19 +34,19 @@ jobs:
       - name: Build BPF Program
         working-directory: programs/ginva-pinocchio
         env:
-          BPF_STANDARDIZED_VERSION: v1.45
           CARGO_TARGET_DIR: target
+          SBF_OUT_DIR: target/deploy
         run: |
           export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
-          export BPFSdkPath="$HOME/.local/share/solana/install/active_release/bpf-sdk"
+          export BPF_STANDARDIZED_VERSION=v1.45
           rm -f Cargo.lock
           rm -rf target
-          cargo build-sbf --tools-version v1.45 2>&1 || {
-            echo "=== Fallback: Building with regular cargo ==="
-            cargo build --release
+          cargo build-sbf 2>&1 || {
+            echo "=== Fallback: Building with cargo + bpf target ==="
+            rustup target add bpfel-unknown-none
+            cargo build --release --target bpfel-unknown-none
             mkdir -p target/deploy
-            cp target/release/libginva_pinocchio.so target/deploy/ginva_pinocchio.so 2>/dev/null || true
-            ls -la target/deploy/ 2>/dev/null || ls -la target/release/deps/ 2>/dev/null
+            cp target/bpfel-unknown-none/release/libginva_pinocchio.so target/deploy/ginva_pinocchio.so
           }
 
       - name: Find Built Program
