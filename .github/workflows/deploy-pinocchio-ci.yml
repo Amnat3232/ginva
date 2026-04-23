@@ -29,7 +29,7 @@ jobs:
 
       - name: Install build tools (clang, llvm)
         run: |
-          apt-get update && apt-get install -y build-essential clang llvm
+          sudo apt-get update && sudo apt-get install -y build-essential clang llvm
 
       - name: Disable cargo cache
         uses: actions/cache@v4
