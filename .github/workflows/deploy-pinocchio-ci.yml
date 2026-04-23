@@ -88,4 +88,4 @@ jobs:
       - name: Deploy to Devnet
         run: |
           export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
-          solana program deploy ginva_pinocchio.so --url devnet --max-sign-attempts 100 --skip-upgradeable-check
+          solana program deploy ginva_pinocchio.so --url devnet --max-sign-attempts 100 --skip-fee-check
