@@ -35,17 +35,17 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-solana-nocache-
 
-      - name: Build Pinocchio program
+      - name: Build Pinocchio program (BPF)
         working-directory: programs/ginva-pinocchio
         run: |
           export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
           rm -f Cargo.lock
           rm -rf target/
-          cargo build --release 2>&1
+          cargo build-sbf --release 2>&1
 
-- name: Find and copy compiled program
+      - name: Find and copy compiled program
         run: |
-          SO_FILE=$(find programs/ginva-pinocchio/target/release -name "*.so" -type f | grep -v deps | head -1)
+          SO_FILE=$(find programs/ginva-pinocchio/target/sbf-solana-solana/release -name "*.so" -type f | grep -v deps | head -1)
           echo "Found: $SO_FILE"
           mkdir -p target/deploy
           cp "$SO_FILE" target/deploy/ginva.so
