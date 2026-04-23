@@ -4,7 +4,7 @@
 
 ## Production (Live)
 
-- **Frontend URL**: [https://ginva.vercel.app](https://ginva.vercel.app)
+- **Frontend URL**: [https://ginva-frontend.pages.dev](https://ginva-frontend.pages.dev)
 - **Vercel Dashboard**: [https://vercel.com/dr-solodevs-projects/app](https://vercel.com/dr-solodevs-projects/app)
 
 ## Devnet
@@ -36,7 +36,7 @@
 
 ## Quick Actions
 
-- [View Live App](https://ginva.vercel.app)
+- [View Live App](https://ginva-frontend.pages.dev)
 - [Open Vercel Dashboard](https://vercel.com/dr-solodevs-projects/app)
 - [Check Program on Explorer](https://explorer.solana.com/address/HQd5KLkNzAuJiG6jyyfs2wiMByLdAyGncUnbFhmhQhBj?cluster=devnet)
 

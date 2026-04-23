@@ -5,7 +5,7 @@
 ### Step 1: Open Website
 
 ```
-https://ginva.vercel.app
+https://ginva-frontend.pages.dev
 ```
 
 ### Step 2: Install

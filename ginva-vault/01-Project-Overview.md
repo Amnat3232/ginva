@@ -14,7 +14,7 @@ Users deposit collateral (SOL, BTC, ETH wrapped) to borrow USDC at fixed interes
 ## Current Deployment Status
 
 **Production Frontend**
-- URL: [https://ginva.vercel.app](https://ginva.vercel.app)
+- URL: [https://ginva-frontend.pages.dev](https://ginva-frontend.pages.dev)
 - Dashboard: [https://vercel.com/dr-solodevs-projects/app](https://vercel.com/dr-solodevs-projects/app)
 
 **Devnet Smart Contract**

@@ -110,7 +110,7 @@ Report any orphaned notes or broken links.
 - **Last Sync**: 2026-03-28
 - **Phase**: Phase 6 (Documentation - Vault Creation)
 - **Program ID**: `HQd5KLkNzAuJiG6jyyfs2wiMByLdAyGncUnbFhmhQhBj`
-- **Frontend**: https://ginva.vercel.app
+- **Frontend**: https://ginva-frontend.pages.dev
 
 ---
 

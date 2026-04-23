@@ -586,7 +586,7 @@ See `programs/ginva-pinocchio/src/lib.rs` for full error code list.
 ### **Access Instructions**
 
 ```
-🔗 Live App: https://ginva.pages.dev
+🔗 Live App: https://ginva-frontend.pages.dev
 🔐 Wallet: Phantom or Solflare (Devnet)
 
 📖 How to Use:

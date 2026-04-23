@@ -1,7 +1,7 @@
 # Deployment & Links
 
 ## Production (Frontend)
-- **Live App**: https://ginva.vercel.app
+- **Live App**: https://ginva-frontend.pages.dev
 - **Vercel Dashboard**: https://vercel.com/dr-solodevs-projects/app
 
 ## Devnet (Smart Contract)

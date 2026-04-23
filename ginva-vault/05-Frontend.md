@@ -57,7 +57,7 @@ npm run preview  # Preview build
 
 ## Deployment
 - **Platform**: Vercel
-- **URL**: https://ginva.vercel.app
+- **URL**: https://ginva-frontend.pages.dev
 - **Auto-deploy**: On push to main
 
 ## Related
