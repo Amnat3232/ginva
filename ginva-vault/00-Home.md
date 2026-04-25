@@ -15,7 +15,7 @@ Ginva is a **Decentralized Pawn Shop / Lending Protocol** on Solana with maximum
 - [[08-Next-Steps]] → Next Steps
 
 ### Current Status
-- **Frontend**: Live at [[Deployment-Links|https://ginva-frontend.pages.dev]]
+- **Frontend**: Live at [[Deployment-Links|https://ginva.pages.dev]]
 - **Smart Contract**: Deployed on Devnet (Program ID: `HQd5KLkNzAuJiG6jyyfs2wiMByLdAyGncUnbFhmhQhBj`)
 - **Phase**: Phase 6 (Documentation & New Features)
 - **Last Updated**: 2026-03-28

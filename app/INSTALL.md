@@ -5,7 +5,7 @@
 ### Step 1: Open Website
 
 ```
-https://ginva-frontend.pages.dev
+https://ginva.pages.dev
 ```
 
 ### Step 2: Install
