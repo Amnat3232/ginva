@@ -1,0 +1,40 @@
+# Ginva Pinocchio Protocol Security
+
+## Identity
+- Name: Ginva Pinocchio Protocol
+- Version: 1.0.0
+- Repository: https://github.com/andru-ia/ginva
+
+## Security Contact
+- Email: security@ginva.io
+- Disclosure: https://github.com/andru-ia/ginva/security
+- Policy: https://github.com/andru-ia/ginva/security/policy
+
+## Disclaimer
+⚠️ UNVERIFIED - This program has not been audited. Use at your own risk.
+⚠️ EXPERIMENTAL - This is experimental software.
+⚠️ FINANCIAL RISK - Smart contracts involve financial risk. Use caution.
+
+## Known Risks
+1. Liquidation Risk - Positions can be liquidated if undercollateralized
+2. Oracle Risk - Price feeds can be manipulated 
+3. Smart Contract Risk - Bugs could lead to loss of funds
+4. No Insurance - Protocol has no insurance fund
+
+## Fee Schedule
+| Action | Fee |
+|--------|-----|
+| Deposit | 0 bps |
+| Withdraw | 0 bps |
+| Borrow | 30 bps (0.30%) |
+| Repay | 0 bps |
+| Liquidate | 50 bps (0.50%) |
+
+## Limits
+- Max LTV: 75%
+- Liquidation Threshold: 80%
+- Min Borrow: 1 USDC
+
+## Credits
+- Built by Ginva Team
+- Based on Pinocchio Protocol design principles

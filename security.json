@@ -1,0 +1,102 @@
+{
+  "name": "Ginva Pinocchio Protocol",
+  "version": "1.0.0",
+  "description": "Security-first lending protocol with collateral-based loans",
+  "repository": "https://github.com/andru-ia/ginva",
+  "authors": ["Ginva Team <team@ginva.io>"],
+  "protocol": "collateralized-lending",
+  "security": {
+    "contact": "security@ginva.io",
+    "disclosure": "https://github.com/andru-ia/ginva/security",
+    "policy": "https://github.com/andru-ia/ginva/security/policy",
+    "audit": "NOT_AUDITED"
+  },
+  "warnings": {
+    "unverified": "Program has not been audited. Use at your own risk.",
+    "experimental": "This is experimental software.",
+    "loss_of_funds": "Smart contracts involve financial risk. Use caution."
+  },
+  "instructions": [
+    {
+      "name": "InitializeSystem",
+      "discriminator": [0],
+      "accounts": [
+        { "name": "admin", "is_signer": true, "is_writable": true },
+        { "name": "systemConfig", "is_signer": false, "is_writable": true },
+        { "name": "protocolConfig", "is_signer": false, "is_writable": true },
+        { "name": "opsWallet", "is_signer": false, "is_writable": true },
+        { "name": "reserveWallet", "is_signer": false, "is_writable": true },
+        { "name": "collateralMint", "is_signer": false, "is_writable": false },
+        { "name": "loanMint", "is_signer": false, "is_writable": false },
+        { "name": "systemProgram", "is_signer": false, "is_writable": false }
+      ]
+    },
+    {
+      "name": "DepositCollateral",
+      "discriminator": [1],
+      "accounts": [
+        { "name": "user", "is_signer": true, "is_writable": false },
+        { "name": "userPosition", "is_signer": false, "is_writable": true },
+        { "name": "userCollateral", "is_signer": false, "is_writable": true },
+        { "name": "opsWallet", "is_signer": false, "is_writable": true },
+        { "name": "systemConfig", "is_signer": false, "is_writable": false }
+      ]
+    },
+    {
+      "name": "Borrow",
+      "discriminator": [2],
+      "accounts": [
+        { "name": "user", "is_signer": true, "is_writable": false },
+        { "name": "userPosition", "is_signer": false, "is_writable": true },
+        { "name": "borrowerLoanWallet", "is_signer": false, "is_writable": true },
+        { "name": "opsWallet", "is_signer": false, "is_writable": true },
+        { "name": "systemConfig", "is_signer": false, "is_writable": false }
+      ]
+    },
+    {
+      "name": "RepayLoan",
+      "discriminator": [3],
+      "accounts": [
+        { "name": "user", "is_signer": true, "is_writable": false },
+        { "name": "userPosition", "is_signer": false, "is_writable": true },
+        { "name": "userCollateral", "is_signer": false, "is_writable": true },
+        { "name": "opsWallet", "is_signer": false, "is_writable": true },
+        { "name": "systemConfig", "is_signer": false, "is_writable": false }
+      ]
+    },
+    {
+      "name": "Liquidate",
+      "discriminator": [4],
+      "accounts": [
+        { "name": "liquidator", "is_signer": true, "is_writable": false },
+        { "name": "userPosition", "is_signer": false, "is_writable": true },
+        { "name": "liquidatorCollateral", "is_signer": false, "is_writable": true },
+        { "name": "liquidatorLoan", "is_signer": false, "is_writable": true },
+        { "name": "opsWallet", "is_signer": false, "is_writable": true },
+        { "name": "systemConfig", "is_signer": false, "is_writable": false }
+      ]
+    }
+  ],
+  "risks": [
+    "Liquidation risk - positions can be liquidated if undercollateralized",
+    "Oracle risk - price feeds can be manipulated",
+    "Smart contract risk -漏洞可能导致资金损失",
+    "No insurance - protocol has no insurance fund"
+  ],
+  "fees": {
+    "deposit": "0 bps",
+    "withdraw": "0 bps", 
+    "borrow": "30 bps (0.30%)",
+    "repay": "0 bps",
+    "liquidate": "50 bps (0.50%)"
+  },
+  "limits": {
+    "max_ltv": "75%",
+    "liquidation_threshold": "80%",
+    "min_borrow": "1 USDC"
+  },
+  "mints": {
+    "collateral": "So11111111111111111111111111111111111111112 (SOL)",
+    "loan": "4zMMC9s63aj4emqG9q5ZtYGM3K1XP2eZCMC2Fs5hLmRd (devnet USDC)"
+  }
+}
