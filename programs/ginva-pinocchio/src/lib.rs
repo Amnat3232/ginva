@@ -19,7 +19,7 @@ use pinocchio::program_error::ProgramError;
 // PROGRAM ID
 // ============================================================================
 
-// Manual program ID - bytes for "Ev9HTrf45JBM5PBvAG9v6AUb5cw4XeGgKXmrk7RtQm3D"
+// Manual program ID - bytes for "DyCM1XX7xVpPjR2GLYRTZybk25cBSzC3nzmy1gMVRm47"
 pub const GinvaPinocchio_ID: Pubkey = [
     0xE8, 0xF1, 0x74, 0x7E, 0x58, 0x93, 0x0F, 0x4B,
     0xBC, 0xAB, 0xFA, 0x60, 0x5E, 0xDC, 0x30, 0xE1,
