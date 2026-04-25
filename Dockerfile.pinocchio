@@ -1,5 +1,6 @@
 # Build Pinocchio Solana Program with Docker
-FROM rust:1.85.0
+# Using Solana's Rust toolchain (1.75.0) for compatibility
+FROM solanalabs/rust:1.75.0
 
 WORKDIR /app
 
@@ -8,17 +9,23 @@ RUN apt-get update && apt-get install -y \
     pkg-config libssl-dev libudev-dev curl git build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Solana CLI
+# Install Solana CLI tools (for cargo-build-sbf)
 RUN curl -sSfL https://release.anza.xyz/v1.18.26/install | sh
 
 ENV PATH="/root/.local/share/solana/install/active_release/bin:$PATH"
 
-# Copy source
-COPY programs/ginva-pinocchio/ ./programs/ginva-pinocchio/
+# Copy program files only
+COPY programs/ginva-pinocchio/ ./ginva-pinocchio/
 COPY rust-toolchain.toml ./
 
-# Build
-RUN rm -f Cargo.lock && cargo build-bpf -p ginva-pinocchio
+# Build without workspace
+WORKDIR /app/ginva-pinocchio
 
-# Output
-CMD ["ls", "-la", "target/release/"]
+# Force remove any lock file with version 4
+RUN rm -f Cargo.lock
+
+# Build (uses Solana's bundled Rust 1.75)
+RUN cargo build-sbf
+
+# Output  
+RUN ls -la target/deploy/

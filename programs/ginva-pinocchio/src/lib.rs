@@ -8,18 +8,24 @@ mod tests;
 
 pub use instructions::GinvaInstruction;
 pub use instructions::GinvaInstruction::*;
-use pinocchio::address::declare_id;
+#[macro_use]
 use pinocchio::entrypoint;
-use pinocchio::AccountView;
-use pinocchio::Address;
+use pinocchio::account_info::AccountInfo;
+use pinocchio::pubkey::Pubkey;
 use pinocchio::ProgramResult;
-use solana_program_error::ProgramError;
+use pinocchio::program_error::ProgramError;
 
 // ============================================================================
 // PROGRAM ID
 // ============================================================================
 
-declare_id!("Ev9HTrf45JBM5PBvAG9v6AUb5cw4XeGgKXmrk7RtQm3D");
+// Manual program ID - bytes for "Ev9HTrf45JBM5PBvAG9v6AUb5cw4XeGgKXmrk7RtQm3D"
+pub const GinvaPinocchio_ID: Pubkey = [
+    0xE8, 0xF1, 0x74, 0x7E, 0x58, 0x93, 0x0F, 0x4B,
+    0xBC, 0xAB, 0xFA, 0x60, 0x5E, 0xDC, 0x30, 0xE1,
+    0x7A, 0x82, 0xA6, 0x3A, 0x9E, 0xCD, 0xD0, 0xB7,
+    0x44, 0x9E, 0x12, 0xDC, 0x0D, 0x83, 0xB6, 0xDD,
+];
 
 // ============================================================================
 // SECURITY CONSTANTS
@@ -81,11 +87,11 @@ pub const JUPITER_DEVNET: [u8; 32] = [
 ];
 
 #[inline(always)]
-pub fn get_jupiter_program_id(is_devnet: bool) -> Address {
+pub fn get_jupiter_program_id(is_devnet: bool) -> Pubkey {
     if is_devnet {
-        Address::from(JUPITER_DEVNET)
+        JUPITER_DEVNET
     } else {
-        Address::from(JUPITER_MAINNET)
+        JUPITER_MAINNET
     }
 }
 
@@ -124,6 +130,7 @@ pub enum GinvaError {
     ArithmeticUnderflow = 6,
     InvalidLoanId = 7,
     InvalidAssetMint = 8,
+    Uninitialized = 9,
     ProtocolPaused = 100,
     AlreadyPaused = 101,
     NotPaused = 102,
@@ -216,11 +223,41 @@ pub fn calculate_interest(principal: u64, duration_seconds: u64, apr_bps: u64) -
 // ENTRYPOINT
 // ============================================================================
 
-entrypoint!(process_instruction);
+#[no_mangle]
+pub unsafe extern "C" fn entrypoint(input: *mut u8) -> u64 {
+    entrypoint_helper(input)
+}
 
-pub fn process_instruction(
-    program_id: &Address,
-    accounts: &mut [AccountView],
+fn entrypoint_helper(input: *mut u8) -> u64 {
+    use pinocchio::account_info::AccountInfo;
+    use pinocchio::entrypoint;
+    use pinocchio::pubkey::Pubkey;
+    
+    const MAX: usize = 64;
+    const UNINIT: core::mem::MaybeUninit<AccountInfo> = core::mem::MaybeUninit::uninit();
+    let mut accounts = [UNINIT; MAX];
+    
+    let (program_id, count, instruction_data) = unsafe {
+        entrypoint::deserialize::<MAX>(input, &mut accounts)
+    };
+    
+    let accounts_mut: &mut [AccountInfo] = unsafe {
+        core::slice::from_raw_parts_mut(
+            accounts.as_mut_ptr() as *mut AccountInfo, 
+            count
+        )
+    };
+    
+    match run_instruction(&program_id, accounts_mut, &instruction_data) {
+        Ok(()) => pinocchio::SUCCESS,
+        Err(e) => e.into(),
+    }
+}
+
+#[inline(always)]
+fn run_instruction(
+    program_id: &Pubkey,
+    accounts: &mut [AccountInfo],
     instruction_data: &[u8],
 ) -> ProgramResult {
     instructions::process_instruction(program_id, accounts, instruction_data)

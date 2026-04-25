@@ -8,10 +8,10 @@
 
 use crate::accounts::*;
 use crate::GinvaError;
-use pinocchio::AccountView;
-use pinocchio::Address;
+use pinocchio::account_info::AccountInfo;
+use pinocchio::pubkey::Pubkey;
 use pinocchio::ProgramResult;
-use solana_program_error::ProgramError;
+use pinocchio::program_error::ProgramError;
 
 #[allow(unused_variables)]
 #[allow(clippy::op_ref)]
@@ -57,8 +57,8 @@ impl GinvaInstruction {
 // ============================================================================
 
 pub fn process_instruction(
-    _program_id: &Address,
-    accounts: &mut [AccountView],
+    _program_id: &Pubkey,
+    accounts: &mut [AccountInfo],
     data: &[u8],
 ) -> ProgramResult {
     if data.is_empty() {
@@ -132,8 +132,8 @@ impl TryFrom<u8> for GinvaInstruction {
 /// 6. [readonly] loan_mint
 /// 7. [readonly] system_program
 fn process_initialize_system(
-    _program_id: &Address,
-    accounts: &mut [AccountView],
+    _program_id: &Pubkey,
+    accounts: &mut [AccountInfo],
     data: &[u8],
 ) -> ProgramResult {
     // Parse data: deposit_fee_bps (u16)
@@ -142,63 +142,71 @@ fn process_initialize_system(
     }
     let deposit_fee_bps = u16::from_le_bytes([data[0], data[1]]);
 
-    // Validate accounts
+// Validate accounts
     if accounts.len() < 7 {
         return Err(GinvaError::InvalidInput.into());
     }
 
-    // Split accounts: first 1 mutable (admin needs to be writable for system_config), rest immutable
-    let (mutable_accounts, immutable_accounts) = accounts.split_at_mut(1);
-    
-    let admin = &mutable_accounts[0];
-    let system_config = &immutable_accounts[0];
-    let protocol_config = &immutable_accounts[1];
-    let ops_wallet = &immutable_accounts[2];
-    let reserve_wallet = &immutable_accounts[3];
-    let collateral_mint = &immutable_accounts[4];
-    let loan_mint = &immutable_accounts[5];
-    let system_program = &immutable_accounts[6];
-
-    // 1. Validate signer
-    if !admin.is_signer() {
+    // Get signer status - admin should be signer (account[0])
+    let is_signer = accounts[0].is_signer();
+    if !is_signer {
         return Err(GinvaError::Unauthorized.into());
     }
 
-    // 2. Validate system_config is not already initialized
-    // (Check if discriminator is set or data is non-zero)
-    let config_data = system_config.try_borrow()?;
-    let is_initialized = &config_data[0..8] == b"config__" || config_data.iter().any(|&b| b != 0);
-    if is_initialized {
-        return Err(GinvaError::InvalidInput.into()); // Already initialized
+    // Check if system config has lamports (account exists)
+    let sys_lamports = accounts[1].lamports();
+    if sys_lamports == 0 {
+        return Err(GinvaError::Uninitialized.into());
     }
-    drop(config_data);
 
-    // 3. Validate mints are not zero (security)
-    if collateral_mint.address().as_ref() == &[0u8; 32]
-        || loan_mint.address().as_ref() == &[0u8; 32]
-    {
+    // Get admin address as bytes - store in array to avoid borrow conflicts
+    let admin_key = accounts[0].key();
+    let mut admin_bytes = [0u8; 32];
+    admin_bytes.copy_from_slice(admin_key.as_ref());
+
+    // Get mint addresses as bytes - store in arrays to avoid borrow conflicts
+    let coll_mint_key = accounts[5].key();
+    let mut coll_mint_bytes = [0u8; 32];
+    coll_mint_bytes.copy_from_slice(coll_mint_key.as_ref());
+
+    let loan_mint_key = accounts[6].key();
+    let mut loan_mint_bytes = [0u8; 32];
+    loan_mint_bytes.copy_from_slice(loan_mint_key.as_ref());
+
+    // Validate mints not zero
+    if coll_mint_bytes == [0u8; 32] || loan_mint_bytes == [0u8; 32] {
         return Err(GinvaError::InvalidInput.into());
     }
 
-    // 4. Initialize system_config account data
+    // NOW we can safely borrow mutably - all immutable refs are out of scope
+    let system_config = &mut accounts[1];
+
+    // Check if already initialized
+    let config_data = system_config.try_borrow_data()?;
+    if config_data.len() >= 8 && &config_data[0..8] == b"config__" {
+        return Err(GinvaError::InvalidInput.into());
+    }
+    drop(config_data);
+
+    // Initialize system_config account data
     {
-        let mut config_data = system_config.try_borrow_mut()?;
+        let mut config_data = system_config.try_borrow_mut_data()?;
 
         // Write discriminator (8 bytes): b"config__"
         config_data[0..8].copy_from_slice(b"config__");
 
         // Write admin pubkey (32 bytes)
-        config_data[8..40].copy_from_slice(admin.address().as_ref());
+        config_data[8..40].copy_from_slice(&admin_bytes);
 
         // Write other authorities as admin for now (can be changed later)
-        config_data[40..72].copy_from_slice(admin.address().as_ref()); // capital_wallet_authority
-        config_data[72..104].copy_from_slice(admin.address().as_ref()); // vault_wallet_authority
-        config_data[104..136].copy_from_slice(admin.address().as_ref()); // revenue_wallet_authority
-        config_data[136..168].copy_from_slice(admin.address().as_ref()); // seized_assets_authority
+        config_data[40..72].copy_from_slice(&admin_bytes); // capital_wallet_authority
+        config_data[72..104].copy_from_slice(&admin_bytes); // vault_wallet_authority
+        config_data[104..136].copy_from_slice(&admin_bytes); // revenue_wallet_authority
+        config_data[136..168].copy_from_slice(&admin_bytes); // seized_assets_authority
 
         // Write mint pubkeys
-        config_data[168..200].copy_from_slice(collateral_mint.address().as_ref()); // collateral_mint
-        config_data[200..232].copy_from_slice(loan_mint.address().as_ref()); // loan_mint
+        config_data[168..200].copy_from_slice(&coll_mint_bytes); // collateral_mint
+        config_data[200..232].copy_from_slice(&loan_mint_bytes); // loan_mint
 
         // Write deposit_fee_bps (2 bytes) at offset 282
         config_data[282..284].copy_from_slice(&deposit_fee_bps.to_le_bytes());
@@ -212,8 +220,8 @@ fn process_initialize_system(
 
 /// InitializeAsset: Add a new asset to the protocol
 fn process_initialize_asset(
-    _program_id: &Address,
-    accounts: &mut [AccountView],
+    _program_id: &Pubkey,
+    accounts: &mut [AccountInfo],
     data: &[u8],
 ) -> ProgramResult {
     if data.len() < 24 {
@@ -249,6 +257,7 @@ fn process_initialize_asset(
     let (immutable_accounts, mutable_accounts) = accounts.split_at_mut(2);
     
     let admin = &immutable_accounts[0];
+    let admin_address = admin.key();
     let system_config = &immutable_accounts[2];
     let mint = &immutable_accounts[3];
     let reserve_wallet = &immutable_accounts[4];
@@ -262,13 +271,13 @@ fn process_initialize_asset(
 
     // Verify system config is initialized
     let sys_config = load_system_config(system_config, _program_id)?;
-    if sys_config.admin() != admin.address().as_ref() {
+    if sys_config.admin() != admin_address.as_ref() {
         return Err(GinvaError::Unauthorized.into());
     }
 
     // Initialize asset config
     {
-        let mut config_data = asset_config.try_borrow_mut()?;
+        let mut config_data = asset_config.try_borrow_mut_data()?;
 
         // Write discriminator
         config_data[0..8].copy_from_slice(b"asset___");
@@ -285,7 +294,7 @@ fn process_initialize_asset(
 }
 
 /// Deposit: User deposits collateral
-fn process_deposit(_program_id: &Address, accounts: &mut [AccountView], data: &[u8]) -> ProgramResult {
+fn process_deposit(_program_id: &Pubkey, accounts: &mut [AccountInfo], data: &[u8]) -> ProgramResult {
     if data.len() < 8 {
         return Err(GinvaError::InvalidInput.into());
     }
@@ -325,8 +334,8 @@ fn process_deposit(_program_id: &Address, accounts: &mut [AccountView], data: &[
     }
 
     // 2. Validate token program
-    if token_program.address().as_ref() != &[6u8; 32]
-        && token_program.address().as_ref() != &[2u8; 32]
+    if token_program.key().as_ref() != &[6u8; 32]
+        && token_program.key().as_ref() != &[2u8; 32]
     {
         return Err(ProgramError::IncorrectProgramId);
     }
@@ -349,7 +358,7 @@ fn process_deposit(_program_id: &Address, accounts: &mut [AccountView], data: &[
 
     // Update total_collateral in system_config
     {
-        let mut config_data = system_config.try_borrow_mut()?;
+        let mut config_data = system_config.try_borrow_mut_data()?;
         // Offset for total_collateral: 8 + 32*5 + 2 + 1 + 8 = 197
         let current = u64::from_le_bytes([
             config_data[197],
@@ -371,7 +380,7 @@ fn process_deposit(_program_id: &Address, accounts: &mut [AccountView], data: &[
 }
 
 /// Borrow: User borrows against collateral
-fn process_borrow(_program_id: &Address, accounts: &mut [AccountView], data: &[u8]) -> ProgramResult {
+fn process_borrow(_program_id: &Pubkey, accounts: &mut [AccountInfo], data: &[u8]) -> ProgramResult {
     if data.len() < 16 {
         return Err(GinvaError::InvalidInput.into());
     }
@@ -437,7 +446,7 @@ fn process_borrow(_program_id: &Address, accounts: &mut [AccountView], data: &[u
 }
 
 /// Repay: User repays a loan
-fn process_repay(_program_id: &Address, accounts: &mut [AccountView], data: &[u8]) -> ProgramResult {
+fn process_repay(_program_id: &Pubkey, accounts: &mut [AccountInfo], data: &[u8]) -> ProgramResult {
     if data.len() < 16 {
         return Err(GinvaError::InvalidInput.into());
     }
@@ -471,7 +480,7 @@ fn process_repay(_program_id: &Address, accounts: &mut [AccountView], data: &[u8
     // Load loan account
     let loan = load_loan_account(loan_account, _program_id)?;
 
-    if loan.is_initialized() && loan.borrower() != payer.address().as_ref() {
+    if loan.is_initialized() && loan.borrower() != payer.key().as_ref() {
         return Err(GinvaError::Unauthorized.into());
     }
 
@@ -482,8 +491,8 @@ fn process_repay(_program_id: &Address, accounts: &mut [AccountView], data: &[u8
 
 /// Liquidate: Liquidate an undercollateralized loan
 fn process_liquidate(
-    _program_id: &Address,
-    accounts: &mut [AccountView],
+    _program_id: &Pubkey,
+    accounts: &mut [AccountInfo],
     data: &[u8],
 ) -> ProgramResult {
     if data.len() < 8 {
@@ -528,8 +537,8 @@ fn process_liquidate(
 
 /// Withdraw: User withdraws collateral
 fn process_withdraw(
-    _program_id: &Address,
-    _accounts: &mut [AccountView],
+    _program_id: &Pubkey,
+    _accounts: &mut [AccountInfo],
     data: &[u8],
 ) -> ProgramResult {
     if data.len() < 8 {
@@ -551,8 +560,8 @@ fn process_withdraw(
 
 /// StakeAgent: Stake tokens to an agent
 fn process_stake_agent(
-    _program_id: &Address,
-    _accounts: &mut [AccountView],
+    _program_id: &Pubkey,
+    _accounts: &mut [AccountInfo],
     data: &[u8],
 ) -> ProgramResult {
     if data.len() < 16 {
@@ -577,8 +586,8 @@ fn process_stake_agent(
 
 /// UnstakeAgent: Unstake tokens from an agent
 fn process_unstake_agent(
-    _program_id: &Address,
-    _accounts: &mut [AccountView],
+    _program_id: &Pubkey,
+    _accounts: &mut [AccountInfo],
     data: &[u8],
 ) -> ProgramResult {
     if data.len() < 16 {
@@ -592,8 +601,8 @@ fn process_unstake_agent(
 
 /// RegisterKeeper: Register a keeper agent
 fn process_register_keeper(
-    _program_id: &Address,
-    _accounts: &mut [AccountView],
+    _program_id: &Pubkey,
+    _accounts: &mut [AccountInfo],
     data: &[u8],
 ) -> ProgramResult {
     if data.len() < 9 {
@@ -612,8 +621,8 @@ fn process_register_keeper(
 
 /// KeeperHeartbeat: Keeper sends heartbeat to stay active
 fn process_keeper_heartbeat(
-    _program_id: &Address,
-    accounts: &mut [AccountView],
+    _program_id: &Pubkey,
+    accounts: &mut [AccountInfo],
     _data: &[u8],
 ) -> ProgramResult {
     if accounts.len() < 2 {

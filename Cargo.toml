@@ -1,6 +1,5 @@
 [workspace]
-members = ["programs/ginva"]
-exclude = ["programs/ginva_flash_bot", "programs/ginva-pinocchio", "programs/ginva-pinocchio/*"]
+exclude = ["programs/ginva", "programs/ginva_flash_bot", "programs/ginva-pinocchio"]
 resolver = "2"
 
 [workspace.dependencies]

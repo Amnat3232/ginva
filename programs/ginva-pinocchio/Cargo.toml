@@ -6,21 +6,23 @@ edition = "2021"
 [lib]
 crate-type = ["cdylib", "lib"]
 
-[workspace]
-
 [features]
 default = ["std"]
 std = []
 
 [dependencies]
-pinocchio = { version = "0.11", features = ["cpi"] }
-pinocchio-system = "0.5"
-pinocchio-token = "0.5"
-solana-program-error = "3.0"
+pinocchio = "0.9"
+pinocchio-system = "0.4"
+pinocchio-token = "0.4"
+solana-program-error = "2.0"
 blake3 = "1.5"
 constant_time_eq = "0.2"
-base64ct = "=1.6.0"
+base64ct = "1.6"
 hashbrown = "0.14"
+
+[dependencies.cpufeatures]
+version = "=0.2.17"
+
 [lints.rust]
 unexpected_cfgs = "allow"
 
@@ -31,4 +33,5 @@ codegen-units = 16
 debug = 0
 strip = true
 
-# Pinocchio program - part of parent workspace
+[package.metadata.sbpf.build]
+linker = "bfg-links"

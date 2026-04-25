@@ -5,9 +5,9 @@
 #![allow(clippy::manual_abs_diff)]
 
 use crate::{GinvaError, REENTRANCY_GUARD_ACTIVE, REENTRANCY_GUARD_INACTIVE};
-use pinocchio::AccountView;
-use pinocchio::Address;
-use solana_program_error::ProgramError;
+use pinocchio::account_info::AccountInfo;
+use pinocchio::pubkey::Pubkey;
+use pinocchio::program_error::ProgramError;
 
 // ============================================================================
 // System Config Account
@@ -497,11 +497,11 @@ pub const LOAN_ACCOUNT_DISCRIMINATOR: &[u8; 8] = b"loanac01";
 
 #[inline(always)]
 pub fn load_system_config<'a>(
-    account: &'a AccountView,
-    program_id: &Address,
+    account: &'a AccountInfo,
+    program_id: &Pubkey,
 ) -> Result<&'a SystemConfig, ProgramError> {
     // 1. Validate owner
-    if unsafe { account.owned_by(program_id) } {
+    if unsafe { account.is_owned_by(program_id) } {
         return Err(ProgramError::IncorrectProgramId);
     }
     // 2. Validate data length
@@ -509,7 +509,7 @@ pub fn load_system_config<'a>(
         return Err(GinvaError::InvalidInput.into());
     }
     // 3. Validate discriminator
-    let data = account.try_borrow()?;
+    let data = account.try_borrow_data()?;
     if &data[0..8] != SYSTEM_CONFIG_DISCRIMINATOR {
         return Err(ProgramError::UninitializedAccount);
     }
@@ -536,16 +536,16 @@ pub fn release_reentrancy_guard() {
 
 #[inline(always)]
 pub fn load_loan_account<'a>(
-    account: &'a AccountView,
-    program_id: &Address,
+    account: &'a AccountInfo,
+    program_id: &Pubkey,
 ) -> Result<&'a LoanAccount, ProgramError> {
-    if unsafe { account.owned_by(program_id) } {
+    if unsafe { account.is_owned_by(program_id) } {
         return Err(ProgramError::IncorrectProgramId);
     }
     if account.data_len() < LOAN_ACCOUNT_SIZE {
         return Err(GinvaError::InvalidInput.into());
     }
-    let data = account.try_borrow()?;
+    let data = account.try_borrow_data()?;
     if &data[0..8] != LOAN_ACCOUNT_DISCRIMINATOR {
         return Err(ProgramError::UninitializedAccount);
     }
@@ -555,16 +555,16 @@ pub fn load_loan_account<'a>(
 
 #[inline(always)]
 pub fn load_asset_config<'a>(
-    account: &'a AccountView,
-    program_id: &Address,
+    account: &'a AccountInfo,
+    program_id: &Pubkey,
 ) -> Result<&'a AssetConfig, ProgramError> {
-    if unsafe { account.owned_by(program_id) } {
+    if unsafe { account.is_owned_by(program_id) } {
         return Err(ProgramError::IncorrectProgramId);
     }
     if account.data_len() < ASSET_CONFIG_SIZE {
         return Err(GinvaError::InvalidInput.into());
     }
-    let data = account.try_borrow()?;
+    let data = account.try_borrow_data()?;
     if &data[0..8] != ASSET_CONFIG_DISCRIMINATOR {
         return Err(ProgramError::UninitializedAccount);
     }

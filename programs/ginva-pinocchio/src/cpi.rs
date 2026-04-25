@@ -1,11 +1,10 @@
 //! GINVA Protocol - Pinocchio Version
 //! CPI (Cross-Program Invocations) for token transfers and oracle price feeds
 
-use pinocchio::AccountView;
-use pinocchio::Address;
+use pinocchio::account_info::AccountInfo;
+use pinocchio::pubkey::Pubkey;
 use pinocchio::program_error::ProgramError;
 use pinocchio::ProgramResult;
-use pinocchio::Pubkey;
 
 #[cfg(feature = "cpi")]
 use pinocchio::cpi::{AccountMeta, Instruction};
@@ -14,19 +13,19 @@ use pinocchio::cpi::{AccountMeta, Instruction};
 // TOKEN PROGRAM CONSTANTS
 // ============================================================================
 
-pub const TOKEN_PROGRAM_ID: Address = Address::from([
+pub const TOKEN_PROGRAM_ID: Pubkey = [
     6, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-]);
+];
 
-pub const TOKEN_2022_PROGRAM_ID: Address = Address::from([
+pub const TOKEN_2022_PROGRAM_ID: Pubkey = [
     2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-]);
+];
 
 // ============================================================================
 // PYTH ORACLE CONSTANTS  
 // ============================================================================
 
-pub const PYTH_PROGRAM_ID: Pubkey = Pubkey::from([
+pub const PYTH_PROGRAM_ID: Pubkey = [
     1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 ]);
 
@@ -40,7 +39,7 @@ pub const SOL_USD_FEED_ID: [u8; 32] = [
 // JUPITER DEX CONSTANTS
 // ============================================================================
 
-pub const JUPITER_PROGRAM_ID: Pubkey = Pubkey::from([
+pub const JUPITER_PROGRAM_ID: Pubkey = [
     0x4a, 0xFB, 0x2c, 0xqi, 0xRU, 0xca, 0xTH, 0xdr, 0xPC, 0x8h, 0x2g, 0xNs, 0xA2, 0xET, 0xXi, 0xPD,
     0xD3, 0x3W, 0xcG, 0xuJ, 0xB, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 ]);
