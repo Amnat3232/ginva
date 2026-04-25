@@ -23,7 +23,7 @@ function Dashboard() {
 
 function App() {
   return (
-    <div className="relative min-h-screen" style={{ backgroundColor: '#121a13' }}>
+    <div className="relative min-h-screen bg-60-peace">
       <AuroraBackground />
       <Navbar />
       <main className="relative z-10">
