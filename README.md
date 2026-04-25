@@ -586,7 +586,7 @@ See `programs/ginva-pinocchio/src/lib.rs` for full error code list.
 ### **Access Instructions**
 
 ```
-🔗 Live App: https://ginva.pages.dev
+🔗 Live App: https://ginva-frontend.pages.dev
 🔐 Wallet: Phantom or Solflare (Devnet)
 
 📖 How to Use:
@@ -605,7 +605,7 @@ See `programs/ginva-pinocchio/src/lib.rs` for full error code list.
 cd app && pnpm install && pnpm dev
 ```
 
-**Live:** https://ginva.pages.dev
+**Live:** https://ginva-frontend.pages.dev
 
 ### **Development Phases**
 
@@ -892,7 +892,7 @@ See [`LICENSE`](LICENSE) for full details.
 ### **As a Borrower**
 
 ```
-👉 Open: https://ginva.pages.dev
+👉 Open: https://ginva-frontend.pages.dev
 👉 Connect wallet
 👉 Deposit collateral
 👉 Borrow USDC
@@ -901,7 +901,7 @@ See [`LICENSE`](LICENSE) for full details.
 ### **As a Liquidity Provider**
 
 ```
-👉 Open: https://ginva.pages.dev
+👉 Open: https://ginva-frontend.pages.dev
 👉 Connect wallet
 👉 Deposit USDC
 👉 Earn 8% APR + liquidation profits
