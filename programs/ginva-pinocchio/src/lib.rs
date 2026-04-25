@@ -8,7 +8,6 @@ mod tests;
 
 pub use instructions::GinvaInstruction;
 pub use instructions::GinvaInstruction::*;
-use pinocchio::account;
 use pinocchio::address::declare_id;
 use pinocchio::entrypoint;
 use pinocchio::AccountView;
@@ -221,7 +220,7 @@ entrypoint!(process_instruction);
 
 pub fn process_instruction(
     program_id: &Address,
-    accounts: &[AccountView],
+    accounts: &mut [AccountView],
     instruction_data: &[u8],
 ) -> ProgramResult {
     instructions::process_instruction(program_id, accounts, instruction_data)

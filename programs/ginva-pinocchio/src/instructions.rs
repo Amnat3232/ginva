@@ -21,7 +21,6 @@ use solana_program_error::ProgramError;
 #[repr(u8)]
 pub enum GinvaInstruction {
     InitializeSystem = 0,
-    InitializeProtocolConfig = 1,
     InitializeAsset = 2,
     Deposit = 3,
     Borrow = 4,
@@ -38,7 +37,6 @@ impl GinvaInstruction {
     pub fn from_u8(value: u8) -> Result<Self, ()> {
         match value {
             0 => Ok(GinvaInstruction::InitializeSystem),
-            1 => Ok(GinvaInstruction::InitializeProtocolConfig),
             2 => Ok(GinvaInstruction::InitializeAsset),
             3 => Ok(GinvaInstruction::Deposit),
             4 => Ok(GinvaInstruction::Borrow),
@@ -60,7 +58,7 @@ impl GinvaInstruction {
 
 pub fn process_instruction(
     _program_id: &Address,
-    accounts: &[AccountView],
+    accounts: &mut [AccountView],
     data: &[u8],
 ) -> ProgramResult {
     if data.is_empty() {
@@ -73,9 +71,6 @@ pub fn process_instruction(
     match instruction {
         GinvaInstruction::InitializeSystem => {
             process_initialize_system(_program_id, accounts, &data[1..])
-        }
-        GinvaInstruction::InitializeProtocolConfig => {
-            process_initialize_protocol_config(_program_id, accounts, &data[1..])
         }
         GinvaInstruction::InitializeAsset => {
             process_initialize_asset(_program_id, accounts, &data[1..])
@@ -93,6 +88,10 @@ pub fn process_instruction(
         GinvaInstruction::KeeperHeartbeat => {
             process_keeper_heartbeat(_program_id, accounts, &data[1..])
         }
+        // CreateSystemConfig - deprecated, use InitializeSystem
+        // GinvaInstruction::CreateSystemConfig => {
+        //     process_create_system_config(_program_id, accounts, &data[1..])
+        // }
     }
 }
 
@@ -102,7 +101,6 @@ impl TryFrom<u8> for GinvaInstruction {
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         match value {
             0 => Ok(GinvaInstruction::InitializeSystem),
-            1 => Ok(GinvaInstruction::InitializeProtocolConfig),
             2 => Ok(GinvaInstruction::InitializeAsset),
             3 => Ok(GinvaInstruction::Deposit),
             4 => Ok(GinvaInstruction::Borrow),
@@ -135,7 +133,7 @@ impl TryFrom<u8> for GinvaInstruction {
 /// 7. [readonly] system_program
 fn process_initialize_system(
     _program_id: &Address,
-    accounts: &[AccountView],
+    accounts: &mut [AccountView],
     data: &[u8],
 ) -> ProgramResult {
     // Parse data: deposit_fee_bps (u16)
@@ -149,13 +147,17 @@ fn process_initialize_system(
         return Err(GinvaError::InvalidInput.into());
     }
 
-    let admin = &accounts[0];
-    let system_config = &accounts[1];
-    let protocol_config = &accounts[2];
-    let ops_wallet = &accounts[3];
-    let reserve_wallet = &accounts[4];
-    let collateral_mint = &accounts[5];
-    let loan_mint = &accounts[6];
+    // Split accounts: first 1 mutable (admin needs to be writable for system_config), rest immutable
+    let (mutable_accounts, immutable_accounts) = accounts.split_at_mut(1);
+    
+    let admin = &mutable_accounts[0];
+    let system_config = &immutable_accounts[0];
+    let protocol_config = &immutable_accounts[1];
+    let ops_wallet = &immutable_accounts[2];
+    let reserve_wallet = &immutable_accounts[3];
+    let collateral_mint = &immutable_accounts[4];
+    let loan_mint = &immutable_accounts[5];
+    let system_program = &immutable_accounts[6];
 
     // 1. Validate signer
     if !admin.is_signer() {
@@ -211,7 +213,7 @@ fn process_initialize_system(
 /// InitializeAsset: Add a new asset to the protocol
 fn process_initialize_asset(
     _program_id: &Address,
-    accounts: &[AccountView],
+    accounts: &mut [AccountView],
     data: &[u8],
 ) -> ProgramResult {
     if data.len() < 24 {
@@ -244,12 +246,15 @@ fn process_initialize_asset(
     // 4. [writable] reserve_wallet
     // 5. [writable] debt_share_mint
 
-    let admin = &accounts[0];
-    let asset_config = &accounts[1];
-    let system_config = &accounts[2];
-    let mint = &accounts[3];
-    let reserve_wallet = &accounts[4];
-    let debt_share_mint = &accounts[5];
+    let (immutable_accounts, mutable_accounts) = accounts.split_at_mut(2);
+    
+    let admin = &immutable_accounts[0];
+    let system_config = &immutable_accounts[2];
+    let mint = &immutable_accounts[3];
+    let reserve_wallet = &immutable_accounts[4];
+    let debt_share_mint = &immutable_accounts[5];
+    
+    let asset_config = &mut mutable_accounts[1];
 
     if !admin.is_signer() {
         return Err(GinvaError::Unauthorized.into());
@@ -280,7 +285,7 @@ fn process_initialize_asset(
 }
 
 /// Deposit: User deposits collateral
-fn process_deposit(_program_id: &Address, accounts: &[AccountView], data: &[u8]) -> ProgramResult {
+fn process_deposit(_program_id: &Address, accounts: &mut [AccountView], data: &[u8]) -> ProgramResult {
     if data.len() < 8 {
         return Err(GinvaError::InvalidInput.into());
     }
@@ -305,11 +310,14 @@ fn process_deposit(_program_id: &Address, accounts: &[AccountView], data: &[u8])
         return Err(GinvaError::InvalidInput.into());
     }
 
-    let user = &accounts[0];
-    let user_token_account = &accounts[1];
-    let reserve_wallet = &accounts[2];
-    let system_config = &accounts[3];
-    let token_program = &accounts[5];
+    let (immutable_accounts, mutable_accounts) = accounts.split_at_mut(4);
+    
+    let user = &immutable_accounts[0];
+    let user_token_account = &immutable_accounts[1];
+    let token_program = &immutable_accounts[5];
+    
+    let reserve_wallet = &mutable_accounts[2];
+    let system_config = &mut mutable_accounts[3];
 
     // 1. Validate signer
     if !user.is_signer() {
@@ -363,7 +371,7 @@ fn process_deposit(_program_id: &Address, accounts: &[AccountView], data: &[u8])
 }
 
 /// Borrow: User borrows against collateral
-fn process_borrow(_program_id: &Address, accounts: &[AccountView], data: &[u8]) -> ProgramResult {
+fn process_borrow(_program_id: &Address, accounts: &mut [AccountView], data: &[u8]) -> ProgramResult {
     if data.len() < 16 {
         return Err(GinvaError::InvalidInput.into());
     }
@@ -429,7 +437,7 @@ fn process_borrow(_program_id: &Address, accounts: &[AccountView], data: &[u8]) 
 }
 
 /// Repay: User repays a loan
-fn process_repay(_program_id: &Address, accounts: &[AccountView], data: &[u8]) -> ProgramResult {
+fn process_repay(_program_id: &Address, accounts: &mut [AccountView], data: &[u8]) -> ProgramResult {
     if data.len() < 16 {
         return Err(GinvaError::InvalidInput.into());
     }
@@ -475,7 +483,7 @@ fn process_repay(_program_id: &Address, accounts: &[AccountView], data: &[u8]) -
 /// Liquidate: Liquidate an undercollateralized loan
 fn process_liquidate(
     _program_id: &Address,
-    accounts: &[AccountView],
+    accounts: &mut [AccountView],
     data: &[u8],
 ) -> ProgramResult {
     if data.len() < 8 {
@@ -521,7 +529,7 @@ fn process_liquidate(
 /// Withdraw: User withdraws collateral
 fn process_withdraw(
     _program_id: &Address,
-    _accounts: &[AccountView],
+    _accounts: &mut [AccountView],
     data: &[u8],
 ) -> ProgramResult {
     if data.len() < 8 {
@@ -544,7 +552,7 @@ fn process_withdraw(
 /// StakeAgent: Stake tokens to an agent
 fn process_stake_agent(
     _program_id: &Address,
-    _accounts: &[AccountView],
+    _accounts: &mut [AccountView],
     data: &[u8],
 ) -> ProgramResult {
     if data.len() < 16 {
@@ -570,7 +578,7 @@ fn process_stake_agent(
 /// UnstakeAgent: Unstake tokens from an agent
 fn process_unstake_agent(
     _program_id: &Address,
-    _accounts: &[AccountView],
+    _accounts: &mut [AccountView],
     data: &[u8],
 ) -> ProgramResult {
     if data.len() < 16 {
@@ -585,7 +593,7 @@ fn process_unstake_agent(
 /// RegisterKeeper: Register a keeper agent
 fn process_register_keeper(
     _program_id: &Address,
-    _accounts: &[AccountView],
+    _accounts: &mut [AccountView],
     data: &[u8],
 ) -> ProgramResult {
     if data.len() < 9 {
@@ -605,7 +613,7 @@ fn process_register_keeper(
 /// KeeperHeartbeat: Keeper sends heartbeat to stay active
 fn process_keeper_heartbeat(
     _program_id: &Address,
-    accounts: &[AccountView],
+    accounts: &mut [AccountView],
     _data: &[u8],
 ) -> ProgramResult {
     if accounts.len() < 2 {
@@ -623,48 +631,6 @@ fn process_keeper_heartbeat(
     let config = load_system_config(system_config, _program_id)?;
     if !config.is_active() {
         return Err(GinvaError::AssetNotActive.into());
-    }
-
-    Ok(())
-}
-
-/// InitializeProtocolConfig: Initialize protocol configuration
-fn process_initialize_protocol_config(
-    _program_id: &Address,
-    accounts: &[AccountView],
-    data: &[u8],
-) -> ProgramResult {
-    // Params: liquidation_timeout (i64), auto_swap_reward_bps (u16), distribute_reward_bps (u16)
-    if data.len() < 12 {
-        return Err(GinvaError::InvalidInput.into());
-    }
-
-    if accounts.len() < 2 {
-        return Err(GinvaError::InvalidInput.into());
-    }
-
-    let admin = &accounts[0];
-    let protocol_config = &accounts[1];
-
-    if !admin.is_signer() {
-        return Err(GinvaError::Unauthorized.into());
-    }
-
-    // Initialize protocol config data
-    {
-        let mut config_data = protocol_config.try_borrow_mut()?;
-
-        // Write discriminator
-        config_data[0..8].copy_from_slice(b"protconf");
-
-        // Write liquidation_timeout (72 hours = 259200 seconds)
-        config_data[8..16].copy_from_slice(&259200i64.to_le_bytes());
-
-        // Write auto_swap_reward_bps at offset 16
-        config_data[16..18].copy_from_slice(&1000u16.to_le_bytes());
-
-        // Write distribute_reward_bps at offset 18
-        config_data[18..20].copy_from_slice(&2000u16.to_le_bytes());
     }
 
     Ok(())
