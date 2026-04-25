@@ -1,0 +1,2 @@
+[workspace.metadata]
+cargo = { lockfile = { version = 3 } }
