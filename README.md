@@ -598,17 +598,14 @@ See `programs/ginva-pinocchio/src/lib.rs` for full error code list.
 
 ### **For Users (Web)**
 
+> **Deployed on Cloudflare Pages** — Fast, secure, free.
+
 ```bash
-# 1. Open app (React 19 + Vite 7 + Tailwind CSS)
-cd app && npm install && npm run dev
-
-# 2. Connect wallet (Phantom, Solflare supported)
-
-# 3. Choose role
-# ├─ Borrower: Deposit collateral → Borrow USDC
-# ├─ Liquidity Provider: Deposit USDC → Earn rewards
-# └─ Keeper: Run liquidation bot
+# 1. Open app (React 19 + Vite + shadcn/ui + Tailwind CSS)
+cd app && pnpm install && pnpm dev
 ```
+
+**Live:** https://ginva.pages.dev
 
 ### **Development Phases**
 
