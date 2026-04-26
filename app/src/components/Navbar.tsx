@@ -1,7 +1,9 @@
 // Navbar Component
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { FiHome, FiDollarSign, FiZap, FiUser, FiSettings, FiHelpCircle, FiClock, FiMoreHorizontal, FiChevronDown, FiArrowLeft } from "react-icons/fi";
+import NetworkSwitcher from "./NetworkSwitcher";
 
 interface NavbarProps {
   connected?: boolean;
@@ -214,31 +216,27 @@ export function Navbar({
           </div>
         </div>
 
-        {/* Right side - Wallet */}
+        {/* Right side - Network & Wallet */}
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <NetworkSwitcher />
           {connected && balance && (
             <div style={{ fontSize: "0.85rem", color: "rgba(248, 250, 252, 0.6)" }}>
               <span style={{ color: "#F59E0B" }}>{balance.sol}</span> SOL · ${balance.usd}
             </div>
           )}
-          <button
-            className={`connect-btn ${connected ? "connected" : ""}`}
-            onClick={() => onConnect?.()}
-            style={{
-              background: connected ? "rgba(245, 158, 11, 0.2)" : "linear-gradient(135deg, #F59E0B 0%, #D97706 100%)",
-              border: connected ? "1px solid #F59E0B" : "none",
-              color: connected ? "#F59E0B" : "#0F172A",
-              padding: "8px 16px",
-              borderRadius: "8px",
-              fontWeight: 600,
-              fontSize: "0.85rem",
-              fontFamily: "'IBM Plex Sans', sans-serif",
-              cursor: "pointer",
-              transition: "all 0.2s ease",
-            }}
-          >
-            {connected ? `◎ ${walletAddress ?? ""}` : "Connect Wallet"}
-          </button>
+    <WalletMultiButton className="connect-btn" style={{
+      background: "linear-gradient(135deg, #F59E0B 0%, #D97706 100%)",
+      border: "none",
+      color: "#0F172A",
+      padding: "8px 16px",
+      borderRadius: "8px",
+      fontWeight: 600,
+      fontSize: "0.85rem",
+      fontFamily: "'IBM Plex Sans', sans-serif",
+      cursor: "pointer",
+      transition: "all 0.2s ease",
+      height: "auto",
+    }} />
         </div>
       </div>
     </nav>

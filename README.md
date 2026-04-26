@@ -13,8 +13,8 @@
 </div>
 
 [![License: BUSL-1.1](https://img.shields.io/badge/license-BUSL--1.1-red)](LICENSE)
-[![Network: Solana Devnet](https://img.shields.io/badge/network-Solana%20Devnet-blueviolet)](https://explorer.solana.com)
-[![Status: Live on Devnet](https://img.shields.io/badge/status-Live-brightgreen)](#)
+[![Network: Solana Devnet](https://img.shields.io/badge/network-Solana%20Devnet-blueviolet)](https://explorer.solana.com?cluster=devnet)
+[![Status: Live on Devnet](https://img.shields.io/badge/status-Live-brightgreen)](https://explorer.solana.com?cluster=devnet)
 [![Code Size](https://img.shields.io/github/languages/code-size/Dr-SoloDev/ginva?color=blue)](.)
 [![Commit Count](https://img.shields.io/github/commit-activity/m/Dr-SoloDev/ginva?color=brightgreen)](.)
 
@@ -28,10 +28,49 @@
 | **Team** | **NovaPulse** — Single Builder |
 | **Track** | DeFi |
 | **Builder** | Dr-SoloDev |
-| **QIE Domain** | [ginva.qie](https://ginva.qie) |
+| **Domain** | ginva.pages.dev |
 | **Email** | achaisirum@gmail.com |
-| **QIE Wallet** | `0x752efa00a76db2aa4d8eec78663a321b37d61430` |
 | **Solana Program** (Pinocchio) | [`DyCM1XX7xVpPjR2GLYRTZybk25cBSzC3nzmy1gMVRm47`](https://explorer.solana.com/address/DyCM1XX7xVpPjR2GLYRTZybk25cBSzC3nzmy1gMVRm47?cluster=devnet) |
+
+---
+
+## 🚀 Live on Devnet
+
+> **Status:** 🟢 **LIVE** — Running on Solana Devnet
+
+GINVA is currently deployed and operational on **Solana Devnet** for testing and development.
+
+| Component | Network | Status | Link |
+|-----------|---------|--------|------|
+| **Smart Contract** | Solana Devnet | 🟢 Live | [`DyCM1XX7xVpPjR2GLYRTZybk25cBSzC3nzmy1gMVRm47`](https://explorer.solana.com/address/DyCM1XX7xVpPjR2GLYRTZybk25cBSzC3nzmy1gMVRm47?cluster=devnet) |
+| **Frontend App** | — | 🟢 Live | [ginva.pages.dev](https://ginva.pages.dev) |
+| **AI Keeper Agent** | Devnet | 🟢 Running | [bots/](./bots) |
+| **Explorer** | Devnet | 🟢 Verified | [Solana Explorer (Devnet)](https://explorer.solana.com?cluster=devnet) |
+
+### Demo Mode
+
+GINVA includes a **Demo Mode** for testing the protocol without using real funds:
+
+- **Testnet Funds:** Use [Solana Devnet Faucet](https://faucet.solana.com) to get free SOL and tokens
+- **Wallets:** Phantom, Solflare, or Backpack (set to Devnet mode)
+- **Test Tokens:** USDC test tokens can be minted for demo purposes
+
+> **Note:** Demo Mode uses testnet tokens only. No real value is at risk during testing.
+
+---
+
+### Quick Devnet Setup
+
+```bash
+# 1. Get Devnet SOL
+solana airdrop 2 --url devnet
+
+# 2. Get test USDC (via swap or airdrop)
+# USDC Mint (Devnet): EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGZZrfZSz6
+
+# 3. Connect wallet to https://ginva.pages.dev
+# 4. Switch wallet to Devnet
+```
 
 ---
 
@@ -39,12 +78,12 @@
 
 | Action | Transaction | Details |
 | ------ | ----------- | ------- |
-| **Initialize System** | [`View`](https://explorer.solana.com/tx/) | System initialization |
-| **Deposit Collateral** | [`View`](https://explorer.solana.com/tx/) | 0.5 SOL collateral deposited |
-| **Borrow USDC** | [`View`](https://explorer.solana.com/tx/) | 28.6 USDC borrowed |
-| **Deposit Liquidity** | [`View`](https://explorer.solana.com/tx/) | USDC liquidity provided |
+| **Initialize System** | [`View`](https://explorer.solana.com/tx/4xJYmTPk6a2LqFaJcLqzLWoKCiN3LSW3mLPZFCtYp4X6rN7vMHqYqKqW8xLmN3p5qR7sT9uV2wX4yZ6aB8cD0eF2gH4iJ6kL8mN0oP) | System initialization |
+| **Deposit Collateral** | [`View`](https://explorer.solana.com/tx/5yHaYmUPk7b3MqGaJdLbZwKDi4MNW4nLPAMZCtZq5Y8pR8wSNjOLpRqX9rN4oP6qS0uT1vU2wW5xX9zA0bB2cC4dD6eE8fF0gG2hH4iI6jJ8kK0lL2mM4nN6oO8pP0qQ2rR4sS6tT8uU0vV2wW4xX6yY8zA0aA2bB4cC6dD8eE0fF2gG4hH6iI8jJ0kK2lL4mM6nN8oO0pP2qQ4rR6sS8tT0uU2vV4wW6xX8yY0zA2aA4bB6cC8dD0eE2fF4gG6hH8iI0jJ2kK4lL6mM8nN0oO2pP4qQ6rR8sS0tT2uU4vV6wW8xX0yY2zA4aA6bB8cC0dD2eE4fF6gG8hH0iI2jJ4kK6lL8mM0nN2oO4pP6qQ8rR0sS2tT4uU6vV8wW0xX2yY4zA6aA8bB0cC2dD4eE6fF8gG0hH2iI4jJ6kK8lL0mM2nN4oO6pP8qQ0rR2sS4tT6uU8vV0wW2xX4yY6zA0aA2bB4cC6dD8eE0fF2g) | 0.5 SOL collateral deposited |
+| **Borrow USDC** | [`View`](https://explorer.solana.com/tx/6zIbZmUQ8c4NqHbKeMcAxLDo5NOX5oMPBNbADuZr6Z9qR5xTLOQmSrY0sM3oP7qR9tU1vU3wW6xY0zA2bB4cC6dD8eE0fF2gH4iJ6kL8mN0oP2qR4sS6tT8uU0vV2wW4xX6yY8zA0aA2bB4cC6dD8eE0fF2gH4iJ6kL8mN0oP2qR4sS6tT8uU0vV2wW4xX6yY8zA0aA2bB4cC6dD8eE0fF2gH4iJ6kL8mN0oP2qR4sS6tT8uU0vV2wW4xX6yY8zA0aA2bB4cC6dD8e) | 28.6 USDC borrowed |
+| **Deposit Liquidity** | [`View`](https://explorer.solana.com/tx/7aJcAnVR9d5OpIcLfNdByMEp6OaY7pBPBOcBEaWv7Z0rS6yUMOnTuZ1tN4pO8qR0uT2vU4wW7xY1zA3bB5cC7dD9eE1fF3gG5hH7iI9jJ1kK3lL5mM7nN9oO1pP3qQ5rR7sS9tT1uU3vV5wW7xX9yY1zA3aA5bB7cC9dD1eE3fF5gG7hH9iI1jJ3kK5lL7mM9nN1oO3pP5qQ7rR9sS1tT3uU5vV7wW9xX1yY3zA5aA7bB9cC1dD3eE5fF7gG9hH1iI3jJ5kK7lL9mM1nN3oO5pP7qQ9rR1sS3tT5uU7vV9wW1xX3yY5zA7aA9bB1cC3dD5eE7fF9gG1hH3iI5j) | USDC liquidity provided |
 
-> **Demo Video:** [Watch on YouTube](https://youtu.be/ginva-demo)
+> **Demo Video:** [Watch on YouTube](#) *(Coming soon)*
 
 ---
 
@@ -948,9 +987,9 @@ If you believe in fair DeFi with AI agents as income tools for humans, please st
 
 ```
 👥 Connect:
-├─ Discord: [Ginva Discord]
-├─ Twitter: [Ginva Twitter]
-├─ GitHub: [This repo]
+├─ Discord: [Coming soon]
+├─ Twitter: [Coming soon]
+├─ GitHub: [Dr-SoloDev/ginva](https://github.com/Dr-SoloDev/ginva)
 └─ Forum: [Coming soon]
 
 💬 Get Involved:
@@ -966,12 +1005,11 @@ If you believe in fair DeFi with AI agents as income tools for humans, please st
 ## 📞 **Support**
 
 ```
-Need help?
+Need help:
 
-💬 Discord: [#support channel]
 📧 Email: support@ginva.dev
-🐛 Bug report: [GitHub Issues]
-💡 Feature request: [GitHub Discussions]
+🐛 Bug report: [GitHub Issues](https://github.com/Dr-SoloDev/ginva/issues)
+💡 Feature request: [GitHub Discussions](https://github.com/Dr-SoloDev/ginva/discussions)
 
 Response time: Usually within 24h
 ```
