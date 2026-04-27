@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { useWalletStore } from '../stores/walletStore';
-import { Shield, Info } from 'lucide-react';
+import { Shield, Info, Loader2, ExternalLink } from 'lucide-react';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { Connection, PublicKey } from '@solana/web3.js';
+import { Program, BN, AnchorProvider } from '@coral-xyz/anchor';
+import idl from '../idl/ginva.json';
 
 const LTV_PRESETS = [
   { label: 'Safe 20%', value: 20, color: 'text-ginva-green', bg: 'bg-ginva-green/20', border: 'border-ginva-green/50' },
@@ -14,12 +18,112 @@ const MOCK_LOANS = [
 ];
 
 export default function BorrowPage() {
-  const { connected, connect } = useWalletStore();
+  const { connected: storeConnected, connect } = useWalletStore();
+  const wallet = useWallet();
+  const connected = wallet.connected || storeConnected;
+
   const [collateral, setCollateral] = useState('');
   const [ltv, setLtv] = useState(40);
   const [collateralType, setCollateralType] = useState<'SOL' | 'JUP'>('SOL');
+  const [loading, setLoading] = useState(false);
+  const [txSig, setTxSig] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
 
-  const solPrice = 68.25;
+  const PROGRAM_ID = new PublicKey('DyCM1XX7xVpPjR2GLYRTZybk25cBSzC3nzmy1gMVRm47');
+  const SOL_PRICE = 68.25;
+
+  const checkAndInitAccount = async (connection: Connection, program: Program, user: PublicKey) => {
+    const [loanAccount] = PublicKey.findProgramAddressSync(
+      [Buffer.from('loan'), user.toBuffer()],
+      PROGRAM_ID
+    );
+
+    try {
+      const accountInfo = await connection.getAccountInfo(loanAccount);
+      return accountInfo !== null;
+    } catch {
+      // Account doesn't exist, return false to create it
+      return false;
+    }
+  };
+
+  const executeBorrow = async () => {
+    if (!wallet.publicKey || !collateral || parseFloat(collateral) <= 0) return;
+
+    setLoading(true);
+    setError('');
+    setTxSig('');
+    setSuccess(false);
+
+    try {
+      const rpcUrl = import.meta.env.VITE_SOLANA_RPC_ENDPOINT || 'https://api.devnet.solana.com';
+      const connection = new Connection(rpcUrl);
+
+      const provider = new AnchorProvider(connection, wallet as any, AnchorProvider.defaultOptions());
+      const program = new Program(idl as any, PROGRAM_ID, provider);
+
+      // Check if wallet has enough SOL for transaction fee
+      const balance = await connection.getBalance(wallet.publicKey!);
+      if (balance < 5000) {
+        throw new Error('Insufficient SOL for transaction. Need at least 0.005 SOL for gas.');
+      }
+
+      const amountLamports = new BN(parseFloat(collateral) * 1e9);
+
+      // Derive loan account PDA
+      const [loanAccount] = PublicKey.findProgramAddressSync(
+        [Buffer.from('loan'), wallet.publicKey!.toBuffer()],
+        PROGRAM_ID
+      );
+
+      const [systemConfig] = PublicKey.findProgramAddressSync(
+        [Buffer.from('system_config')],
+        PROGRAM_ID
+      );
+
+      // Verify system config exists
+      const configInfo = await connection.getAccountInfo(systemConfig);
+      if (!configInfo) {
+        throw new Error('System not initialized yet. Please wait for admin to initialize.');
+      }
+
+      // Check if loan account exists, if not this will create it on-chain
+      const loanExists = await checkAndInitAccount(connection, program, wallet.publicKey!);
+
+      // Deposit collateral transaction
+      const tx = await program.methods
+        .depositCollateral(amountLamports)
+        .accounts({
+          user: wallet.publicKey,
+          loanAccount,
+          systemConfig,
+          tokenProgram: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+          rent: new PublicKey('SysvarRent111111111111111111111111111111111'),
+        })
+        .transaction();
+
+      tx.feePayer = wallet.publicKey;
+      tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+
+      const signedTx = await wallet.signTransaction!(tx);
+      const signature = await connection.sendRawTransaction(signedTx.serialize());
+      await connection.confirmTransaction(signature, 'confirmed');
+
+      setTxSig(signature);
+      setSuccess(true);
+
+      // Reset form
+      setCollateral('');
+    } catch (err: any) {
+      console.error('Borrow error:', err);
+      setError(err.message || 'Transaction failed. Make sure you have enough SOL for gas.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const solPrice = SOL_PRICE;
   const collateralValue = parseFloat(collateral || '0') * solPrice;
   const borrowAmount = collateralValue * (ltv / 100);
   const liquidationPrice = collateralValue > 0 ? (borrowAmount * 1.1) / parseFloat(collateral || '1') : 0;
@@ -179,12 +283,12 @@ export default function BorrowPage() {
               </div>
             </div>
 
-            <button
-              className="w-full bg-ginva-orange text-white py-3 rounded-lg font-medium hover:brightness-110 transition-all mt-6 disabled:opacity-50"
-              disabled={!collateral || parseFloat(collateral) <= 0}
-            >
-              Borrow USDC
-            </button>
+<button onClick={executeBorrow} disabled={!collateral || parseFloat(collateral) <= 0 || loading} className="w-full bg-ginva-orange text-white py-3 rounded-lg font-medium hover:brightness-110 transition-all mt-6 disabled:opacity-50 flex items-center justify-center gap-2">
+  {loading && <Loader2 className="animate-spin" size={18} />}
+  {loading ? 'Processing...' : 'Deposit & Borrow'}
+</button>
+{error && <div className="mt-3 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">{error}</div>}
+{success && txSig && <div className="mt-3 p-3 bg-green-500/10 border border-green-500/30 rounded-lg"><p className="text-green-400 text-sm font-medium">Success!</p><a href={`https://explorer.solana.com/tx/${txSig}?cluster=devnet`} target="_blank" rel="noopener noreferrer" className="text-green-300 text-xs hover:underline">View on Explorer</a></div>}
           </div>
         </div>
 

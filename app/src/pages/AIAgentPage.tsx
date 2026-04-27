@@ -1,6 +1,13 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useWalletStore } from '../stores/walletStore';
-import { Bot, Pause, Settings, FileText, Activity } from 'lucide-react';
+import { Bot, Pause, Settings, FileText, Activity, Send, Loader2, X } from 'lucide-react';
+
+const AI_CHAT_API = 'https://ai-chat-cloudflare.achaisirum.workers.dev/api/chat';
+
+interface ChatMessage {
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+}
 
 export default function AIAgentPage() {
   const { connected, connect } = useWalletStore();
@@ -8,6 +15,64 @@ export default function AIAgentPage() {
   const [keeperRole, setKeeperRole] = useState<'A' | 'B' | 'C'>('A');
   const [hfThreshold, setHfThreshold] = useState(1.1);
   const [autoExecute, setAutoExecute] = useState(true);
+
+  // Chat state
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    { role: 'assistant', content: 'Hello! I\'m your AI Agent. Ask me about GINVA protocol, liquidation strategies, or keeper configuration.' }
+  ]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to bottom on new message
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // Send message to AI Chat API
+  const handleSendMessage = async () => {
+    if (!input.trim() || loading) return;
+    
+    const userMessage: ChatMessage = { role: 'user', content: input.trim() };
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
+    setLoading(true);
+
+    try {
+      const response = await fetch(AI_CHAT_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: [...messages, userMessage] })
+      });
+
+      if (!response.ok) throw new Error('API request failed');
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('No response stream');
+
+      const decoder = new TextDecoder();
+      setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const text = decoder.decode(value, { stream: true });
+        setMessages(prev => {
+          const updated = [...prev];
+          const lastMsg = updated[updated.length - 1];
+          if (lastMsg?.role === 'assistant') {
+            lastMsg.content += text;
+          }
+          return updated;
+        });
+      }
+    } catch (error) {
+      console.error('Chat error:', error);
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' }]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (!connected) {
     return (
@@ -80,6 +145,52 @@ export default function AIAgentPage() {
             <button className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-ginva-bg-tertiary border border-white/[0.08] text-ginva-text hover:border-ginva-orange/50 transition-all">
               <FileText size={14} />
               View Logs
+            </button>
+          </div>
+        </div>
+
+        {/* AI Chat Interface */}
+        <div className="bg-ginva-bg-card border border-white/[0.08] rounded-xl p-6 mt-6">
+          <h2 className="font-heading font-medium text-xl text-ginva-text mb-4">AI Assistant</h2>
+          
+          {/* Chat Messages */}
+          <div className="h-[300px] overflow-y-auto space-y-4 mb-4 p-4 bg-ginva-bg-secondary rounded-lg">
+            {messages.map((msg, idx) => (
+              <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[80%] p-3 rounded-lg text-sm ${
+                  msg.role === 'user' 
+                    ? 'bg-ginva-orange text-white' 
+                    : msg.role === 'system'
+                      ? 'bg-purple-500/20 text-purple-300'
+                      : 'bg-ginva-bg-tertiary text-ginva-text'
+                }`}>
+                  {msg.content}
+                  {msg.role === 'assistant' && idx === messages.length - 1 && loading && (
+                    <Loader2 size={14} className="animate-spin inline ml-2" />
+                  )}
+                </div>
+              </div>
+            ))}
+            <div ref={chatEndRef} />
+          </div>
+
+          {/* Chat Input */}
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+              placeholder="Ask about GINVA..."
+              className="flex-1 bg-white/5 border border-white/[0.08] rounded-lg px-4 py-2.5 text-ginva-text text-sm outline-none focus:border-ginva-orange/50 transition-colors"
+              disabled={loading}
+            />
+            <button
+              onClick={handleSendMessage}
+              disabled={loading || !input.trim()}
+              className="bg-ginva-orange text-white px-4 py-2.5 rounded-lg hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
             </button>
           </div>
         </div>
