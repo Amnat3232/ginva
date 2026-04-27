@@ -211,6 +211,11 @@ pub struct LoanAccount {
     pub asset_config: [u8; 32],
     pub is_restricted: u8,
     pub debt_accumulation_last_update: u64,
+   // Health Factor and Grace Period (Phase 2)
+   pub health_factor: i64,          // Scaled by 10000 (e.g., 15000 = 1.5)
+   pub grace_period_start_time: u64, // When 72h grace period starts (after maturity)
+   pub grace_period_active: u8,     // 1 = in grace period, 0 = not
+   pub liquidation_trigger_reason: u8, // 0=none, 1=price_drop, 2=maturity_expired
 }
 
 impl LoanAccount {
@@ -226,6 +231,63 @@ impl LoanAccount {
     pub fn liquidation_processed(&self) -> bool {
         self.liquidation_processed != 0
     }
+
+   // ============================================================================
+   // Health Factor & Grace Period Methods (GINVA Fairness Features)
+   // ============================================================================
+
+   /// Check if loan is mature (past maturity time)
+   pub fn is_matured(&self, current_time: u64) -> bool {
+       current_time >= self.loan_maturity_time
+   }
+
+   /// Check if loan is in 72-hour grace period after maturity  
+   pub fn is_in_grace_period(&self, current_time: u64) -> bool {
+       let grace_period_seconds: u64 = 259200; // 72 * 3600
+       self.grace_period_active == 1 
+           && current_time >= self.grace_period_start_time
+           && current_time < self.grace_period_start_time + grace_period_seconds
+   }
+
+   /// Check if health factor is critical (< 100%)
+   pub fn is_health_factor_critical(&self) -> bool {
+       self.health_factor < 10000
+   }
+
+   /// Check if liquidation should happen immediately (price drop, no grace period)
+   pub fn can_liquidate_immediately(&self, current_time: u64) -> bool {
+       if self.is_in_grace_period(current_time) {
+           return false;
+       }
+       self.is_health_factor_critical()
+   }
+
+   /// Check if liquidation is allowed during grace period (after maturity)
+   pub fn can_liquidate_during_grace(&self, current_time: u64) -> bool {
+       self.grace_period_active == 1 
+           && self.is_matured(current_time)
+           && self.liquidation_trigger_reason == 2
+   }
+
+   /// Calculate current debt (principal + interest)
+   pub fn total_debt(&self) -> u64 {
+       self.loan_amount.saturating_add(self.cumulative_interest)
+   }
+
+   /// Calculate collateral value in USD
+   pub fn collateral_value(&self, price: u64) -> u64 {
+       let collateral_u128 = (self.collateral_amount as u128).saturating_mul(price as u128);
+       (collateral_u128 / 1_000_000_000) as u64
+   }
+
+   /// Get liquidation type description
+   pub fn liquidation_type_str(&self) -> &'static str {
+       match self.liquidation_trigger_reason {
+           1 => "Price Drop",
+           2 => "Maturity Expired",
+           _ => "Unknown",
+       }
+   }
 }
 
 // ============================================================================

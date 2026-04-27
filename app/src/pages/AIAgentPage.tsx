@@ -29,10 +29,38 @@ export default function AIAgentPage() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Add animation styles
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .agent-card {
+        transition: all 0.3s ease;
+      }
+      .agent-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(250, 104, 73, 0.15);
+      }
+      .section-animate {
+        opacity: 0;
+        animation: slideUp 0.5s ease-out forwards;
+      }
+      .section-animate:nth-child(1) { animation-delay: 0.1s; }
+      .section-animate:nth-child(2) { animation-delay: 0.2s; }
+      .section-animate:nth-child(3) { animation-delay: 0.3s; }
+      .section-animate:nth-child(4) { animation-delay: 0.4s; }
+    `;
+    document.head.appendChild(style);
+    return () => { document.head.removeChild(style); };
+  }, []);
+
   // Send message to AI Chat API
   const handleSendMessage = async () => {
     if (!input.trim() || loading) return;
-    
+
     const userMessage: ChatMessage = { role: 'user', content: input.trim() };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
@@ -101,10 +129,10 @@ export default function AIAgentPage() {
         </p>
 
         {/* Agent Status Card */}
-        <div className="bg-ginva-bg-card border border-white/[0.08] rounded-xl p-6 mt-8">
+        <div className="bg-ginva-bg-card border border-white/[0.08] rounded-xl p-6 mt-8 agent-card section-animate">
           <div className="flex items-center gap-3 mb-6">
             <div className={`w-3 h-3 rounded-full ${
-              agentStatus === 'online' ? 'bg-ginva-green animate-agent-pulse' : 'bg-ginva-yellow animate-agent-pulse-yellow'
+              agentStatus === 'online' ? 'bg-ginva-green animate-pulse' : 'bg-ginva-yellow animate-pulse'
             }`} />
             <span className={`text-sm font-medium ${
               agentStatus === 'online' ? 'text-ginva-green' : 'text-ginva-yellow'
@@ -150,19 +178,19 @@ export default function AIAgentPage() {
         </div>
 
         {/* AI Chat Interface */}
-        <div className="bg-ginva-bg-card border border-white/[0.08] rounded-xl p-6 mt-6">
+        <div className="bg-ginva-bg-card border border-white/[0.08] rounded-xl p-6 mt-6 section-animate">
           <h2 className="font-heading font-medium text-xl text-ginva-text mb-4">AI Assistant</h2>
-          
+
           {/* Chat Messages */}
           <div className="h-[300px] overflow-y-auto space-y-4 mb-4 p-4 bg-ginva-bg-secondary rounded-lg">
             {messages.map((msg, idx) => (
               <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[80%] p-3 rounded-lg text-sm ${
-                  msg.role === 'user' 
-                    ? 'bg-ginva-orange text-white' 
+                  msg.role === 'user'
+                    ? 'bg-ginva-orange text-white'
                     : msg.role === 'system'
-                      ? 'bg-purple-500/20 text-purple-300'
-                      : 'bg-ginva-bg-tertiary text-ginva-text'
+                    ? 'bg-purple-500/20 text-purple-300'
+                    : 'bg-ginva-bg-tertiary text-ginva-text'
                 }`}>
                   {msg.content}
                   {msg.role === 'assistant' && idx === messages.length - 1 && loading && (
@@ -196,7 +224,7 @@ export default function AIAgentPage() {
         </div>
 
         {/* Revenue Share Model */}
-        <div className="bg-ginva-bg-card border border-white/[0.08] rounded-xl p-6 mt-6">
+        <div className="bg-ginva-bg-card border border-white/[0.08] rounded-xl p-6 mt-6 section-animate">
           <h2 className="font-heading font-medium text-xl text-ginva-text mb-4">Revenue Sharing</h2>
           <p className="text-sm text-ginva-text-secondary mb-4">$100 Liquidation Event Distribution</p>
           <div className="h-8 rounded-full overflow-hidden flex">
@@ -227,7 +255,7 @@ export default function AIAgentPage() {
         </div>
 
         {/* Agent Configuration */}
-        <div className="bg-ginva-bg-card border border-white/[0.08] rounded-xl p-6 mt-6">
+        <div className="bg-ginva-bg-card border border-white/[0.08] rounded-xl p-6 mt-6 section-animate">
           <h2 className="font-heading font-medium text-xl text-ginva-text mb-6">Agent Configuration</h2>
           <div className="space-y-5">
             {/* Keeper Role */}

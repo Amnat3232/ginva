@@ -150,6 +150,20 @@ export default function BorrowPage() {
         <h1 className="font-heading font-bold text-3xl text-ginva-text">Borrow USDC</h1>
         <p className="text-ginva-text-secondary mt-2">Deposit SOL/JUP as collateral and borrow USDC at 8% fixed APR.</p>
 
+
+{/* Fairness Features Highlight */}
+ <div className="flex flex-wrap gap-3 mt-4">
+   <div className="bg-ginva-green/10 border border-ginva-green/30 rounded-lg px-4 py-2 flex items-center gap-2">
+     <span className="w-2 h-2 bg-ginva-green rounded-full animate-pulse" />
+     <span className="text-sm text-ginva-green font-medium">8% Fixed APR</span>
+   </div>
+   <div className="bg-ginva-blue/10 border border-ginva-blue/30 rounded-lg px-4 py-2 flex items-center gap-2">
+     <svg className="w-4 h-4 text-ginva-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+     </svg>
+     <span className="text-sm text-ginva-blue font-medium">72-Hour Grace Period</span>
+   </div>
+ </div>
         <div className="grid lg:grid-cols-[55%_45%] gap-6 mt-8">
           {/* Left: Collateral Deposit */}
           <div className="bg-ginva-bg-card border border-white/[0.08] rounded-xl p-6">

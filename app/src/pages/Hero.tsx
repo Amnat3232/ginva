@@ -1,6 +1,6 @@
 import { useWalletStore } from '../stores/walletStore';
 import { Link } from 'react-router-dom';
-import { TrendingUp, Shield, Bot, Store } from 'lucide-react';
+import { TrendingUp, Shield, Bot, Store, Clock, Sparkles } from 'lucide-react';
 
 const STATS = [
   { label: 'Total Value Locked', value: '$2.4M', color: 'text-ginva-orange' },
@@ -93,6 +93,32 @@ export default function Hero() {
               </div>
             </Link>
           ))}
+        </div>
+
+        {/* Key Differentiators - GINVA Fairness Features */}
+        <div className="grid md:grid-cols-2 gap-4 mt-12">
+          <div className="bg-gradient-to-br from-ginva-orange/20 to-ginva-orange/5 border border-ginva-orange/30 rounded-xl p-6 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-ginva-orange/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-ginva-orange/20 transition-all" />
+            <div className="relative">
+              <div className="flex items-center gap-2 text-ginva-orange mb-2">
+                <Sparkles size={16} />
+                <span className="text-xs font-medium uppercase tracking-wider">Fixed Rate</span>
+              </div>
+              <div className="font-mono text-4xl font-bold text-ginva-text">8% <span className="text-lg font-normal text-ginva-text-secondary">APR</span></div>
+              <p className="text-sm text-ginva-text-secondary mt-2">No variable rates. No surprises. Just predictable returns.</p>
+            </div>
+          </div>
+          <div className="bg-gradient-to-br from-ginva-green/20 to-ginva-green/5 border border-ginva-green/30 rounded-xl p-6 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-ginva-green/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-ginva-green/20 transition-all" />
+            <div className="relative">
+              <div className="flex items-center gap-2 text-ginva-green mb-2">
+                <Clock size={16} />
+                <span className="text-xs font-medium uppercase tracking-wider">72-Hour Grace Period</span>
+              </div>
+              <div className="font-mono text-4xl font-bold text-ginva-text">72h <span className="text-lg font-normal text-ginva-text-secondary">buffer</span></div>
+              <p className="text-sm text-ginva-text-secondary mt-2">Time to top up before liquidation. Fairer than instant liquidations.</p>
+            </div>
+          </div>
         </div>
 
         {/* Stats Bar */}
