@@ -580,20 +580,54 @@ pub fn load_system_config<'a>(
     Ok(account_data)
 }
 
-/// Check and acquire reentrancy guard
+/// Check and acquire reentrancy guard (immutable - for read-only checks)
 #[inline(always)]
-pub fn acquire_reentrancy_guard(config: &SystemConfig) -> Result<(), ProgramError> {
+pub fn check_reentrancy_guard(config: &SystemConfig) -> Result<(), ProgramError> {
     if config.is_locked() {
         return Err(GinvaError::ReentrancyDetected.into());
     }
     Ok(())
 }
 
-/// Release reentrancy guard
+/// Acquire reentrancy guard (mutable - sets the lock)
 #[inline(always)]
-pub fn release_reentrancy_guard() {
-    // Guard is released automatically when account is written back
-    // This is a placeholder - actual implementation depends on Pinocchio's mutability model
+pub fn acquire_reentrancy_guard(config: &mut SystemConfig) -> Result<(), ProgramError> {
+    if config.is_locked() {
+        return Err(GinvaError::ReentrancyDetected.into());
+    }
+    config.set_locked();
+    Ok(())
+}
+
+/// Release reentrancy guard (mutable - clears the lock)
+#[inline(always)]
+pub fn release_reentrancy_guard(config: &mut SystemConfig) {
+    config.set_unlocked();
+}
+
+/// Load system config with mutable access for reentrancy protection
+#[inline(always)]
+pub fn load_system_config_mut<'a>(
+    account: &'a AccountInfo,
+    program_id: &Pubkey,
+) -> Result<&'a mut SystemConfig, ProgramError> {
+    // 1. Validate owner (inverted logic - should NOT be owned by program to be valid system account)
+    if !unsafe { account.is_owned_by(program_id) } {
+        return Err(ProgramError::IncorrectProgramId);
+    }
+    // 2. Validate data length
+    if account.data_len() < SYSTEM_CONFIG_SIZE {
+        return Err(GinvaError::InvalidInput.into());
+    }
+    // 3. Validate discriminator
+    let data = account.try_borrow_data()?;
+    if &data[0..8] != SYSTEM_CONFIG_DISCRIMINATOR {
+        return Err(ProgramError::UninitializedAccount);
+    }
+    drop(data);
+    // 4. Safe mutable cast
+    let account_data = unsafe { &mut *((account.try_borrow_mut_data()?.as_mut_ptr() as *mut SystemConfig)) };
+    Ok(account_data)
 }
 
 #[inline(always)]

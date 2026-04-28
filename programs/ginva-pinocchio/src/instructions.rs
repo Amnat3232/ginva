@@ -340,16 +340,24 @@ fn process_deposit(_program_id: &Pubkey, accounts: &mut [AccountInfo], data: &[u
         return Err(ProgramError::IncorrectProgramId);
     }
 
-    // 3. Load system config
-    let config = load_system_config(system_config, _program_id)?;
+    // 3. Load system config (mutable for reentrancy guard)
+    let config = load_system_config_mut(system_config, _program_id)?;
 
-    // 4. Check protocol is active (not paused AND is_active = true)
+    // 4. Acquire reentrancy guard - prevents recursive calls
+    acquire_reentrancy_guard(config)?;
+
+    // 5. Check protocol is active (not paused AND is_active = true)
     if !config.is_active() {
+        release_reentrancy_guard(config);
         return Err(GinvaError::ProtocolPaused.into());
     }
 
-    // 5. Validate amounts don't overflow
-    let fee = (amount as u128 * config.deposit_fee_bps as u128 / 10000) as u64;
+    // 6. Validate amounts don't overflow (using checked math)
+    let fee = (amount as u128)
+        .checked_mul(config.deposit_fee_bps as u128)
+        .and_then(|v| v.checked_div(10000))
+        .map(|v| v as u64)
+        .ok_or(GinvaError::ArithmeticOverflow)?;
     let net_amount = amount
         .checked_sub(fee)
         .ok_or(GinvaError::ArithmeticOverflow)?;
@@ -375,6 +383,9 @@ fn process_deposit(_program_id: &Pubkey, accounts: &mut [AccountInfo], data: &[u
             .ok_or(GinvaError::ArithmeticOverflow)?;
         config_data[197..205].copy_from_slice(&new_total.to_le_bytes());
     }
+
+    // 7. Release reentrancy guard on success
+    release_reentrancy_guard(config);
 
     Ok(())
 }
