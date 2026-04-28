@@ -26,10 +26,10 @@ export default function EarnPage() {
     return (
       <div className="min-h-screen flex items-center justify-center px-[5vw]">
         <div className="text-center max-w-md">
-          <TrendingUp size={48} className="text-ginva-orange mx-auto mb-4" />
+          <TrendingUp size={48} className="text-ginva-green mx-auto mb-4" />
           <h2 className="font-heading font-bold text-2xl text-ginva-text">Connect Your Wallet</h2>
           <p className="text-ginva-text-secondary mt-2 mb-6">Connect to deposit USDC and start earning 8% APR.</p>
-          <button onClick={connect} className="bg-ginva-orange text-white px-8 py-3 rounded-lg font-medium hover:brightness-110 transition-all">
+          <button onClick={connect} className="bg-ginva-green text-white px-8 py-3 rounded-lg font-medium hover:brightness-110 transition-all">
             Connect Wallet
           </button>
         </div>
@@ -47,7 +47,7 @@ export default function EarnPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
           <div className="bg-ginva-bg-card border border-white/[0.08] rounded-xl p-5">
             <div className="text-xs text-ginva-text-secondary uppercase tracking-wider">Total Pool Size</div>
-            <div className="font-mono text-xl text-ginva-orange mt-1">${poolSize.toLocaleString()}</div>
+            <div className="font-mono text-xl text-ginva-green mt-1">${poolSize.toLocaleString()}</div>
           </div>
           <div className="bg-ginva-bg-card border border-white/[0.08] rounded-xl p-5">
             <div className="text-xs text-ginva-text-secondary uppercase tracking-wider">Your Deposits</div>
@@ -78,9 +78,9 @@ export default function EarnPage() {
                   value={depositAmount}
                   onChange={(e) => setDepositAmount(e.target.value)}
                   placeholder="0.00 USDC"
-                  className="w-full bg-white/5 border border-white/[0.08] rounded-lg px-4 py-3 text-ginva-text font-mono text-lg outline-none focus:border-ginva-orange/50 transition-colors"
+                  className="w-full bg-white/5 border border-white/[0.08] rounded-lg px-4 py-3 text-ginva-text font-mono text-lg outline-none focus:border-ginva-green/50 transition-colors"
                 />
-                <button onClick={() => setDepositAmount('8500')} className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ginva-orange hover:underline">MAX</button>
+                <button onClick={() => setDepositAmount('8500')} className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ginva-green hover:underline">MAX</button>
               </div>
             </div>
             <div className="bg-ginva-blue/10 border border-ginva-blue/30 rounded-lg p-4 mb-6 flex gap-3">
@@ -90,7 +90,7 @@ export default function EarnPage() {
                 You've staked for {daysStaked} days.
               </p>
             </div>
-            <button className="w-full bg-ginva-orange text-white py-3 rounded-lg font-medium hover:brightness-110 transition-all">
+            <button className="w-full bg-ginva-green text-white py-3 rounded-lg font-medium hover:brightness-110 transition-all">
               Deposit USDC
             </button>
           </div>
@@ -114,9 +114,9 @@ export default function EarnPage() {
                   value={withdrawAmount}
                   onChange={(e) => setWithdrawAmount(e.target.value)}
                   placeholder="0.00 USDC"
-                  className="w-full bg-white/5 border border-white/[0.08] rounded-lg px-4 py-3 text-ginva-text font-mono text-lg outline-none focus:border-ginva-orange/50 transition-colors"
+                  className="w-full bg-white/5 border border-white/[0.08] rounded-lg px-4 py-3 text-ginva-text font-mono text-lg outline-none focus:border-ginva-green/50 transition-colors"
                 />
-                <button onClick={() => setWithdrawAmount(String(userDeposits + userEarnings))} className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ginva-orange hover:underline">MAX</button>
+                <button onClick={() => setWithdrawAmount(String(userDeposits + userEarnings))} className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ginva-green hover:underline">MAX</button>
               </div>
             </div>
             <div className="space-y-2 mb-6">
@@ -135,7 +135,7 @@ export default function EarnPage() {
                 <span className="font-mono text-ginva-text font-medium">${receiveAmount.toFixed(2)}</span>
               </div>
             </div>
-            <button className="w-full bg-ginva-bg-tertiary border border-white/[0.08] text-ginva-text py-3 rounded-lg font-medium hover:border-ginva-orange/50 transition-all">
+            <button className="w-full bg-ginva-bg-tertiary border border-white/[0.08] text-ginva-text py-3 rounded-lg font-medium hover:border-ginva-green/50 transition-all">
               Withdraw
             </button>
           </div>

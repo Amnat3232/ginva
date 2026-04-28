@@ -57,6 +57,83 @@
     --radius: 0.75rem;
   }
 
+  /* Light Mode - 60-30-10 Color System */
+  .light {
+    /* 60% - PEACE: Lighter backgrounds */
+    --ginva-60-bg: #f8faf9;
+    --ginva-60-bg-secondary: #ffffff;
+
+    /* 30% - LOGIC: Lighter surfaces */
+    --ginva-30-surface: #ffffff;
+    --ginva-30-surface-2: #f1f5f2;
+    --ginva-30-surface-3: #e8efe9;
+    --ginva-30-border: #d1ddd4;
+
+    /* 10% - ACTION: Same accent for consistency */
+    --ginva-10-primary: #00a854;
+    --ginva-10-primary-hover: #00e676;
+    --ginva-10-primary-dim: #008543;
+    --ginva-10-glow: rgba(0, 168, 84, 0.12);
+
+    /* Semantic Colors */
+    --safety-green: #00a854;
+    --safety-green-dim: #008543;
+    --caution-yellow: #f9a825;
+    --danger-red: #e53935;
+    --neutral-gray: #78909c;
+
+    /* Text - Dark for light mode */
+    --text-primary: #1a2318;
+    --text-secondary: #4a6350;
+    --text-faint: #8ba393;
+
+    /* Legacy compatibility light mode */
+    --background: 140 20% 98%;
+    --foreground: 140 30% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 140 30% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 140 30% 10%;
+    --primary: 140 30% 10%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 140 15% 96%;
+    --secondary-foreground: 140 30% 10%;
+    --muted: 140 15% 96%;
+    --muted-foreground: 140 20% 40%;
+    --accent: 150 80% 40%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 140 20% 85%;
+    --input: 140 20% 90%;
+    --ring: 150 80% 40%;
+  }
+
+  /* Light mode body styles */
+  .light body {
+    background-color: var(--ginva-60-bg);
+    color: var(--text-primary);
+  }
+
+  .light .card-ginva,
+  .light .bg-ginva-bg-card {
+    background-color: var(--ginva-30-surface);
+    border-color: var(--ginva-30-border);
+  }
+
+  .light .text-ginva-text-secondary {
+    color: var(--text-secondary);
+  }
+
+  .light .text-ginva-text-muted {
+    color: var(--text-faint);
+  }
+
+  .light .bg-ginva-bg-tertiary,
+  .light .bg-ginva-bg-secondary {
+    background-color: var(--ginva-30-surface-2);
+  }
+
   * {
     @apply border-border;
   }
@@ -384,6 +461,27 @@
 .animate-float { animation: float-gentle 3s ease-in-out infinite; }
 .animate-glow-pulse { animation: glow-pulse 3s ease-in-out infinite; }
 
+/* ============================================ */
+/* PREFER REDUCED MOTION - Accessibility       */
+/* ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .animate-pulse-safe,
+  .animate-pulse-caution,
+  .animate-pulse-danger,
+  .animate-float,
+  .animate-glow-pulse {
+    animation: none !important;
+  }
+}
+
 /* Typography */
 .text-gradient-glow {
   background: linear-gradient(135deg, var(--ginva-10-primary), #69f0ae);
@@ -421,8 +519,43 @@
   font-size: 1.125rem;
 }
 
-/* Focus states */
+/* ============================================ */
+/* TOUCH TARGETS - Minimum 44x44px (ui-ux-pro-max) */
+/* ============================================ */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ensure all buttons have minimum touch target */
+button,
+[role="button"] {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Focus states - Accessibility (ui-ux-pro-max) */
 *:focus-visible {
   outline: 2px solid var(--ginva-10-primary);
   outline-offset: 2px;
+}
+
+/* Button focus states */
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--ginva-10-primary);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(0, 230, 118, 0.15);
+}
+
+/* Input focus states */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+  border-color: var(--ginva-10-primary);
+  box-shadow: 0 0 0 4px rgba(0, 230, 118, 0.1);
 }

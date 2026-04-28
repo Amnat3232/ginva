@@ -5,7 +5,7 @@ import { Zap, ShoppingBag, CheckCircle, Shield, AlertTriangle } from 'lucide-rea
 const KEEPER_ROLES = [
   { icon: Zap, name: 'Keeper A (Trigger)', reward: '0.6%', desc: 'Monitor health, detect liquidation events', color: 'text-ginva-green', bg: 'bg-ginva-green/20' },
   { icon: ShoppingBag, name: 'Keeper B (Storefront)', reward: 'Up to 8% discount', desc: 'Buy with time-decay pricing', color: 'text-ginva-blue', bg: 'bg-ginva-blue/20' },
-  { icon: CheckCircle, name: 'Keeper C (Finalize)', reward: '1.0 USDC/tx', desc: 'Complete settlement & distribute funds', color: 'text-ginva-orange', bg: 'bg-ginva-orange/20' },
+  { icon: CheckCircle, name: 'Keeper C (Finalize)', reward: '1.0 USDC/tx', desc: 'Complete settlement & distribute funds', color: 'text-ginva-green', bg: 'bg-ginva-green/20' },
 ];
 
 const LIQUIDATIONS = [
@@ -28,10 +28,10 @@ export default function KeeperPage() {
     return (
       <div className="min-h-screen flex items-center justify-center px-[5vw]">
         <div className="text-center max-w-md">
-          <Shield size={48} className="text-ginva-orange mx-auto mb-4" />
+          <Shield size={48} className="text-ginva-green mx-auto mb-4" />
           <h2 className="font-heading font-bold text-2xl text-ginva-text">Connect Your Wallet</h2>
           <p className="text-ginva-text-secondary mt-2 mb-6">Connect to participate in keeper liquidations and earn rewards.</p>
-          <button onClick={connect} className="bg-ginva-orange text-white px-8 py-3 rounded-lg font-medium hover:brightness-110 transition-all">
+          <button onClick={connect} className="bg-ginva-green text-white px-8 py-3 rounded-lg font-medium hover:brightness-110 transition-all">
             Connect Wallet
           </button>
         </div>
@@ -54,7 +54,7 @@ export default function KeeperPage() {
         {/* Keeper Role Cards */}
         <div className="grid md:grid-cols-3 gap-4 mt-8">
           {KEEPER_ROLES.map((role) => (
-            <div key={role.name} className="bg-ginva-bg-card border border-white/[0.08] rounded-xl p-6 hover:border-ginva-orange/30 transition-all">
+            <div key={role.name} className="bg-ginva-bg-card border border-white/[0.08] rounded-xl p-6 hover:border-ginva-green/30 transition-all">
               <div className={`w-10 h-10 ${role.bg} rounded-lg flex items-center justify-center`}>
                 <role.icon size={20} className={role.color} />
               </div>
@@ -74,7 +74,7 @@ export default function KeeperPage() {
                 type="checkbox"
                 checked={showOnlyCritical}
                 onChange={(e) => setShowOnlyCritical(e.target.checked)}
-                className="accent-ginva-orange"
+                className="accent-ginva-green"
               />
               Show only HF &lt; 100%
             </label>
@@ -109,13 +109,13 @@ export default function KeeperPage() {
                   <span className={`px-2 py-0.5 rounded-full ${
                     l.role === 'A' ? 'bg-ginva-green/20 text-ginva-green' :
                     l.role === 'B' ? 'bg-ginva-blue/20 text-ginva-blue' :
-                    'bg-ginva-orange/20 text-ginva-orange'
+                    'bg-ginva-green/20 text-ginva-green'
                   }`}>
                     {l.role}
                   </span>
                 </span>
                 <div className="text-right">
-                  <button className="text-xs bg-ginva-orange text-white px-4 py-1.5 rounded hover:brightness-110 transition-all">
+                  <button className="text-xs bg-ginva-green text-white px-4 py-1.5 rounded hover:brightness-110 transition-all">
                     {l.action}
                   </button>
                 </div>

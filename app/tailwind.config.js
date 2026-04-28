@@ -38,26 +38,44 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+
+        // 60-30-10 Color System - Synced with design-tokens.json
         ginva: {
-          bg: '#121a13',
-          'bg-secondary': '#2a332a',
-          'bg-tertiary': '#3d4d3a',
-          'bg-card': '#1a2318',
-          text: '#d9e0d6',
-          'text-secondary': '#9da893',
-          'text-muted': '#6b7563',
+          // 60% PEACE - Backgrounds
+          bg: '#050c06',
+          'bg-secondary': '#070d07',
+          'bg-tertiary': '#0d1c0e',
+          'bg-card': '#09160a',
+
+          // 30% LOGIC - Border
+          border: '#1a3a1c',
+
+          // 10% ACTION - Primary Accent (Ginva Green)
+          green: '#00e676',
+          'green-hover': '#00ff85',
+          'green-dim': '#00b359',
+
+          // Legacy/secondary accents (kept for backward compatibility)
           orange: '#fa6849',
-          green: '#22c55e',
           red: '#ef4444',
           blue: '#3b82f6',
           yellow: '#eab308',
+
+          // Text colors
+          text: '#e8f5e9',
+          'text-secondary': '#81c784',
+          'text-muted': '#4a6b4c',
         },
       },
+
+      // Typography - Synced with design-tokens.json
       fontFamily: {
-        heading: ['"Noto Sans JP"', 'sans-serif'],
-        body: ['"Inter"', 'sans-serif'],
+        heading: ['"DM Sans"', 'sans-serif'],
+        body: ['"DM Sans"', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'monospace'],
+        display: ['"Cormorant Garamond"', 'Georgia', 'serif'],
       },
+
       borderRadius: {
         xl: "calc(var(--radius) + 4px)",
         lg: "var(--radius)",
@@ -65,6 +83,18 @@ module.exports = {
         sm: "calc(var(--radius) - 4px)",
         xs: "calc(var(--radius) - 6px)",
       },
+
+      // Z-Index Scale (for better management)
+      zIndex: {
+        'base': '0',
+        'dropdown': '10',
+        'sticky': '20',
+        'modal': '30',
+        'popover': '25',
+        'tooltip': '50',
+        'toast': '60',
+      },
+
       keyframes: {
         "accordion-down": {
           from: { height: "0" },

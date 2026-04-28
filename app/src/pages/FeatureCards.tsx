@@ -59,11 +59,11 @@ export default function FeatureCards() {
             <Link
               key={f.title}
               to={f.to}
-              className="bg-ginva-bg-card border border-white/[0.08] p-6 rounded-xl hover:border-ginva-orange/30 hover:-translate-y-1 hover:shadow-lg transition-all duration-200 group"
+              className="bg-ginva-bg-card border border-white/[0.08] p-6 rounded-xl hover:border-ginva-green/30 hover:-translate-y-1 hover:shadow-lg transition-all duration-200 group"
             >
               <f.icon
                 size={28}
-                className="text-ginva-text-secondary group-hover:text-ginva-orange transition-colors"
+                className="text-ginva-text-secondary group-hover:text-ginva-green transition-colors"
                 style={{ filter: 'drop-shadow(0 0 5px rgba(250,104,73,0.3))' }}
               />
               <h3 className="font-heading font-medium text-lg text-ginva-text mt-4">

@@ -106,10 +106,10 @@ export default function AIAgentPage() {
     return (
       <div className="min-h-screen flex items-center justify-center px-[5vw]">
         <div className="text-center max-w-md">
-          <Bot size={48} className="text-ginva-orange mx-auto mb-4" />
+          <Bot size={48} className="text-ginva-green mx-auto mb-4" />
           <h2 className="font-heading font-bold text-2xl text-ginva-text">Connect Your Wallet</h2>
           <p className="text-ginva-text-secondary mt-2 mb-6">Connect to deploy and manage your AI Agent Keeper.</p>
-          <button onClick={connect} className="bg-ginva-orange text-white px-8 py-3 rounded-lg font-medium hover:brightness-110 transition-all">
+          <button onClick={connect} className="bg-ginva-green text-white px-8 py-3 rounded-lg font-medium hover:brightness-110 transition-all">
             Connect Wallet
           </button>
         </div>
@@ -121,7 +121,7 @@ export default function AIAgentPage() {
     <div className="min-h-screen px-[5vw] pt-[80px] pb-20">
       <div className="max-w-[900px] mx-auto">
         <div className="flex items-center gap-3 mb-2">
-          <Bot size={28} className="text-ginva-orange" />
+          <Bot size={28} className="text-ginva-green" />
           <h1 className="font-heading font-bold text-3xl text-ginva-text">AI Agent Keeper</h1>
         </div>
         <p className="text-ginva-text-secondary mt-1 max-w-[600px]">
@@ -166,11 +166,11 @@ export default function AIAgentPage() {
               <Pause size={14} />
               {agentStatus === 'online' ? 'Pause Agent' : 'Resume Agent'}
             </button>
-            <button className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-ginva-bg-tertiary border border-white/[0.08] text-ginva-text hover:border-ginva-orange/50 transition-all">
+            <button className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-ginva-bg-tertiary border border-white/[0.08] text-ginva-text hover:border-ginva-green/50 transition-all">
               <Settings size={14} />
               Configure
             </button>
-            <button className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-ginva-bg-tertiary border border-white/[0.08] text-ginva-text hover:border-ginva-orange/50 transition-all">
+            <button className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-ginva-bg-tertiary border border-white/[0.08] text-ginva-text hover:border-ginva-green/50 transition-all">
               <FileText size={14} />
               View Logs
             </button>
@@ -187,7 +187,7 @@ export default function AIAgentPage() {
               <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[80%] p-3 rounded-lg text-sm ${
                   msg.role === 'user'
-                    ? 'bg-ginva-orange text-white'
+                    ? 'bg-ginva-green text-white'
                     : msg.role === 'system'
                     ? 'bg-purple-500/20 text-purple-300'
                     : 'bg-ginva-bg-tertiary text-ginva-text'
@@ -210,13 +210,13 @@ export default function AIAgentPage() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
               placeholder="Ask about GINVA..."
-              className="flex-1 bg-white/5 border border-white/[0.08] rounded-lg px-4 py-2.5 text-ginva-text text-sm outline-none focus:border-ginva-orange/50 transition-colors"
+              className="flex-1 bg-white/5 border border-white/[0.08] rounded-lg px-4 py-2.5 text-ginva-text text-sm outline-none focus:border-ginva-green/50 transition-colors"
               disabled={loading}
             />
             <button
               onClick={handleSendMessage}
               disabled={loading || !input.trim()}
-              className="bg-ginva-orange text-white px-4 py-2.5 rounded-lg hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-ginva-green text-white px-4 py-2.5 rounded-lg hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
             </button>
@@ -228,7 +228,7 @@ export default function AIAgentPage() {
           <h2 className="font-heading font-medium text-xl text-ginva-text mb-4">Revenue Sharing</h2>
           <p className="text-sm text-ginva-text-secondary mb-4">$100 Liquidation Event Distribution</p>
           <div className="h-8 rounded-full overflow-hidden flex">
-            <div className="bg-ginva-orange flex items-center justify-center text-xs text-white font-medium" style={{ width: '45%' }}>
+            <div className="bg-ginva-green flex items-center justify-center text-xs text-white font-medium" style={{ width: '45%' }}>
               You 45%
             </div>
             <div className="bg-ginva-blue flex items-center justify-center text-xs text-white font-medium" style={{ width: '35%' }}>
@@ -240,15 +240,15 @@ export default function AIAgentPage() {
           </div>
           <div className="grid grid-cols-3 gap-4 mt-4">
             <div className="text-center">
-              <div className="font-mono text-lg text-ginva-orange">$2.70</div>
+              <div className="font-mono text-lg text-ginva-green">$2.70</div>
               <div className="text-xs text-ginva-text-secondary">10 events/mo</div>
             </div>
             <div className="text-center">
-              <div className="font-mono text-lg text-ginva-orange">$27.00</div>
+              <div className="font-mono text-lg text-ginva-green">$27.00</div>
               <div className="text-xs text-ginva-text-secondary">100 events/mo</div>
             </div>
             <div className="text-center">
-              <div className="font-mono text-lg text-ginva-orange">$270+</div>
+              <div className="font-mono text-lg text-ginva-green">$270+</div>
               <div className="text-xs text-ginva-text-secondary">1000+ events/mo</div>
             </div>
           </div>
@@ -268,7 +268,7 @@ export default function AIAgentPage() {
                     onClick={() => setKeeperRole(r)}
                     className={`flex-1 py-2.5 rounded-lg text-sm font-medium border transition-all ${
                       keeperRole === r
-                        ? 'bg-ginva-orange/20 border-ginva-orange/50 text-ginva-orange'
+                        ? 'bg-ginva-green/20 border-ginva-green/50 text-ginva-green'
                         : 'bg-ginva-bg-secondary border-white/[0.08] text-ginva-text-secondary hover:text-ginva-text'
                     }`}
                   >
@@ -291,7 +291,7 @@ export default function AIAgentPage() {
                 step="0.01"
                 value={hfThreshold}
                 onChange={(e) => setHfThreshold(Number(e.target.value))}
-                className="w-full accent-ginva-orange"
+                className="w-full accent-ginva-green"
               />
               <div className="flex justify-between text-xs text-ginva-text-muted mt-1">
                 <span>1.00</span>
@@ -308,7 +308,7 @@ export default function AIAgentPage() {
               <button
                 onClick={() => setAutoExecute(!autoExecute)}
                 className={`w-11 h-6 rounded-full transition-colors relative ${
-                  autoExecute ? 'bg-ginva-orange' : 'bg-ginva-bg-tertiary'
+                  autoExecute ? 'bg-ginva-green' : 'bg-ginva-bg-tertiary'
                 }`}
               >
                 <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${
@@ -323,11 +323,11 @@ export default function AIAgentPage() {
               <input
                 type="number"
                 defaultValue="10000"
-                className="w-full bg-white/5 border border-white/[0.08] rounded-lg px-4 py-2.5 text-ginva-text font-mono outline-none focus:border-ginva-orange/50 transition-colors"
+                className="w-full bg-white/5 border border-white/[0.08] rounded-lg px-4 py-2.5 text-ginva-text font-mono outline-none focus:border-ginva-green/50 transition-colors"
               />
             </div>
 
-            <button className="w-full bg-ginva-orange text-white py-3 rounded-lg font-medium hover:brightness-110 transition-all">
+            <button className="w-full bg-ginva-green text-white py-3 rounded-lg font-medium hover:brightness-110 transition-all">
               Save Configuration
             </button>
           </div>

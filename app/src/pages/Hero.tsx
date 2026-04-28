@@ -3,10 +3,10 @@ import { Link } from 'react-router-dom';
 import { TrendingUp, Shield, Bot, Store, Clock, Sparkles } from 'lucide-react';
 
 const STATS = [
-  { label: 'Total Value Locked', value: '$2.4M', color: 'text-ginva-orange' },
+  { label: 'Total Value Locked', value: '$2.4M', color: 'text-ginva-green' },
   { label: 'Active Loans', value: '184', color: 'text-ginva-green' },
   { label: 'AI Keepers', value: '23', color: 'text-ginva-blue' },
-  { label: 'Fixed APR', value: '8%', color: 'text-ginva-orange' },
+  { label: 'Fixed APR', value: '8%', color: 'text-ginva-green' },
 ];
 
 export default function Hero() {
@@ -35,14 +35,14 @@ export default function Hero() {
               <>
                 <Link
                   to="/borrow"
-                  className="inline-flex items-center gap-2 bg-ginva-orange text-white px-6 py-3 rounded-lg text-sm font-medium hover:brightness-110 transition-all"
+                  className="inline-flex items-center gap-2 bg-ginva-green text-white px-6 py-3 rounded-lg text-sm font-medium hover:brightness-110 transition-all"
                 >
                   <Shield size={16} />
                   Start Borrowing
                 </Link>
                 <Link
                   to="/earn"
-                  className="inline-flex items-center gap-2 bg-ginva-bg-tertiary border border-white/[0.08] text-ginva-text px-6 py-3 rounded-lg text-sm font-medium hover:border-ginva-orange/50 transition-all"
+                  className="inline-flex items-center gap-2 bg-ginva-bg-tertiary border border-white/[0.08] text-ginva-text px-6 py-3 rounded-lg text-sm font-medium hover:border-ginva-green/50 transition-all"
                 >
                   <TrendingUp size={16} />
                   Explore Earn
@@ -52,13 +52,13 @@ export default function Hero() {
               <>
                 <button
                   onClick={() => useWalletStore.getState().connect()}
-                  className="inline-flex items-center gap-2 bg-ginva-orange text-white px-6 py-3 rounded-lg text-sm font-medium hover:brightness-110 transition-all"
+                  className="inline-flex items-center gap-2 bg-ginva-green text-white px-6 py-3 rounded-lg text-sm font-medium hover:brightness-110 transition-all"
                 >
                   Connect Wallet
                 </button>
                 <Link
                   to="/pawn-shop"
-                  className="inline-flex items-center gap-2 bg-ginva-bg-tertiary border border-white/[0.08] text-ginva-text px-6 py-3 rounded-lg text-sm font-medium hover:border-ginva-orange/50 transition-all"
+                  className="inline-flex items-center gap-2 bg-ginva-bg-tertiary border border-white/[0.08] text-ginva-text px-6 py-3 rounded-lg text-sm font-medium hover:border-ginva-green/50 transition-all"
                 >
                   <Store size={16} />
                   Browse Store
@@ -79,11 +79,11 @@ export default function Hero() {
             <Link
               key={item.label}
               to={item.to}
-              className="bg-ginva-bg-secondary/50 backdrop-blur-sm border border-white/[0.08] p-5 rounded-xl hover:border-ginva-orange/30 hover:-translate-y-1 transition-all duration-200 group"
+              className="bg-ginva-bg-secondary/50 backdrop-blur-sm border border-white/[0.08] p-5 rounded-xl hover:border-ginva-green/30 hover:-translate-y-1 transition-all duration-200 group"
             >
               <item.icon
                 size={24}
-                className="text-ginva-text-secondary group-hover:text-ginva-orange transition-colors"
+                className="text-ginva-text-secondary group-hover:text-ginva-green transition-colors"
               />
               <div className="mt-3 font-heading font-medium text-ginva-text text-sm">
                 {item.label}
@@ -97,10 +97,10 @@ export default function Hero() {
 
         {/* Key Differentiators - GINVA Fairness Features */}
         <div className="grid md:grid-cols-2 gap-4 mt-12">
-          <div className="bg-gradient-to-br from-ginva-orange/20 to-ginva-orange/5 border border-ginva-orange/30 rounded-xl p-6 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-ginva-orange/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-ginva-orange/20 transition-all" />
+          <div className="bg-gradient-to-br from-ginva-green/20 to-ginva-green/5 border border-ginva-green/30 rounded-xl p-6 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-ginva-green/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-ginva-green/20 transition-all" />
             <div className="relative">
-              <div className="flex items-center gap-2 text-ginva-orange mb-2">
+              <div className="flex items-center gap-2 text-ginva-green mb-2">
                 <Sparkles size={16} />
                 <span className="text-xs font-medium uppercase tracking-wider">Fixed Rate</span>
               </div>

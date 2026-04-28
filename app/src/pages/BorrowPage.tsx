@@ -133,10 +133,10 @@ export default function BorrowPage() {
     return (
       <div className="min-h-screen flex items-center justify-center px-[5vw]">
         <div className="text-center max-w-md">
-          <Shield size={48} className="text-ginva-orange mx-auto mb-4" />
+          <Shield size={48} className="text-ginva-green mx-auto mb-4" />
           <h2 className="font-heading font-bold text-2xl text-ginva-text">Connect Your Wallet</h2>
           <p className="text-ginva-text-secondary mt-2 mb-6">Connect your Solana wallet to deposit collateral and borrow USDC.</p>
-          <button onClick={connect} className="bg-ginva-orange text-white px-8 py-3 rounded-lg font-medium hover:brightness-110 transition-all">
+          <button onClick={connect} className="bg-ginva-green text-white px-8 py-3 rounded-lg font-medium hover:brightness-110 transition-all">
             Connect Wallet
           </button>
         </div>
@@ -177,7 +177,7 @@ export default function BorrowPage() {
                   onClick={() => setCollateralType(t)}
                   className={`flex-1 py-2.5 rounded-lg text-sm font-medium border transition-all ${
                     collateralType === t
-                      ? 'bg-ginva-orange/20 border-ginva-orange/50 text-ginva-orange'
+                      ? 'bg-ginva-green/20 border-ginva-green/50 text-ginva-green'
                       : 'bg-ginva-bg-secondary border-white/[0.08] text-ginva-text-secondary hover:text-ginva-text'
                   }`}
                 >
@@ -198,11 +198,11 @@ export default function BorrowPage() {
                   value={collateral}
                   onChange={(e) => setCollateral(e.target.value)}
                   placeholder={`0.00 ${collateralType}`}
-                  className="w-full bg-white/5 border border-white/[0.08] rounded-lg px-4 py-3 text-ginva-text font-mono text-lg outline-none focus:border-ginva-orange/50 transition-colors"
+                  className="w-full bg-white/5 border border-white/[0.08] rounded-lg px-4 py-3 text-ginva-text font-mono text-lg outline-none focus:border-ginva-green/50 transition-colors"
                 />
                 <button
                   onClick={() => setCollateral('12.45')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ginva-orange hover:underline"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ginva-green hover:underline"
                 >
                   MAX
                 </button>
@@ -236,12 +236,12 @@ export default function BorrowPage() {
                 max="60"
                 value={ltv}
                 onChange={(e) => setLtv(Number(e.target.value))}
-                className="w-full accent-ginva-orange"
+                className="w-full accent-ginva-green"
               />
               <div className="text-center font-mono text-sm text-ginva-text mt-1">{ltv}% LTV</div>
             </div>
 
-            <button className="w-full bg-ginva-orange text-white py-3 rounded-lg font-medium hover:brightness-110 transition-all disabled:opacity-50">
+            <button className="w-full bg-ginva-green text-white py-3 rounded-lg font-medium hover:brightness-110 transition-all disabled:opacity-50">
               Deposit Collateral
             </button>
           </div>
@@ -256,7 +256,7 @@ export default function BorrowPage() {
               </div>
               <div className="flex justify-between py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                 <span className="text-sm text-ginva-text-secondary">Borrow Amount</span>
-                <span className="font-mono text-sm text-ginva-orange font-medium">{borrowAmount > 0 ? borrowAmount.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '0.00'} USDC</span>
+                <span className="font-mono text-sm text-ginva-green font-medium">{borrowAmount > 0 ? borrowAmount.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '0.00'} USDC</span>
               </div>
               <div className="flex justify-between py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                 <span className="text-sm text-ginva-text-secondary">Interest Rate</span>
@@ -297,7 +297,7 @@ export default function BorrowPage() {
               </div>
             </div>
 
-<button onClick={executeBorrow} disabled={!collateral || parseFloat(collateral) <= 0 || loading} className="w-full bg-ginva-orange text-white py-3 rounded-lg font-medium hover:brightness-110 transition-all mt-6 disabled:opacity-50 flex items-center justify-center gap-2">
+<button onClick={executeBorrow} disabled={!collateral || parseFloat(collateral) <= 0 || loading} className="w-full bg-ginva-green text-white py-3 rounded-lg font-medium hover:brightness-110 transition-all mt-6 disabled:opacity-50 flex items-center justify-center gap-2">
   {loading && <Loader2 className="animate-spin" size={18} />}
   {loading ? 'Processing...' : 'Deposit & Borrow'}
 </button>
@@ -340,8 +340,8 @@ export default function BorrowPage() {
                   </span>
                 </span>
                 <div className="flex gap-2 justify-end">
-                  <button className="text-xs bg-ginva-bg-tertiary text-ginva-text px-3 py-1.5 rounded hover:bg-ginva-orange/20 transition-colors">Repay</button>
-                  <button className="text-xs bg-ginva-bg-tertiary text-ginva-text px-3 py-1.5 rounded hover:bg-ginva-orange/20 transition-colors">Extend</button>
+                  <button className="text-xs bg-ginva-bg-tertiary text-ginva-text px-3 py-1.5 rounded hover:bg-ginva-green/20 transition-colors">Repay</button>
+                  <button className="text-xs bg-ginva-bg-tertiary text-ginva-text px-3 py-1.5 rounded hover:bg-ginva-green/20 transition-colors">Extend</button>
                 </div>
               </div>
             ))}

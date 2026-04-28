@@ -1,8 +1,9 @@
-// Navbar Component
+// Navbar Component - Refactored with Tailwind
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { FiHome, FiDollarSign, FiZap, FiUser, FiSettings, FiHelpCircle, FiClock, FiMoreHorizontal, FiChevronDown, FiArrowLeft } from "react-icons/fi";
+import { cn } from "@/lib/utils";
 import NetworkSwitcher from "./NetworkSwitcher";
 
 interface NavbarProps {
@@ -55,128 +56,88 @@ export function Navbar({
 
   return (
     <nav
-      className="navbar"
-      style={{
-        background: scrolled ? "rgba(15, 23, 42, 0.95)" : "rgba(15, 23, 42, 0.85)",
-        borderBottom: "1px solid rgba(245, 158, 11, 0.2)",
-        height: scrolled ? "56px" : "64px",
-        transition: "all 0.2s ease",
-        position: "sticky",
-        top: 0,
-        zIndex: 100,
-        backdropFilter: "blur(10px)",
-      }}
+      className={cn(
+        "sticky top-0 z-sticky transition-all duration-200",
+        "backdrop-blur-md border-b",
+        scrolled
+          ? "bg-ginva-bg/95 h-14"
+          : "bg-ginva-bg/85 h-16",
+        "border-ginva-green/20"
+      )}
     >
-      <div className="navbar-inner" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", maxWidth: "1400px", margin: "0 auto", width: "100%", padding: "0 24px", height: "100%" }}>
-        
+      {/* Max-width container */}
+      <div className="max-w-[1400px] mx-auto w-full h-full px-6 flex items-center justify-between">
+
         {/* Left side - Back button or Logo */}
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        <div className="flex items-center gap-3">
           {isBackPage && !isLanding && (
             <button
               onClick={() => navigate(-1)}
-              style={{
-                background: "rgba(248, 250, 252, 0.1)",
-                border: "none",
-                borderRadius: "8px",
-                padding: "8px",
-                cursor: "pointer",
-                color: "#F8FAFC",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
+              className="flex items-center justify-center w-10 h-10 rounded-lg
+                         bg-white/10 text-ginva-text hover:bg-white/20
+                         transition-colors touch-target"
               title="Go back"
             >
               <FiArrowLeft size={20} />
             </button>
           )}
-          
-          <div 
-            className="logo" 
+
+          <div
+            className="flex items-center gap-2 cursor-pointer"
             onClick={() => navigate("/")}
-            style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "8px" }}
           >
-            <div 
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: "50%",
-                background: "#F59E0B",
-                boxShadow: "0 0 10px #F59E0B",
-              }} 
+            {/* Logo dot with glow */}
+            <div
+              className="w-2 h-2 rounded-full bg-ginva-green"
+              style={{ boxShadow: "0 0 10px #00e676" }}
             />
-            <span style={{ color: "#F8FAFC", fontWeight: 600, fontSize: "1.1rem", fontFamily: "'IBM Plex Sans', sans-serif" }}>GINVA</span>
+            <span className="text-ginva-text font-semibold text-lg font-body">
+              GINVA
+            </span>
           </div>
         </div>
 
         {/* Center - Nav Links (Desktop) */}
-        <div className="nav-links" style={{ display: "flex", gap: "4px" }}>
+        <div className="flex gap-1">
           {navItems.map((item) => (
             <button
               key={item.path}
-              className={`nav-btn ${isActive(item.path) ? "active" : ""}`}
               onClick={() => navigate(item.path)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-                padding: "10px 16px",
-                borderRadius: "8px",
-                border: "none",
-                background: isActive(item.path) ? "rgba(245, 158, 11, 0.15)" : "transparent",
-                color: isActive(item.path) ? "#F59E0B" : "rgba(248, 250, 252, 0.7)",
-                fontSize: "0.9rem",
-                fontWeight: 500,
-                fontFamily: "'IBM Plex Sans', sans-serif",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-              }}
+              className={cn(
+                "flex items-center gap-1.5 px-4 py-2.5 rounded-lg",
+                "text-sm font-medium transition-all duration-200",
+                "touch-target",
+                isActive(item.path)
+                  ? "bg-ginva-green/15 text-ginva-green"
+                  : "text-ginva-text-secondary/70 hover:text-ginva-text-secondary hover:bg-ginva-bg-tertiary/50"
+              )}
             >
               {item.icon}
               {item.label}
             </button>
           ))}
-          
+
           {/* More Menu */}
-          <div style={{ position: "relative" }}>
+          <div className="relative">
             <button
-              className="nav-btn"
               onClick={() => setShowMore(!showMore)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-                padding: "10px 16px",
-                borderRadius: "8px",
-                border: "none",
-                background: "transparent",
-                color: "rgba(248, 250, 252, 0.7)",
-                fontSize: "0.9rem",
-                fontWeight: 500,
-                fontFamily: "'IBM Plex Sans', sans-serif",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-              }}
+              className={cn(
+                "flex items-center gap-1.5 px-4 py-2.5 rounded-lg",
+                "text-sm font-medium transition-all duration-200",
+                "text-ginva-text-secondary/70 hover:text-ginva-text-secondary",
+                "touch-target"
+              )}
             >
               <FiMoreHorizontal size={18} />
               More
-              <FiChevronDown size={14} style={{ marginLeft: "2px" }} />
+              <FiChevronDown size={14} className="ml-0.5" />
             </button>
-            
+
             {showMore && (
               <div
-                style={{
-                  position: "absolute",
-                  top: "100%",
-                  right: 0,
-                  marginTop: "8px",
-                  background: "rgba(15, 23, 42, 0.98)",
-                  border: "1px solid rgba(245, 158, 11, 0.2)",
-                  borderRadius: "12px",
-                  padding: "8px",
-                  minWidth: "160px",
-                  boxShadow: "0 10px 40px rgba(0, 0, 0, 0.5)",
-                }}
+                className="absolute top-full right-0 mt-2 py-2 min-w-[160px] rounded-xl
+                           bg-ginva-bg border border-ginva-green/20
+                           shadow-xl"
               >
                 {moreItems.map((item) => (
                   <button
@@ -185,27 +146,9 @@ export function Navbar({
                       navigate(item.path);
                       setShowMore(false);
                     }}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "10px",
-                      width: "100%",
-                      padding: "10px 14px",
-                      borderRadius: "8px",
-                      border: "none",
-                      background: "transparent",
-                      color: "#F8FAFC",
-                      fontSize: "0.9rem",
-                      fontFamily: "'IBM Plex Sans', sans-serif",
-                      cursor: "pointer",
-                      transition: "all 0.15s ease",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = "rgba(245, 158, 11, 0.1)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "transparent";
-                    }}
+                    className="flex items-center gap-2.5 w-full px-3.5 py-2.5
+                               text-sm text-ginva-text
+                               hover:bg-ginva-green/10 transition-colors"
                   >
                     {item.icon}
                     {item.label}
@@ -217,26 +160,19 @@ export function Navbar({
         </div>
 
         {/* Right side - Network & Wallet */}
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <NetworkSwitcher />
+        <div className="flex items-center gap-3">
+          <NetworkSwitcher />
           {connected && balance && (
-            <div style={{ fontSize: "0.85rem", color: "rgba(248, 250, 252, 0.6)" }}>
-              <span style={{ color: "#F59E0B" }}>{balance.sol}</span> SOL · ${balance.usd}
+            <div className="text-sm text-ginva-text-secondary/60">
+              <span className="text-ginva-green">{balance.sol}</span> SOL · ${balance.usd}
             </div>
           )}
-    <WalletMultiButton className="connect-btn" style={{
-      background: "linear-gradient(135deg, #F59E0B 0%, #D97706 100%)",
-      border: "none",
-      color: "#0F172A",
-      padding: "8px 16px",
-      borderRadius: "8px",
-      fontWeight: 600,
-      fontSize: "0.85rem",
-      fontFamily: "'IBM Plex Sans', sans-serif",
-      cursor: "pointer",
-      transition: "all 0.2s ease",
-      height: "auto",
-    }} />
+          <WalletMultiButton
+            className="!bg-gradient-to-r !from-ginva-green !to-ginva-green-dim
+                       !text-ginva-bg !border-none !rounded-lg !font-semibold
+                       !text-sm !px-4 !py-2 !h-auto !cursor-pointer
+                       !transition-all hover:!brightness-110"
+          />
         </div>
       </div>
     </nav>

@@ -40,11 +40,11 @@ export default function ProtocolParams() {
               <span className="text-sm text-ginva-text font-medium">
                 {p.name}
               </span>
-              <span className="font-mono text-sm text-ginva-orange text-right">
+              <span className="font-mono text-sm text-ginva-green text-right">
                 {p.value}
               </span>
               <span className="ml-4">
-                <span className="text-xs bg-[rgba(250,104,73,0.15)] text-ginva-orange px-2.5 py-1 rounded-full">
+                <span className="text-xs bg-[rgba(250,104,73,0.15)] text-ginva-green px-2.5 py-1 rounded-full">
                   {p.type}
                 </span>
               </span>

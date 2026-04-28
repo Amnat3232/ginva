@@ -24,7 +24,7 @@ export default function PawnShopPage() {
     <div className="min-h-screen px-[5vw] pt-[80px] pb-20">
       <div className="max-w-[1200px] mx-auto">
         <div className="flex items-center gap-3 mb-2">
-          <Store size={28} className="text-ginva-orange" />
+          <Store size={28} className="text-ginva-green" />
           <h1 className="font-heading font-bold text-3xl text-ginva-text">Pawn Shop</h1>
         </div>
         <p className="text-ginva-text-secondary mt-1 max-w-[560px]">
@@ -39,7 +39,7 @@ export default function PawnShopPage() {
               onClick={() => setFilter(f)}
               className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
                 filter === f
-                  ? 'bg-ginva-orange/20 border-ginva-orange/50 text-ginva-orange'
+                  ? 'bg-ginva-green/20 border-ginva-green/50 text-ginva-green'
                   : 'bg-ginva-bg-tertiary border-white/[0.08] text-ginva-text-secondary hover:text-ginva-text'
               }`}
             >
@@ -51,12 +51,12 @@ export default function PawnShopPage() {
         {/* Listings Grid */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
           {filtered.map((item) => (
-            <div key={item.id} className="bg-ginva-bg-card border border-white/[0.08] rounded-xl overflow-hidden hover:border-ginva-orange/30 transition-all duration-200">
+            <div key={item.id} className="bg-ginva-bg-card border border-white/[0.08] rounded-xl overflow-hidden hover:border-ginva-green/30 transition-all duration-200">
               {/* Image Area */}
               <div className="h-[140px] bg-gradient-to-br from-ginva-bg-secondary to-ginva-bg-tertiary flex items-center justify-center relative">
                 <span className="text-4xl opacity-30">{item.icon}</span>
                 <div className="absolute top-3 right-3">
-                  <span className="text-xs bg-ginva-orange/20 text-ginva-orange px-2 py-0.5 rounded-full font-medium">
+                  <span className="text-xs bg-ginva-green/20 text-ginva-green px-2 py-0.5 rounded-full font-medium">
                     -{item.discount}%
                   </span>
                 </div>
@@ -68,7 +68,7 @@ export default function PawnShopPage() {
                   <span className="text-xs text-ginva-text-secondary">{item.name}</span>
                 </div>
                 <div className="text-sm text-ginva-text-secondary line-through">${item.originalValue.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
-                <div className="font-mono text-xl text-ginva-orange font-medium mt-1">
+                <div className="font-mono text-xl text-ginva-green font-medium mt-1">
                   ${item.discountPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                 </div>
                 <div className="flex items-center gap-4 mt-3 text-xs text-ginva-text-secondary">
@@ -81,7 +81,7 @@ export default function PawnShopPage() {
                     Up to 8%
                   </span>
                 </div>
-                <button className="w-full bg-ginva-orange text-white py-2.5 rounded-lg font-medium hover:brightness-110 transition-all mt-4 flex items-center justify-center gap-2">
+                <button className="w-full bg-ginva-green text-white py-2.5 rounded-lg font-medium hover:brightness-110 transition-all mt-4 flex items-center justify-center gap-2">
                   <ShoppingCart size={14} />
                   Buy Now
                 </button>
@@ -101,7 +101,7 @@ export default function PawnShopPage() {
             {[
               { time: '0h', discount: '0%', color: 'bg-ginva-green' },
               { time: '8h', discount: '2%', color: 'bg-ginva-yellow' },
-              { time: '16h', discount: '5%', color: 'bg-ginva-orange' },
+              { time: '16h', discount: '5%', color: 'bg-ginva-green' },
               { time: '24h', discount: '8% max', color: 'bg-ginva-red' },
             ].map((stage, i) => (
               <div key={i} className="relative flex flex-col items-center z-10">
