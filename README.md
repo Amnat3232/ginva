@@ -88,24 +88,76 @@ GINVA is currently deployed and operational on **Solana Devnet** for testing and
 
 ### 🎯 Access Instructions for Judges
 
-> **For Hackathon Judges** — Try GINVA immediately on Devnet:
+> **Welcome to Ginva — The Fair Decentralized Pawn Shop**
+>
+> Built by **NovaPulse** (Solo Builder) — 7 months of relentless iteration
 
-#### Step 1: Get Testnet Funds (5 minutes)
-1. **Get SOL**: Go to [Solana Devnet Faucet](https://faucet.solana.com) → Enter your wallet address → Click "Get SOL"
-2. **Get USDC**: Go to [USDC Devnet Faucet](https://cumint.github.io/) or use Raydium to swap SOL → USDC (Devnet)
-   - USDC Mint: `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGZZrfZSz6`
+---
 
-#### Step 2: Connect Wallet
-1. Open [ginva.pages.dev](https://ginva.pages.dev)
-2. Click "Connect Wallet" (Phantom, Solflare, or Backpack)
-3. **Important**: Switch wallet network to **Devnet** (not Mainnet!)
+#### 1. Basic Info (Network & URL)
 
-#### Step 3: Try It!
-| Action | How |
-|--------|-----|
-| **Deposit** | Go to Earn → Enter amount → Deposit SOL |
-| **Borrow** | Go to Borrow → Select collateral → Borrow USDC |
-| **AI Agent** | Go to AI Agent → Deploy a keeper to earn |
+| Item | Details |
+|------|---------|
+| **Live App URL** | [ginva.pages.dev](https://ginva.pages.dev) |
+| **Network** | Solana **Devnet** (Switch your wallet to Devnet!) |
+| **Program ID** | `DyCM1XX7xVpPjR2GLYRTZybk25cBSzC3nzmy1gMVRm47` |
+
+---
+
+#### 2. Preparation (Wallet & Testnet Funds)
+
+**Supported Wallets:** Phantom, Solflare, or Backpack (Set to Devnet mode)
+
+**How to get Testnet SOL:**
+- Visit [Solana Devnet Faucet](https://faucet.solana.com)
+- Enter your wallet address → Click "Get SOL" (FREE)
+
+**How to get Testnet USDC:**
+- **Easiest**: Use the **"Mint USDC"** button inside the Ginva app (in the Earn/Borrow section)
+- USDC Mint (Devnet): `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGZZrfZSz6`
+
+---
+
+#### 3. Step-by-Step Guided Testing
+
+> Follow these steps to experience GINVA's key features:
+
+**Step 1: Deposit & Borrow (As a Borrower)**
+1. Go to **Earn** → Deposit SOL as collateral
+2. Go to **Borrow** → Select SOL collateral → Borrow USDC
+3. Observe the **8% Fixed APR** — No variable rates, ever!
+
+**Step 2: Provide Liquidity (As a Lender)**
+1. Go to **Earn** → Deposit USDC into the pool
+2. Earn yield from borrower interest payments
+
+**Step 3: Monitor Health Factor**
+1. Check your position's Health Factor on the Dashboard
+2. If collateral drops, observe how GINVA gives you a **72-hour Grace Period** before liquidation
+3. Compare to other DeFi: they liquidate **instantly** — Ginva gives you time!
+
+---
+
+#### 4. 🧠 AI Agent Keeper (The Key Innovation)
+
+> **This is GINVA's Unique Selling Point — Autonomous AI Agents**
+
+**AI Keeper Dashboard:**
+- Visit **AI Agent** page in the app
+- Our Python-based AI Keeper is running on Groq API, monitoring Devnet
+
+**What it does:**
+- ✅ Monitors all positions' Health Factors in real-time
+- ✅ Executes liquidations fairly (whenGrace Period expires)
+- ✅ Earns SOL fees for the agent owner
+
+**Current Status:**
+- AI Keeper is **live on Devnet**, processing liquidation events
+- Track its activity on the AI Agent dashboard
+
+---
+
+> **Note:** GINVA is built with **Pinocchio (no-std framework)** for maximum security. All core parameters — interest rates (8% fixed), grace periods (72h), and fees — are hardcoded and immutable in the smart contract.
 
 > **No real funds required** — Everything uses Devnet test tokens
 
