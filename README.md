@@ -34,6 +34,45 @@
 
 ---
 
+## 🛠️ Technical Evolution: Anchor → Pinocchio
+
+> **This migration was completed by a single developer over 7 months of iteration**
+
+GINVA has undergone a major architectural shift, migrating its core smart contracts from the **Anchor Framework** to **Pinocchio** (a no-std Solana program library). This decision was driven by our "Code is Law" philosophy and the need for maximum security in a decentralized pawn shop environment.
+
+### Why Pinocchio? 🧠
+
+While Anchor is excellent for rapid development, Ginva required a leaner and more "hardened" core:
+
+| Benefit | Description |
+|---------|-------------|
+| **Reduced Attack Surface** | By using no-std Rust, we eliminate unnecessary dependencies and bloat |
+| **Smaller Binary Size** | Pinocchio allows for highly optimized BPF binaries, lower deployment costs |
+| **Explicit Security** | Unlike Anchor's automated magic, Pinocchio requires explicit account validation |
+
+### What's New in Pinocchio Version? 🛠️
+
+- ✅ **Enhanced Input Validation**: 100% manual check for all account ownership and signers
+- ✅ **Custom Error Architecture**: Granular error system (Codes 6000-804) for precise debugging
+- ✅ **No-std Oracle Integration**: Successfully integrated Pyth Network within no-std environment
+- ✅ **Optimized Math**: All lending calculations use explicit overflow protection
+
+### Security Verification 🛡️
+
+The migration was not just a port; it was a full security hardening process:
+
+- ✅ **Reentrancy Protection**: Manual implementation of state-check patterns
+- ✅ **Supply Cap Logic**: Hardcoded and immutable limits checked before every deposit/borrow
+- ✅ **Circuit Breaker**: Real-time monitoring of oracle divergence (>5%) directly in the no-std core
+
+> **Current Program ID**: `DyCM1XX7xVpPjR2GLYRTZybk25cBSzC3nzmy1gMVRm47`
+
+### Legacy Code
+
+The original Anchor-based implementation has been preserved in the `programs/anchor-legacy/` directory for reference and audit purposes.
+
+---
+
 ## 🚀 Live on Devnet
 
 > **Status:** 🟢 **LIVE** — Running on Solana Devnet
@@ -47,19 +86,32 @@ GINVA is currently deployed and operational on **Solana Devnet** for testing and
 | **AI Keeper Agent** | Devnet | 🟢 Running | [bots/](./bots) |
 | **Explorer** | Devnet | 🟢 Verified | [Solana Explorer (Devnet)](https://explorer.solana.com?cluster=devnet) |
 
-### Demo Mode
+### 🎯 Access Instructions for Judges
 
-GINVA includes a **Demo Mode** for testing the protocol without using real funds:
+> **For Hackathon Judges** — Try GINVA immediately on Devnet:
 
-- **Testnet Funds:** Use [Solana Devnet Faucet](https://faucet.solana.com) to get free SOL and tokens
-- **Wallets:** Phantom, Solflare, or Backpack (set to Devnet mode)
-- **Test Tokens:** USDC test tokens can be minted for demo purposes
+#### Step 1: Get Testnet Funds (5 minutes)
+1. **Get SOL**: Go to [Solana Devnet Faucet](https://faucet.solana.com) → Enter your wallet address → Click "Get SOL"
+2. **Get USDC**: Go to [USDC Devnet Faucet](https://cumint.github.io/) or use Raydium to swap SOL → USDC (Devnet)
+   - USDC Mint: `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGZZrfZSz6`
 
-> **Note:** Demo Mode uses testnet tokens only. No real value is at risk during testing.
+#### Step 2: Connect Wallet
+1. Open [ginva.pages.dev](https://ginva.pages.dev)
+2. Click "Connect Wallet" (Phantom, Solflare, or Backpack)
+3. **Important**: Switch wallet network to **Devnet** (not Mainnet!)
+
+#### Step 3: Try It!
+| Action | How |
+|--------|-----|
+| **Deposit** | Go to Earn → Enter amount → Deposit SOL |
+| **Borrow** | Go to Borrow → Select collateral → Borrow USDC |
+| **AI Agent** | Go to AI Agent → Deploy a keeper to earn |
+
+> **No real funds required** — Everything uses Devnet test tokens
 
 ---
 
-### Quick Devnet Setup
+### Quick Devnet Setup (CLI)
 
 ```bash
 # 1. Get Devnet SOL
