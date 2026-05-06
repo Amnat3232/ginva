@@ -69,7 +69,9 @@ pub const LTV_MAX: u8 = 60;
 pub const SOL_USD_FEED_ID: &str =
     "0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d";
 pub const MAX_PRICE_AGE_SECONDS: u64 = 15;
+pub const MAX_SWITCHBOARD_AGE_SECONDS: u64 = 60; // Switchboard updates less frequently
 pub const MAX_CONFIDENCE_RATIO: u128 = 100;
+pub const ORACLE_DEVIATION_THRESHOLD_BPS: u64 = 500; // 5% max deviation between oracles
 
 // ============================================================================
 // JUPITER DEX

@@ -29,6 +29,16 @@ pub const SOL_USD_FEED_ID: Pubkey = [
     0xa0, 0xd2, 0xf8, 0xed, 0x0c, 0x6c, 0x7b, 0xc0, 0xf4, 0xcf, 0xac, 0x8c, 0x28, 0x0b, 0x56, 0x0d,
 ];
 
+// Switchboard v2 program — UPDATE with actual deployed program ID
+// Mainnet:  DtmwwqEEaBbVAhBBq4vNrC5Z3c3yvYwA17Y (VERIFY THIS)
+// Devnet:   CrnZDD4aEuDLLR4y5e5zLNMQ3L9ydqCdF9X (VERIFY THIS)
+pub const SWITCHBOARD_PROGRAM_ID: Pubkey = [
+    0xA6, 0xB9, 0x8C, 0x4E, 0xF7, 0x8E, 0x5D, 0x3B,
+    0x9A, 0x1F, 0x4C, 0x6B, 0x8E, 0x2D, 0x1A, 0x07,
+    0x5C, 0x3E, 0x4F, 0x91, 0x6A, 0xC3, 0x8D, 0x1E,
+    0xB5, 0x4A, 0x7F, 0x2C, 0x9D, 0x3E, 0x4B, 0x8A,
+];
+
 // Sentinel 0xFF — OBVIOUS if accidentally used in production
 pub const JUPITER_PROGRAM_ID: Pubkey = [
     0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -323,6 +333,154 @@ pub fn pyth_price_to_human(price: i64, expo: i32) -> u64 {
     let multiplier = if expo < 0 { 10u64.pow((-expo) as u32) } else { 1 };
     let abs_price = price.unsigned_abs();
     abs_price.saturating_mul(multiplier)
+}
+
+// ============================================================================
+// SWITCHBOARD v2: Aggregator Account Reading
+// ============================================================================
+// Switchboard v2 Aggregator account (Crank-based) layout:
+//   offset 505-521: latest_confirmed_round.result (i128, LE, 6 decimal places)
+//   offset 521-529: latest_confirmed_round.timestamp (i64, Unix seconds)
+//   offset 537-553: pending_aggregator_result (i128, not yet confirmed)
+//   offset 553:     round_open (bool/u8)
+//   offset 561-569: min_update_results (u32)
+//   offset 633:      status (u8: 0=closed, 1=open, 2=updating, 3=paused)
+//   offset 637:      force_signer (bool)
+// Result: i128 with 6 decimal places (divide by 1e6 for human-readable USD)
+// NOTE: These offsets are for Switboard v2 Crank-based aggregators.
+//       Update if using a different aggregator version/config.
+// ============================================================================
+
+/// Minimum Switchboard aggregator account size — used for validation
+/// A crank-based aggregator is typically 1311+ bytes
+pub const SWITCHBOARD_AGGREGATOR_MIN_SIZE: usize = 600;
+
+/// Read switchboard aggregator account and extract latest confirmed result.
+/// Returns (result_i128, timestamp_i64).
+/// Caller should divide result by 1_000_000 to get human-readable USD price.
+/// Caller validates max staleness using current_time - timestamp <= max_staleness.
+#[inline(always)]
+pub fn cpi_get_switchboard_price(
+    aggregator: &AccountInfo,
+) -> Result<(i128, i64), ProgramError> {
+    let data = aggregator.try_borrow_data()?;
+
+    // Validate minimum size
+    if data.len() < SWITCHBOARD_AGGREGATOR_MIN_SIZE {
+        return Err(ProgramError::InvalidAccountData);
+    }
+
+    // Status at offset 633: 0=closed, 1=open, 2=updating, 3=paused
+    let status = data[633];
+    // Only accept status = 1 (open) or 2 (updating — in the middle of a round)
+    if status != 1 && status != 2 {
+        return Err(ProgramError::InvalidAccountData);
+    }
+
+    // Result at offset 505 — i128 LE
+    let result_bytes: [u8; 16] = data[505..521].try_into().unwrap();
+    let result = i128::from_le_bytes(result_bytes);
+
+    // Zero result = no confirmed value yet
+    if result == 0 {
+        return Err(ProgramError::InvalidAccountData);
+    }
+
+    // Timestamp at offset 521 — i64 LE (Unix seconds)
+    let ts_bytes: [u8; 8] = data[521..529].try_into().unwrap();
+    let ts = i64::from_le_bytes(ts_bytes);
+
+    // Zero timestamp = no confirmed round yet
+    if ts == 0 {
+        return Err(ProgramError::InvalidAccountData);
+    }
+
+    Ok((result, ts))
+}
+
+/// Convert Switchboard i128 result to human-readable u64 price.
+/// Switchboard uses 6 decimal places (1_000_000 multiplier).
+#[inline(always)]
+pub fn switchboard_to_human_price(result_i128: i128) -> u64 {
+    let abs = result_i128.unsigned_abs();
+    abs.saturating_div(1_000_000) as u64
+}
+
+/// Validate Switchboard account ownership
+/// Switchboard accounts are owned by the Switchboard program, not Ginva.
+#[inline(always)]
+pub fn validate_switchboard_program(account: &AccountInfo) -> Result<(), ProgramError> {
+    if account.key() == &SWITCHBOARD_PROGRAM_ID || account.owner() == &SWITCHBOARD_PROGRAM_ID {
+        Ok(())
+    } else {
+        Err(ProgramError::IncorrectProgramId)
+    }
+}
+
+// ============================================================================
+// MULTI-ORACLE: Dual price feed with deviation check
+// ============================================================================
+
+/// Oracle check results for multi-oracle consensus
+#[derive(Clone, Copy)]
+pub enum OracleResult {
+    PythOnly,
+    SwitchboardOnly,
+    BothConsensus { price: u64 },
+    DeviationTooHigh { pyth_price: u64, switchboard_price: u64 },
+    PythStale,
+    SwitchboardStale,
+    BothStale,
+}
+
+impl Default for OracleResult {
+    fn default() -> Self { OracleResult::BothStale }
+}
+
+/// Get price from a price account (generic, used for both Pyth and Switchboard).
+/// Returns (price_u64, timestamp_i64) in human-readable form.
+/// - For Pyth: price is already in human-readable form.
+/// - For Switchboard: divide i128 by 1_000_000 first.
+#[inline(always)]
+pub fn read_price_human(data: &[u8], oracle_type: OracleType) -> Result<(u64, i64), ProgramError> {
+    match oracle_type {
+        OracleType::Pyth => {
+            if data.len() < 64 { return Err(ProgramError::InvalidAccountData); }
+            let price = i64::from_le_bytes([data[16],data[17],data[18],data[19],data[20],data[21],data[22],data[23]]);
+            let expo = i32::from_le_bytes([data[32],data[33],data[34],data[35]]);
+            if price == 0 { return Err(ProgramError::InvalidAccountData); }
+            let multiplier = if expo < 0 { 10u64.pow((-expo) as u32) } else { 1u64 };
+            let ts = i64::from_le_bytes([data[40],data[41],data[42],data[43],data[44],data[45],data[46],data[47]]);
+            Ok((price.unsigned_abs().saturating_mul(multiplier), ts))
+        }
+        OracleType::Switchboard => {
+            if data.len() < 529 { return Err(ProgramError::InvalidAccountData); }
+            let result_bytes: [u8; 16] = data[505..521].try_into().unwrap();
+            let result = i128::from_le_bytes(result_bytes);
+            if result == 0 { return Err(ProgramError::InvalidAccountData); }
+            let ts_bytes: [u8; 8] = data[521..529].try_into().unwrap();
+            let ts = i64::from_le_bytes(ts_bytes);
+            Ok((result.unsigned_abs().saturating_div(1_000_000) as u64, ts))
+        }
+    }
+}
+
+/// Oracle type for generic price reading
+#[derive(Clone, Copy, PartialEq)]
+pub enum OracleType {
+    Pyth,
+    Switchboard,
+}
+
+/// Compare two prices and return deviation in basis points.
+/// Returns (deviation_bps, is_within_threshold).
+#[inline(always)]
+pub fn oracle_deviation_bps(price_a: u64, price_b: u64, threshold_bps: u64) -> (u64, bool) {
+    if price_a == 0 || price_b == 0 { return (0, false); }
+    let (lower, higher) = if price_a <= price_b { (price_a, price_b) } else { (price_b, price_a) };
+    let diff = higher.saturating_sub(lower);
+    let deviation_bps = diff.saturating_mul(10_000).saturating_div(lower);
+    (deviation_bps, deviation_bps <= threshold_bps)
 }
 
 // ============================================================================

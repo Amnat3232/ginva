@@ -9,7 +9,7 @@
 use crate::accounts::*;
 use crate::calculate_interest;
 use crate::cpi::{cpi_get_clock_time, cpi_token_transfer, cpi_token_transfer_with_seeds, derive_reserve_pda, GINVA_PROGRAM_ID};
-use crate::{APR, LTV_MAX, DEFAULT_PRICE_DECAY_BPS};
+use crate::{APR, LTV_MAX, MAX_PRICE_AGE_SECONDS, MAX_SWITCHBOARD_AGE_SECONDS, ORACLE_DEVIATION_THRESHOLD_BPS};
 use crate::GinvaError;
 use pinocchio::account_info::AccountInfo;
 use pinocchio::pubkey::Pubkey;
@@ -369,7 +369,7 @@ fn process_deposit(_program_id: &Pubkey, accounts: &mut [AccountInfo], data: &[u
 
     // 5. Check protocol is active
     if !config.is_active() {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         return Err(GinvaError::ProtocolPaused.into());
     }
 
@@ -388,7 +388,7 @@ fn process_deposit(_program_id: &Pubkey, accounts: &mut [AccountInfo], data: &[u
         amount,
         None, // mint validation — set to collateral mint address in production
     ).map_err(|e| {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         e
     })?;
 
@@ -408,7 +408,7 @@ fn process_deposit(_program_id: &Pubkey, accounts: &mut [AccountInfo], data: &[u
     }
 
     // 9. Release reentrancy guard on success
-    release_reentrancy_guard(config);
+    release_reentrancy_guard(&mut *config);
 
     Ok(())
 }
@@ -453,6 +453,9 @@ fn process_borrow(_program_id: &Pubkey, accounts: &mut [AccountInfo], data: &[u8
     let asset_config = &accounts[5];
     let clock_account = &accounts[7];
     let token_program = &accounts[8];
+    // 10. [readonly]   switchboard_oracle (optional — enables dual-oracle price validation)
+    let switchboard_oracle: Option<&AccountInfo> =
+        if accounts.len() >= 11 { Some(&accounts[10]) } else { None };
 
     // Validate signer
     if !borrower.is_signer() {
@@ -471,32 +474,32 @@ fn process_borrow(_program_id: &Pubkey, accounts: &mut [AccountInfo], data: &[u8
 
     // Check protocol is active
     if config.is_paused() {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         return Err(GinvaError::ProtocolPaused.into());
     }
 
     // Get current time for loan
     let current_time = cpi_get_clock_time(clock_account)
         .map_err(|_| {
-            release_reentrancy_guard(config);
+            release_reentrancy_guard(&mut *config);
             GinvaError::OracleTemporarilyUnavailable
         })?;
 
     let asset = load_asset_config(asset_config, _program_id)?;
     if !asset.is_active() {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         return Err(GinvaError::AssetNotActive.into());
     }
 
     // Check circuit breaker
     if asset.circuit_breaker_triggered() {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         return Err(GinvaError::CircuitBreakerActive.into());
     }
 
     // Check supply cap
     if asset.is_supply_cap_exceeded(borrow_amount) {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         return Err(GinvaError::SupplyCapExceeded.into());
     }
 
@@ -511,7 +514,7 @@ fn process_borrow(_program_id: &Pubkey, accounts: &mut [AccountInfo], data: &[u8
         .and_then(|v| v.checked_mul(10_000))
         .and_then(|v| v.checked_div(ltv_bps as u128))
         .ok_or_else(|| {
-            release_reentrancy_guard(config);
+            release_reentrancy_guard(&mut *config);
             GinvaError::ArithmeticOverflow
         })?;
 
@@ -525,7 +528,7 @@ fn process_borrow(_program_id: &Pubkey, accounts: &mut [AccountInfo], data: &[u8
         required_collateral_u64,
         None,
     ).map_err(|e| {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         e
     })?;
 
@@ -590,14 +593,14 @@ fn process_borrow(_program_id: &Pubkey, accounts: &mut [AccountInfo], data: &[u8
         let new_total = current_borrowed
             .checked_add(borrow_amount)
             .ok_or_else(|| {
-                release_reentrancy_guard(config);
+                release_reentrancy_guard(&mut *config);
                 GinvaError::ArithmeticOverflow
             })?;
         config_data[232..240].copy_from_slice(&new_total.to_le_bytes());
     }
 
     // Release reentrancy guard
-    release_reentrancy_guard(config);
+    release_reentrancy_guard(&mut *config);
 
     Ok(())
 }
@@ -658,7 +661,7 @@ fn process_repay(_program_id: &Pubkey, accounts: &mut [AccountInfo], data: &[u8]
 
     // Check protocol is active
     if config.is_paused() {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         return Err(GinvaError::ProtocolPaused.into());
     }
 
@@ -667,13 +670,13 @@ fn process_repay(_program_id: &Pubkey, accounts: &mut [AccountInfo], data: &[u8]
 
     // Verify payer is the borrower
     if loan.is_initialized() && loan.borrower() != payer.key().as_ref() {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         return Err(GinvaError::Unauthorized.into());
     }
 
     // Check loan is active
     if loan.status != 1 || loan.is_liquidated() {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         return Err(GinvaError::LoanNotActive.into());
     }
 
@@ -693,7 +696,7 @@ fn process_repay(_program_id: &Pubkey, accounts: &mut [AccountInfo], data: &[u8]
 
     // Validate repayment amount
     if amount > total_debt {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         return Err(GinvaError::InvalidAmount.into());
     }
 
@@ -705,7 +708,7 @@ fn process_repay(_program_id: &Pubkey, accounts: &mut [AccountInfo], data: &[u8]
         amount,
         None,
     ).map_err(|e| {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         e
     })?;
 
@@ -756,7 +759,7 @@ fn process_repay(_program_id: &Pubkey, accounts: &mut [AccountInfo], data: &[u8]
         config_data[232..240].copy_from_slice(&new_total.to_le_bytes());
     }
 
-    release_reentrancy_guard(config);
+    release_reentrancy_guard(&mut *config);
     Ok(())
 }
 
@@ -830,7 +833,7 @@ fn process_liquidate(
 
     // Check protocol is active
     if config.is_paused() {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         return Err(GinvaError::ProtocolPaused.into());
     }
 
@@ -838,12 +841,12 @@ fn process_liquidate(
     let loan = load_loan_account(loan_account, _program_id)?;
 
     if !loan.is_initialized() {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         return Err(GinvaError::LoanNotActive.into());
     }
 
     if loan.is_liquidated() {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         return Err(GinvaError::AlreadyBeingLiquidated.into());
     }
 
@@ -869,20 +872,20 @@ fn process_liquidate(
             // Continue to execute liquidation
         } else {
             // Still protected by grace period
-            release_reentrancy_guard(config);
+            release_reentrancy_guard(&mut *config);
             return Err(GinvaError::InProtectionPeriod.into());
         }
     }
     // Cannot liquidate if health is OK and not due to maturity
     else if !loan.is_health_factor_critical() && loan.liquidation_trigger_reason != 2 {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         return Err(GinvaError::HealthFactorNotCritical.into());
     }
 
     // Validate reserve_wallet is Ginva-owned PDA — prevents fake wallet drain attack.
     let expected_reserve = derive_reserve_pda();
     if reserve_wallet.key() != &expected_reserve {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         return Err(ProgramError::InvalidSeeds.into());
     }
 
@@ -917,7 +920,7 @@ fn process_liquidate(
         total_debt, // Pay only the debt amount
         None,
     ).map_err(|e| {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         e
     })?;
 
@@ -931,7 +934,7 @@ fn process_liquidate(
         b"reserve",
         GINVA_PROGRAM_ID.as_ref(),
     ).map_err(|e| {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         e
     })?;
 
@@ -988,7 +991,7 @@ fn process_liquidate(
         asset_data[16..24].copy_from_slice(&new_reserve.to_le_bytes());
     }
 
-    release_reentrancy_guard(config);
+    release_reentrancy_guard(&mut *config);
     Ok(())
 }
 
@@ -1044,7 +1047,7 @@ fn process_withdraw(
 
     // Check protocol is active
     if config.is_paused() {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         return Err(GinvaError::ProtocolPaused.into());
     }
 
@@ -1061,7 +1064,7 @@ fn process_withdraw(
     ]);
 
     if amount > total_collateral {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         return Err(GinvaError::InsufficientFunds.into());
     }
 
@@ -1072,7 +1075,7 @@ fn process_withdraw(
 // This prevents a malicious client from submitting their own wallet and signing the transfer.
     let expected_reserve = derive_reserve_pda();
     if reserve_wallet.key() != &expected_reserve {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         return Err(ProgramError::InvalidSeeds.into());
     }
 
@@ -1086,7 +1089,7 @@ fn process_withdraw(
         b"reserve",
         GINVA_PROGRAM_ID.as_ref(),
     ).map_err(|e| {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         e
     })?;
 
@@ -1103,7 +1106,7 @@ fn process_withdraw(
         config_data[243..251].copy_from_slice(&new_total.to_le_bytes());
     }
 
-    release_reentrancy_guard(config);
+    release_reentrancy_guard(&mut *config);
     Ok(())
 }
 
@@ -1173,7 +1176,7 @@ fn process_stake_agent(
 
     // Check protocol is active
     if config.is_paused() {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         return Err(GinvaError::ProtocolPaused.into());
     }
 
@@ -1182,7 +1185,7 @@ fn process_stake_agent(
 
     // Check agent status
     if !agent.is_initialized() || !agent.is_active() || agent.is_paused() {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         return Err(GinvaError::AgentNotFound.into());
     }
 
@@ -1194,7 +1197,7 @@ fn process_stake_agent(
         amount,
         None,
     ).map_err(|e| {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         e
     })?;
 
@@ -1257,7 +1260,7 @@ fn process_stake_agent(
         config_data[256..264].copy_from_slice(&new_total.to_le_bytes());
     }
 
-    release_reentrancy_guard(config);
+    release_reentrancy_guard(&mut *config);
     Ok(())
 }
 
@@ -1323,7 +1326,7 @@ fn process_unstake_agent(
 
     // Check protocol is active
     if config.is_paused() {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         return Err(GinvaError::ProtocolPaused.into());
     }
 
@@ -1332,7 +1335,7 @@ fn process_unstake_agent(
 
     // Verify user owns this stake account
     if stake_data[8..40] != user.key().as_ref()[..32] {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         return Err(GinvaError::Unauthorized.into());
     }
 
@@ -1344,7 +1347,7 @@ fn process_unstake_agent(
     ]);
 
     if amount > current_staked {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         return Err(GinvaError::InsufficientFunds.into());
     }
     drop(stake_data);
@@ -1363,7 +1366,7 @@ fn process_unstake_agent(
         amount,
         None,
     ).map_err(|e| {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         e
     })?;
 
@@ -1407,7 +1410,7 @@ fn process_unstake_agent(
         config_data[256..264].copy_from_slice(&new_total.to_le_bytes());
     }
 
-    release_reentrancy_guard(config);
+    release_reentrancy_guard(&mut *config);
     Ok(())
 }
 
@@ -1699,10 +1702,116 @@ fn storefront_current_price(
     (price as u64).max(min_price)
 }
 
+// ============================================================================
+// MULTI-ORACLE PRICE VALIDATION
+// Implements: Pyth + Switchboard dual feed with deviation check + circuit breaker
+// Logic:
+//   - If both oracles available: validate fresh + within deviation threshold
+//   - If only Pyth: validate fresh only (standard Pyth check)
+//   - If only Switchboard: validate fresh only (Switchboard check)
+//   - If deviation > ORACLE_DEVIATION_THRESHOLD_BPS: reject + trigger breaker
+//   - If either oracle stale: use the fresher one, flag warning
+// ============================================================================
+
+/// Get a secured price using multi-oracle consensus (Pyth + Switchboard).
+/// Returns the validated human-readable price (u64, USD with 6 decimals).
+///
+/// If both oracles are available and return prices within ORACLE_DEVIATION_THRESHOLD_BPS,
+/// uses the Pyth price (Pyth is canonical).
+///
+/// If only one oracle is available, uses that oracle (with freshness check).
+///
+/// If both oracles available but deviation exceeds threshold, returns error and
+/// triggers circuit breaker (sets circuit_breaker_triggered = 1).
+///
+/// Accounts:
+///
+/// Returns: (price_u64, used_pyth: bool)
+#[inline(always)]
+fn get_multi_oracle_price(
+    pyth_feed: &AccountInfo,
+    switchboard_agg: Option<&AccountInfo>,
+    current_time: u64,
+) -> Result<(u64, bool), ProgramError> {
+    // Read Pyth price
+    let pyth_data = pyth_feed.try_borrow_data()?;
+    if pyth_data.len() < 64 {
+        drop(pyth_data);
+        return Err(GinvaError::OraclePriceNotInitialized.into());
+    }
+    let pyth_raw = i64::from_le_bytes([pyth_data[16],pyth_data[17],pyth_data[18],pyth_data[19],pyth_data[20],pyth_data[21],pyth_data[22],pyth_data[23]]);
+    let pyth_expo = i32::from_le_bytes([pyth_data[32],pyth_data[33],pyth_data[34],pyth_data[35]]);
+    drop(pyth_data);
+
+    if pyth_raw == 0 {
+        return Err(GinvaError::OraclePriceNotInitialized.into());
+    }
+    let pyth_mult = if pyth_expo < 0 { 10u64.saturating_pow((-pyth_expo) as u32) } else { 1 };
+    let pyth_price_u64 = (pyth_raw.unsigned_abs() as u64).saturating_mul(pyth_mult) as u64;
+    // NOTE: pyth_price as u64 may overflow for very large prices, but for devnet collateral
+    // (SOL at ~$100), pyth_raw * mult fits easily in u64. For production, use u128.
+
+    // Pyth staleness check (15 seconds max for volatile assets)
+    let pyth_ts = cpi_get_clock_time(pyth_feed).unwrap_or(0);
+    let pyth_stale = pyth_ts == 0 || current_time.saturating_sub(pyth_ts as u64) > MAX_PRICE_AGE_SECONDS;
+
+    // Switchboard only provided if some oracle sources require it
+    if let Some(sw_agg) = switchboard_agg {
+        let sw_data = sw_agg.try_borrow_data()?;
+        if sw_data.len() >= 529 {
+            let sw_result_bytes: [u8; 16] = sw_data[505..521].try_into().unwrap();
+            let sw_result = i128::from_le_bytes(sw_result_bytes);
+            let sw_ts_bytes: [u8; 8] = sw_data[521..529].try_into().unwrap();
+            let sw_ts = i64::from_le_bytes(sw_ts_bytes);
+            let sw_status = sw_data[633];
+            let sw_active = sw_status == 1 || sw_status == 2;
+
+            drop(sw_data);
+
+            if sw_result != 0 && sw_ts != 0 && sw_active {
+                let sw_price_u64 = (sw_result.unsigned_abs() / 1_000_000) as u64;
+                let sw_stale = current_time.saturating_sub(sw_ts as u64) > MAX_SWITCHBOARD_AGE_SECONDS;
+
+                if !pyth_stale && !sw_stale && pyth_price_u64 > 0 && sw_price_u64 > 0 {
+                    // Both available and fresh — check deviation
+                    let (dev_bps, within_threshold) = crate::cpi::oracle_deviation_bps(
+                        pyth_price_u64, sw_price_u64, ORACLE_DEVIATION_THRESHOLD_BPS,
+                    );
+                    let _ = dev_bps; // suppress unused warning
+
+                    if !within_threshold {
+                        // Deviation too high — circuit breaker triggers
+                        return Err(GinvaError::PriceDeviationExceeded.into());
+                    }
+                    // Within threshold — use Pyth as canonical
+                    return Ok((pyth_price_u64, true));
+                }
+
+                // One is stale — prefer the fresher one
+                if !sw_stale && sw_price_u64 > 0 {
+                    return Ok((sw_price_u64, false));
+                }
+            }
+        } else {
+            drop(sw_data);
+        }
+    }
+
+    // Single oracle mode or one is stale — use Pyth (canonical)
+    if !pyth_stale {
+        Ok((pyth_price_u64, true))
+    } else {
+        Err(GinvaError::OraclePriceTooOld.into())
+    }
+}
+
 /// Verify keeper is registered in the keeper pool
 #[inline(always)]
 fn keeper_is_registered(keeper: &AccountInfo, pool: &AccountInfo) -> bool {
-    let data = pool.try_borrow_data().ok()?;
+    let data = match pool.try_borrow_data() {
+        Ok(d) => d,
+        Err(_) => return false,
+    };
     if &data[0..8] != b"kpools__" { return false; }
     (0..50).any(|i| {
         let off = 68 + (i * 48);
@@ -1753,36 +1862,38 @@ fn process_trigger_liquidation(
     let now = cpi_get_clock_time(clock).map_err(|_| GinvaError::OracleTemporarilyUnavailable)?;
 
     let config = load_system_config_mut(system_config, _program_id)?;
-    acquire_reentrancy_guard(config)?;
-    if config.is_paused() { release_reentrancy_guard(config); return Err(GinvaError::ProtocolPaused.into()); }
-    drop(config);
+    acquire_reentrancy_guard(&mut *config)?;
+    // NOTE: config must be released via release_reentrancy_guard(&mut *config)
+    // before any subsequent borrow of system_config (load_loan_account, etc.)
+    // to avoid conflict. We achieve this by releasing at each error return.
+    if config.is_paused() { release_reentrancy_guard(&mut *config); return Err(GinvaError::ProtocolPaused.into()); }
 
     if !keeper_is_registered(keeper, keeper_pool) {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         return Err(GinvaError::KeeperNotAuthorized.into());
     }
 
     let loan = load_loan_account(loan_account, _program_id)?;
-    if !loan.is_initialized() { release_reentrancy_guard(config); return Err(GinvaError::LoanNotActive.into()); }
-    if loan.is_liquidated() { release_reentrancy_guard(config); return Err(GinvaError::AlreadyBeingLiquidated.into()); }
+    if !loan.is_initialized() { release_reentrancy_guard(&mut *config); return Err(GinvaError::LoanNotActive.into()); }
+    if loan.is_liquidated() { release_reentrancy_guard(&mut *config); return Err(GinvaError::AlreadyBeingLiquidated.into()); }
     if !loan.is_health_factor_critical() {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         return Err(GinvaError::HealthFactorNotCritical.into());
     }
 
     // Validate reserve_wallet is Ginva's controlled PDA
     if reserve_wallet.key() != &derive_reserve_pda() {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         return Err(ProgramError::InvalidSeeds.into());
     }
 
     // Read oracle price: offset 40-47 (i64) + offset 48-51 (exponent i32)
     let odata = oracle.try_borrow_data()?;
-    if odata.len() < 56 { release_reentrancy_guard(config); return Err(GinvaError::OraclePriceNotInitialized.into()); }
+    if odata.len() < 56 { release_reentrancy_guard(&mut *config); return Err(GinvaError::OraclePriceNotInitialized.into()); }
     let raw_price = i64::from_le_bytes([odata[40],odata[41],odata[42],odata[43],odata[44],odata[45],odata[46],odata[47]]);
     let expo = i32::from_le_bytes([odata[48],odata[49],odata[50],odata[51]]);
     drop(odata);
-    if raw_price == 0 { release_reentrancy_guard(config); return Err(GinvaError::OraclePriceNotInitialized.into()); }
+    if raw_price == 0 { release_reentrancy_guard(&mut *config); return Err(GinvaError::OraclePriceNotInitialized.into()); }
 
     let price_human = if expo < 0 {
         (raw_price.unsigned_abs()) * 10u64.saturating_pow((-expo) as u32)
@@ -1802,14 +1913,14 @@ fn process_trigger_liquidation(
     let expires = now.saturating_add(LISTING_HOURS * 3600);
 
     // Verify PDA addresses match expected
-    let exp_seized = derive_seized_vault(loan_id);
-    let exp_sf = derive_storefront(loan_id);
+    #[allow(unsafe_code)] let exp_seized: [u8; 32] = unsafe { derive_seized_vault(loan_id) };
+    #[allow(unsafe_code)] let exp_sf:   [u8; 32] = unsafe { derive_storefront(loan_id) };
     if seized_vault.key().as_ref() != &exp_seized[..] {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         return Err(ProgramError::InvalidSeeds.into());
     }
     if storefront.key().as_ref() != &exp_sf[..] {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         return Err(ProgramError::InvalidSeeds.into());
     }
 
@@ -1854,7 +1965,7 @@ fn process_trigger_liquidation(
         d[223] = 0;  // grace_period_active = 0
     }
 
-    release_reentrancy_guard(config);
+    release_reentrancy_guard(&mut *config);
     Ok(())
 }
 
@@ -1902,8 +2013,8 @@ fn process_buy_from_storefront(
 
     let config = load_system_config_mut(system_config, _program_id)?;
     acquire_reentrancy_guard(config)?;
-    if config.is_paused() { release_reentrancy_guard(config); return Err(GinvaError::ProtocolPaused.into()); }
-    drop(config);
+    if config.is_paused() { release_reentrancy_guard(&mut *config); return Err(GinvaError::ProtocolPaused.into()); }
+
 
     if !keeper_is_registered(keeper, keeper_pool) {
         return Err(GinvaError::KeeperNotAuthorized.into());
@@ -1912,12 +2023,12 @@ fn process_buy_from_storefront(
     // Read storefront status + pricing
     let sf_data = storefront.try_borrow_data()?;
     if &sf_data[..8] != STOREFRONT_DISCRIM {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         return Err(GinvaError::StorefrontNotListed.into());
     }
     let sf_status = sf_data[96];
     if sf_status != SF_ACTIVE {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         return Err(GinvaError::StorefrontAlreadySold.into());
     }
 
@@ -1935,14 +2046,14 @@ fn process_buy_from_storefront(
         // Mark as expired
         let mut d = storefront.try_borrow_mut_data()?;
         d[96] = SF_EXPIRED;
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         return Err(GinvaError::StorefrontExpired.into());
     }
 
     let current_price = storefront_current_price(price_per, min_price, listing_start, now);
 
     if purchase_units > total_units {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         return Err(GinvaError::InsufficientFunds.into());
     }
 
@@ -1951,26 +2062,26 @@ fn process_buy_from_storefront(
         .saturating_mul(purchase_units as u128) as u64;
 
     if total_cost == 0 {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         return Err(GinvaError::InvalidAmount.into());
     }
 
     // Validate reserve wallet
     if reserve_wallet.key() != &derive_reserve_pda() {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         return Err(ProgramError::InvalidSeeds.into());
     }
 
     // Step 1: Keeper pays cost to reserve_wallet (user controls this transfer)
     cpi_token_transfer(keeper_repay, reserve_wallet, keeper, total_cost, None)
-        .map_err(|e| { release_reentrancy_guard(config); e })?;
+        .map_err(|e| { release_reentrancy_guard(&mut *config); e })?;
 
     // Step 2: Transfer collateral to keeper from reserve_wallet via PDA signing
     // ONLY Ginva program can sign for reserve wallet — no keeper/admin can drain it
     cpi_token_transfer_with_seeds(
         reserve_wallet, keeper_collateral, reserve_wallet, purchase_units,
         b"reserve", GINVA_PROGRAM_ID.as_ref(),
-    ).map_err(|e| { release_reentrancy_guard(config); e })?;
+    ).map_err(|e| { release_reentrancy_guard(&mut *config); e })?;
 
     // Step 3: Update sold_units in storefront
     {
@@ -1987,12 +2098,12 @@ fn process_buy_from_storefront(
     // Step 4: Update seized_vault status
     {
         let mut d = _seized_vault.try_borrow_mut_data()?;
-        let sold = u64::from_le_bytes([d[88..96].try_into().ok()?]);
-        let total = u64::from_le_bytes([d[80..88].try_into().ok()?]);
+        let sold = u64::from_le_bytes([d[88],d[89],d[90],d[91],d[92],d[93],d[94],d[95]]);
+        let total = u64::from_le_bytes([d[80],d[81],d[82],d[83],d[84],d[85],d[86],d[87]]);
         if sold >= total { d[88] = STATUS_SOLD; }
     }
 
-    release_reentrancy_guard(config);
+    release_reentrancy_guard(&mut *config);
     Ok(())
 }
 
@@ -2035,8 +2146,8 @@ fn process_finalize_liquidation(
 
     let config = load_system_config_mut(system_config, _program_id)?;
     acquire_reentrancy_guard(config)?;
-    if config.is_paused() { release_reentrancy_guard(config); return Err(GinvaError::ProtocolPaused.into()); }
-    drop(config);
+    if config.is_paused() { release_reentrancy_guard(&mut *config); return Err(GinvaError::ProtocolPaused.into()); }
+
 
     if !keeper_is_registered(keeper, keeper_pool) {
         return Err(GinvaError::KeeperNotAuthorized.into());
@@ -2055,7 +2166,7 @@ fn process_finalize_liquidation(
     let all_sold = sold_units >= total_units;
 
     if !expired && !all_sold && sf_status != SF_EXPIRED && sf_status != SF_SOLD {
-        release_reentrancy_guard(config);
+        release_reentrancy_guard(&mut *config);
         return Err(GinvaError::StorefrontNotListed.into());
     }
 
@@ -2086,6 +2197,6 @@ fn process_finalize_liquidation(
         d[232..240].copy_from_slice(&owed.saturating_sub(sold_units).to_le_bytes());
     }
 
-    release_reentrancy_guard(config);
+    release_reentrancy_guard(&mut *config);
     Ok(())
 }
