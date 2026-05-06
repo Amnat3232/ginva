@@ -27,7 +27,7 @@ version = "=0.2.17"
 unexpected_cfgs = "allow"
 
 [profile.release]
-overflow-checks = false
+overflow-checks = true  # panic on overflow in release (safe math)
 lto = false
 codegen-units = 16
 debug = 0

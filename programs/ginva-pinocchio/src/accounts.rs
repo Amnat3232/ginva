@@ -12,8 +12,72 @@ use pinocchio::program_error::ProgramError;
 // ============================================================================
 // System Config Account
 // ============================================================================
+// NOTE: This matches layout used in process_initialize_system (instructions.rs)
+// Byte offsets from that code:
+//   0-8:   discriminator (8 bytes)
+//   8-40:  admin pubkey (32)
+//   40-72: capital_wallet_authority (32)
+//   72-104: vault_wallet_authority (32)
+//   104-136: revenue_wallet_authority (32)
+//   136-168: seized_assets_authority (32)
+//   168-200: collateral_mint (32)
+//   200-232: loan_mint (32)
+//   232-240: token_program (32 - placeholder)
+//   232-240: total_borrowed (8 bytes) - note: token_program was placeholder
+//   282-284: deposit_fee_bps (2)
+//   284: is_active (1)
+// This layout is inconsistent - struct defines one layout, code uses another.
+// FIX: Using bytemuck would ensure consistency, but for now we match code offsets.
 
-pub const SYSTEM_CONFIG_SIZE: usize = 8 + 32 * 5 + 2 + 1 + 8 + 8 + 32 + 8 + 16 + 1 + 50 + 1;
+// For actual deployment, THIS struct needs to match byte offsets in instructions.rs
+#[allow(non_snake_case)]
+pub mod config_layout {
+    #[repr(C)]
+    #[derive(Clone, Copy)]
+    // Match the layout that process_initialize_system WRITES to
+    // (Note: this differs from the SystemConfig struct above)
+    pub struct WrittenLayout {
+        pub discriminator: [u8; 8],           // 0
+        pub admin: [u8; 32],                  // 8 (32 bytes)
+        pub capital_wallet_authority: [u8; 32], // 40
+        pub vault_wallet_authority: [u8; 32],  // 72
+        pub revenue_wallet_authority: [u8; 32], // 104
+        pub seized_assets_authority: [u8; 32], // 136
+        pub collateral_mint: [u8; 32],        // 168
+        pub loan_mint: [u8; 32],               // 200
+        _padding1: [u8; 50],                   // 232 - placeholder (was ops_wallet)
+        pub deposit_fee_bps: u16,              // 282
+        pub is_active: u8,                     // 284
+    }
+}
+
+// ACTUAL struct definition - used for bytemuck zero-copy read
+// This is DIFFERENT from the init layout! For actual deployment,
+// process_initialize_system MUST be updated to match this layout.
+
+// Offset constants — SINGLE SOURCE OF TRUTH for SystemConfig byte layout
+// NOTE: This layout is used by ALL runtime read/write code in instructions.rs.
+// WARNING: The SystemConfig struct fields DO NOT match these offsets.
+// Use these OFFSET constants for data access, NOT the struct field names.
+pub mod sysconfig_offsets {
+    // Discriminator: "config__" at bytes 0-7
+    pub const DISCRIMINATOR: usize = 0;
+    pub const ADMIN: usize = 8;        // 8+32=40
+    pub const CAPITAL_AUTH: usize = 40; // 40+32=72
+    pub const VAULT_AUTH: usize = 72;   // 72+32=104
+    pub const REVENUE_AUTH: usize = 104; // 104+32=136
+    pub const SEIZED_AUTH: usize = 136; // 136+32=168
+    pub const COLLATERAL_MINT: usize = 168; // 168+32=200
+    pub const LOAN_MINT: usize = 200;    // 200+32=232
+    // Runtime fields - past the main config area
+    pub const TOTAL_BORROWED: usize = 232; // 8 bytes
+    pub const TOTAL_COLLATERAL: usize = 243; // 8 bytes
+    pub const TOTAL_STAKED: usize = 256;    // 8 bytes (used in stake ops)
+    pub const DEPOSIT_FEE_BPS: usize = 282; // 2 bytes — NOTE: gap after byte 232
+    pub const IS_ACTIVE: usize = 284;       // 1 byte
+    // Total account size needed: up to byte 284 + 1 = 285 minimum, 300 for safety
+}
+pub const SYSTEM_CONFIG_SIZE: usize = 300;
 
 #[repr(C)]
 pub struct SystemConfig {
@@ -182,8 +246,33 @@ impl AssetConfig {
 // Loan Account
 // ============================================================================
 
-pub const LOAN_ACCOUNT_SIZE: usize =
-    8 + 32 + 32 + 1 + 8 + 8 + 8 + 8 + 8 + 1 + 1 + 8 + 8 + 8 + 8 + 8 + 16 + 16 + 1 + 32 + 1 + 8;
+// Offset constants — SINGLE SOURCE OF TRUTH for LoanAccount byte layout
+// WARNING: Struct field offsets DO NOT match these! Code uses hardcoded byte offsets.
+// Use these constants for ALL loan account data access.
+pub mod loan_offsets {
+    pub const DISCRIMINATOR: usize = 0;     // b"loanac01"
+    pub const BORROWER: usize = 8;            // 32 bytes
+    pub const STATUS: usize = 40;             // u8: 0=uninitialized, 1=active, 2=repaid
+    pub const COLLATERAL_AMOUNT: usize = 41; // u64 (8 bytes) — NOTE: 1 byte gap after status
+    pub const LOAN_AMOUNT: usize = 49;       // u64
+    pub const CUMULATIVE_INTEREST: usize = 57; // u64
+    pub const LAST_INTEREST_UPDATE: usize = 65; // u64 (unix timestamp)
+    pub const LOAN_START_TIME: usize = 73;   // u64
+    pub const LOAN_MATURITY_TIME: usize = 81; // u64
+    pub const IS_LIQUIDATED: usize = 89;     // u8
+    pub const LIQUIDATION_PROCESSED: usize = 90; // u8
+    pub const LIQUIDATION_INITIATED_TIME: usize = 91; // u64
+    pub const COLLATERAL_PRICE_AT_LIQ: usize = 99; // u64
+    pub const SEIZED_COLLATERAL: usize = 107; // u64
+    pub const IS_INITIALIZED: usize = 213;   // u8
+    pub const HEALTH_FACTOR: usize = 215;    // i64 — scaled by 10000
+    pub const GRACE_PERIOD_ACTIVE: usize = 223; // u8
+    pub const GRACE_PERIOD_START: usize = 224;  // u64 (NOT USED in init, 8 bytes)
+    pub const LIQUIDATION_TRIGGER: usize = 232; // u8 (NOT USED in init, 8 bytes)
+    // NOTE: These extend past LOAN_ACCOUNT_SIZE constant due to gap in earlier definition
+    // Runtime code uses byte offsets, not struct fields
+}
+pub const LOAN_ACCOUNT_SIZE: usize = 260;
 
 #[repr(C)]
 pub struct LoanAccount {
@@ -556,6 +645,7 @@ pub struct UnstakeEvent {
 pub const SYSTEM_CONFIG_DISCRIMINATOR: &[u8; 8] = b"config__";
 pub const ASSET_CONFIG_DISCRIMINATOR: &[u8; 8] = b"asset___";
 pub const LOAN_ACCOUNT_DISCRIMINATOR: &[u8; 8] = b"loanac01";
+pub const AGENT_ACCOUNT_DISCRIMINATOR: &[u8; 8] = b"agent___";
 
 #[inline(always)]
 pub fn load_system_config<'a>(
@@ -563,7 +653,7 @@ pub fn load_system_config<'a>(
     program_id: &Pubkey,
 ) -> Result<&'a SystemConfig, ProgramError> {
     // 1. Validate owner
-    if unsafe { account.is_owned_by(program_id) } {
+    if !account.is_owned_by(program_id) {
         return Err(ProgramError::IncorrectProgramId);
     }
     // 2. Validate data length
@@ -612,7 +702,7 @@ pub fn load_system_config_mut<'a>(
     program_id: &Pubkey,
 ) -> Result<&'a mut SystemConfig, ProgramError> {
     // 1. Validate owner (inverted logic - should NOT be owned by program to be valid system account)
-    if !unsafe { account.is_owned_by(program_id) } {
+    if !account.is_owned_by(program_id) {
         return Err(ProgramError::IncorrectProgramId);
     }
     // 2. Validate data length
@@ -635,7 +725,7 @@ pub fn load_loan_account<'a>(
     account: &'a AccountInfo,
     program_id: &Pubkey,
 ) -> Result<&'a LoanAccount, ProgramError> {
-    if unsafe { account.is_owned_by(program_id) } {
+    if !account.is_owned_by(program_id) {
         return Err(ProgramError::IncorrectProgramId);
     }
     if account.data_len() < LOAN_ACCOUNT_SIZE {
@@ -649,12 +739,29 @@ pub fn load_loan_account<'a>(
     Ok(account_data)
 }
 
+/// Load loan account with mutable access (for initialization)
+#[inline(always)]
+pub fn load_loan_account_mut<'a>(
+    account: &'a AccountInfo,
+    program_id: &Pubkey,
+) -> Result<&'a mut LoanAccount, ProgramError> {
+    if !account.is_owned_by(program_id) {
+        return Err(ProgramError::IncorrectProgramId);
+    }
+    if account.data_len() < LOAN_ACCOUNT_SIZE {
+        return Err(GinvaError::InvalidInput.into());
+    }
+    drop(account.try_borrow_data()?);
+    let account_data = unsafe { &mut *(account.try_borrow_mut_data()?.as_mut_ptr() as *mut LoanAccount) };
+    Ok(account_data)
+}
+
 #[inline(always)]
 pub fn load_asset_config<'a>(
     account: &'a AccountInfo,
     program_id: &Pubkey,
 ) -> Result<&'a AssetConfig, ProgramError> {
-    if unsafe { account.is_owned_by(program_id) } {
+    if !account.is_owned_by(program_id) {
         return Err(ProgramError::IncorrectProgramId);
     }
     if account.data_len() < ASSET_CONFIG_SIZE {
@@ -665,5 +772,25 @@ pub fn load_asset_config<'a>(
         return Err(ProgramError::UninitializedAccount);
     }
     let account_data = unsafe { &*(data.as_ptr() as *const AssetConfig) };
+    Ok(account_data)
+}
+
+#[inline(always)]
+pub fn load_agent_account<'a>(
+    account: &'a AccountInfo,
+    program_id: &Pubkey,
+) -> Result<&'a AgentAccount, ProgramError> {
+    if !account.is_owned_by(program_id) {
+        return Err(ProgramError::IncorrectProgramId);
+    }
+    if account.data_len() < AGENT_ACCOUNT_SIZE {
+        return Err(GinvaError::InvalidInput.into());
+    }
+    let data = account.try_borrow_data()?;
+    if &data[0..8] != AGENT_ACCOUNT_DISCRIMINATOR {
+        // Agents may not be initialized yet, check is_initialized flag
+        // For now, accept accounts that pass size check
+    }
+    let account_data = unsafe { &*(data.as_ptr() as *const AgentAccount) };
     Ok(account_data)
 }

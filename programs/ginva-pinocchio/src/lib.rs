@@ -2,24 +2,27 @@
 //! A no-std Solana lending protocol built with Pinocchio
 
 mod accounts;
+pub mod cpi;
 mod instructions;
 #[cfg(test)]
 mod tests;
 
 pub use instructions::GinvaInstruction;
 pub use instructions::GinvaInstruction::*;
-#[macro_use]
-use pinocchio::entrypoint;
 use pinocchio::account_info::AccountInfo;
 use pinocchio::pubkey::Pubkey;
 use pinocchio::ProgramResult;
 use pinocchio::program_error::ProgramError;
+
+#[cfg(feature = "cpi")]
+use pinocchio::sysvar::clock::Clock;
 
 // ============================================================================
 // PROGRAM ID
 // ============================================================================
 
 // Manual program ID - bytes for "DyCM1XX7xVpPjR2GLYRTZybk25cBSzC3nzmy1gMVRm47"
+#[allow(non_upper_case_globals)]
 pub const GinvaPinocchio_ID: Pubkey = [
     0xE8, 0xF1, 0x74, 0x7E, 0x58, 0x93, 0x0F, 0x4B,
     0xBC, 0xAB, 0xFA, 0x60, 0x5E, 0xDC, 0x30, 0xE1,
@@ -86,6 +89,13 @@ pub const JUPITER_DEVNET: [u8; 32] = [
     0xB6, 0x1D, 0x0B, 0x96, 0x4F, 0xB7, 0xE9, 0x6E,
 ];
 
+// Storefront constants
+pub const PRICE_DECAY_MIN_BPS: u64 = 10;    // minimum 0.1% decay
+pub const PRICE_DECAY_MAX_BPS: u64 = 5000;  // maximum 50% decay
+pub const STOREFRONT_LISTING_Hours: u64 = 1; // 1 hour before price hits minimum
+pub const STOREFRONT_GRACE_HOURS: u64 = 24; // 24 hours total before foreclosure
+pub const DEFAULT_PRICE_DECAY_BPS: u64 = 100; // 1% per hour
+
 #[inline(always)]
 pub fn get_jupiter_program_id(is_devnet: bool) -> Pubkey {
     if is_devnet {
@@ -151,10 +161,20 @@ pub enum GinvaError {
     AlreadyBeingLiquidated = 308,
     HealthFactorNotCritical = 309,
     InProtectionPeriod = 310,
+    // 3-tier Keeper error codes (400-417)
     InvalidLiquidationStatus = 400,
     AlreadySwapped = 401,
     StorefrontPeriodNotOver = 402,
     InvalidLiquidator = 403,
+    // SeizedVault + Storefront (3-tier Keeper tracking)
+    SeizedVaultNotEmpty = 410,
+    StorefrontNotListed = 411,
+    StorefrontPriceNotMet = 412,
+    StorefrontExpired = 413,
+    StorefrontAlreadySold = 414,
+    KeeperNotAuthorized = 415,
+    PriceDeviationTooLarge = 416,
+    PriceDeviationExceeded = 417,
     OraclePriceNotInitialized = 500,
     OraclePriceTooOld = 501,
     OracleConfidenceTooHigh = 502,
@@ -231,23 +251,22 @@ pub unsafe extern "C" fn entrypoint(input: *mut u8) -> u64 {
 fn entrypoint_helper(input: *mut u8) -> u64 {
     use pinocchio::account_info::AccountInfo;
     use pinocchio::entrypoint;
-    use pinocchio::pubkey::Pubkey;
-    
+
     const MAX: usize = 64;
     const UNINIT: core::mem::MaybeUninit<AccountInfo> = core::mem::MaybeUninit::uninit();
     let mut accounts = [UNINIT; MAX];
-    
+
     let (program_id, count, instruction_data) = unsafe {
         entrypoint::deserialize::<MAX>(input, &mut accounts)
     };
-    
+
     let accounts_mut: &mut [AccountInfo] = unsafe {
         core::slice::from_raw_parts_mut(
-            accounts.as_mut_ptr() as *mut AccountInfo, 
+            accounts.as_mut_ptr() as *mut AccountInfo,
             count
         )
     };
-    
+
     match run_instruction(&program_id, accounts_mut, &instruction_data) {
         Ok(()) => pinocchio::SUCCESS,
         Err(e) => e.into(),
