@@ -1,7 +1,7 @@
 //! GINVA Protocol - Pinocchio Version
 //! A no-std Solana lending protocol built with Pinocchio
 
-mod accounts;
+pub mod accounts;
 pub mod cpi;
 mod instructions;
 #[cfg(test)]

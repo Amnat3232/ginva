@@ -136,6 +136,10 @@ mod tests {
             asset_config: [0u8; 32],
             is_restricted: 0,
             debt_accumulation_last_update: 0,
+            health_factor: 15000,
+            grace_period_start_time: 0,
+            grace_period_active: 0,
+            liquidation_trigger_reason: 0,
         };
 
         assert!(loan.is_initialized());
