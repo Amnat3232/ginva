@@ -1854,6 +1854,9 @@ fn process_trigger_liquidation(
     let clock           = &accounts[7];
     let token_prog      = &accounts[8];
     let keeper_pool     = &accounts[9];
+    // 10. [readonly] switchboard_oracle (optional — dual-oracle consensus)
+    let switchboard_oracle: Option<&AccountInfo> =
+        if accounts.len() >= 11 { Some(&accounts[10]) } else { None };
 
     if !keeper.is_signer() { return Err(GinvaError::Unauthorized.into()); }
     let tp = token_prog.key().as_ref();
@@ -1887,18 +1890,15 @@ fn process_trigger_liquidation(
         return Err(ProgramError::InvalidSeeds.into());
     }
 
-    // Read oracle price: offset 40-47 (i64) + offset 48-51 (exponent i32)
-    let odata = oracle.try_borrow_data()?;
-    if odata.len() < 56 { release_reentrancy_guard(&mut *config); return Err(GinvaError::OraclePriceNotInitialized.into()); }
-    let raw_price = i64::from_le_bytes([odata[40],odata[41],odata[42],odata[43],odata[44],odata[45],odata[46],odata[47]]);
-    let expo = i32::from_le_bytes([odata[48],odata[49],odata[50],odata[51]]);
-    drop(odata);
-    if raw_price == 0 { release_reentrancy_guard(&mut *config); return Err(GinvaError::OraclePriceNotInitialized.into()); }
-
-    let price_human = if expo < 0 {
-        (raw_price.unsigned_abs()) * 10u64.saturating_pow((-expo) as u32)
-    } else {
-        raw_price.unsigned_abs() / 10u64.saturating_pow(expo as u32)
+    // Multi-oracle price: Pyth (canonical) + optional Switchboard consensus.
+    // Fails with PriceDeviationExceeded if both feeds diverge >5% (circuit breaker).
+    // Fails with OraclePriceTooOld if Pyth is stale and no fresh Switchboard feed.
+    let price_human = match get_multi_oracle_price(oracle, switchboard_oracle, now) {
+        Ok((price, _dual_confirmed)) => price,
+        Err(e) => {
+            release_reentrancy_guard(&mut *config);
+            return Err(e);
+        }
     };
 
     // collateral_value = collateral_amount (6-decimal) * oracle_price / 1e6

@@ -15,13 +15,9 @@ pinocchio = "0.9"
 pinocchio-system = "0.4"
 pinocchio-token = "0.4"
 solana-program-error = "2.0"
-blake3 = "1.5"
 constant_time_eq = "0.2"
-base64ct = "1.6"
+base64ct = "=1.6.0"
 hashbrown = "0.14"
-
-[dependencies.cpufeatures]
-version = "=0.2.17"
 
 [lints.rust]
 unexpected_cfgs = "allow"

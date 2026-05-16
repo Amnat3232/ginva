@@ -1,0 +1,4 @@
+[toolchain]
+channel = "1.89.0-sbpf-solana-v1.52"
+components = ["rustfmt", "clippy"]
+targets = ["sparcv8em/solana-elf"]
