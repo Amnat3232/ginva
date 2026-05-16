@@ -1,0 +1,22 @@
+# Deterministic build image for GINVA Pinocchio verified builds
+# Usage: docker build -f Dockerfile.verified -t ginva-verified . && \
+#        docker run --rm ginva-verified cat /out/ginva_pinocchio.so > target/ginva_pinocchio.so
+#
+# Must match platform-tools version used locally (v1.52 / Solana 3.x)
+FROM solanafoundation/solana-verifiable-build:v1.52
+
+WORKDIR /build
+
+COPY programs/ginva-pinocchio/ ./programs/ginva-pinocchio/
+
+WORKDIR /build/programs/ginva-pinocchio
+
+# Ensure lock file is version 3 (compatible with cargo-build-sbf)
+RUN sed -i 's/^version = 4$/version = 3/' Cargo.lock 2>/dev/null || true
+
+RUN cargo build-sbf --release
+
+RUN mkdir -p /out && \
+    cp target/sbf-solana-solana/release/ginva_pinocchio.so /out/
+
+CMD ["sh", "-c", "sha256sum /out/ginva_pinocchio.so && cat /out/ginva_pinocchio.so"]

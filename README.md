@@ -86,6 +86,39 @@ GINVA is currently deployed and operational on **Solana Devnet** for testing and
 | **AI Keeper Agent** | Devnet | 🟢 Running | [bots/](./bots) |
 | **Explorer** | Devnet | 🟢 Verified | [Solana Explorer (Devnet)](https://explorer.solana.com?cluster=devnet) |
 
+---
+
+## 📊 Development Status (Updated: 2026-05-17)
+
+### Phase 2 — Security Hardening & Testing ✅ COMPLETE
+
+| Task | Status | Details |
+|------|--------|---------|
+| Multi-oracle (Pyth + Switchboard) | ✅ Done | `get_multi_oracle_price()` integrated into `trigger_liquidation` |
+| Circuit breaker (>5% deviation) | ✅ Done | Returns `PriceDeviationExceeded` on oracle divergence |
+| Reentrancy guards | ✅ Done | `acquire/release_reentrancy_guard` on all state-mutating instructions |
+| PDA-controlled reserve wallet | ✅ Done | Only program can sign for reserve — no admin drain |
+| 3-tier keeper liquidation | ✅ Done | Keeper A→B→C with waterfall reward distribution |
+| Supply cap management | ✅ Done | Per-asset cap checked before every deposit/borrow |
+| 72h grace period logic | ✅ Done | Tested with 14 boundary scenarios |
+| Test suite (41 tests) | ✅ Done | 18 unit + 14 integration + 9 CU benchmarks |
+| CU benchmarking | ✅ Done | See [docs/CU_REPORT.md](docs/CU_REPORT.md) |
+| Verified build setup | ✅ Done | `scripts/verify-build.sh` + `Dockerfile.verified` |
+| Solana CLI upgrade | ✅ Done | 1.18.17 → 3.1.15 (platform-tools v1.52, rustc 1.89) |
+
+### Phase 3 — Production Ready 🔄 NEXT
+
+| Task | Status | Priority |
+|------|--------|---------|
+| `solana-verify` on-chain registration | 🔲 Todo | HIGH |
+| Multisig authority (Squads) | 🔲 Todo | HIGH |
+| Mollusk SVM full instruction tests | 🔲 Todo | MEDIUM |
+| Frontend: @solana/web3-compat migration | 🔲 Todo | MEDIUM |
+| Codama IDL upload (on-chain PDA) | 🔲 Todo | MEDIUM |
+| Mainnet deployment | 🔲 Todo | HIGH |
+
+---
+
 ### 🎯 Access Instructions for Judges
 
 > **Welcome to Ginva — The Fair Decentralized Pawn Shop**
