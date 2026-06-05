@@ -1,0 +1,22 @@
+{
+  "name": "ginva-guardian",
+  "version": "1.0.0",
+  "description": "Ginva Guardian Agent - Monitors positions 24/7 on Cloudflare Agents",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "build": "wrangler types --env-prefixes JSON",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "agents": "latest",
+    "@solana/web3.js": "^1.98.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241127.0",
+    "wrangler": "^3.95.0",
+    "typescript": "^5.7.2",
+    "vitest": "^3.0.0"
+  }
+}

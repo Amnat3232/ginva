@@ -1,0 +1,18 @@
+name = "ginva-guardian"
+compatibility_date = "2024-12-18"
+compatibility_flags = ["nodejs_compat"]
+main = "src/index.ts"
+
+[[d1_databases]]
+binding = "GINVA_DB"
+database_name = "ginva-guardian-db"
+database_id = "646e8953-9767-47f9-ba0e-411d95a9bbc7"
+
+[observability]
+enabled = true
+
+# Environment variables
+[vars]
+ENVIRONMENT = "development"
+GINVA_PROGRAM_ID = ""
+SOLANA_RPC_URL = "https://api.mainnet-beta.solana.com"
